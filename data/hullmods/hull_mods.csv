@@ -1,0 +1,2 @@
+name,id,tier,rarity,tech/manufacturer,tags,uiTags,base value,unlocked,hidden,hiddenEverywhere,cost_frigate,cost_dest,cost_cruiser,cost_capital,script,,,,desc,,,,short,sModDesc,sprite
+Finisher Beam Protocol,fnisherbeamprotocol,0,,,weapons,Weapons,,TRUE,FALSE,,0,0,0,0,com.genir.aitweaks.FinisherBeamProtocol,,,,A set of software modifications and officer training routines ai,,,,,,graphics/hullmods/finisher_beam_protocol.png
