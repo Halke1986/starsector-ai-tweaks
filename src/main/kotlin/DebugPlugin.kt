@@ -9,7 +9,7 @@ import com.fs.starfarer.api.input.InputEventAPI
 import org.lazywizard.lazylib.ui.LazyFont
 import java.awt.Color
 
-const val debug = false
+const val debug = true
 var debugStr = "test"
 
 // DebugPlugin is used to render debug information during combat.
