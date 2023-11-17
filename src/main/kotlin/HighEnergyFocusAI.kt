@@ -3,10 +3,7 @@ package com.genir.aitweaks
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import org.lazywizard.lazylib.FastTrig
 import org.lazywizard.lazylib.combat.AIUtils
-import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.rotate
 import org.lwjgl.util.vector.Vector2f
 
 data class TargetedWeapon(val weapon: WeaponAPI, val target: ShipAPI?)
@@ -71,7 +68,7 @@ fun weaponShouldTriggerHEF(w: TargetedWeapon, size: WeaponAPI.WeaponSize) = when
     w.target.isFighter -> false
     w.target.isDrone -> false
     w.target.isPhased -> false
-    w.weapon.isAntiArmor && willHitShield(w) -> false
+    w.weapon.isAntiArmor && willHitShield(w.weapon, w.target) -> false
     else -> true
 }
 
@@ -79,15 +76,3 @@ val WeaponAPI.isAntiArmor
     get() = this.damageType == DamageType.HIGH_EXPLOSIVE ||
             this.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS)
 
-fun willHitShield(w: TargetedWeapon) = when {
-    w.target == null -> false
-    w.target.shield == null -> false
-    w.target.shield.isOff -> false
-    else -> willHitActiveShieldArc(w.weapon, w.target.shield)
-}
-
-fun willHitActiveShieldArc(weapon: WeaponAPI, shield: ShieldAPI): Boolean {
-    val r = (weapon.location - shield.location).rotate(-shield.facing)
-    val attackAngle = Math.toDegrees(FastTrig.atan2(r.y.toDouble(), r.x.toDouble()))
-    return kotlin.math.abs(attackAngle) < (shield.activeArc / 2)
-}

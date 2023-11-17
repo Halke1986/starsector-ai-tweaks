@@ -6,7 +6,9 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 
-var registerShipsCallbacks = setOf<(ShipAPI) -> Unit>()
+var registerShipsCallbacks = mutableSetOf<(ShipAPI) -> Unit>(
+    { s -> applyLessVsHullAI(s) }
+)
 
 class RegisterShipsPlugin : BaseEveryFrameCombatPlugin() {
     private val knownShips = mutableSetOf<String>()
