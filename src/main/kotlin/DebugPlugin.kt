@@ -9,8 +9,8 @@ import com.fs.starfarer.api.input.InputEventAPI
 import org.lazywizard.lazylib.ui.LazyFont
 import java.awt.Color
 
-const val debug = true
-var debugStr = "test"
+const val debug = false
+var debugStr = "debug"
 
 // DebugPlugin is used to render debug information during combat.
 // It's disabled by default.
@@ -26,8 +26,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             return
 
         if (engine == null) {
-            this.engine = Global.getCombatEngine()
-            this.font = LazyFont.loadFont("graphics/fonts/insignia15LTaa.fnt")
+            engine = Global.getCombatEngine()
+            font = LazyFont.loadFont("graphics/fonts/insignia15LTaa.fnt")
         }
 
         debug()

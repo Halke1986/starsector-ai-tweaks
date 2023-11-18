@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 
 var registerShipsCallbacks = mutableSetOf<(ShipAPI) -> Unit>(
-    { s -> applyLessVsHullAI(s) }
+    { s -> applyNeedlerAI(s) }
 )
 
 class RegisterShipsPlugin : BaseEveryFrameCombatPlugin() {
