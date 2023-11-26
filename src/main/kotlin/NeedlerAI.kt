@@ -6,18 +6,13 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import org.lwjgl.util.vector.Vector2f
 
-val applyTo = listOf(
-    "lightneedler",
-    "heavyneedler",
-)
-
 fun applyNeedlerAI(ship: ShipAPI) {
     ship.weaponGroupsCopy.forEach { group ->
         val plugins = group.aiPlugins
         for (i in plugins.indices) {
-            if (applyTo.contains(plugins[i].weapon.spec.weaponId)) {
-                val ai = NeedlerAI(plugins[i])
-                plugins[i] = ai
+            val role = plugins[i].weapon.spec.primaryRoleStr
+            if (role == "Strictly Anti Shield") {
+                plugins[i] = NeedlerAI(plugins[i])
             }
         }
     }

@@ -1,11 +1,9 @@
 package com.genir.aitweaks
 
 import com.fs.starfarer.api.combat.BaseHullMod
-import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.ShipAPI.HullSize
-
+import com.fs.starfarer.api.combat.WeaponAPI
 
 class FinisherBeamProtocol : BaseHullMod() {
     override fun applyEffectsAfterShipCreation(ship: ShipAPI?, id: String?) {
@@ -13,7 +11,7 @@ class FinisherBeamProtocol : BaseHullMod() {
             return
 
         ship.allWeapons
-            .filter { isFinisherBeam(it) }
+            .filter { it.spec.primaryRoleStr == "Finisher Beam" }
             .forEach { setFinisherBeamProtocol(it) }
     }
 
@@ -40,16 +38,4 @@ fun setFinisherBeamProtocol(weapon: WeaponAPI) {
     )
 }
 
-// Beam weapon is considered a finisher beam when it's:
-// - Non-PD burst beam
-// - Non-PD anti-armor beam
-fun isFinisherBeam(weapon: WeaponAPI) = when {
-    weapon.type != WeaponAPI.WeaponType.ENERGY -> false
-    !weapon.isBeam -> false
-    weapon.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS) -> false
-    weapon.hasAIHint(WeaponAPI.AIHints.PD) -> false
-    weapon.isBurstBeam -> true
-    weapon.damageType == DamageType.HIGH_EXPLOSIVE -> true
-    else -> false
-}
 
