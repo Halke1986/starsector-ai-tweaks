@@ -11,17 +11,13 @@ val applyTo = listOf(
     "heavyneedler",
 )
 
-var count = 0
-
 fun applyNeedlerAI(ship: ShipAPI) {
-    val shipNeedlers = mutableListOf<NeedlerAI>()
     ship.weaponGroupsCopy.forEach { group ->
         val plugins = group.aiPlugins
         for (i in plugins.indices) {
             if (applyTo.contains(plugins[i].weapon.spec.weaponId)) {
-                val ai = NeedlerAI(plugins[i], shipNeedlers)
+                val ai = NeedlerAI(plugins[i])
                 plugins[i] = ai
-                shipNeedlers.add(ai)
             }
         }
     }
@@ -29,15 +25,11 @@ fun applyNeedlerAI(ship: ShipAPI) {
 
 class NeedlerAI(
     private val basePlugin: AutofireAIPlugin,
-    private val shipNeedlers: List<NeedlerAI>,
 ) : AutofireAIPlugin {
     private var shouldFire = false
     private var shouldFireSince = 0f
 
-    private var overrideBase = false
-
     override fun advance(p0: Float) {
-        debug()
         basePlugin.advance(p0)
 
         // Consider firing only when base AI wants
@@ -50,13 +42,14 @@ class NeedlerAI(
             return
         }
 
-        shouldFireSince += p0
-
-        // Enemy with shields fully raised can be attacked
+        // Apply a delay to counteract shield flickering.
+        // Enemy with fully raised shields can be attacked
         // with no delay.
         val shield = basePlugin.targetShip.shield
         val fullShield = shield.arc == shield.activeArc
-        shouldFire = fullShield || shouldFireSince > 0.8f
+        val delay = 0.8f
+        shouldFireSince += p0
+        shouldFire = fullShield || shouldFireSince > delay
     }
 
     override fun shouldFire(): Boolean = shouldFire
@@ -65,14 +58,5 @@ class NeedlerAI(
     override fun getTargetShip(): ShipAPI? = basePlugin.targetShip
     override fun getWeapon(): WeaponAPI = basePlugin.weapon
     override fun getTargetMissile(): MissileAPI? = basePlugin.targetMissile
-
-    private fun debug() {
-        if (basePlugin.weapon.ship.owner != 0) return
-        if (overrideBase != (shouldFire != basePlugin.shouldFire())) {
-            overrideBase = !overrideBase
-            count += if (overrideBase) 1 else -1
-            debugStr = count.toString()
-        }
-    }
 }
 
