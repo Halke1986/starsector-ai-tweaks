@@ -11,7 +11,7 @@ class FinisherBeamProtocol : BaseHullMod() {
             return
 
         ship.allWeapons
-            .filter { it.spec.primaryRoleStr == "Finisher Beam" }
+            .filter { it.isFinisherBeam() }
             .forEach { setFinisherBeamProtocol(it) }
     }
 
@@ -22,6 +22,11 @@ class FinisherBeamProtocol : BaseHullMod() {
         3 -> "autofire"
         else -> null
     }
+}
+
+fun WeaponAPI.isFinisherBeam() = when {
+    !this.spec.isBeam && !this.spec.isBurstBeam -> false
+    else -> this.spec.primaryRoleStr == "Finisher Beam"
 }
 
 fun setFinisherBeamProtocol(weapon: WeaponAPI) {
