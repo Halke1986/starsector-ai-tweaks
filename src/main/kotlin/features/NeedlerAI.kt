@@ -19,9 +19,7 @@ fun applyNeedlerAI(ship: ShipAPI) {
     }
 }
 
-class NeedlerAI(
-    private val basePlugin: AutofireAIPlugin,
-) : AutofireAIPlugin {
+class NeedlerAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
     private var shouldFire = false
     private var shouldFireSince = 0f
 

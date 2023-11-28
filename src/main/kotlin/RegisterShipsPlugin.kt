@@ -6,9 +6,11 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.features.applyNeedlerAI
+import com.genir.aitweaks.features.applyTargetLeadAI
 
 var registerShipsCallbacks = mutableSetOf<(ShipAPI) -> Unit>(
-    { s -> applyNeedlerAI(s) }
+    { s -> applyTargetLeadAI(s) },
+    { s -> applyNeedlerAI(s) },
 )
 
 class RegisterShipsPlugin : BaseEveryFrameCombatPlugin() {
