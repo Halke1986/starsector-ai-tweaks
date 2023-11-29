@@ -4,7 +4,6 @@ import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.debugStr
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -13,8 +12,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-var count = 0
-
 fun applyTargetLeadAI(ship: ShipAPI) {
     ship.weaponGroupsCopy.forEach { group ->
         val plugins = group.aiPlugins
@@ -22,8 +19,6 @@ fun applyTargetLeadAI(ship: ShipAPI) {
             val weapon = plugins[i].weapon
             if (weapon.type != WeaponAPI.WeaponType.MISSILE && weapon.isAimable()) {
                 plugins[i] = TargetLeadAI(plugins[i])
-                count++
-                debugStr = count.toString()
             }
         }
     }
