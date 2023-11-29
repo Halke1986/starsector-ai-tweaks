@@ -1,9 +1,10 @@
 package com.genir.aitweaks.features
 
-import com.fs.starfarer.api.combat.AutofireAIPlugin
-import com.fs.starfarer.api.combat.MissileAPI
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.debugStr
+import com.genir.aitweaks.hasBestTargetLeading
+import com.genir.aitweaks.isAimable
+import com.genir.aitweaks.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -25,12 +26,33 @@ fun applyTargetLeadAI(ship: ShipAPI) {
 }
 
 class TargetLeadAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
-    override fun getTarget(): Vector2f? {
-        val target = when {
-            basePlugin.targetShip != null -> basePlugin.targetShip
-            basePlugin.targetMissile != null -> basePlugin.targetMissile
-            else -> return null
+    private var prevTarget: CombatEntityAPI? = null
+    private var attackTime: Float = 0f
+    private var idleTime: Float = 0f
+
+    override fun advance(timeDelta: Float) {
+        basePlugin.advance(timeDelta)
+
+        val target = getBasePluginTarget()
+        if (target != null && prevTarget != target) {
+            prevTarget = target
+            attackTime = 0f
         }
+
+        if (basePlugin.weapon.isFiring) {
+            attackTime += timeDelta
+            idleTime = 0f
+        } else
+            idleTime += timeDelta
+
+        if (idleTime >= 3f)
+            attackTime = 0f
+
+        debugStr = getAccuracy().toString()
+    }
+
+    override fun getTarget(): Vector2f? {
+        val target = getBasePluginTarget() ?: return null
 
         // no need to compute stuff for beam or non-aimable weapons
         if (weapon.isBeam || weapon.isBurstBeam) {
@@ -41,16 +63,35 @@ class TargetLeadAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin 
         val tgtVelocity = target.velocity - (weapon.ship?.velocity ?: Vector2f(0.0f, 0.0f))
         val travelT = intersectionTime(tgtLocation, tgtVelocity, 0f, weapon.projectileSpeed)
 
-        return if (travelT == null) basePlugin.target
-        else target.location + tgtVelocity.times(travelT)
+        return if (travelT == null)
+            basePlugin.target
+        else
+            target.location + tgtVelocity.times(travelT / getAccuracy())
     }
 
-    override fun advance(p0: Float) = basePlugin.advance(p0)
     override fun shouldFire(): Boolean = basePlugin.shouldFire()
     override fun forceOff() = basePlugin.forceOff()
     override fun getTargetShip(): ShipAPI? = basePlugin.targetShip
     override fun getWeapon(): WeaponAPI = basePlugin.weapon
     override fun getTargetMissile(): MissileAPI? = basePlugin.targetMissile
+
+    private fun getBasePluginTarget(): CombatEntityAPI? = when {
+        basePlugin.targetShip != null -> basePlugin.targetShip
+        basePlugin.targetMissile != null -> basePlugin.targetMissile
+        else -> null
+    }
+
+    private fun getAccuracy(): Float {
+        val weapon = basePlugin.weapon
+        if (weapon.hasBestTargetLeading())
+            return 1f
+
+        val accBase = weapon.ship.aimAccuracy
+        val accBonus = weapon.spec.autofireAccBonus
+
+        return (accBase - (accBonus + attackTime / 15f))
+            .coerceAtLeast(1f)
+    }
 }
 
 
@@ -98,10 +139,6 @@ fun solve(a: Float, b: Float, c: Float): Pair<Float, Float>? {
     }
 }
 
-fun WeaponAPI.isAimable(): Boolean =
-    this.spec?.trackingStr in setOf(null, "", "none", "NONE", "None") &&
-            !(this.hasAIHint(WeaponAPI.AIHints.DO_NOT_AIM))
 
-internal infix fun Vector2f.times(d: Float): Vector2f {
-    return Vector2f(d * x, d * y)
-}
+
+
