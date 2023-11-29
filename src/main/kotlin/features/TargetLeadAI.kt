@@ -1,9 +1,7 @@
 package com.genir.aitweaks.features
 
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.debugStr
 import com.genir.aitweaks.hasBestTargetLeading
-import com.genir.aitweaks.isAimable
 import com.genir.aitweaks.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
@@ -17,10 +15,7 @@ fun applyTargetLeadAI(ship: ShipAPI) {
     ship.weaponGroupsCopy.forEach { group ->
         val plugins = group.aiPlugins
         for (i in plugins.indices) {
-            val weapon = plugins[i].weapon
-            if (weapon.type != WeaponAPI.WeaponType.MISSILE && weapon.isAimable()) {
-                plugins[i] = TargetLeadAI(plugins[i])
-            }
+            plugins[i] = TargetLeadAI(plugins[i])
         }
     }
 }
@@ -47,8 +42,6 @@ class TargetLeadAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin 
 
         if (idleTime >= 3f)
             attackTime = 0f
-
-        debugStr = getAccuracy().toString()
     }
 
     override fun getTarget(): Vector2f? {
@@ -82,18 +75,15 @@ class TargetLeadAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin 
     }
 
     private fun getAccuracy(): Float {
-        val weapon = basePlugin.weapon
-        if (weapon.hasBestTargetLeading())
+        if (basePlugin.weapon.hasBestTargetLeading())
             return 1f
 
-        val accBase = weapon.ship.aimAccuracy
-        val accBonus = weapon.spec.autofireAccBonus
-
+        val accBase = basePlugin.weapon.ship.aimAccuracy
+        val accBonus = basePlugin.weapon.spec.autofireAccBonus
         return (accBase - (accBonus + attackTime / 15f))
             .coerceAtLeast(1f)
     }
 }
-
 
 /**
  * Compute time after which point p moving with speed dp
