@@ -10,7 +10,7 @@ import org.lazywizard.lazylib.ui.LazyFont
 import java.awt.Color
 
 const val debug = false
-var debugStr = "debug"
+var debugValue: Any? = "debug"
 
 // DebugPlugin is used to render debug information during combat.
 // It's disabled by default.
@@ -18,7 +18,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var engine: CombatEngineAPI? = null
     private var font: LazyFont? = null
     private var drawable: LazyFont.DrawableString? = null
-    private var oldDebugStr = ""
+    private var oldDebugStr: Any? = null
 
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
         super.advance(amount, events)
@@ -38,9 +38,9 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         if (!debug || font == null)
             return
 
-        if (debugStr != oldDebugStr) {
-            oldDebugStr = debugStr
-            drawable = font!!.createText(debugStr, baseColor = Color.ORANGE)
+        if (debugValue != oldDebugStr) {
+            oldDebugStr = debugValue
+            drawable = font!!.createText(debugValue.toString(), baseColor = Color.ORANGE)
         }
 
         drawable?.draw(500f, 500f)
