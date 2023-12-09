@@ -3,7 +3,7 @@
     "name": "AI Tweaks",
     "author": "Genir",
     "utility": "true",
-    "version": { "major":"0", "minor": "2", "patch": "1" },
+    "version": { "major":"0", "minor": "3", "patch": "0" },
     "description": "A mod providing various ship AI improvements.",
     "gameVersion": "0.96a-RC10",
     "jars":["jars/AITweaks.jar"],
