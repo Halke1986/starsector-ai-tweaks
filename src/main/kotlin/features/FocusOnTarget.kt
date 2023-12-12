@@ -44,5 +44,3 @@ class FocusOnTargetAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlug
     private fun isValidTarget(ship: ShipAPI?) =
         ship != null && Global.getCombatEngine().isEntityInPlay(ship) && ship.isAlive
 }
-
-

@@ -9,4 +9,3 @@ val AutofireAIPlugin.targetEntity: CombatEntityAPI?
         this.targetMissile != null -> this.targetMissile
         else -> null
     }
-

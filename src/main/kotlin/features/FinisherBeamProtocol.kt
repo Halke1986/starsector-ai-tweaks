@@ -7,12 +7,9 @@ import com.fs.starfarer.api.combat.WeaponAPI
 
 class FinisherBeamProtocol : BaseHullMod() {
     override fun applyEffectsAfterShipCreation(ship: ShipAPI?, id: String?) {
-        if (ship == null)
-            return
+        if (ship == null) return
 
-        ship.allWeapons
-            .filter { it.isFinisherBeam() }
-            .forEach { setFinisherBeamProtocol(it) }
+        ship.allWeapons.filter { it.isFinisherBeam() }.forEach { setFinisherBeamProtocol(it) }
     }
 
     override fun getDescriptionParam(index: Int, hullSize: HullSize?): String? = when (index) {
@@ -42,5 +39,3 @@ fun setFinisherBeamProtocol(weapon: WeaponAPI) {
         )
     )
 }
-
-

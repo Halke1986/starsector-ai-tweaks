@@ -22,8 +22,7 @@ class RegisterShipsPlugin : BaseEveryFrameCombatPlugin() {
 
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
         super.advance(amount, events)
-        if (Global.getCurrentState() != GameState.COMBAT)
-            return
+        if (Global.getCurrentState() != GameState.COMBAT) return
 
         // List new ships, that have been added
         // to the battle since last call to advance().
@@ -39,5 +38,3 @@ class RegisterShipsPlugin : BaseEveryFrameCombatPlugin() {
         }
     }
 }
-
-

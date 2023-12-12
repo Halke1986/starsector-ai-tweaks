@@ -38,11 +38,9 @@ class TargetLeadAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin 
         if (basePlugin.weapon.isFiring) {
             attackTime += timeDelta
             idleTime = 0f
-        } else
-            idleTime += timeDelta
+        } else idleTime += timeDelta
 
-        if (idleTime >= 3f)
-            attackTime = 0f
+        if (idleTime >= 3f) attackTime = 0f
     }
 
     override fun getTarget(): Vector2f? {
@@ -57,10 +55,8 @@ class TargetLeadAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin 
         val tgtVelocity = target.velocity - (weapon.ship?.velocity ?: Vector2f(0.0f, 0.0f))
         val travelT = intersectionTime(tgtLocation, tgtVelocity, 0f, weapon.projectileSpeed)
 
-        return if (travelT == null)
-            basePlugin.target
-        else
-            target.location + tgtVelocity.times(travelT / getAccuracy())
+        return if (travelT == null) basePlugin.target
+        else target.location + tgtVelocity.times(travelT / getAccuracy())
     }
 
     override fun shouldFire(): Boolean = basePlugin.shouldFire()
@@ -70,13 +66,11 @@ class TargetLeadAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin 
     override fun getTargetMissile(): MissileAPI? = basePlugin.targetMissile
 
     private fun getAccuracy(): Float {
-        if (basePlugin.weapon.hasBestTargetLeading)
-            return 1f
+        if (basePlugin.weapon.hasBestTargetLeading) return 1f
 
         val accBase = basePlugin.weapon.ship.aimAccuracy
         val accBonus = basePlugin.weapon.spec.autofireAccBonus
-        return (accBase - (accBonus + attackTime / 15f))
-            .coerceAtLeast(1f)
+        return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
     }
 }
 
@@ -123,7 +117,3 @@ fun solve(a: Float, b: Float, c: Float): Pair<Float, Float>? {
         Pair((-b + r) / (2 * a), (-b - r) / (2 * a))
     }
 }
-
-
-
-

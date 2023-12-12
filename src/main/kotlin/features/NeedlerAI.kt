@@ -28,8 +28,7 @@ class NeedlerAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
 
         // Consider firing only when base AI wants
         // to fire and the attack will hit shields.
-        val shouldFireNow = basePlugin.shouldFire() &&
-                willHitShield(basePlugin.weapon, basePlugin.targetShip)
+        val shouldFireNow = basePlugin.shouldFire() && willHitShield(basePlugin.weapon, basePlugin.targetShip)
         if (!shouldFireNow) {
             shouldFire = false
             shouldFireSince = 0f
@@ -53,4 +52,3 @@ class NeedlerAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
     override fun getWeapon(): WeaponAPI = basePlugin.weapon
     override fun getTargetMissile(): MissileAPI? = basePlugin.targetMissile
 }
-

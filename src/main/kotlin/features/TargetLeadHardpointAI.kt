@@ -16,8 +16,7 @@ fun applyTargetLeadHardpointAI(ship: ShipAPI) {
     ship.weaponGroupsCopy.forEach { group ->
         val plugins = group.aiPlugins
         for (i in plugins.indices) {
-            if (plugins[i].weapon.slot.isHardpoint)
-                plugins[i] = TargetLeadHardpointAI(plugins[i])
+            if (plugins[i].weapon.slot.isHardpoint) plugins[i] = TargetLeadHardpointAI(plugins[i])
         }
     }
 }
@@ -46,4 +45,3 @@ class TargetLeadHardpointAI(private val basePlugin: AutofireAIPlugin) : Autofire
     override fun getWeapon(): WeaponAPI = basePlugin.weapon
     override fun getTargetMissile(): MissileAPI? = basePlugin.targetMissile
 }
-
