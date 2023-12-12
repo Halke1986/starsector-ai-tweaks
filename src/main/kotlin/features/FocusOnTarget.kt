@@ -7,11 +7,15 @@ import com.genir.aitweaks.maneuverTarget
 import org.lwjgl.util.vector.Vector2f
 
 fun applyFocusOnTargetAI(ship: ShipAPI) {
-    ship.weaponGroupsCopy.forEach { group ->
-        val plugins = group.aiPlugins
-        for (i in plugins.indices) {
-            if (plugins[i].weapon.slot.isHardpoint && plugins[i].weapon.firesForward()) {
-                plugins[i] = FocusOnTargetAI(plugins[i])
+    val groups = ship.weaponGroupsCopy
+    for (i in groups.indices) {
+        val plugins = groups[i].aiPlugins
+        for (j in plugins.indices) {
+            val weapon = plugins[j].weapon
+            if ((weapon.slot.isHardpoint && weapon.firesForward())
+                || (i == 1 && weapon.ship.owner == 0)
+            ) {
+                plugins[j] = FocusOnTargetAI(plugins[j])
             }
         }
     }
