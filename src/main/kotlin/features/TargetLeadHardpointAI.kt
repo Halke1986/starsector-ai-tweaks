@@ -33,8 +33,7 @@ class TargetLeadHardpointAI(private val basePlugin: AutofireAIPlugin) : Autofire
             return basePlugin.target
         }
 
-        val r = Rotation(angleToTarget)
-        return r.rotateAround(basePlugin.target, weapon.ship.location)
+        return rotateAroundPivot(basePlugin.target, weapon.ship.location, angleToTarget)
     }
 
     override fun getTargetShip(): ShipAPI? = basePlugin.targetShip
