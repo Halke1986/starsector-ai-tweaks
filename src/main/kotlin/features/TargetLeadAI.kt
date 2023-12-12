@@ -1,8 +1,8 @@
 package com.genir.aitweaks.features
 
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.extensions.targetEntity
 import com.genir.aitweaks.extensions.hasBestTargetLeading
+import com.genir.aitweaks.extensions.targetEntity
 import com.genir.aitweaks.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus

@@ -1,6 +1,7 @@
 package com.genir.aitweaks.extensions
 
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.DamageType
+import com.fs.starfarer.api.combat.WeaponAPI
 import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
 
