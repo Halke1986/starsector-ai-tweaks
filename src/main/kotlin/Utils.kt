@@ -3,6 +3,7 @@ package com.genir.aitweaks
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.extensions.radians
 import org.lazywizard.lazylib.FastTrig
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.rotate
@@ -23,9 +24,9 @@ fun willHitActiveShieldArc(weapon: WeaponAPI, shield: ShieldAPI): Boolean {
     return kotlin.math.abs(attackAngle) < (shield.activeArc / 2)
 }
 
-class Rotation(radians: Float) {
-    private val sinf = sin(radians)
-    private val cosf = cos(radians)
+class Rotation(angle: Float) {
+    private val sinf = sin(angle.radians())
+    private val cosf = cos(angle.radians())
 
     fun rotate(v: Vector2f): Vector2f = Vector2f(
         v.x * cosf - v.y * sinf,
@@ -40,5 +41,6 @@ class Rotation(radians: Float) {
             a * sinf + b * cosf + pivot.y,
         )
     }
-
 }
+
+internal infix fun Vector2f.times(d: Float): Vector2f = Vector2f(d * x, d * y)

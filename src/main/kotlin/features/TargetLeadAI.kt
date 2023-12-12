@@ -1,8 +1,8 @@
 package com.genir.aitweaks.features
 
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.getTargetEntity
-import com.genir.aitweaks.hasBestTargetLeading
+import com.genir.aitweaks.extensions.targetEntity
+import com.genir.aitweaks.extensions.hasBestTargetLeading
 import com.genir.aitweaks.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
@@ -29,7 +29,7 @@ class TargetLeadAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin 
     override fun advance(timeDelta: Float) {
         basePlugin.advance(timeDelta)
 
-        val target = basePlugin.getTargetEntity()
+        val target = basePlugin.targetEntity
         if (target != null && prevTarget != target) {
             prevTarget = target
             attackTime = 0f
@@ -46,7 +46,7 @@ class TargetLeadAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin 
     }
 
     override fun getTarget(): Vector2f? {
-        val target = basePlugin.getTargetEntity() ?: return null
+        val target = basePlugin.targetEntity ?: return null
 
         // no need to compute stuff for beam or non-aimable weapons
         if (weapon.isBeam || weapon.isBurstBeam) {
@@ -70,7 +70,7 @@ class TargetLeadAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin 
     override fun getTargetMissile(): MissileAPI? = basePlugin.targetMissile
 
     private fun getAccuracy(): Float {
-        if (basePlugin.weapon.hasBestTargetLeading())
+        if (basePlugin.weapon.hasBestTargetLeading)
             return 1f
 
         val accBase = basePlugin.weapon.ship.aimAccuracy

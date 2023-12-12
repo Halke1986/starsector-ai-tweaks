@@ -2,6 +2,7 @@ package com.genir.aitweaks.features
 
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.*
+import com.genir.aitweaks.extensions.targetEntity
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -20,7 +21,7 @@ fun applyTargetLeadHardpointAI(ship: ShipAPI) {
 
 class TargetLeadHardpointAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
     override fun getTarget(): Vector2f? {
-        val target = basePlugin.getTargetEntity() ?: return null
+        val target = basePlugin.targetEntity ?: return null
 
         val tgtLocation = target.location - weapon.ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
@@ -32,7 +33,7 @@ class TargetLeadHardpointAI(private val basePlugin: AutofireAIPlugin) : Autofire
             return basePlugin.target
         }
 
-        val r = Rotation(angleToTarget.radians())
+        val r = Rotation(angleToTarget)
         return r.rotateAround(basePlugin.target, weapon.ship.location)
     }
 

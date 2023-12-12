@@ -2,15 +2,15 @@ package com.genir.aitweaks.features
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.firesForward
-import com.genir.aitweaks.maneuverTarget
+import com.genir.aitweaks.extensions.firesForward
+import com.genir.aitweaks.extensions.maneuverTarget
 import org.lwjgl.util.vector.Vector2f
 
 fun applyFocusOnTargetAI(ship: ShipAPI) {
     ship.weaponGroupsCopy.forEach { group ->
         val plugins = group.aiPlugins
         for (i in plugins.indices) {
-            if (plugins[i].weapon.slot.isHardpoint && plugins[i].weapon.firesForward()) {
+            if (plugins[i].weapon.slot.isHardpoint && plugins[i].weapon.firesForward) {
                 plugins[i] = FocusOnTargetAI(plugins[i])
             }
         }
@@ -23,7 +23,7 @@ class FocusOnTargetAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlug
     override fun advance(p0: Float) {
         basePlugin.advance(p0)
 
-        when (val newTarget = basePlugin.weapon.ship.maneuverTarget()) {
+        when (val newTarget = basePlugin.weapon.ship.maneuverTarget) {
             target -> return
             null -> if (!isValidTarget(target)) target = null
             else -> target = newTarget

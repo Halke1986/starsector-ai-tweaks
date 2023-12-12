@@ -3,6 +3,7 @@ package com.genir.aitweaks.features
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.extensions.isAntiArmor
 import com.genir.aitweaks.willHitShield
 import org.lazywizard.lazylib.combat.AIUtils
 import org.lwjgl.util.vector.Vector2f
@@ -73,7 +74,5 @@ fun weaponShouldTriggerHEF(w: TargetedWeapon, size: WeaponAPI.WeaponSize) = when
     else -> true
 }
 
-val WeaponAPI.isAntiArmor
-    get() = this.damageType == DamageType.HIGH_EXPLOSIVE ||
-            this.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS)
+
 
