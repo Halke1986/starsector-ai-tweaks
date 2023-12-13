@@ -3,6 +3,7 @@ package com.genir.aitweaks.features
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.extensions.isAntiArmor
 import com.genir.aitweaks.willHitShield
 import org.lazywizard.lazylib.combat.AIUtils
 import org.lwjgl.util.vector.Vector2f
@@ -14,10 +15,7 @@ class HighEnergyFocusAI : ShipSystemAIScript {
     private var engine: CombatEngineAPI? = null
 
     override fun init(
-        ship: ShipAPI?,
-        p1: ShipSystemAPI?,
-        p2: ShipwideAIFlags?,
-        engine: CombatEngineAPI?
+        ship: ShipAPI?, p1: ShipSystemAPI?, p2: ShipwideAIFlags?, engine: CombatEngineAPI?
     ) {
         this.ship = ship
         this.engine = engine
@@ -40,8 +38,7 @@ fun shouldTriggerHEF(ship: ShipAPI): Boolean {
     return ew.any { weaponShouldTriggerHEF(it, size) }
 }
 
-fun shipWeapons(ship: ShipAPI): List<TargetedWeapon> =
-    ship.weaponGroupsCopy.map { unfoldWeaponGroup(it) }.flatten()
+fun shipWeapons(ship: ShipAPI): List<TargetedWeapon> = ship.weaponGroupsCopy.map { unfoldWeaponGroup(it) }.flatten()
 
 fun unfoldWeaponGroup(wg: WeaponGroupAPI): List<TargetedWeapon> =
     wg.aiPlugins.map { TargetedWeapon(it.weapon, getTarget(wg, it)) }
@@ -72,8 +69,3 @@ fun weaponShouldTriggerHEF(w: TargetedWeapon, size: WeaponAPI.WeaponSize) = when
     w.weapon.isAntiArmor && willHitShield(w.weapon, w.target) -> false
     else -> true
 }
-
-val WeaponAPI.isAntiArmor
-    get() = this.damageType == DamageType.HIGH_EXPLOSIVE ||
-            this.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS)
-

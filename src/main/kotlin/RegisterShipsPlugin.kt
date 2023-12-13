@@ -5,16 +5,18 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.features.applyFocusOnTargetAI
-import com.genir.aitweaks.features.applyNeedlerAI
-import com.genir.aitweaks.features.applyTargetLeadAI
-import com.genir.aitweaks.features.applyTargetLeadHardpointAI
+import com.genir.aitweaks.features.*
+import com.genir.aitweaks.features.autofire.applyFireOnlyOnTargetAI
+import com.genir.aitweaks.features.autofire.applyFocusOnTargetAI
+import com.genir.aitweaks.features.autofire.applyTargetLeadAI
+import com.genir.aitweaks.features.autofire.applyTargetLeadHardpointAI
 
 var registerShipsCallbacks = mutableSetOf<(ShipAPI) -> Unit>(
     { s -> applyFocusOnTargetAI(s) },
     { s -> applyTargetLeadAI(s) },
     { s -> applyTargetLeadHardpointAI(s) },
     { s -> applyNeedlerAI(s) },
+    { s -> applyFireOnlyOnTargetAI(s) },
 )
 
 class RegisterShipsPlugin : BaseEveryFrameCombatPlugin() {
@@ -22,8 +24,7 @@ class RegisterShipsPlugin : BaseEveryFrameCombatPlugin() {
 
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
         super.advance(amount, events)
-        if (Global.getCurrentState() != GameState.COMBAT)
-            return
+        if (Global.getCurrentState() != GameState.COMBAT) return
 
         // List new ships, that have been added
         // to the battle since last call to advance().
@@ -39,5 +40,3 @@ class RegisterShipsPlugin : BaseEveryFrameCombatPlugin() {
         }
     }
 }
-
-

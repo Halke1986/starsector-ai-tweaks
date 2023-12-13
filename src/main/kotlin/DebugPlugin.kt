@@ -22,8 +22,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
         super.advance(amount, events)
-        if (!debug || Global.getCurrentState() != GameState.COMBAT)
-            return
+        if (!debug || Global.getCurrentState() != GameState.COMBAT) return
 
         if (engine == null) {
             engine = Global.getCombatEngine()
@@ -35,8 +34,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
     override fun renderInUICoords(viewport: ViewportAPI?) {
         super.renderInUICoords(viewport)
-        if (!debug || font == null)
-            return
+        if (!debug || font == null) return
 
         if (debugValue != oldDebugStr) {
             oldDebugStr = debugValue
@@ -49,5 +47,3 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private fun debug() {
     }
 }
-
-
