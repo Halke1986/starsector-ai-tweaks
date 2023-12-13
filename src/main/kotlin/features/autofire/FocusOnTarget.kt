@@ -1,4 +1,4 @@
-package com.genir.aitweaks.features
+package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.AutofireAIPlugin

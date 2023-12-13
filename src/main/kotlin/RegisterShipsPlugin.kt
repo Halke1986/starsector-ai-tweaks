@@ -6,6 +6,10 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.features.*
+import com.genir.aitweaks.features.autofire.applyFireOnlyOnTargetAI
+import com.genir.aitweaks.features.autofire.applyFocusOnTargetAI
+import com.genir.aitweaks.features.autofire.applyTargetLeadAI
+import com.genir.aitweaks.features.autofire.applyTargetLeadHardpointAI
 
 var registerShipsCallbacks = mutableSetOf<(ShipAPI) -> Unit>(
     { s -> applyFocusOnTargetAI(s) },
