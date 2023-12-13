@@ -18,3 +18,6 @@ val WeaponAPI.isAimable: Boolean
 
 val WeaponAPI.isAntiArmor: Boolean
     get() = this.damageType == DamageType.HIGH_EXPLOSIVE || this.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS)
+
+val WeaponAPI.isAnyBeam: Boolean
+    get() = this.isBeam || this.isBurstBeam

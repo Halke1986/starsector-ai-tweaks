@@ -23,8 +23,8 @@ class NeedlerAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
     private var shouldFire = false
     private var shouldFireSince = 0f
 
-    override fun advance(p0: Float) {
-        basePlugin.advance(p0)
+    override fun advance(timeDelta: Float) {
+        basePlugin.advance(timeDelta)
 
         // Consider firing only when base AI wants
         // to fire and the attack will hit shields.
@@ -41,7 +41,7 @@ class NeedlerAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
         val shield = basePlugin.targetShip.shield
         val fullShield = shield.arc == shield.activeArc
         val delay = 0.8f
-        shouldFireSince += p0
+        shouldFireSince += timeDelta
         shouldFire = fullShield || shouldFireSince > delay
     }
 

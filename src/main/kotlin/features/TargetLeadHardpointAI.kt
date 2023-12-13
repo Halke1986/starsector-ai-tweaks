@@ -23,7 +23,8 @@ fun applyTargetLeadHardpointAI(ship: ShipAPI) {
 
 class TargetLeadHardpointAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
     override fun getTarget(): Vector2f? {
-        val target = basePlugin.targetEntity ?: return null
+        val target = this.targetEntity ?: return null
+        val intercept = basePlugin.target ?: return null
 
         val tgtLocation = target.location - weapon.ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
@@ -32,10 +33,10 @@ class TargetLeadHardpointAI(private val basePlugin: AutofireAIPlugin) : Autofire
         // Ship is already facing the target. Return the
         // original target location to not overcompensate.
         if (abs(angleToTarget) < weapon.arc / 2f) {
-            return basePlugin.target
+            return intercept
         }
 
-        return rotateAroundPivot(basePlugin.target, weapon.ship.location, angleToTarget)
+        return rotateAroundPivot(intercept, weapon.ship.location, angleToTarget)
     }
 
     override fun getTargetShip(): ShipAPI? = basePlugin.targetShip

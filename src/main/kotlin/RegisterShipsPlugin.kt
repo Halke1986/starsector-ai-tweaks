@@ -5,16 +5,14 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.features.applyFocusOnTargetAI
-import com.genir.aitweaks.features.applyNeedlerAI
-import com.genir.aitweaks.features.applyTargetLeadAI
-import com.genir.aitweaks.features.applyTargetLeadHardpointAI
+import com.genir.aitweaks.features.*
 
 var registerShipsCallbacks = mutableSetOf<(ShipAPI) -> Unit>(
     { s -> applyFocusOnTargetAI(s) },
     { s -> applyTargetLeadAI(s) },
     { s -> applyTargetLeadHardpointAI(s) },
     { s -> applyNeedlerAI(s) },
+    { s -> applyFireOnlyOnTargetAI(s) },
 )
 
 class RegisterShipsPlugin : BaseEveryFrameCombatPlugin() {
