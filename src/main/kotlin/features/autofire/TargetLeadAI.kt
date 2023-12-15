@@ -4,8 +4,8 @@ import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.extensions.hasBestTargetLeading
 import com.genir.aitweaks.extensions.isAnyBeam
 import com.genir.aitweaks.extensions.targetEntity
-import com.genir.aitweaks.intersectionTime
-import com.genir.aitweaks.times
+import com.genir.aitweaks.utils.intersectionTime
+import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f

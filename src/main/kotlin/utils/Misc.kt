@@ -1,4 +1,4 @@
-package com.genir.aitweaks
+package com.genir.aitweaks.utils
 
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
