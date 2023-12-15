@@ -59,14 +59,10 @@ fun intersectionTime(p: Vector2f, dp: Vector2f, r: Float, dr: Float): Float? {
  */
 fun solve(a: Float, b: Float, c: Float): Pair<Float, Float>? {
     val d = b * b - 4f * a * c
-    if (d < 0 || (MathUtils.equals(a, 0f) && MathUtils.equals(b, 0f))) {
-        return null
-    }
-    val r = sqrt(d)
-    return if (MathUtils.equals(a, 0f)) {
-        Pair((2 * c) / (-b), (2 * c) / (-b))
-    } else {
-        Pair((-b + r) / (2 * a), (-b - r) / (2 * a))
+    return when {
+        MathUtils.equals(d, 0f) || d < 0 -> null
+        MathUtils.equals(a, 0f) -> (2 * c / -b).let { Pair(it, it) }
+        else -> sqrt(d).let { Pair((-b + it) / (2 * a), (-b - it) / (2 * a)) }
     }
 }
 
@@ -75,8 +71,6 @@ internal infix operator fun Vector2f.times(d: Float): Vector2f = Vector2f(d * x,
 fun rotateAroundPivot(toRotate: Vector2f, pivot: Vector2f, angle: Float): Vector2f =
     VectorUtils.rotateAroundPivot(toRotate, pivot, angle, Vector2f())
 
-fun rotate(toRotate: Vector2f, angle: Float): Vector2f =
-    VectorUtils.rotate(toRotate, angle, Vector2f())
+fun rotate(toRotate: Vector2f, angle: Float): Vector2f = VectorUtils.rotate(toRotate, angle, Vector2f())
 
-fun unitVector(angle: Float): Vector2f =
-    VectorUtils.rotate(Vector2f(1f, 0f), angle)
+fun unitVector(angle: Float): Vector2f = VectorUtils.rotate(Vector2f(1f, 0f), angle)
