@@ -1,4 +1,4 @@
-package com.genir.aitweaks.extensions
+package com.genir.aitweaks.utils.extensions
 
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.WeaponAPI
@@ -21,3 +21,7 @@ val WeaponAPI.isAntiArmor: Boolean
 
 val WeaponAPI.isAnyBeam: Boolean
     get() = this.isBeam || this.isBurstBeam
+
+// weapon arc facing in absolute coordinates, instead of ship coordinates
+val WeaponAPI.absoluteArcFacing: Float
+    get() = MathUtils.clampAngle(this.arcFacing + this.ship.facing)

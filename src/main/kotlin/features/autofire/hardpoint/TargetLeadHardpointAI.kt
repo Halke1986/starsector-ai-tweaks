@@ -1,10 +1,10 @@
-package com.genir.aitweaks.features.autofire
+package com.genir.aitweaks.features.autofire.hardpoint
 
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.extensions.targetEntity
+import com.genir.aitweaks.utils.extensions.targetEntity
 import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils

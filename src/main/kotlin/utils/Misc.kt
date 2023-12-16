@@ -9,6 +9,7 @@ import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.abs
 
 fun willHitShield(weapon: WeaponAPI, target: ShipAPI?) = when {
     target == null -> false
@@ -33,3 +34,6 @@ fun rotate(toRotate: Vector2f, angle: Float): Vector2f = VectorUtils.rotate(toRo
 fun unitVector(angle: Float): Vector2f = VectorUtils.rotate(Vector2f(1f, 0f), angle)
 
 fun atan(radians: Float): Float = Math.toDegrees(FastTrig.atan(radians.toDouble())).toFloat()
+
+fun arcsOverlap(facing0: Float, arc0: Float, facing1: Float, arc1: Float): Boolean =
+    abs(getShortestRotation(facing0, facing1)) <= (arc0 + arc1) / 2f

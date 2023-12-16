@@ -1,9 +1,9 @@
-package com.genir.aitweaks.features.autofire
+package com.genir.aitweaks.features.autofire.hardpoint
 
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.extensions.hasBestTargetLeading
-import com.genir.aitweaks.extensions.isAnyBeam
-import com.genir.aitweaks.extensions.targetEntity
+import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
+import com.genir.aitweaks.utils.extensions.isAnyBeam
+import com.genir.aitweaks.utils.extensions.targetEntity
 import com.genir.aitweaks.utils.intersectionTime
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.ext.minus

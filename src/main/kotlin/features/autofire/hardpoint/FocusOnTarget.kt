@@ -1,12 +1,12 @@
-package com.genir.aitweaks.features.autofire
+package com.genir.aitweaks.features.autofire.hardpoint
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.extensions.firesForward
-import com.genir.aitweaks.extensions.maneuverTarget
+import com.genir.aitweaks.utils.extensions.firesForward
+import com.genir.aitweaks.utils.extensions.maneuverTarget
 import org.lwjgl.util.vector.Vector2f
 
 fun applyFocusOnTargetAI(ship: ShipAPI) {
@@ -15,7 +15,7 @@ fun applyFocusOnTargetAI(ship: ShipAPI) {
         val plugins = groups[i].aiPlugins
         for (j in plugins.indices) {
             val weapon = plugins[j].weapon
-            if ((weapon.slot.isHardpoint && weapon.firesForward) || (i == 1 && weapon.ship.owner == 0)) {
+            if ((weapon.slot.isHardpoint && weapon.firesForward)) {
                 plugins[j] = FocusOnTargetAI(plugins[j])
             }
         }

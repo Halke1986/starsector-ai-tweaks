@@ -3,7 +3,7 @@ package com.genir.aitweaks.features
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.extensions.isAntiArmor
+import com.genir.aitweaks.utils.extensions.isAntiArmor
 import com.genir.aitweaks.utils.willHitShield
 import org.lazywizard.lazylib.combat.AIUtils
 import org.lwjgl.util.vector.Vector2f
