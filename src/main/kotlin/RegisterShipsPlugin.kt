@@ -5,7 +5,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.features.*
+import com.genir.aitweaks.features.applyNeedlerAI
 import com.genir.aitweaks.features.autofire.applyFireOnlyOnTargetAI
 import com.genir.aitweaks.features.autofire.applyFocusOnTargetAI
 import com.genir.aitweaks.features.autofire.applyTargetLeadAI
