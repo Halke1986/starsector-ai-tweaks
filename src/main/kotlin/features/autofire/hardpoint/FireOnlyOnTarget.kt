@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.utils.extensions.isAnyBeam
 import com.genir.aitweaks.utils.extensions.targetEntity
-import com.genir.aitweaks.utils.intersectionTime
+import com.genir.aitweaks.utils.solve
 import com.genir.aitweaks.utils.times
 import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.ext.minus
@@ -37,7 +37,7 @@ class FireOnlyOnTargetAI(private val basePlugin: AutofireAIPlugin) : AutofireAIP
             weapon.ship.velocity + projectileVelocity - target.velocity
         }
 
-        return intersectionTime(location, velocity, target.collisionRadius, 0f) != null
+        return solve(location, velocity, target.collisionRadius, 0f) != null
     }
 
     override fun advance(p0: Float) = basePlugin.advance(p0)

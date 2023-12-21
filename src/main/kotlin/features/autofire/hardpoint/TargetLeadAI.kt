@@ -4,7 +4,7 @@ import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.isAnyBeam
 import com.genir.aitweaks.utils.extensions.targetEntity
-import com.genir.aitweaks.utils.intersectionTime
+import com.genir.aitweaks.utils.solve
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -49,7 +49,7 @@ class TargetLeadAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin 
 
         val tgtLocation = target.location - weapon.location
         val tgtVelocity = target.velocity - weapon.ship.velocity
-        val travelT = intersectionTime(tgtLocation, tgtVelocity, 0f, weapon.projectileSpeed) ?: return null
+        val travelT = solve(tgtLocation, tgtVelocity, 0f, weapon.projectileSpeed) ?: return null
         return target.location + tgtVelocity.times(travelT / getAccuracy())
     }
 

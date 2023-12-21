@@ -6,6 +6,7 @@ import com.genir.aitweaks.utils.extensions.maneuverTarget
 import com.genir.aitweaks.utils.extensions.targetEntity
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.isValidTarget
+import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
 var count = 0
@@ -38,8 +39,8 @@ class TurretAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
         basePlugin.advance(timeDelta)
         maneuverTargetTracker.advance(timeDelta)
 
-        val maneuverSolution = calculateFiringSolution(weapon, maneuverTargetTracker.target)
-        val baseSolution = calculateFiringSolution(weapon, basePlugin.targetEntity)
+        val maneuverSolution = firingSolutionFactory(weapon, maneuverTargetTracker.target)
+        val baseSolution = firingSolutionFactory(weapon, basePlugin.targetEntity)
 
         solution = when {
             weapon.hasAIHint(WeaponAPI.AIHints.PD) -> baseSolution
@@ -49,6 +50,12 @@ class TurretAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
             maneuverSolution != null -> maneuverSolution
             else -> null
         }
+
+//        if (solution != null && weapon.spec.weaponId == "hephag") {
+//            val s = solution!!
+//            val simpleRange = (s.target.location - weapon.location).length() - s.target.collisionRadius
+//            debugValue = simpleRange - solution!!.closestPossibleHit
+//        }
     }
 
     override fun getTarget(): Vector2f? = solution?.intercept
@@ -70,5 +77,4 @@ class ManeuverTargetTracker(private val ship: ShipAPI) {
             else -> target = newTarget
         }
     }
-
 }
