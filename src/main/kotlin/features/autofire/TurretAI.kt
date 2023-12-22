@@ -2,6 +2,7 @@ package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.debugValue
+import com.genir.aitweaks.features.autofire.FiringSolution
 import com.genir.aitweaks.utils.extensions.maneuverTarget
 import com.genir.aitweaks.utils.extensions.targetEntity
 import com.genir.aitweaks.utils.extensions.isValidTarget

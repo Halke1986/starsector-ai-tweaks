@@ -19,7 +19,7 @@ import kotlin.math.sqrt
 fun makeFiringSolution(weapon: WeaponAPI, target: CombatEntityAPI?): FiringSolution? {
     if (target == null) return null
 
-    val intercept = calculateIntercept(weapon, target) ?: return null
+    val intercept = com.genir.aitweaks.features.autofire.temp.calculateIntercept(weapon, target) ?: return null
 
     return FiringSolution(weapon, target, intercept)
 }

@@ -26,12 +26,12 @@ val WeaponAPI.isAntiArmor: Boolean
 val WeaponAPI.isAnyBeam: Boolean
     get() = this.isBeam || this.isBurstBeam
 
+val WeaponAPI.velocity: Vector2f
+    get() = this.ship.velocity
+
 /** weapon arc facing in absolute coordinates, instead of ship coordinates */
 val WeaponAPI.absoluteArcFacing: Float
     get() = MathUtils.clampAngle(this.arcFacing + this.ship.facing)
-
-//val WeaponAPI.projectileOrBeamSpeed: Float
-//    get() = if (this.isAnyBeam)
 
 // Projectile velocity vector in absolute coordinates. Unit vector for beam weapons.
 val WeaponAPI.absoluteProjectileVelocity: Vector2f

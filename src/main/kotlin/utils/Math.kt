@@ -3,6 +3,7 @@ package com.genir.aitweaks.utils
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import kotlin.Float.Companion.NaN
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -34,7 +35,7 @@ fun distanceToOriginSqr(p: Vector2f, v: Vector2f): Float? {
  * will intersect circle centered at point (0,0), with initial
  * radius r and expanding with speed w".
  */
-fun solve(p: Vector2f, v: Vector2f, r: Float, w: Float): Float? {
+fun solve(p: Vector2f, v: Vector2f, r: Float, w: Float): Float {
     // Equation can be expanded the following way:
     // |p + v * t| = r + w * t
     // sqrt[ (p.x + v.x * t)^2 + (p.y + v.y * t)^2 ] = r + w * t
@@ -44,20 +45,19 @@ fun solve(p: Vector2f, v: Vector2f, r: Float, w: Float): Float? {
     val b = 2f * (p.x * v.x + p.y * v.y - r * w)
     val c = p.lengthSquared() - r * r
 
-    val (t1, t2) = quad(a, b, c) ?: return null
+    val (t1, t2) = quad(a, b, c)
 
-    if (t1 < 0 && t2 < 0) return null
-    if (t1 < 0 || t2 < 0) return max(t1, t2)
-    return min(t1, t2)
+    return if (t1 < 0 || t2 < 0) max(t1, t2)
+    else min(t1, t2)
 }
 
 /**
  * solve quadratic equation [ax^2 + bx + c = 0] for x.
  */
-fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
+fun quad(a: Float, b: Float, c: Float): Pair<Float, Float> {
     val d = b * b - 4f * a * c
     return when {
-        MathUtils.equals(d, 0f) || d < 0 -> null
+        MathUtils.equals(d, 0f) || d < 0 -> Pair(NaN, NaN)
         MathUtils.equals(a, 0f) -> (2 * c / -b).let { Pair(it, it) }
         else -> sqrt(d).let { Pair((-b + it) / (2 * a), (-b - it) / (2 * a)) }
     }
