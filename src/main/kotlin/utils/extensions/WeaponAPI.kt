@@ -2,7 +2,11 @@ package com.genir.aitweaks.utils.extensions
 
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.utils.times
+import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
+import org.lazywizard.lazylib.ext.plus
+import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
 val WeaponAPI.hasBestTargetLeading: Boolean
@@ -25,3 +29,8 @@ val WeaponAPI.isAnyBeam: Boolean
 // weapon arc facing in absolute coordinates, instead of ship coordinates
 val WeaponAPI.absoluteArcFacing: Float
     get() = MathUtils.clampAngle(this.arcFacing + this.ship.facing)
+
+// Projectile velocity vector in absolute coordinates. Unit vector for beam weapons.
+val WeaponAPI.absoluteProjectileVelocity: Vector2f
+    get() = if (this.isAnyBeam) unitVector(this.currAngle)
+    else unitVector(this.currAngle) * this.projectileSpeed + this.ship.velocity

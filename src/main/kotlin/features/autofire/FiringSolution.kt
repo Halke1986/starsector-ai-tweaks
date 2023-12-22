@@ -1,17 +1,22 @@
-package com.genir.aitweaks.utils
+package com.genir.aitweaks.features.autofire
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.debugValue
+import com.genir.aitweaks.utils.arcsOverlap
+import com.genir.aitweaks.utils.atan
 import com.genir.aitweaks.utils.extensions.absoluteArcFacing
 import com.genir.aitweaks.utils.extensions.isAnyBeam
+import com.genir.aitweaks.utils.solve
+import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.sqrt
 
-fun firingSolutionFactory(weapon: WeaponAPI, target: CombatEntityAPI?): FiringSolution? {
+fun makeFiringSolution(weapon: WeaponAPI, target: CombatEntityAPI?): FiringSolution? {
     if (target == null) return null
 
     val intercept = calculateIntercept(weapon, target) ?: return null
@@ -26,7 +31,7 @@ class FiringSolution(
 ) {
     private val interceptFacing: Float
     private val interceptArc: Float
-    private val closestPossibleHit: Float
+    val closestPossibleHit: Float
 
     init {
         val relativeIntercept = intercept - weapon.ship.location
@@ -89,6 +94,15 @@ fun calculateClosestPossibleHit(weapon: WeaponAPI, target: CombatEntityAPI): Flo
     if (weapon.isAnyBeam) return relativeLocation.length() - target.collisionRadius
 
     val relativeVelocity = target.velocity - weapon.ship.velocity
+
+    val travelTimeDebug = solve(relativeLocation, relativeVelocity, target.collisionRadius, weapon.projectileSpeed)
+    if (travelTimeDebug == null) {
+        val log = Global.getLogger(weapon.javaClass)
+        log.info(relativeLocation)
+        log.info(relativeVelocity)
+        log.info(target.collisionRadius)
+        log.info(weapon.projectileSpeed)
+    }
 
     val travelTime =
         solve(relativeLocation, relativeVelocity, target.collisionRadius, weapon.projectileSpeed) ?: return null

@@ -1,10 +1,23 @@
 package com.genir.aitweaks.utils
 
 import org.lazywizard.lazylib.MathUtils
+import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
+
+/**
+ *  Find the square of distance between point (0,0)
+ *  and point p traveling with velocity v.
+ *
+ *  Returns null if v points away from (0,0).
+ */
+fun distanceToOriginSqr(p: Vector2f, v: Vector2f): Float? {
+    val t = -(p.x * v.x + p.y * v.y) / (v.x * v.x + v.y * v.y)
+    return if (t >= 0) (p + v.times(t)).lengthSquared()
+    else null
+}
 
 /**
  * Solve the following equation for t:
