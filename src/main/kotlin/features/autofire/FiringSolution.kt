@@ -54,12 +54,17 @@ class FiringSolution(
         debug()
     }
 
+    /**
+     * canTrack returns 'true' if it is possible to aim the weapon at selected target,
+     * taking into account weapon slot firing arc, weapon range and target predicted
+     * intercept location and target angular dimension.
+     */
     val canTrack: Boolean
         get() = arcsOverlap(
             weapon.absoluteArcFacing, weapon.arc, interceptFacing, interceptArc
         ) && closestPossibleHit <= weapon.range
 
-    // TODO possibly account for exact range
+
     val willHit: Boolean
         get() = arcsOverlap(weapon.currAngle, 0f, interceptFacing, interceptArc)
 
@@ -74,7 +79,10 @@ class FiringSolution(
     }
 }
 
-// Calculate the point at which weapon should aim to hit center point of a moving target.
+/**
+ * Calculate the point at which weapon should aim to hit
+ * center point of a moving target.
+ */
 fun calculateIntercept(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f? {
     // Assume infinite projectile speed for beam weapons, resulting in no target lead.
     if (weapon.isAnyBeam) return target.location
@@ -86,16 +94,20 @@ fun calculateIntercept(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f? {
     return target.location + relativeVelocity.times(travelTime)
 }
 
-// Calculate the closest possible range at which projectile or beam may intersect collision radius of a moving target.
+/**
+ * Calculate the closest possible range at which projectile
+ * or beam may intersect collision radius of a moving target.
+ */
 fun calculateClosestPossibleHit(weapon: WeaponAPI, target: CombatEntityAPI): Float? {
     val relativeLocation = weapon.location - target.location
+    val relativeVelocity = target.velocity - weapon.ship.velocity
 
     // Assume infinite projectile speed for beam weapons, resulting in stationary target.
     if (weapon.isAnyBeam) return relativeLocation.length() - target.collisionRadius
 
-    val relativeVelocity = target.velocity - weapon.ship.velocity
-
-    val travelTimeDebug = solve(relativeLocation, relativeVelocity, target.collisionRadius, weapon.projectileSpeed)
+    val travelTimeDebug = solve(
+        relativeLocation, relativeVelocity, target.collisionRadius, weapon.projectileSpeed
+    )
     if (travelTimeDebug == null) {
         val log = Global.getLogger(weapon.javaClass)
         log.info(relativeLocation)
@@ -104,7 +116,13 @@ fun calculateClosestPossibleHit(weapon: WeaponAPI, target: CombatEntityAPI): Flo
         log.info(weapon.projectileSpeed)
     }
 
-    val travelTime =
-        solve(relativeLocation, relativeVelocity, target.collisionRadius, weapon.projectileSpeed) ?: return null
+    val travelTime = solve(
+        relativeLocation, relativeVelocity, target.collisionRadius, weapon.projectileSpeed
+    ) ?: return null
     return weapon.projectileSpeed * travelTime
 }
+
+//fun calculateHit(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f? {
+//    val relativeLocation = weapon.location - target.location
+//    val relativeVelocity = target.velocity - weapon.ship.velocity
+//}
