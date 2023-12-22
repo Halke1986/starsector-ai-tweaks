@@ -2,25 +2,37 @@ package com.genir.aitweaks.features.autofire.temp
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.utils.angularSize
+import com.genir.aitweaks.utils.extensions.radius
 import com.genir.aitweaks.utils.extensions.velocity
 import com.genir.aitweaks.utils.solve
-import com.genir.aitweaks.utils.times
+import com.genir.aitweaks.utils.multiply
+import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
-import org.lwjgl.util.vector.Vector2f
 
 class FiringSolution(
     val weapon: WeaponAPI,
     val target: CombatEntityAPI,
 ) {
-    val intercept: Vector2f
+    val locationRelative = target.location - weapon.location
+    val velocityRelative = (target.velocity - weapon.velocity)
+
+    val interceptTime = solve(locationRelative, velocityRelative, 0f, weapon.projectileSpeed)
+    val intercept = target.location + velocityRelative.multiply(interceptTime)
+
+    private val interceptRelative = intercept - weapon.location
+    val interceptArc = angularSize(interceptRelative.lengthSquared(), target.radius)
+    val interceptFacing = VectorUtils.getFacing(interceptRelative)
+
+
 //    private val interceptFacing: Float
 //    private val interceptArc: Float
 //
 //    val closestPossibleHit: Float
 
     init {
-        intercept = calculateIntercept(weapon, target)
+//        intercept = calculateIntercept(weapon, target)
 
 //        val relativeIntercept = intercept - weapon.ship.location
 //        val interceptRangeSqr = relativeIntercept.lengthSquared()
@@ -39,7 +51,7 @@ class FiringSolution(
 //            closestPossibleHit = calculateClosestPossibleHit(weapon, target)!!
 //        }
 //
-//        debug()
+        debug()
     }
 
     /**
@@ -56,7 +68,7 @@ class FiringSolution(
 //    val willHit: Boolean
 //        get() = arcsOverlap(weapon.currAngle, 0f, interceptFacing, interceptArc)
 //
-//    private fun debug() {
+    private fun debug() {
 //        if (interceptFacing.isNaN() || interceptArc.isNaN() || closestPossibleHit.isNaN()) {
 //            data class SolutionDebug(
 //                val name: String, val intercept: Vector2f, val facing: Float, val arc: Float, val range: Float
@@ -64,20 +76,20 @@ class FiringSolution(
 //            debugValue =
 //                SolutionDebug(weapon.spec.weaponName, intercept, interceptFacing, interceptArc, closestPossibleHit)
 //        }
-//    }
+    }
 }
 
 /**
  * Calculate the point at which weapon should aim to hit
  * center point of a moving target.
  */
-fun calculateIntercept(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f {
-    val relativeLocation = target.location - weapon.location
-    val relativeVelocity = target.velocity - weapon.velocity
-
-    val travelTime = solve(relativeLocation, relativeVelocity, 0f, weapon.projectileSpeed)
-    return target.location + relativeVelocity.times(travelTime)
-}
+//fun calculateIntercept(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f {
+//    val relativeLocation = target.location - weapon.location
+//    val relativeVelocity = target.velocity - weapon.velocity
+//
+//    val travelTime = solve(relativeLocation, relativeVelocity, 0f, weapon.projectileSpeed)
+//    return target.location + relativeVelocity.times(travelTime)
+//}
 
 /**
  * Calculate the closest possible range at which projectile

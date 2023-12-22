@@ -2,7 +2,7 @@ package com.genir.aitweaks.utils.extensions
 
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.utils.times
+import com.genir.aitweaks.utils.multiply
 import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.plus

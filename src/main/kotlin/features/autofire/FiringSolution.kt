@@ -9,7 +9,7 @@ import com.genir.aitweaks.utils.atan
 import com.genir.aitweaks.utils.extensions.absoluteArcFacing
 import com.genir.aitweaks.utils.extensions.isAnyBeam
 import com.genir.aitweaks.utils.solve
-import com.genir.aitweaks.utils.times
+import com.genir.aitweaks.utils.multiply
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -19,7 +19,7 @@ import kotlin.math.sqrt
 fun makeFiringSolution(weapon: WeaponAPI, target: CombatEntityAPI?): FiringSolution? {
     if (target == null) return null
 
-    val intercept = com.genir.aitweaks.features.autofire.temp.calculateIntercept(weapon, target) ?: return null
+    val intercept = calculateIntercept(weapon, target) ?: return null
 
     return FiringSolution(weapon, target, intercept)
 }

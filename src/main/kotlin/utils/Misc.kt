@@ -24,7 +24,8 @@ fun willHitActiveShieldArc(weapon: WeaponAPI, shield: ShieldAPI): Boolean {
     return kotlin.math.abs(attackAngle) < (shield.activeArc / 2)
 }
 
-internal infix operator fun Vector2f.times(d: Float): Vector2f = Vector2f(d * x, d * y)
+internal infix fun Vector2f.multiply(d: Float): Vector2f = Vector2f(d * x, d * y)
+internal infix fun Vector2f.divide(d: Float): Vector2f = Vector2f(d / x, d / y)
 
 fun rotateAroundPivot(toRotate: Vector2f, pivot: Vector2f, angle: Float): Vector2f =
     VectorUtils.rotateAroundPivot(toRotate, pivot, angle, Vector2f())

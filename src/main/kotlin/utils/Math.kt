@@ -9,6 +9,14 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
+ * Calculate angular size of a circle with radius r, located at distanceSqr
+ * from the observer. If observer is inside the circle, function returns 360 degrees.
+ */
+fun angularSize(distanceSqr: Float, r: Float): Float = if (distanceSqr < r * r) 360f
+else atan(r / sqrt(distanceSqr - r * r)) * 2f
+
+
+/**
  *  Find the square of distance between point (0,0)
  *  and point p traveling with velocity v.
  *
@@ -16,7 +24,7 @@ import kotlin.math.sqrt
  */
 fun distanceToOriginSqr(p: Vector2f, v: Vector2f): Float? {
     val t = -(p.x * v.x + p.y * v.y) / (v.x * v.x + v.y * v.y)
-    return if (t >= 0) (p + v.times(t)).lengthSquared()
+    return if (t >= 0) (p + v.multiply(t)).lengthSquared()
     else null
 }
 
