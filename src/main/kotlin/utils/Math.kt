@@ -1,6 +1,5 @@
 package com.genir.aitweaks.utils
 
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.Float.Companion.NaN
@@ -15,7 +14,6 @@ import kotlin.math.sqrt
 fun angularSize(distanceSqr: Float, r: Float): Float = if (distanceSqr < r * r) 360f
 else atan(r / sqrt(distanceSqr - r * r)) * 2f
 
-
 /**
  *  Find the square of distance between point (0,0)
  *  and point p traveling with velocity v.
@@ -24,7 +22,7 @@ else atan(r / sqrt(distanceSqr - r * r)) * 2f
  */
 fun distanceToOriginSqr(p: Vector2f, v: Vector2f): Float? {
     val t = -(p.x * v.x + p.y * v.y) / (v.x * v.x + v.y * v.y)
-    return if (t >= 0) (p + v.multiply(t)).lengthSquared()
+    return if (t >= 0) (p + v.times(t)).lengthSquared()
     else null
 }
 
@@ -49,6 +47,11 @@ fun solve(p: Vector2f, v: Vector2f, r: Float, w: Float): Float {
     // sqrt[ (p.x + v.x * t)^2 + (p.y + v.y * t)^2 ] = r + w * t
     // (p.x + v.x * t)^2 + (p.y + v.y * t)^2 = (r + w * t)^2
     // 0 = (v.x^2 + v.y^2 - w^2)*t^2 + 2(p.x*v.x + p.y*v.y - r*w)*t + (p.x^2 + p.y^2 - r^2)
+
+    // 0 = -1*(-200*-200) + 2(-200)*-200 - 200*200
+    // 0 = -1*40000 + 2 *40000 - 40000
+
+
     val a = v.lengthSquared() - w * w
     val b = 2f * (p.x * v.x + p.y * v.y - r * w)
     val c = p.lengthSquared() - r * r
@@ -65,8 +68,8 @@ fun solve(p: Vector2f, v: Vector2f, r: Float, w: Float): Float {
 fun quad(a: Float, b: Float, c: Float): Pair<Float, Float> {
     val d = b * b - 4f * a * c
     return when {
-        MathUtils.equals(d, 0f) || d < 0 -> Pair(NaN, NaN)
-        MathUtils.equals(a, 0f) -> (2 * c / -b).let { Pair(it, it) }
+        d < 0 -> Pair(NaN, NaN)
+        a == 0f -> (2 * c / -b).let { Pair(it, it) }
         else -> sqrt(d).let { Pair((-b + it) / (2 * a), (-b - it) / (2 * a)) }
     }
 }

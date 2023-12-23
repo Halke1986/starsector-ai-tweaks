@@ -5,7 +5,7 @@ import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.isAnyBeam
 import com.genir.aitweaks.utils.extensions.targetEntity
 import com.genir.aitweaks.utils.solve
-import com.genir.aitweaks.utils.multiply
+import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f

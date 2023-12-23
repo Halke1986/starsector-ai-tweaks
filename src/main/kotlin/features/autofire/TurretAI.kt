@@ -2,7 +2,6 @@ package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.debugValue
-import com.genir.aitweaks.features.autofire.FiringSolution
 import com.genir.aitweaks.utils.extensions.maneuverTarget
 import com.genir.aitweaks.utils.extensions.targetEntity
 import com.genir.aitweaks.utils.extensions.isValidTarget
@@ -39,8 +38,8 @@ class TurretAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
         basePlugin.advance(timeDelta)
         maneuverTargetTracker.advance(timeDelta)
 
-        val maneuverSolution = makeFiringSolution(weapon, maneuverTargetTracker.target)
-        val baseSolution = makeFiringSolution(weapon, basePlugin.targetEntity)
+        val maneuverSolution = maneuverTargetTracker.target?.let { FiringSolution(weapon, it) }
+        val baseSolution = basePlugin.targetEntity?.let { FiringSolution(weapon, it) }
 
         solution = when {
             weapon.hasAIHint(WeaponAPI.AIHints.PD) -> baseSolution
@@ -65,8 +64,11 @@ class TurretAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
 
         if (first != null && first != solution!!.target) {
             if (weapon.spec.weaponId == "hephag") {
-                debugValue
-                debugValue = first
+                debugValue = if (first.isHulk) {
+                    "junk"
+                } else {
+                    first
+                }
             }
 
             return false
