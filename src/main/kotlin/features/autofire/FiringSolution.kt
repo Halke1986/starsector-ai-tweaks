@@ -8,7 +8,6 @@ import com.genir.aitweaks.utils.extensions.radius
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
-import org.lwjgl.util.vector.Vector2f
 
 class FiringSolution(
     val weapon: WeaponAPI,

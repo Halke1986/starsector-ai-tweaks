@@ -4,10 +4,8 @@ import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.debugValue
 import com.genir.aitweaks.utils.extensions.isValidTarget
 import com.genir.aitweaks.utils.extensions.maneuverTarget
-import com.genir.aitweaks.utils.extensions.targetEntity
 import org.lwjgl.util.vector.Vector2f
 
 fun applyTurretAI(ship: ShipAPI) {
@@ -30,6 +28,8 @@ fun applyTurretAI(ship: ShipAPI) {
 // paladin ff
 // ir lance tracks fighters
 // small pd weapons by hullmod
+// track ship target for player
+// ignore flares
 
 class TurretAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
     private val maneuverTargetTracker = ManeuverTargetTracker(basePlugin.weapon.ship)
@@ -39,9 +39,7 @@ class TurretAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
         basePlugin.advance(timeDelta)
         maneuverTargetTracker.advance(timeDelta)
 
-        solution =
-            if (weapon.hasAIHint(WeaponAPI.AIHints.PD)) basePlugin.targetEntity?.let { FiringSolution(weapon, it) }
-            else selectTarget(weapon, solution?.target, maneuverTargetTracker.target)
+        solution = selectTarget(weapon, solution?.target, maneuverTargetTracker.target)
     }
 
     override fun shouldFire(): Boolean {
@@ -79,10 +77,10 @@ class TurretAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
 class ManeuverTargetTracker(private val ship: ShipAPI) {
     var target: ShipAPI? = null
 
-    fun advance(p0: Float) {
+    fun advance(timeDelta: Float) {
         when (val newTarget = ship.maneuverTarget) {
             target -> return
-            null -> if (!target.isValidTarget) target = null
+            null -> if (target?.isValidTarget != true) target = null
             else -> target = newTarget
         }
     }

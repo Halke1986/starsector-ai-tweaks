@@ -1,6 +1,5 @@
 package com.genir.aitweaks.utils
 
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
@@ -46,22 +45,3 @@ fun arcsOverlap(facing0: Float, arc0: Float, facing1: Float, arc1: Float): Boole
 //    return grid.getCheckIterator(location, searchRange, searchRange)
 //}
 
-fun closestShipFilter(location: Vector2f, range: Float, filter: (ShipAPI) -> Boolean): ShipAPI? {
-    var closestShip: ShipAPI? = null
-    var closestRange = Float.MAX_VALUE
-
-    val evaluateShip = fun(ship: ShipAPI) {
-        val currentRange = (location - ship.location).lengthSquared()
-        if (currentRange < closestRange && filter(ship)) {
-            closestShip = ship
-            closestRange = currentRange
-        }
-    }
-
-    val searchRange = range * 2.0f + 50.0f // Magic numbers based on vanilla autofire AI.
-    val grid = Global.getCombatEngine().shipGrid
-    val shipIterator = grid.getCheckIterator(location, searchRange, searchRange)
-    shipIterator.forEach { evaluateShip(it as ShipAPI) }
-
-    return closestShip
-}
