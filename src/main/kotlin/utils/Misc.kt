@@ -1,5 +1,6 @@
 package com.genir.aitweaks.utils
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
@@ -21,7 +22,7 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI?) = when {
 fun willHitActiveShieldArc(weapon: WeaponAPI, shield: ShieldAPI): Boolean {
     val tgtFacing = (weapon.location - shield.location).getFacing()
     val attackAngle = getShortestRotation(tgtFacing, shield.facing)
-    return kotlin.math.abs(attackAngle) < (shield.activeArc / 2)
+    return abs(attackAngle) < (shield.activeArc / 2)
 }
 
 internal infix operator fun Vector2f.times(d: Float): Vector2f = Vector2f(x * d, y * d)
@@ -38,3 +39,29 @@ fun atan(radians: Float): Float = Math.toDegrees(FastTrig.atan(radians.toDouble(
 
 fun arcsOverlap(facing0: Float, arc0: Float, facing1: Float, arc1: Float): Boolean =
     abs(getShortestRotation(facing0, facing1)) <= (arc0 + arc1) / 2f
+
+//fun shipsWithinRange(location: Vector2f, range: Float): Iterator<Any> {
+//    val searchRange = range * 2.0f + 50.0f // Magic numbers based on vanilla autofire AI.
+//    val grid = Global.getCombatEngine().shipGrid
+//    return grid.getCheckIterator(location, searchRange, searchRange)
+//}
+
+fun closestShipFilter(location: Vector2f, range: Float, filter: (ShipAPI) -> Boolean): ShipAPI? {
+    var closestShip: ShipAPI? = null
+    var closestRange = Float.MAX_VALUE
+
+    val evaluateShip = fun(ship: ShipAPI) {
+        val currentRange = (location - ship.location).lengthSquared()
+        if (currentRange < closestRange && filter(ship)) {
+            closestShip = ship
+            closestRange = currentRange
+        }
+    }
+
+    val searchRange = range * 2.0f + 50.0f // Magic numbers based on vanilla autofire AI.
+    val grid = Global.getCombatEngine().shipGrid
+    val shipIterator = grid.getCheckIterator(location, searchRange, searchRange)
+    shipIterator.forEach { evaluateShip(it as ShipAPI) }
+
+    return closestShip
+}

@@ -23,17 +23,17 @@ val WeaponAPI.isAimable: Boolean
 val WeaponAPI.isAntiArmor: Boolean
     get() = this.damageType == DamageType.HIGH_EXPLOSIVE || this.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS)
 
-val WeaponAPI.isAnyBeam: Boolean
-    get() = this.isBeam || this.isBurstBeam
+//val WeaponAPI.isAnyBeam: Boolean
+//    get() = this.isBeam || this.isBurstBeam
 
-val WeaponAPI.velocity: Vector2f
-    get() = this.ship.velocity
+//val WeaponAPI.velocity: Vector2f
+//    get() = this.ship.velocity
 
 /** weapon arc facing in absolute coordinates, instead of ship coordinates */
 val WeaponAPI.absoluteArcFacing: Float
     get() = MathUtils.clampAngle(this.arcFacing + this.ship.facing)
 
 // Projectile velocity vector in absolute coordinates. Unit vector for beam weapons.
-val WeaponAPI.absoluteProjectileVelocity: Vector2f
-    get() = if (this.isAnyBeam) unitVector(this.currAngle)
-    else unitVector(this.currAngle) * this.projectileSpeed + this.ship.velocity
+//val WeaponAPI.absoluteProjectileVelocity: Vector2f
+//    get() = if (this.isAnyBeam) unitVector(this.currAngle)
+//    else unitVector(this.currAngle) * this.projectileSpeed + this.ship.velocity

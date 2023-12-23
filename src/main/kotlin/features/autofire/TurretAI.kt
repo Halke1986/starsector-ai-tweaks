@@ -10,8 +10,6 @@ import com.genir.aitweaks.utils.extensions.maneuverTarget
 import com.genir.aitweaks.utils.extensions.targetEntity
 import org.lwjgl.util.vector.Vector2f
 
-var count = 0
-
 fun applyTurretAI(ship: ShipAPI) {
     ship.weaponGroupsCopy.forEach { group ->
         val plugins = group.aiPlugins
@@ -19,8 +17,6 @@ fun applyTurretAI(ship: ShipAPI) {
             val weapon = plugins[i].weapon
             if (weapon.slot.isTurret && weapon.type != WeaponAPI.WeaponType.MISSILE && weapon.ship.owner == 0) {
                 plugins[i] = TurretAI(plugins[i])
-                count++
-                debugValue = count
             }
         }
     }
@@ -32,6 +28,8 @@ fun applyTurretAI(ship: ShipAPI) {
 // ff
 // target selection
 // paladin ff
+// ir lance tracks fighters
+// small pd weapons by hullmod
 
 class TurretAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
     private val maneuverTargetTracker = ManeuverTargetTracker(basePlugin.weapon.ship)
@@ -41,31 +39,27 @@ class TurretAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
         basePlugin.advance(timeDelta)
         maneuverTargetTracker.advance(timeDelta)
 
-        val maneuverSolution = maneuverTargetTracker.target?.let { FiringSolution(weapon, it) }
-        val baseSolution = basePlugin.targetEntity?.let { FiringSolution(weapon, it) }
-
-        solution = when {
-            weapon.hasAIHint(WeaponAPI.AIHints.PD) -> baseSolution
-//            baseSolution?.target is MissileAPI -> baseSolution
-            maneuverSolution?.canTrack == true -> maneuverSolution
-            baseSolution?.canTrack == true -> baseSolution
-            maneuverSolution != null -> maneuverSolution
-            else -> null
-        }
+        solution =
+            if (weapon.hasAIHint(WeaponAPI.AIHints.PD)) basePlugin.targetEntity?.let { FiringSolution(weapon, it) }
+            else selectTarget(weapon, solution?.target, maneuverTargetTracker.target)
     }
 
     override fun shouldFire(): Boolean {
-        if (solution?.willHit != true) return false
+        if (solution == null) return false
 
-        val first = firstAlongLineOfFire(weapon, solution!!.closestPossibleHit)
+        // Fire only when the selected target is in sights.
+        val hitSolver = HitSolver(solution!!.weapon)
+        val range = hitSolver.hitRange(solution!!.target) ?: return false
+
+        val first = firstAlongLineOfFire(hitSolver, range)
 
         if (first != null && (!first.isAlive || (first.isAlive && first.owner == weapon.ship.owner))) {
             if (weapon.spec.weaponId == "hephag" && first != solution!!.target) {
-                debugValue = if (first.isHulk) {
-                    "junk"
-                } else {
-                    first
-                }
+//                debugValue = if (first.isHulk) {
+//                    "junk"
+//                } else {
+//                    first
+//                }
             }
 
             return false
