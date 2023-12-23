@@ -1,10 +1,10 @@
 package com.genir.aitweaks.features.autofire
 
-import org.junit.jupiter.api.Test
-import com.genir.aitweaks.mocks.MockCombatEntityAPI
-import com.genir.aitweaks.mocks.MockShipAPI
-import com.genir.aitweaks.mocks.MockWeaponAPI
+import com.genir.aitweaks.utils.mocks.MockCombatEntityAPI
+import com.genir.aitweaks.utils.mocks.MockShipAPI
+import com.genir.aitweaks.utils.mocks.MockWeaponAPI
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.lwjgl.util.vector.Vector2f
 
 internal class FiringSolutionTest {

@@ -1,10 +1,13 @@
 package com.genir.aitweaks.features.autofire
 
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.AutofireAIPlugin
+import com.fs.starfarer.api.combat.MissileAPI
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.debugValue
+import com.genir.aitweaks.utils.extensions.isValidTarget
 import com.genir.aitweaks.utils.extensions.maneuverTarget
 import com.genir.aitweaks.utils.extensions.targetEntity
-import com.genir.aitweaks.utils.extensions.isValidTarget
 import org.lwjgl.util.vector.Vector2f
 
 var count = 0
@@ -49,12 +52,6 @@ class TurretAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
             maneuverSolution != null -> maneuverSolution
             else -> null
         }
-
-//        if (solution != null && weapon.spec.weaponId == "hephag") {
-//            val s = solution!!
-//            val simpleRange = (s.target.location - weapon.location).length() - s.target.collisionRadius
-//            debugValue = simpleRange - solution!!.closestPossibleHit
-//        }
     }
 
     override fun shouldFire(): Boolean {
@@ -62,8 +59,8 @@ class TurretAI(private val basePlugin: AutofireAIPlugin) : AutofireAIPlugin {
 
         val first = firstAlongLineOfFire(weapon, solution!!.closestPossibleHit)
 
-        if (first != null && first != solution!!.target) {
-            if (weapon.spec.weaponId == "hephag") {
+        if (first != null && (!first.isAlive || (first.isAlive && first.owner == weapon.ship.owner))) {
+            if (weapon.spec.weaponId == "hephag" && first != solution!!.target) {
                 debugValue = if (first.isHulk) {
                     "junk"
                 } else {

@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.utils.distanceToOriginSqr
 import com.genir.aitweaks.utils.extensions.absoluteProjectileVelocity
+import com.genir.aitweaks.utils.extensions.radius
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
@@ -37,5 +38,5 @@ fun willHit(projectileVelocity: Vector2f, weapon: WeaponAPI, ship: ShipAPI): Boo
     val p = weapon.location - ship.location
     val v = projectileVelocity - ship.velocity
     val distanceSqr = distanceToOriginSqr(p, v) ?: return false
-    return distanceSqr <= ship.collisionRadius * ship.collisionRadius
+    return distanceSqr <= ship.radius * ship.radius
 }

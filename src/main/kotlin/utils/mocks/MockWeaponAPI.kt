@@ -1,4 +1,4 @@
-package com.genir.aitweaks.mocks
+package com.genir.aitweaks.utils.mocks
 
 import com.fs.starfarer.api.AnimationAPI
 import com.fs.starfarer.api.combat.*

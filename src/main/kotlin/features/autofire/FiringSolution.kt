@@ -29,7 +29,7 @@ class FiringSolution(
     val closestPossibleHit =
         if (interceptArc == 360f) 0f else solve(locationRelative, velocityRelative, target.radius, 1f)
 
-    // TODO debug nans
+    // TODO debug NaNs
 
     /**
      * canTrack returns 'true' if it is possible to aim the weapon at selected target,
