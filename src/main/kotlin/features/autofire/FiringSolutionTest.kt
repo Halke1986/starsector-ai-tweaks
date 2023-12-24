@@ -8,13 +8,13 @@ import org.junit.jupiter.api.Test
 import org.lwjgl.util.vector.Vector2f
 
 internal class FiringSolutionTest {
-
     @Test
     fun validProjectile() {
         val weapon = MockWeaponAPI(
             "getLocation" to Vector2f(1000f, 1000f),
             "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 200f)),
             "getProjectileSpeed" to 750f,
+            "getRange" to 1000f,
         )
 
         val target = MockCombatEntityAPI(
@@ -27,11 +27,6 @@ internal class FiringSolutionTest {
 
         assertTrue(actual.valid)
         assertEquals(Vector2f(-732.4953f, 802.51416f), actual.intercept)
-        assertEquals(2.3249528f, actual.interceptTime)
-
-        assertEquals(12.8316f, actual.interceptArc)
-        assertEquals(186.33452f, actual.interceptFacing)
-        assertEquals(1503.4849f, actual.closestPossibleHit)
     }
 
     @Test
@@ -40,6 +35,7 @@ internal class FiringSolutionTest {
             "getLocation" to Vector2f(1000f, 1000f),
             "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 200f)),
             "getProjectileSpeed" to Float.MAX_VALUE,
+            "getRange" to 1000f,
         )
 
         val target = MockCombatEntityAPI(
@@ -51,20 +47,21 @@ internal class FiringSolutionTest {
         val actual = FiringSolution(weapon, target)
 
         assertTrue(actual.valid)
-        assertEquals(4.6465497E-36f, actual.interceptTime)
         assertEquals(target.location, actual.intercept)
-
-        assertEquals(14.163194f, actual.interceptArc)
-        assertEquals(161.83597f, actual.interceptFacing)
-        assertEquals(1381.1388f, actual.closestPossibleHit)
     }
 
     @Test
     fun targetIsOverTheWeapon() {
         val weapon = MockWeaponAPI(
             "getLocation" to Vector2f(0f, 0f),
-            "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 0f)),
+            "getShip" to MockShipAPI(
+                "getVelocity" to Vector2f(0f, 0f),
+                "getFacing" to 20f,
+            ),
             "getProjectileSpeed" to Float.MAX_VALUE,
+            "getRange" to 1000f,
+            "getArcFacing" to 180f,
+            "getArc" to 30f,
         )
 
         val target = MockCombatEntityAPI(
@@ -76,12 +73,8 @@ internal class FiringSolutionTest {
         val actual = FiringSolution(weapon, target)
 
         assertTrue(actual.valid)
+        assertTrue(actual.canTrack)
         assertEquals(target.location, actual.intercept)
-        assertEquals(4.156E-42f, actual.interceptTime)
-
-        assertEquals(360f, actual.interceptArc)
-        assertEquals(135.28372f, actual.interceptFacing)
-        assertEquals(0f, actual.closestPossibleHit)
     }
 
     @Test
@@ -90,6 +83,7 @@ internal class FiringSolutionTest {
             "getLocation" to Vector2f(1000f, 1000f),
             "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 200f)),
             "getProjectileSpeed" to 20f,
+            "getRange" to 1000f,
         )
 
         val target = MockCombatEntityAPI(
@@ -109,6 +103,8 @@ internal class FiringSolutionTest {
             "getLocation" to Vector2f(),
             "getShip" to MockShipAPI("getVelocity" to Vector2f()),
             "getProjectileSpeed" to 1f,
+            "getRange" to 1000f,
+            "getArcFacing" to 180f,
         )
 
         val target = MockCombatEntityAPI(
@@ -121,6 +117,4 @@ internal class FiringSolutionTest {
 
         assertFalse(actual.valid)
     }
-
-
 }

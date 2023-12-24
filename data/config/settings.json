@@ -1,6 +1,5 @@
 {
   "plugins":{
     "DebugPlugin":"com.genir.aitweaks.DebugPlugin",
-    "RegisterShipsPlugin":"com.genir.aitweaks.RegisterShipsPlugin"
   }
 }

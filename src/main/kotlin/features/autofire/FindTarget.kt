@@ -36,7 +36,7 @@ fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): FiringSolution? {
 }
 
 fun selectShip(
-    weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?, considerFighters: Boolean
+    weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?, trackFighters: Boolean
 ): FiringSolution? {
     // Prioritize maneuver target.
     val maneuverSolution = maneuver?.let { FiringSolution(weapon, it) }
@@ -50,8 +50,8 @@ fun selectShip(
 
     // Find the closest enemy ship that can be tracked by the weapon.
     return closestShipFinder(weapon.location, weapon.range, fun(ship: ShipAPI): FiringSolution? {
-        if (ship.isAlive || ship.owner xor 1 != weapon.ship.owner) return null
-        if (ship.isFighter && !considerFighters) return null
+        if (!ship.isAlive || ship.owner xor 1 != weapon.ship.owner) return null
+        if (ship.isFighter && !trackFighters) return null
 
         val solution = FiringSolution(weapon, ship)
         return if (solution.canTrack) solution else null
