@@ -3,6 +3,7 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
+import com.genir.aitweaks.utils.extensions.ignoresFlares
 import com.genir.aitweaks.utils.extensions.isValidTarget
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
@@ -12,8 +13,7 @@ fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, maneuver: ShipAPI
     val trackFighters = trackMissiles && !weapon.hasAIHint(STRIKE)
 
     if (trackMissiles) {
-        val missileSolution = selectMissile(weapon, current as? MissileAPI)
-        if (missileSolution?.canTrack == true) return missileSolution
+        selectMissile(weapon, current as? MissileAPI)?.let { return it }
     }
 
     return selectShip(weapon, current as? ShipAPI, maneuver, trackFighters)
@@ -22,41 +22,42 @@ fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, maneuver: ShipAPI
 fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): FiringSolution? {
     // Try tracking current missile.
     if (current?.isValidTarget == true) {
-        val currentSolution = FiringSolution(weapon, current)
-        if (currentSolution.canTrack) return currentSolution
+        trackingFiringSolution(weapon, current)?.let { return it }
     }
 
     // Find the closest enemy missile that can be tracked by the weapon.
-    return closestMissileFinder(weapon.location, weapon.range, fun(missile: MissileAPI): FiringSolution? {
-        if (missile.owner xor 1 != weapon.ship.owner) return null
-
-        val solution = FiringSolution(weapon, missile)
-        return if (solution.canTrack) solution else null
-    })
+    return closestMissileFinder(weapon.location, weapon.range) {
+        when {
+            it.owner xor weapon.ship.owner == 0 -> null
+            it.isFlare && weapon.ignoresFlares -> null
+            else -> trackingFiringSolution(weapon, it)
+        }
+    }
 }
 
-fun selectShip(
-    weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?, trackFighters: Boolean
-): FiringSolution? {
+fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?, trackFighters: Boolean): FiringSolution? {
     // Prioritize maneuver target.
-    val maneuverSolution = maneuver?.let { FiringSolution(weapon, it) }
-    if (maneuverSolution?.canTrack == true) return maneuverSolution
+    maneuver?.let { trackingFiringSolution(weapon, it) }?.let { return it }
 
     // Try tracking current target.
     if (current?.isValidTarget == true) {
-        val currentSolution = FiringSolution(weapon, current)
-        if (currentSolution.canTrack) return currentSolution
+        trackingFiringSolution(weapon, current)?.let { return it }
     }
 
     // Find the closest enemy ship that can be tracked by the weapon.
-    return closestShipFinder(weapon.location, weapon.range, fun(ship: ShipAPI): FiringSolution? {
-        if (!ship.isAlive || ship.owner xor 1 != weapon.ship.owner) return null
-        if (ship.isFighter && !trackFighters) return null
-
-        val solution = FiringSolution(weapon, ship)
-        return if (solution.canTrack) solution else null
-    })
+    return closestShipFinder(weapon.location, weapon.range) {
+        when {
+            !it.isAlive -> null
+            it.isFighter && !trackFighters -> null
+            it.owner xor weapon.ship.owner == 0 -> null
+            it.isPhased && !weapon.spec.isBeam -> null // only beams attack phased ships
+            else -> trackingFiringSolution(weapon, it)
+        }
+    }
 }
+
+fun trackingFiringSolution(weapon: WeaponAPI, target: CombatEntityAPI): FiringSolution? =
+    FiringSolution(weapon, target).let { if (it.canTrack) it else null }
 
 fun firstAlongLineOfFire(hitSolver: HitSolver, range: Float): ShipAPI? =
     closestShipFinder(hitSolver.weapon.location, range) {
@@ -94,7 +95,7 @@ fun <T> closestCombatEntityFinder(
         }
     }
 
-    val searchRange = range * 2.0f + 50.0f // Magic numbers based on vanilla autofire AI.
+    val searchRange = range * 2.0f
     val entityIterator = grid.getCheckIterator(location, searchRange, searchRange)
     entityIterator.forEach { evaluateEntity(it as CombatEntityAPI) }
 

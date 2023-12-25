@@ -17,17 +17,15 @@ import org.lwjgl.util.vector.Vector2f
 // TODO
 // hardpoint
 
-// small pd weapons by hullmod
-// ignore flares
-// only beams attack phased ships
-
 // fire on shields
-// ff
+// ff junk borders
 // target selection
 // paladin ff
 // ir lance tracks fighters
 // track ship target for player
 // dont switch targets mid burst
+
+// profile
 
 class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var solution: FiringSolution? = null
