@@ -117,4 +117,32 @@ internal class FiringSolutionTest {
 
         assertFalse(actual.valid)
     }
+
+    @Test
+    fun targetTrackableButBehindWeapon() {
+        val weapon = MockWeaponAPI(
+            "getLocation" to Vector2f(4321.4805f, -191.35764f),
+            "getShip" to MockShipAPI(
+                "getVelocity" to Vector2f(16.294046f, -78.323074f),
+                "getFacing" to 213.7486f
+            ),
+            "getProjectileSpeed" to 1000.0f,
+            "getRange" to 1000f,
+            "getArcFacing" to 0.0f,
+            "getArc" to 250.0f,
+            "getCurrAngle" to 143.3941f,
+        )
+
+        val target = MockCombatEntityAPI(
+            "getLocation" to Vector2f(4961.056f, -813.4499f),
+            "getVelocity" to Vector2f(-256.60562f, 66.17056f),
+            "getCollisionRadius" to 70.0f,
+        )
+
+        val solution = FiringSolution(weapon, target)
+        assertTrue(solution.valid)
+
+        val range = HitSolver(weapon).hitRange(target)
+        assertNull(range)
+    }
 }

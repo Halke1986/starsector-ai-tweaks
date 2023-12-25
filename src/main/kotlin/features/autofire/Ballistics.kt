@@ -64,6 +64,6 @@ class HitSolver(val weapon: WeaponAPI) {
     fun hitRange(target: CombatEntityAPI): Float? {
         val (p, v) = pv(target)
         val range = solve(p, v, target.radius, 0f)
-        return if (range <= weapon.range) range else null
+        return if (range >= 0f && range <= weapon.range) range else null
     }
 }

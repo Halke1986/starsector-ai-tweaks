@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.debugValue
 import com.genir.aitweaks.utils.extensions.isValidTarget
 import com.genir.aitweaks.utils.extensions.maneuverTarget
 import org.lwjgl.util.vector.Vector2f
@@ -18,6 +19,8 @@ import org.lwjgl.util.vector.Vector2f
 // small pd weapons by hullmod
 // track ship target for player
 // ignore flares
+// only beams attack phased ships
+// dont switch targets mid burst
 
 class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val maneuverTargetTracker = ManeuverTargetTracker(weapon.ship)
@@ -41,11 +44,11 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         if (first != null && (!first.isAlive || (first.isAlive && first.owner == weapon.ship.owner))) {
             if (weapon.spec.weaponId == "hephag" && first != solution!!.target) {
-//                debugValue = if (first.isHulk) {
-//                    "junk"
-//                } else {
-//                    first
-//                }
+                debugValue = if (first.isHulk) {
+                    "junk"
+                } else {
+                    first
+                }
             }
 
             return false

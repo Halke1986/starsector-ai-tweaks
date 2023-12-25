@@ -81,7 +81,7 @@ fun <T> closestCombatEntityFinder(
     location: Vector2f, range: Float, grid: CollisionGridAPI, f: (CombatEntityAPI) -> T
 ): T? {
     var closestFound: T? = null
-    var closestRange = Float.MAX_VALUE
+    var closestRange = range * range + 1f
 
     val evaluateEntity = fun(entity: CombatEntityAPI) {
         val currentRange = (location - entity.location).lengthSquared()
