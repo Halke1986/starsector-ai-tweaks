@@ -28,7 +28,7 @@ fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): FiringSolution? {
     // Find the closest enemy missile that can be tracked by the weapon.
     return closestMissileFinder(weapon.location, weapon.range) {
         when {
-            it.owner xor weapon.ship.owner == 0 -> null
+            it.owner == weapon.ship.owner -> null
             it.isFlare && weapon.ignoresFlares -> null
             else -> trackingFiringSolution(weapon, it)
         }
@@ -49,7 +49,7 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?, trackFi
         when {
             !it.isAlive -> null
             it.isFighter && !trackFighters -> null
-            it.owner xor weapon.ship.owner == 0 -> null
+            it.owner == weapon.ship.owner -> null
             it.isPhased && !weapon.spec.isBeam -> null // only beams attack phased ships
             else -> trackingFiringSolution(weapon, it)
         }
@@ -66,6 +66,7 @@ fun firstAlongLineOfFire(hitSolver: HitSolver, range: Float): ShipAPI? =
             it.isDrone -> null
             it == hitSolver.weapon.ship -> null
             !hitSolver.willHit(it) -> null
+            it.isHulk && !hitSolver.willHitBounds(it) -> null
             else -> it
         }
     }

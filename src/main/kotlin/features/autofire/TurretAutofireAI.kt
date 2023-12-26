@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.debugValue
 import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.isValidTarget
@@ -16,14 +15,14 @@ import org.lwjgl.util.vector.Vector2f
 
 // TODO
 // hardpoint
-
+// dont switch targets mid burst
 // fire on shields
-// ff junk borders
+
 // target selection
 // paladin ff
 // ir lance tracks fighters
 // track ship target for player
-// dont switch targets mid burst
+// ff when attacking fighters
 
 // profile
 
@@ -49,21 +48,9 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val hitSolver = HitSolver(solution!!.weapon)
         val range = hitSolver.hitRange(solution!!.target) ?: return false
 
-        val first = firstAlongLineOfFire(hitSolver, range)
-
-        if (first != null && (!first.isAlive || (first.isAlive && first.owner == weapon.ship.owner))) {
-            if (weapon.spec.weaponId == "hephag" && first != solution!!.target) {
-                debugValue = if (first.isHulk) {
-                    "junk"
-                } else {
-                    first
-                }
-            }
-
-            return false
-        }
-
-        return true
+        // Avoid firing on friendlies or junk.
+        val blocker = firstAlongLineOfFire(hitSolver, range)
+        return (blocker == null || blocker.owner xor weapon.ship.owner == 1)
     }
 
     override fun forceOff() {

@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.absoluteArcFacing
 import com.genir.aitweaks.utils.extensions.radius
+import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -20,7 +21,8 @@ class FiringSolution(
     /** was it possible to calculate the firing solution */
     val valid: Boolean
 
-    /** does the weapon have sufficient range and can rotate in its slot to hit the target */
+    /** does the weapon have sufficient range and can rotate in its slot
+     * to hit the target, taking target movement into account */
     val canTrack: Boolean
 
     init {
@@ -28,9 +30,10 @@ class FiringSolution(
         val velocityRelative = (target.velocity - weapon.ship.velocity) / weapon.projectileSpeed
 
         val interceptDistance = solve(locationRelative, velocityRelative, 0f, 1f)
-        valid = !interceptDistance.isNaN() && interceptDistance.isFinite() && interceptDistance >= 0f
+        valid = !interceptDistance.isNaN() && interceptDistance.isFinite()
         intercept = target.location + velocityRelative * interceptDistance
 
+        // TODO calculate tangents to get firing arc
         val interceptRelative = intercept - weapon.location
         val interceptArc = angularSize(interceptRelative.lengthSquared(), target.radius)
         val interceptFacing = VectorUtils.getFacing(interceptRelative)
@@ -64,6 +67,12 @@ class HitSolver(val weapon: WeaponAPI) {
     fun hitRange(target: CombatEntityAPI): Float? {
         val (p, v) = pv(target)
         val range = solve(p, v, target.radius, 0f)
-        return if (range >= 0f && range <= weapon.range) range else null
+        return if (range <= weapon.range) range else null
+    }
+
+    fun willHitBounds(target: CombatEntityAPI): Boolean {
+        // TODO implement custom bounds check
+        val (_, v) = pv(target)
+        return CollisionUtils.getCollisionPoint(weapon.location, v * 10e5f, target) != null
     }
 }

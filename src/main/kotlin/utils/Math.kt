@@ -3,8 +3,6 @@ package com.genir.aitweaks.utils
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.Float.Companion.NaN
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
@@ -31,10 +29,10 @@ fun distanceToOriginSqr(p: Vector2f, v: Vector2f): Float {
  *
  * |p + t*v| = r + t*w
  *
- * where p and v are vectors and r and w are scalar values.
+ * where p and v are vectors and r and w are scalars.
  *
- * The smaller of the two positive solutions is returned.
- * If no positive solution exists, null is returned.
+ * The smaller positive solutions is returned.
+ * If no positive solution exists, NaN is returned.
  *
  * One of the possible interpretations of the solution is:
  * "time after which point p moving with velocity v
@@ -52,9 +50,11 @@ fun solve(p: Vector2f, v: Vector2f, r: Float, w: Float): Float {
     val c = p.lengthSquared() - r * r
 
     val (t1, t2) = quad(a, b, c)
-
-    return if (t1 < 0 || t2 < 0) max(t1, t2)
-    else min(t1, t2)
+    return when {
+        t1 > 0 && t1 < t2 -> t1
+        t2 > 0 -> t2
+        else -> NaN
+    }
 }
 
 /**
