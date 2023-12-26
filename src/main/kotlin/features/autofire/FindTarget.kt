@@ -50,7 +50,6 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?, trackFi
             !it.isAlive -> null
             it.isFighter && !trackFighters -> null
             it.owner == weapon.ship.owner -> null
-            it.isPhased && !weapon.spec.isBeam -> null // only beams attack phased ships
             else -> trackingFiringSolution(weapon, it)
         }
     }

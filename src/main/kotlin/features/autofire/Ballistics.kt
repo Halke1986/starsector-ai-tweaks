@@ -73,6 +73,6 @@ class HitSolver(val weapon: WeaponAPI) {
     fun willHitBounds(target: CombatEntityAPI): Boolean {
         // TODO implement custom bounds check
         val (_, v) = pv(target)
-        return CollisionUtils.getCollisionPoint(weapon.location, v * 10e5f, target) != null
+        return CollisionUtils.getCollisionPoint(weapon.location, weapon.location + v * 10e5f, target) != null
     }
 }

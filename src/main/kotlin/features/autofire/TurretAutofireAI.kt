@@ -44,6 +44,9 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun shouldFire(): Boolean {
         if (solution == null) return false
 
+        // only beams attack phased ships
+        if ((solution!!.target as? ShipAPI)?.isPhased == true && !weapon.spec.isBeam) return false
+
         // Fire only when the selected target is in sights.
         val hitSolver = HitSolver(solution!!.weapon)
         val range = hitSolver.hitRange(solution!!.target) ?: return false
