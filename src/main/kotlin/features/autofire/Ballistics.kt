@@ -11,6 +11,9 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 
+const val cos90 = 0f
+const val cos180 = -1f
+
 class FiringSolution(
     val weapon: WeaponAPI,
     val target: CombatEntityAPI,
@@ -26,22 +29,17 @@ class FiringSolution(
     val canTrack: Boolean
 
     init {
-        val locationRelative = target.location - weapon.location
-        val velocityRelative = (target.velocity - weapon.ship.velocity) / weapon.projectileSpeed
+        val p = target.location - weapon.location
+        val v = (target.velocity - weapon.ship.velocity) / weapon.projectileSpeed
 
-        val interceptDistance = solve(locationRelative, velocityRelative, 0f, 1f)
+        val interceptDistance = solve(p, v, 0f, 1f, 0f)
+        val closestDistance = solve(p, v, target.radius, 1f, cos180)
+
         valid = !interceptDistance.isNaN() && interceptDistance.isFinite()
-        intercept = target.location + velocityRelative * interceptDistance
+        intercept = if (valid) target.location + v * interceptDistance else Vector2f()
 
-        // TODO calculate tangents to get firing arc
-        val interceptRelative = intercept - weapon.location
-        val interceptArc = angularSize(interceptRelative.lengthSquared(), target.radius)
-        val interceptFacing = VectorUtils.getFacing(interceptRelative)
-        val closestPossibleHit =
-            if (interceptArc == 360f) 0f else solve(locationRelative, velocityRelative, target.radius, 1f)
-
-        canTrack = valid && closestPossibleHit <= weapon.range && arcsOverlap(
-            weapon.absoluteArcFacing, weapon.arc, interceptFacing, interceptArc
+        canTrack = valid && closestDistance <= weapon.range && arcsOverlap(
+            Arc(weapon.arc, weapon.absoluteArcFacing), interceptArc(weapon, target)
         )
     }
 }
@@ -61,12 +59,15 @@ class HitSolver(val weapon: WeaponAPI) {
         return distanceToOriginSqr(p, v) <= target.radius * target.radius
     }
 
+    fun willHitSpread(target: CombatEntityAPI): Boolean =
+        arcsOverlap(Arc(weapon.currSpread, weapon.currAngle), interceptArc(weapon, target))
+
     /** calculates the range at which projectile will collide
      * with target circumference; null if no collision;
      * more expensive than willHit method */
     fun hitRange(target: CombatEntityAPI): Float? {
         val (p, v) = pv(target)
-        val range = solve(p, v, target.radius, 0f)
+        val range = solve(p, v, target.radius, 0f, 0f)
         return if (range <= weapon.range) range else null
     }
 
@@ -75,4 +76,16 @@ class HitSolver(val weapon: WeaponAPI) {
         val (_, v) = pv(target)
         return CollisionUtils.getCollisionPoint(weapon.location, weapon.location + v * 10e5f, target) != null
     }
+}
+
+fun interceptArc(weapon: WeaponAPI, target: CombatEntityAPI): Arc {
+    val p = target.location - weapon.location
+    val v = (target.velocity - weapon.ship.velocity) / weapon.projectileSpeed
+
+    val tangentDistance = solve(p, v, target.radius, 1f, cos90)
+    return if (tangentDistance.isNaN()) Arc(360f, 0f)
+    else Arc(
+        arc = atan(target.radius / tangentDistance) * 2f,
+        facing = VectorUtils.getFacing(p + v * tangentDistance),
+    )
 }

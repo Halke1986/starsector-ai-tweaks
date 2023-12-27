@@ -58,17 +58,20 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?, trackFi
 fun trackingFiringSolution(weapon: WeaponAPI, target: CombatEntityAPI): FiringSolution? =
     FiringSolution(weapon, target).let { if (it.canTrack) it else null }
 
-fun firstAlongLineOfFire(hitSolver: HitSolver, range: Float): ShipAPI? =
-    closestShipFinder(hitSolver.weapon.location, range) {
+fun firstAlongLineOfFire(hitSolver: HitSolver, range: Float): ShipAPI? {
+    val ship = hitSolver.weapon.ship
+    return closestShipFinder(hitSolver.weapon.location, range) {
         when {
             it.isFighter -> null
             it.isDrone -> null
-            it == hitSolver.weapon.ship -> null
-            !hitSolver.willHit(it) -> null
+            it == ship -> null
             it.isHulk && !hitSolver.willHitBounds(it) -> null
+            it.owner == ship.owner && !hitSolver.willHitSpread(it) -> null
+            it.owner != ship.owner && !hitSolver.willHit(it) -> null
             else -> it
         }
     }
+}
 
 fun <T> closestShipFinder(location: Vector2f, range: Float, f: (ShipAPI) -> T): T? {
     return closestCombatEntityFinder(location, range, Global.getCombatEngine().shipGrid) { f(it as ShipAPI) }

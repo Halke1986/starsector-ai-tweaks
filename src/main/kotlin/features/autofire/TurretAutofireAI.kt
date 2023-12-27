@@ -14,6 +14,9 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 
 // TODO
+// ff when attacking fighters
+// ignore small hulks
+
 // hardpoint
 // dont switch targets mid burst
 // fire on shields
@@ -22,7 +25,7 @@ import org.lwjgl.util.vector.Vector2f
 // paladin ff
 // ir lance tracks fighters
 // track ship target for player
-// ff when attacking fighters
+// avoid station bulk
 
 // profile
 

@@ -6,13 +6,6 @@ import kotlin.Float.Companion.NaN
 import kotlin.math.sqrt
 
 /**
- * Calculate angular size of a circle with radius r, located at distanceSqr
- * from the observer. If observer is inside the circle, function returns 360 degrees.
- */
-fun angularSize(distanceSqr: Float, r: Float): Float = if (distanceSqr < r * r) 360f
-else atan(r / sqrt(distanceSqr - r * r)) * 2f
-
-/**
  *  Find the square of distance between point (0,0)
  *  and point p traveling with velocity v.
  *
@@ -25,36 +18,29 @@ fun distanceToOriginSqr(p: Vector2f, v: Vector2f): Float {
 }
 
 /**
- * Solve the following equation for t:
+ * Solve the following cosine law equation for t:
  *
- * |p + t*v| = r + t*w
+ * a(t)^2 = b(t)^2 + r^2 - 2*b(t)*r*cosA
  *
- * where p and v are vectors and r and w are scalars.
+ * where
+ *
+ * a(t) = |P + V * t|
+ * b(t) = w * t
  *
  * The smaller positive solutions is returned.
  * If no positive solution exists, NaN is returned.
  *
- * One of the possible interpretations of the solution is:
- * "time after which point p moving with velocity v
- * will intersect circle centered at point (0,0), with initial
- * radius r and expanding with speed w".
+ * Equation can be expanded the following way:
+ * (|P + V * t|)^2 = (w * t)^2 + r^2 - 2(w * t * r * cosA)
+ * (Px + Vx * t)^2 + (Py + Vy * t)^2 = = w^2 * t^2 + r^2 - 2(w * t * r * cosA)
+ * (Vx^2 + Vy^2 - w^2)*t^2 + 2(Px*Vx + Py*Vy + r*w*cosA)*t + (Px^2 + Py^2 - r^2) = 0
  */
-fun solve(p: Vector2f, v: Vector2f, r: Float, w: Float): Float {
-    // Equation can be expanded the following way:
-    // |p + v * t| = r + w * t
-    // sqrt[ (p.x + v.x * t)^2 + (p.y + v.y * t)^2 ] = r + w * t
-    // (p.x + v.x * t)^2 + (p.y + v.y * t)^2 = (r + w * t)^2
-    // 0 = (v.x^2 + v.y^2 - w^2)*t^2 + 2(p.x*v.x + p.y*v.y - r*w)*t + (p.x^2 + p.y^2 - r^2)
+fun solve(p: Vector2f, v: Vector2f, r: Float, w: Float, cosA: Float): Float {
     val a = v.lengthSquared() - w * w
-    val b = 2f * (p.x * v.x + p.y * v.y - r * w)
+    val b = 2f * (p.x * v.x + p.y * v.y + r * w * cosA)
     val c = p.lengthSquared() - r * r
 
-    val (t1, t2) = quad(a, b, c)
-    return when {
-        t1 > 0 && t1 < t2 -> t1
-        t2 > 0 -> t2
-        else -> NaN
-    }
+    return smallerPositive(quad(a, b, c))
 }
 
 /**
@@ -67,4 +53,10 @@ fun quad(a: Float, b: Float, c: Float): Pair<Float, Float> {
         a == 0f -> (2 * c / -b).let { Pair(it, it) }
         else -> sqrt(d).let { Pair((-b + it) / (2 * a), (-b - it) / (2 * a)) }
     }
+}
+
+fun smallerPositive(p: Pair<Float, Float>): Float = when {
+    p.first > 0 && p.first < p.second -> p.first
+    p.second > 0 -> p.second
+    else -> NaN
 }

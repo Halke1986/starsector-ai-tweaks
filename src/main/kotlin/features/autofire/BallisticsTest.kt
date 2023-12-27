@@ -1,5 +1,6 @@
 package com.genir.aitweaks.features.autofire
 
+import com.genir.aitweaks.utils.mocks.Mock
 import com.genir.aitweaks.utils.mocks.MockCombatEntityAPI
 import com.genir.aitweaks.utils.mocks.MockShipAPI
 import com.genir.aitweaks.utils.mocks.MockWeaponAPI
@@ -9,12 +10,17 @@ import org.lwjgl.util.vector.Vector2f
 
 internal class FiringSolutionTest {
     @Test
-    fun validProjectile() {
+    fun validSolution() {
         val weapon = MockWeaponAPI(
             "getLocation" to Vector2f(1000f, 1000f),
-            "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 200f)),
+            "getShip" to MockShipAPI(
+                "getVelocity" to Vector2f(0f, 200f),
+                "getFacing" to 20f,
+            ),
             "getProjectileSpeed" to 750f,
             "getRange" to 1000f,
+            "getArcFacing" to 180f,
+            "getArc" to 45f,
         )
 
         val target = MockCombatEntityAPI(
@@ -23,31 +29,17 @@ internal class FiringSolutionTest {
             "getCollisionRadius" to 200f,
         )
 
-        val actual = FiringSolution(weapon, target)
+        // Projectile case
+        val actualProjectile = FiringSolution(weapon, target)
+        assertTrue(actualProjectile.valid)
+        assertEquals(Vector2f(-732.4953f, 802.51416f), actualProjectile.intercept)
 
-        assertTrue(actual.valid)
-        assertEquals(Vector2f(-732.4953f, 802.51416f), actual.intercept)
-    }
+        // Beam case
+        (weapon as Mock).values["getProjectileSpeed"] = Float.MAX_VALUE
 
-    @Test
-    fun validBeam() {
-        val weapon = MockWeaponAPI(
-            "getLocation" to Vector2f(1000f, 1000f),
-            "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 200f)),
-            "getProjectileSpeed" to Float.MAX_VALUE,
-            "getRange" to 1000f,
-        )
-
-        val target = MockCombatEntityAPI(
-            "getLocation" to Vector2f(-500f, 1500f),
-            "getVelocity" to Vector2f(-100f, -100f),
-            "getCollisionRadius" to 200f,
-        )
-
-        val actual = FiringSolution(weapon, target)
-
-        assertTrue(actual.valid)
-        assertEquals(target.location, actual.intercept)
+        val actualBeam = FiringSolution(weapon, target)
+        assertTrue(actualBeam.valid)
+        assertEquals(target.location, actualBeam.intercept)
     }
 
     @Test
