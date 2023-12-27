@@ -1,24 +1,20 @@
 package com.genir.aitweaks.features.autofire
 
-import com.fs.starfarer.api.combat.AutofireAIPlugin
-import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.MissileAPI
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.debugValue
 import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
+import com.genir.aitweaks.utils.extensions.isPD
 import com.genir.aitweaks.utils.extensions.isValidTarget
 import com.genir.aitweaks.utils.extensions.maneuverTarget
-import org.lazywizard.lazylib.ext.minus
+import org.lazywizard.lazylib.MathUtils.getDistanceSquared
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 
 // TODO
-// ff when attacking fighters
-// ignore small hulks
-
 // hardpoint
+// profile
+
 // dont switch targets mid burst
 // fire on shields
 
@@ -27,8 +23,7 @@ import org.lwjgl.util.vector.Vector2f
 // ir lance tracks fighters
 // track ship target for player
 // avoid station bulk
-
-// profile
+// STRIKE never targets fighters
 
 class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null
@@ -48,16 +43,15 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun shouldFire(): Boolean {
         if (target == null) return false
 
-        // only beams attack phased ships
-        if ((target as? ShipAPI)?.isPhased == true && !weapon.spec.isBeam) return false
+        // only beams and PD weapons attack phased ships
+        if ((target as? ShipAPI)?.isPhased == true && !weapon.spec.isBeam && !weapon.isPD) return false
 
         // Fire only when the selected target is in range.
         val range = hitRange(weapon, target!!)
         if (range.isNaN() || range > weapon.range) return false
 
         // Avoid firing on friendlies or junk.
-        val blocker = firstAlongLineOfFire(weapon, range)
-        return (blocker == null || blocker.owner xor weapon.ship.owner == 1)
+        return avoidsFriendlyFire(target!!, range)
     }
 
     override fun forceOff() {
@@ -111,5 +105,24 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val accBase = weapon.ship.aimAccuracy
         val accBonus = weapon.spec.autofireAccBonus
         return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
+    }
+
+    private fun avoidsFriendlyFire(target: CombatEntityAPI, hitRange: Float): Boolean {
+        val safePDWeapon =
+            weapon.isBeam || weapon.isBurstBeam || (weapon.spec.damageType == DamageType.FRAGMENTATION && weapon.isPD)
+        val pdFire =
+            target is MissileAPI || (target is ShipAPI && (target.isFighter || target.isDrone || target.isPhased))
+        val unsafePDFire = pdFire && !safePDWeapon
+
+        // Search for blockers behind target only for unsafe PD fire.
+        // Otherwise, assume fire will hit target or will be harmless to friendlies.
+        val searchRange = if (unsafePDFire) weapon.range else hitRange
+        val blocker = firstAlongLineOfFire(weapon, searchRange) ?: return true
+
+        val blockerBehindTarget = getDistanceSquared(weapon.location, blocker.location) >= hitRange * hitRange
+        val friendly = blocker.owner == weapon.ship.owner
+        val enemy = !friendly && !blocker.isHulk
+
+        return enemy || blockerBehindTarget && !friendly
     }
 }

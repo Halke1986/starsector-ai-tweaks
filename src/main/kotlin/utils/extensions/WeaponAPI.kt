@@ -6,10 +6,13 @@ import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
 
+val WeaponAPI.isPD: Boolean
+    get() = this.hasAIHint(PD) || this.hasAIHint(PD_ONLY)
+
 val WeaponAPI.hasBestTargetLeading: Boolean
-    get() = (this.hasAIHint(PD) || this.hasAIHint(PD_ONLY)) && !this.hasAIHint(
-        WeaponAPI.AIHints.STRIKE
-    ) && ship.mutableStats.dynamic.getValue("pd_best_target_leading", 0f) >= 1f
+    get() = this.isPD && !this.hasAIHint(WeaponAPI.AIHints.STRIKE) && ship.mutableStats.dynamic.getValue(
+        "pd_best_target_leading", 0f
+    ) >= 1f
 
 val WeaponAPI.ignoresFlares: Boolean
     get() = this.hasAIHint(IGNORES_FLARES) || ship.mutableStats.dynamic.getValue("pd_ignores_flares", 0f) >= 1f
