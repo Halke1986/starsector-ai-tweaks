@@ -8,7 +8,7 @@ import com.genir.aitweaks.utils.extensions.isValidTarget
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
-fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, maneuver: ShipAPI?): FiringSolution? {
+fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, maneuver: ShipAPI?): CombatEntityAPI? {
     val trackMissiles = weapon.hasAIHint(PD) || weapon.hasAIHint(PD_ONLY) || weapon.hasAIHint(PD_ALSO)
     val trackFighters = trackMissiles && !weapon.hasAIHint(STRIKE)
 
@@ -19,80 +19,72 @@ fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, maneuver: ShipAPI
     return selectShip(weapon, current as? ShipAPI, maneuver, trackFighters)
 }
 
-fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): FiringSolution? {
+fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
     // Try tracking current missile.
-    if (current?.isValidTarget == true) {
-        trackingFiringSolution(weapon, current)?.let { return it }
-    }
+    if (current?.isValidTarget == true && canTrack(weapon, current)) return current
 
     // Find the closest enemy missile that can be tracked by the weapon.
     return closestMissileFinder(weapon.location, weapon.range) {
         when {
-            it.owner == weapon.ship.owner -> null
-            it.isFlare && weapon.ignoresFlares -> null
-            else -> trackingFiringSolution(weapon, it)
+            !it.isValidTarget -> false
+            it.owner == weapon.ship.owner -> false
+            it.isFlare && weapon.ignoresFlares -> false
+            !canTrack(weapon, it) -> false
+            else -> true
         }
     }
 }
 
-fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?, trackFighters: Boolean): FiringSolution? {
+fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?, trackFighters: Boolean): CombatEntityAPI? {
     // Prioritize maneuver target.
-    maneuver?.let { trackingFiringSolution(weapon, it) }?.let { return it }
+    if (maneuver?.isValidTarget == true && canTrack(weapon, maneuver)) return maneuver
 
     // Try tracking current target.
-    if (current?.isValidTarget == true) {
-        trackingFiringSolution(weapon, current)?.let { return it }
-    }
+    if (current?.isValidTarget == true && canTrack(weapon, current)) return current
 
     // Find the closest enemy ship that can be tracked by the weapon.
     return closestShipFinder(weapon.location, weapon.range) {
         when {
-            !it.isAlive -> null
-            it.isFighter && !trackFighters -> null
-            it.owner == weapon.ship.owner -> null
-            else -> trackingFiringSolution(weapon, it)
+            !it.isValidTarget -> false
+            it.owner == weapon.ship.owner -> false
+            it.isFighter && !trackFighters -> false
+            !canTrack(weapon, it) -> false
+            else -> true
         }
     }
 }
 
-fun trackingFiringSolution(weapon: WeaponAPI, target: CombatEntityAPI): FiringSolution? =
-    FiringSolution(weapon, target).let { if (it.canTrack) it else null }
-
-fun firstAlongLineOfFire(hitSolver: HitSolver, range: Float): ShipAPI? {
-    val ship = hitSolver.weapon.ship
-    return closestShipFinder(hitSolver.weapon.location, range) {
+fun firstAlongLineOfFire(weapon: WeaponAPI, range: Float): ShipAPI? {
+    return closestShipFinder(weapon.location, range) {
         when {
-            it.isFighter -> null
-            it.isDrone -> null
-            it == ship -> null
-            it.isHulk && !hitSolver.willHitBounds(it) -> null
-            it.owner == ship.owner && !hitSolver.willHitSpread(it) -> null
-            it.owner != ship.owner && !hitSolver.willHit(it) -> null
-            else -> it
+            it.isFighter -> false
+            it.isDrone -> false
+            it == weapon.ship -> false
+            it.isHulk && !willHitBounds(weapon, it) -> false
+            it.owner == weapon.ship.owner && !willSpreadHit(weapon, it) -> false
+            it.owner != weapon.ship.owner && !willHit(weapon, it) -> false
+            else -> true
         }
     }
 }
 
-fun <T> closestShipFinder(location: Vector2f, range: Float, f: (ShipAPI) -> T): T? {
-    return closestCombatEntityFinder(location, range, Global.getCombatEngine().shipGrid) { f(it as ShipAPI) }
+fun closestShipFinder(location: Vector2f, range: Float, f: (ShipAPI) -> Boolean): ShipAPI? {
+    return closestCombatEntityFinder(location, range, Global.getCombatEngine().shipGrid, f)
 }
 
-fun <T> closestMissileFinder(location: Vector2f, range: Float, f: (MissileAPI) -> T): T? {
-    return closestCombatEntityFinder(location, range, Global.getCombatEngine().missileGrid) { f(it as MissileAPI) }
+fun closestMissileFinder(location: Vector2f, range: Float, f: (MissileAPI) -> Boolean): MissileAPI? {
+    return closestCombatEntityFinder(location, range, Global.getCombatEngine().missileGrid, f)
 }
 
-fun <T> closestCombatEntityFinder(
-    location: Vector2f, range: Float, grid: CollisionGridAPI, f: (CombatEntityAPI) -> T
-): T? {
-    var closestFound: T? = null
+fun <T> closestCombatEntityFinder(location: Vector2f, range: Float, grid: CollisionGridAPI, f: (T) -> Boolean): T? {
+    var closestFound: CombatEntityAPI? = null
     var closestRange = range * range + 1f
 
     val evaluateEntity = fun(entity: CombatEntityAPI) {
         val currentRange = (location - entity.location).lengthSquared()
         if (currentRange < closestRange) {
-            val found = f(entity)
-            if (found != null) {
-                closestFound = found
+            if (f(entity as T)) {
+                closestFound = entity
                 closestRange = currentRange
             }
         }
@@ -102,5 +94,5 @@ fun <T> closestCombatEntityFinder(
     val entityIterator = grid.getCheckIterator(location, searchRange, searchRange)
     entityIterator.forEach { evaluateEntity(it as CombatEntityAPI) }
 
-    return closestFound
+    return closestFound as T
 }

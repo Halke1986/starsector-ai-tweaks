@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.debugValue
 import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.isValidTarget
@@ -30,7 +31,7 @@ import org.lwjgl.util.vector.Vector2f
 // profile
 
 class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
-    private var solution: FiringSolution? = null
+    private var target: CombatEntityAPI? = null
     private var maneuverTarget: ShipAPI? = null
     private var prevTarget: CombatEntityAPI? = null
 
@@ -41,38 +42,42 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         trackManeuverTarget(timeDelta)
         trackTimes(timeDelta)
 
-        solution = selectTarget(weapon, solution?.target, maneuverTarget)
+        target = selectTarget(weapon, target, maneuverTarget)
     }
 
     override fun shouldFire(): Boolean {
-        if (solution == null) return false
+        if (target == null) return false
 
         // only beams attack phased ships
-        if ((solution!!.target as? ShipAPI)?.isPhased == true && !weapon.spec.isBeam) return false
+        if ((target as? ShipAPI)?.isPhased == true && !weapon.spec.isBeam) return false
 
-        // Fire only when the selected target is in sights.
-        val hitSolver = HitSolver(solution!!.weapon)
-        val range = hitSolver.hitRange(solution!!.target) ?: return false
+        // Fire only when the selected target is in range.
+        val range = hitRange(weapon, target!!)
+        if (range.isNaN() || range > weapon.range) return false
 
         // Avoid firing on friendlies or junk.
-        val blocker = firstAlongLineOfFire(hitSolver, range)
+        val blocker = firstAlongLineOfFire(weapon, range)
         return (blocker == null || blocker.owner xor weapon.ship.owner == 1)
     }
 
     override fun forceOff() {
-        solution = null
+        target = null
     }
 
     override fun getTarget(): Vector2f? {
-        if (solution?.valid != true) return null
+        if (target == null) return null
 
-        val offset = solution!!.intercept - solution!!.target.location
-        return solution!!.target.location + offset / getAccuracy()
+        val offset = interceptOffset(weapon, target!!) / getAccuracy()
+        if (offset.x.isNaN() || offset.y.isNaN()) {
+            debugValue = offset
+        }
+
+        return target!!.location + interceptOffset(weapon, target!!) / getAccuracy()
     }
 
-    override fun getTargetShip(): ShipAPI? = solution?.target as? ShipAPI
+    override fun getTargetShip(): ShipAPI? = target as? ShipAPI
     override fun getWeapon(): WeaponAPI = weapon
-    override fun getTargetMissile(): MissileAPI? = solution?.target as? MissileAPI
+    override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
 
     private fun trackManeuverTarget(timeDelta: Float) {
         val newTarget = weapon.ship.maneuverTarget
@@ -80,7 +85,7 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     private fun trackTimes(timeDelta: Float) {
-        val currentTarget = solution?.target
+        val currentTarget = target
         if (currentTarget != null && prevTarget != currentTarget) {
             prevTarget = currentTarget
             attackTime = 0f
