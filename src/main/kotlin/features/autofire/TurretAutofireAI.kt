@@ -1,6 +1,7 @@
 package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.genir.aitweaks.debugValue
 import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
@@ -15,7 +16,7 @@ import org.lwjgl.util.vector.Vector2f
 // hardpoint
 // profile
 
-// dont switch targets mid burst
+// don't switch targets mid burst
 // fire on shields
 
 // target selection
@@ -108,18 +109,20 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     private fun avoidsFriendlyFire(target: CombatEntityAPI, hitRange: Float): Boolean {
-        val safePDWeapon =
-            weapon.isBeam || weapon.isBurstBeam || (weapon.spec.damageType == DamageType.FRAGMENTATION && weapon.isPD)
-        val pdFire =
-            target is MissileAPI || (target is ShipAPI && (target.isFighter || target.isDrone || target.isPhased))
-        val unsafePDFire = pdFire && !safePDWeapon
+        val missile = target is MissileAPI
+        val fighter = (target as? ShipAPI)?.isFighter == true
+        val phased = (target as? ShipAPI)?.isPhased == true
+        val beam = weapon.isBeam || weapon.isBurstBeam
+        val fragPD = weapon.spec.damageType == FRAGMENTATION && weapon.isPD
+        val firePassesTarget = (((missile || fighter) && !beam) || phased) && !fragPD
 
-        // Search for blockers behind target only for unsafe PD fire.
-        // Otherwise, assume fire will hit target or will be harmless to friendlies.
-        val searchRange = if (unsafePDFire) weapon.range else hitRange
+        // Search for blockers behind target only for attacks that are
+        // predicted to pass through the target and be dangerous to friendlies.
+        val searchRange = if (firePassesTarget) weapon.range else hitRange
         val blocker = firstAlongLineOfFire(weapon, searchRange) ?: return true
 
-        val blockerBehindTarget = getDistanceSquared(weapon.location, blocker.location) >= hitRange * hitRange
+        val r2 = hitRange * hitRange
+        val blockerBehindTarget = getDistanceSquared(weapon.location, blocker.location) >= r2
         val friendly = blocker.owner == weapon.ship.owner
         val enemy = !friendly && !blocker.isHulk
 
