@@ -2,20 +2,21 @@ package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
-import com.genir.aitweaks.debugValue
 import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.isPD
 import com.genir.aitweaks.utils.extensions.isValidTarget
 import com.genir.aitweaks.utils.extensions.maneuverTarget
+import com.genir.aitweaks.utils.rotateAroundPivot
+import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.MathUtils.getDistanceSquared
+import org.lazywizard.lazylib.VectorUtils
+import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.abs
 
 // TODO
-// hardpoint
-// profile
-
 // don't switch targets mid burst
 // fire on shields
 
@@ -24,6 +25,7 @@ import org.lwjgl.util.vector.Vector2f
 // ir lance tracks fighters
 // track ship target for player
 // avoid station bulk
+// take high-tech station into account
 // STRIKE never targets fighters
 
 class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
@@ -62,12 +64,9 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getTarget(): Vector2f? {
         if (target == null) return null
 
-        val offset = interceptOffset(weapon, target!!) / getAccuracy()
-        if (offset.x.isNaN() || offset.y.isNaN()) {
-            debugValue = offset
-        }
-
-        return target!!.location + interceptOffset(weapon, target!!) / getAccuracy()
+        val intercept = target!!.location + interceptOffset(weapon, target!!) / getAccuracy()
+        return if (weapon.slot.isTurret) intercept
+        else aimHardpoint(intercept)
     }
 
     override fun getTargetShip(): ShipAPI? = target as? ShipAPI
@@ -127,5 +126,20 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val enemy = !friendly && !blocker.isHulk
 
         return enemy || blockerBehindTarget && !friendly
+    }
+
+    /** predictive aiming for hardpoints */
+    private fun aimHardpoint(intercept: Vector2f): Vector2f? {
+        val tgtLocation = target!!.location - weapon.ship.location
+        val tgtFacing = VectorUtils.getFacing(tgtLocation)
+        val angleToTarget = MathUtils.getShortestRotation(tgtFacing, weapon.ship.facing)
+
+        // Ship is already facing the target. Return the
+        // original target location to not overcompensate.
+        if (abs(angleToTarget) < weapon.arc / 2f) {
+            return intercept
+        }
+
+        return rotateAroundPivot(intercept, weapon.ship.location, angleToTarget)
     }
 }

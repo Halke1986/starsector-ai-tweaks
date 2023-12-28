@@ -11,10 +11,9 @@ class AITweaksBaseModPlugin : BaseModPlugin() {
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
         super.pickWeaponAutofireAI(weapon)
 
-        if (weapon.slot.isTurret && weapon.type != WeaponAPI.WeaponType.MISSILE) {
-            return PluginPick(TurretAutofireAI(weapon), PickPriority.MOD_GENERAL)
-        }
+        val ai = if (weapon.type != WeaponAPI.WeaponType.MISSILE) TurretAutofireAI(weapon)
+        else null
 
-        return PluginPick(null, PickPriority.MOD_GENERAL)
+        return PluginPick(ai, PickPriority.MOD_GENERAL)
     }
 }

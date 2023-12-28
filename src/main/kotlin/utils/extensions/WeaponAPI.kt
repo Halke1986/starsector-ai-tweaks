@@ -17,7 +17,7 @@ val WeaponAPI.hasBestTargetLeading: Boolean
 val WeaponAPI.ignoresFlares: Boolean
     get() = this.hasAIHint(IGNORES_FLARES) || ship.mutableStats.dynamic.getValue("pd_ignores_flares", 0f) >= 1f
 
-val WeaponAPI.firesForward: Boolean
+val WeaponAPI.frontFacing: Boolean
     get() = abs(MathUtils.getShortestRotation(this.arcFacing, 0f)) <= this.arc / 2f
 
 val WeaponAPI.isAimable: Boolean
