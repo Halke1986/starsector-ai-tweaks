@@ -30,10 +30,10 @@ fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
 
 fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): CombatEntityAPI? {
     // Prioritize maneuver target.
-    if (maneuver?.isValidTarget == true && canTrack(weapon, maneuver)) return maneuver
+    if (maneuver?.isAlive == true && canTrack(weapon, maneuver)) return maneuver
 
     // Try tracking current target.
-    if (current?.isValidTarget == true && canTrack(weapon, current)) return current
+    if (current?.isAlive == true && canTrack(weapon, current)) return current
 
     // Find the closest enemy ship that can be tracked by the weapon.
     return closestEntityFinder<ShipAPI>(weapon.location, weapon.range, shipGrid()) {

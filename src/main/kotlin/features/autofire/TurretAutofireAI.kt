@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.isPD
-import com.genir.aitweaks.utils.extensions.isValidTarget
 import com.genir.aitweaks.utils.extensions.maneuverTarget
 import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
@@ -76,7 +75,7 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     private fun trackManeuverTarget(timeDelta: Float) {
         val newTarget = weapon.ship.maneuverTarget
-        if (newTarget != null || maneuverTarget?.isValidTarget != true) maneuverTarget = newTarget
+        if (newTarget != null || maneuverTarget?.isAlive != true) maneuverTarget = newTarget
     }
 
     private fun trackTimes(timeDelta: Float) {
