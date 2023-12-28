@@ -27,6 +27,7 @@ import kotlin.math.abs
 // avoid station bulk
 // take high-tech station into account
 // STRIKE never targets fighters
+// maybe drop calls to weapon.range
 
 class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null

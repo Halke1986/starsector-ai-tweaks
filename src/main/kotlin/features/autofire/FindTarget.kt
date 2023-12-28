@@ -20,7 +20,6 @@ fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
     // Find the closest enemy missile that can be tracked by the weapon.
     return closestEntityFinder<MissileAPI>(weapon.location, weapon.range, missileGrid()) {
         when {
-            !it.isValidTarget -> false
             it.owner == weapon.ship.owner -> false
             it.isFlare && weapon.ignoresFlares -> false
             !canTrack(weapon, it) -> false
@@ -39,7 +38,7 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): Combat
     // Find the closest enemy ship that can be tracked by the weapon.
     return closestEntityFinder<ShipAPI>(weapon.location, weapon.range, shipGrid()) {
         when {
-            !it.isValidTarget -> false
+            !it.isAlive -> false
             it.owner == weapon.ship.owner -> false
             it.isFighter && !weapon.isPD -> false
             !canTrack(weapon, it) -> false
