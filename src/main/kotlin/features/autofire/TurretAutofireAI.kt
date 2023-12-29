@@ -4,16 +4,11 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
-import com.genir.aitweaks.debugValue
+import com.genir.aitweaks.utils.distToRadius
 import com.genir.aitweaks.utils.div
-import com.genir.aitweaks.utils.extensions.aimLocation
-import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
-import com.genir.aitweaks.utils.extensions.isPD
-import com.genir.aitweaks.utils.extensions.maneuverTarget
+import com.genir.aitweaks.utils.extensions.*
 import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.MathUtils.getDistance
-import org.lazywizard.lazylib.MathUtils.getDistanceSquared
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -22,7 +17,6 @@ import kotlin.math.abs
 
 // TODO
 // fire on shields
-// don't attack fighters over friendlies
 
 // don't switch targets mid burst
 // target selection
@@ -31,7 +25,7 @@ import kotlin.math.abs
 // track ship target for player
 // avoid station bulk
 // take high-tech station into account
-// STRIKE never targets fighters
+// STRIKE never targets fighters ??
 
 // profile again
 // custom bounds check
@@ -45,7 +39,7 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var idleTime: Float = 0f
 
     override fun advance(timeDelta: Float) {
-        trackManeuverTarget(timeDelta)
+        trackManeuverTarget()
         trackTimes(timeDelta)
 
         target = selectTarget(weapon, target, maneuverTarget)
@@ -81,7 +75,7 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getWeapon(): WeaponAPI = weapon
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
 
-    private fun trackManeuverTarget(timeDelta: Float) {
+    private fun trackManeuverTarget() {
         val newTarget = weapon.ship.maneuverTarget
         if (newTarget != null || maneuverTarget?.isAlive != true) maneuverTarget = newTarget
     }
@@ -126,10 +120,9 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Search for blockers behind target only for attacks that are
         // predicted to pass through the target and be dangerous to friendlies.
         val searchRange = if (firePassesTarget) weapon.range else hitRange
-        val blocker = firstAlongLineOfFire(weapon, searchRange) ?: return true
+        val blocker = firstAlongLineOfFire(weapon, target, searchRange) ?: return true
 
-        val r2 = hitRange * hitRange
-        val blockerBehindTarget = getDistanceSquared(weapon.location, blocker.location) >= r2
+        val blockerBehindTarget = distToRadius(weapon.location, blocker.aimLocation, blocker.radius) >= hitRange
         val friendly = blocker.owner == weapon.ship.owner
         val enemy = !friendly && !blocker.isHulk
 

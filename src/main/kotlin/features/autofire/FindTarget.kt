@@ -2,11 +2,8 @@ package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.utils.extensions.aimLocation
-import com.genir.aitweaks.utils.extensions.ignoresFlares
-import com.genir.aitweaks.utils.extensions.isPD
-import com.genir.aitweaks.utils.extensions.isValidTarget
-import org.lazywizard.lazylib.ext.minus
+import com.genir.aitweaks.utils.distToRadius
+import com.genir.aitweaks.utils.extensions.*
 import org.lwjgl.util.vector.Vector2f
 
 fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, maneuver: ShipAPI?): CombatEntityAPI? {
@@ -48,12 +45,13 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): Combat
     }
 }
 
-fun firstAlongLineOfFire(weapon: WeaponAPI, maxRange: Float): ShipAPI? {
+fun firstAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, maxRange: Float): ShipAPI? {
     return closestEntityFinder<ShipAPI>(weapon.location, maxRange, shipGrid()) {
         when {
+            it == target -> false
+            it == weapon.ship -> false
             it.isFighter -> false
             it.isDrone -> false
-            it == weapon.ship -> false
             it.isHulk && !willHitBounds(weapon, it) -> false
             it.owner == weapon.ship.owner && !willHitCautious(weapon, it) -> false
             it.owner != weapon.ship.owner && !willHit(weapon, it) -> false
@@ -63,21 +61,21 @@ fun firstAlongLineOfFire(weapon: WeaponAPI, maxRange: Float): ShipAPI? {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T> closestEntityFinder(location: Vector2f, maxRange: Float, grid: CollisionGridAPI, f: (T) -> Boolean): T? {
+fun <T> closestEntityFinder(location: Vector2f, range: Float, grid: CollisionGridAPI, f: (T) -> Boolean): T? {
     var blocker: CombatEntityAPI? = null
-    var upperBound = maxRange * maxRange + 1f
+    var upperBound = range * range + 1f
 
     val evaluateEntity = fun(entity: CombatEntityAPI) {
-        val currentRange = (location - entity.aimLocation).lengthSquared()
-        if (currentRange < upperBound) {
+        val entityRange = distToRadius(location, entity.aimLocation, entity.radius)
+        if (entityRange < upperBound) {
             if (f(entity as T)) {
                 blocker = entity
-                upperBound = currentRange
+                upperBound = entityRange
             }
         }
     }
 
-    val searchRange = maxRange * 2.0f
+    val searchRange = range * 2.0f
     val entityIterator = grid.getCheckIterator(location, searchRange, searchRange)
     entityIterator.forEach { evaluateEntity(it as CombatEntityAPI) }
 
