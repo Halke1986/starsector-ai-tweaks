@@ -12,7 +12,6 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize;
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType;
 import com.fs.starfarer.api.loading.WeaponSlotAPI;
 import com.fs.starfarer.api.util.IntervalUtil;
-import com.fs.starfarer.prototype.Utils;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.util.ArrayList;
@@ -131,11 +130,11 @@ public class VanillaAutofireAI implements AutofireAIPlugin {
     private void ifShouldAttackCurrentTarget() {
         if (this.weapon.hasAIHint(AIHints.USE_LESS_VS_SHIELDS) && this.target != null && this.target instanceof ShipAPI && !((ShipAPI) this.target).isFighter()) {
             if (this.target.getShield() != null && this.target.getShield().isOn()) {
-                ShipAPI var1 = this.weapon.getShip();
-                WeaponSlotAPI var2 = this.weapon.getSlot();
-                Vector2f var3 = var2.computePosition(var1);
-                boolean var4 = Utils.o00000(this.target.getShield().getFacing(), this.target.getShield().getActiveArc(), ((ShipAPI) this.target).getShieldCenterEvenIfNoShield(), var3);
-                if (var4) {
+                ShipAPI ship = this.weapon.getShip();
+                WeaponSlotAPI slot = this.weapon.getSlot();
+                Vector2f slotPosition = slot.computePosition(ship);
+                boolean willHitShields = UtilsAlias.willHitShield(this.target.getShield().getFacing(), this.target.getShield().getActiveArc(), ((ShipAPI) this.target).getShieldCenterEvenIfNoShield(), slotPosition);
+                if (willHitShields) {
                     if (this.weapon.getAmmo() <= 1 || (float) this.weapon.getAmmo() <= (float) this.weapon.getMaxAmmo() * 0.8F) {
                         this.isAbleToAttack = false;
                     }
@@ -247,7 +246,7 @@ public class VanillaAutofireAI implements AutofireAIPlugin {
                         ShipAPI currentShip = (ShipAPI) nextShip;
                         if (ship.getOwner() != currentShip.getOwner() && currentShip.isTargetable() && (fogOfWar == null || fogOfWar.isVisible(currentShip) || ship.isDrone()) && !currentShip.isShuttlePod() && (!generalPD || currentShip.isFighter() || currentShip.isDrone()) && (!currentShip.isFighter() || !this.weapon.hasAIHint(AIHints.STRIKE) || this.weapon.hasAIHint(AIHints.PD) || this.weapon.hasAIHint(AIHints.PD_ONLY) || this.weapon.hasAIHint(AIHints.ANTI_FTR)) && (!currentShip.isFighter() || this.weapon.getType() != WeaponType.MISSILE || !this.weapon.usesAmmo() || this.weapon.hasAIHint(AIHints.DO_NOT_AIM) || this.weapon.hasAIHint(AIHints.PD) || this.weapon.hasAIHint(AIHints.PD_ONLY) || this.weapon.hasAIHint(AIHints.ANTI_FTR)) && (!currentShip.isFrigate() || currentShip.getStationSlot() != null || !this.weapon.hasAIHint(AIHints.STRIKE) || this.weapon.hasAIHint(AIHints.USE_VS_FRIGATES)) && ship.getOwner() != currentShip.getOwner() && !currentShip.isHulk() && currentShip.getOwner() != 100) {
                             float var14 = N.super0(slotLocation, currentShip, true);
-                            float distance = Utils.Ø00000(slotLocation, currentShip.getLocation());
+                            float distance = UtilsAlias.distance(slotLocation, currentShip.getLocation());
                             boolean enemyInRange = distance <= this.weapon.getRange() + var14;
                             if (enemyInRange) {
                                 Vector2f interceptLocation = N.calculateTargetLead0(ship, currentShip, this.weapon.getProjectileSpeed(), false, this.getAutofireAcc(), this.getAutofireAccBonus());
@@ -266,7 +265,7 @@ public class VanillaAutofireAI implements AutofireAIPlugin {
                                         break;
                                     }
 
-                                    float var22 = Utils.Ò00000(this.weapon.getCurrAngle(), slotLocation, interceptLocation);
+                                    float var22 = UtilsAlias.shortestRotationToTarget(this.weapon.getCurrAngle(), slotLocation, interceptLocation);
                                     if (var22 < maxFloat) {
                                         maxFloat = var22;
                                         this.setTarget(currentShip);
@@ -410,7 +409,7 @@ public class VanillaAutofireAI implements AutofireAIPlugin {
         this.impossibleToHitTarget1 = false;
         if (this.target != null) {
             Vector2f slotLocation = this.weapon.getSlot().computePosition(this.ship);
-            Vector2f weaponDirVector = Utils.Object(this.weapon.getCurrAngle());
+            Vector2f weaponDirVector = UtilsAlias.directionalVector(this.weapon.getCurrAngle());
             weaponDirVector.scale(this.weapon.getRange());
             Vector2f.add(slotLocation, weaponDirVector, weaponDirVector);
             if (!this.isTargetWithinFiringArc(0.0F)) {
@@ -528,14 +527,14 @@ public class VanillaAutofireAI implements AutofireAIPlugin {
             if (targetLeadLocation == null) {
                 return false;
             } else {
-                Vector2f var4 = this.weapon.getSlot().computePosition(ship);
-                float var5 = N.super0(var4, this.target, true);
-                float var6 = Utils.Ø00000(var4, targetLeadLocation);
+                Vector2f weaponLocation = this.weapon.getSlot().computePosition(ship);
+                float var5 = N.super0(weaponLocation, this.target, true);
+                float var6 = Utils.Ø00000(weaponLocation, targetLeadLocation);
                 float var7 = 1.5F * var5 * 0.5F / (6.2831855F * var6) * 360.0F;
                 var7 += this.weapon.getSpec().getExtraArcForAI() / 2.0F;
-                if ((this.weapon.hasAIHint(AIHints.DO_NOT_AIM) || Utils.o00000(this.weapon.getSlot().computeMidArcAngle(ship), this.weapon.getSlot().getArc() + var7 * 2.0F, var4, targetLeadLocation)) && var6 <= this.weapon.getRange() + var5) {
-                    float var8 = Utils.Object(var4, targetLeadLocation);
-                    float var9 = Utils.o00000(this.weapon.getCurrAngle(), var8);
+                if ((this.weapon.hasAIHint(AIHints.DO_NOT_AIM) || Utils.o00000(this.weapon.getSlot().computeMidArcAngle(ship), this.weapon.getSlot().getArc() + var7 * 2.0F, weaponLocation, targetLeadLocation)) && var6 <= this.weapon.getRange() + var5) {
+                    float angleTowardsTarget = UtilsAlias.angleTowards(weaponLocation, targetLeadLocation);
+                    float var9 = UtilsAlias.shortestRotation(this.weapon.getCurrAngle(), angleTowardsTarget);
                     var9 -= var7;
                     if (var9 < 0.0F || this.weapon.hasAIHint(AIHints.DO_NOT_AIM)) {
                         var9 = 0.0F;

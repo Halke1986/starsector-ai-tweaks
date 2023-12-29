@@ -4,12 +4,14 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
+import com.genir.aitweaks.debugValue
 import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.isPD
 import com.genir.aitweaks.utils.extensions.maneuverTarget
 import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
+import org.lazywizard.lazylib.MathUtils.getDistance
 import org.lazywizard.lazylib.MathUtils.getDistanceSquared
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -18,9 +20,10 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
 // TODO
-// don't switch targets mid burst
 // fire on shields
+// don't attack fighters over friendlies
 
+// don't switch targets mid burst
 // target selection
 // paladin ff
 // ir lance tracks fighters
