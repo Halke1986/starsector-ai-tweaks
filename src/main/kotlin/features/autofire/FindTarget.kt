@@ -54,13 +54,14 @@ fun firstAlongLineOfFire(weapon: WeaponAPI, maxRange: Float): ShipAPI? {
             it.isDrone -> false
             it == weapon.ship -> false
             it.isHulk && !willHitBounds(weapon, it) -> false
-            it.owner == weapon.ship.owner && !willSpreadHit(weapon, it) -> false
+            it.owner == weapon.ship.owner && !willHitCautious(weapon, it) -> false
             it.owner != weapon.ship.owner && !willHit(weapon, it) -> false
             else -> true
         }
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 fun <T> closestEntityFinder(location: Vector2f, maxRange: Float, grid: CollisionGridAPI, f: (T) -> Boolean): T? {
     var blocker: CombatEntityAPI? = null
     var upperBound = maxRange * maxRange + 1f

@@ -1,5 +1,7 @@
 package com.genir.aitweaks.features.autofire
 
+import com.fs.starfarer.api.GameState
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.genir.aitweaks.utils.div
@@ -26,7 +28,9 @@ import kotlin.math.abs
 // avoid station bulk
 // take high-tech station into account
 // STRIKE never targets fighters
-// maybe drop calls to weapon.range
+
+// profile again
+// custom bounds check
 
 class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null
@@ -44,9 +48,9 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     override fun shouldFire(): Boolean {
-        if (target == null) return false
+        if (target == null || Global.getCurrentState() != GameState.COMBAT) return false
 
-        // only beams and PD weapons attack phased ships
+        // Only beams and PD weapons attack phased ships.
         if ((target as? ShipAPI)?.isPhased == true && !weapon.spec.isBeam && !weapon.isPD) return false
 
         // Fire only when the selected target is in range.
@@ -129,7 +133,7 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     /** predictive aiming for hardpoints */
-    private fun aimHardpoint(intercept: Vector2f): Vector2f? {
+    private fun aimHardpoint(intercept: Vector2f): Vector2f {
         val tgtLocation = target!!.location - weapon.ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
         val angleToTarget = MathUtils.getShortestRotation(tgtFacing, weapon.ship.facing)
