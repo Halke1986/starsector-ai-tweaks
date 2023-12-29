@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.absoluteArcFacing
+import com.genir.aitweaks.utils.extensions.aimLocation
 import com.genir.aitweaks.utils.extensions.radius
 import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.VectorUtils
@@ -69,20 +70,20 @@ fun willHitBounds(weapon: WeaponAPI, target: CombatEntityAPI): Boolean {
 
 /** Target location and velocity in projectile frame of reference. */
 private fun targetCoords(weapon: WeaponAPI, target: CombatEntityAPI) = Pair(
-    target.location - weapon.location,
+    target.aimLocation - weapon.location,
     (target.velocity - weapon.ship.velocity) / weapon.projectileSpeed,
 )
 
 /** Projectile location and velocity in target frame of reference. */
 private fun projectileCoords(weapon: WeaponAPI, target: CombatEntityAPI) = Pair(
-    weapon.location - target.location,
+    weapon.location - target.aimLocation,
     unitVector(weapon.currAngle) + (weapon.ship.velocity - target.velocity) / weapon.projectileSpeed,
 )
 
 private fun interceptArc(p: Vector2f, v: Vector2f, radius: Float): Arc {
     val tangentDistance = solve(p, v, radius, 1f, cos90)
 
-// Target is directly over the weapon.
+    // Target is directly over the weapon.
     if (tangentDistance.isNaN()) Arc(360f, 0f)
 
     return Arc(

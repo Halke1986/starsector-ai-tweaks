@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.genir.aitweaks.debugValue
 import com.genir.aitweaks.utils.div
+import com.genir.aitweaks.utils.extensions.aimLocation
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.isPD
 import com.genir.aitweaks.utils.extensions.maneuverTarget
@@ -71,7 +72,7 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getTarget(): Vector2f? {
         if (target == null) return null
 
-        val intercept = target!!.location + interceptOffset(weapon, target!!) / getAccuracy()
+        val intercept = target!!.aimLocation + interceptOffset(weapon, target!!) / getAccuracy()
         return if (weapon.slot.isTurret) intercept
         else aimHardpoint(intercept)
     }
@@ -137,7 +138,7 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     /** predictive aiming for hardpoints */
     private fun aimHardpoint(intercept: Vector2f): Vector2f {
-        val tgtLocation = target!!.location - weapon.ship.location
+        val tgtLocation = target!!.aimLocation - weapon.ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
         val angleToTarget = MathUtils.getShortestRotation(tgtFacing, weapon.ship.facing)
 

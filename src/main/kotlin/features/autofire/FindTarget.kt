@@ -2,6 +2,7 @@ package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.utils.extensions.aimLocation
 import com.genir.aitweaks.utils.extensions.ignoresFlares
 import com.genir.aitweaks.utils.extensions.isPD
 import com.genir.aitweaks.utils.extensions.isValidTarget
@@ -67,7 +68,7 @@ fun <T> closestEntityFinder(location: Vector2f, maxRange: Float, grid: Collision
     var upperBound = maxRange * maxRange + 1f
 
     val evaluateEntity = fun(entity: CombatEntityAPI) {
-        val currentRange = (location - entity.location).lengthSquared()
+        val currentRange = (location - entity.aimLocation).lengthSquared()
         if (currentRange < upperBound) {
             if (f(entity as T)) {
                 blocker = entity
