@@ -25,6 +25,12 @@ fun willHitActiveShieldArc(weapon: WeaponAPI, shield: ShieldAPI): Boolean {
     return abs(attackAngle) < (shield.activeArc / 2)
 }
 
+fun shieldUptime(shield: ShieldAPI): Float {
+    val r = shield.activeArc / shield.arc
+    return if (r >= 1f) Float.MAX_VALUE
+    else r * shield.unfoldTime
+}
+
 internal infix operator fun Vector2f.times(d: Float): Vector2f = Vector2f(x * d, y * d)
 internal infix operator fun Vector2f.div(d: Float): Vector2f = Vector2f(x / d, y / d)
 

@@ -3,7 +3,6 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.aimLocation
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
@@ -18,19 +17,22 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
 // TODO
-// fire on shields
-// ir lance tracks fighters
+
+// check bounds for hardpoints?
+// junk avoidance upgrade
+// ammo and burst beams don't attack phased
 
 // don't switch targets mid burst
 // target selection
 // paladin ff
 // track ship target for player
-// avoid station bulk
-// take high-tech station into account
 // STRIKE never targets fighters ??
 
+// drone ff?
+// take high-tech station into account
+// avoid station bulk
+
 // profile again
-// custom bounds check
 
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null
@@ -55,10 +57,14 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         // Fire only when the selected target is in range.
         val range = hitRange(weapon, target!!)
-        if (range.isNaN() || range > weapon.range) return false
 
-        // Avoid firing on friendlies or junk.
-        return avoidsFriendlyFire(target!!, range)
+        return when {
+            range.isNaN() || range > weapon.range -> false
+            avoidShields(weapon, target as? ShipAPI) -> false
+            avoidExposedHull(weapon, target as? ShipAPI) -> false
+            avoidFriendlyFire(weapon, target!!, range) -> false
+            else -> true
+        }
     }
 
     override fun forceOff() {
@@ -109,26 +115,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val accBase = weapon.ship.aimAccuracy
         val accBonus = weapon.spec.autofireAccBonus
         return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
-    }
-
-    private fun avoidsFriendlyFire(target: CombatEntityAPI, hitRange: Float): Boolean {
-        val missile = target is MissileAPI
-        val fighter = (target as? ShipAPI)?.isFighter == true
-        val phased = (target as? ShipAPI)?.isPhased == true
-        val beam = weapon.isBeam || weapon.isBurstBeam
-        val fragPD = weapon.spec.damageType == FRAGMENTATION && weapon.isPD
-        val firePassesTarget = (((missile || fighter) && !beam) || phased) && !fragPD
-
-        // Search for blockers behind target only for attacks that are
-        // predicted to pass through the target and be dangerous to friendlies.
-        val searchRange = if (firePassesTarget) weapon.range else hitRange
-        val blocker = firstAlongLineOfFire(weapon, target, searchRange) ?: return true
-
-        val blockerBehindTarget = closestHitRange(weapon, blocker) >= hitRange
-        val friendly = blocker.owner == weapon.ship.owner
-        val enemy = !friendly && !blocker.isHulk
-
-        return enemy || blockerBehindTarget && !friendly
     }
 
     /** predictive aiming for hardpoints */

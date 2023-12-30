@@ -3,6 +3,7 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.utils.extensions.ignoresFlares
+import com.genir.aitweaks.utils.extensions.isAntiFtr
 import com.genir.aitweaks.utils.extensions.isPD
 import com.genir.aitweaks.utils.extensions.isValidTarget
 
@@ -38,7 +39,7 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): Combat
         when {
             !it.isAlive -> false
             it.owner == weapon.ship.owner -> false
-            it.isFighter && !weapon.isPD -> false
+            it.isFighter && !weapon.isAntiFtr -> false
             !canTrack(weapon, it) -> false
             else -> true
         }

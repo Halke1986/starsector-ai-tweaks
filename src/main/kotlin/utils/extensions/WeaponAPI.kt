@@ -9,6 +9,9 @@ import kotlin.math.abs
 val WeaponAPI.isPD: Boolean
     get() = this.hasAIHint(PD) || this.hasAIHint(PD_ONLY)
 
+val WeaponAPI.isAntiFtr: Boolean
+    get() = this.isPD || this.hasAIHint(ANTI_FTR)
+
 val WeaponAPI.hasBestTargetLeading: Boolean
     get() = this.isPD && !this.hasAIHint(WeaponAPI.AIHints.STRIKE) && ship.mutableStats.dynamic.getValue(
         "pd_best_target_leading", 0f
@@ -19,9 +22,6 @@ val WeaponAPI.ignoresFlares: Boolean
 
 val WeaponAPI.frontFacing: Boolean
     get() = abs(MathUtils.getShortestRotation(this.arcFacing, 0f)) <= this.arc / 2f
-
-val WeaponAPI.isAimable: Boolean
-    get() = !(this.hasAIHint(DO_NOT_AIM))
 
 val WeaponAPI.isAntiArmor: Boolean
     get() = this.damageType == DamageType.HIGH_EXPLOSIVE || this.hasAIHint(USE_LESS_VS_SHIELDS)
