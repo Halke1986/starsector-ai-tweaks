@@ -2,9 +2,9 @@ package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.utils.distToRadius
-import com.genir.aitweaks.utils.extensions.*
-import org.lwjgl.util.vector.Vector2f
+import com.genir.aitweaks.utils.extensions.ignoresFlares
+import com.genir.aitweaks.utils.extensions.isPD
+import com.genir.aitweaks.utils.extensions.isValidTarget
 
 fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, maneuver: ShipAPI?): CombatEntityAPI? {
     if (weapon.isPD) selectMissile(weapon, current as? MissileAPI)?.let { return it }
@@ -16,7 +16,7 @@ fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
     if (current?.isValidTarget == true && canTrack(weapon, current)) return current
 
     // Find the closest enemy missile that can be tracked by the weapon.
-    return closestEntityFinder<MissileAPI>(weapon.location, weapon.range, missileGrid()) {
+    return closestEntityFinder<MissileAPI>(weapon, weapon.range, missileGrid()) {
         when {
             it.owner == weapon.ship.owner -> false
             it.isFlare && weapon.ignoresFlares -> false
@@ -34,7 +34,7 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): Combat
     if (current?.isAlive == true && canTrack(weapon, current)) return current
 
     // Find the closest enemy ship that can be tracked by the weapon.
-    return closestEntityFinder<ShipAPI>(weapon.location, weapon.range, shipGrid()) {
+    return closestEntityFinder<ShipAPI>(weapon, weapon.range, shipGrid()) {
         when {
             !it.isAlive -> false
             it.owner == weapon.ship.owner -> false
@@ -46,7 +46,7 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): Combat
 }
 
 fun firstAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, maxRange: Float): ShipAPI? {
-    return closestEntityFinder<ShipAPI>(weapon.location, maxRange, shipGrid()) {
+    return closestEntityFinder<ShipAPI>(weapon, maxRange, shipGrid()) {
         when {
             it == target -> false
             it == weapon.ship -> false
@@ -61,12 +61,12 @@ fun firstAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, maxRange: F
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T> closestEntityFinder(location: Vector2f, range: Float, grid: CollisionGridAPI, f: (T) -> Boolean): T? {
+fun <T> closestEntityFinder(weapon: WeaponAPI, range: Float, grid: CollisionGridAPI, f: (T) -> Boolean): T? {
     var blocker: CombatEntityAPI? = null
     var upperBound = range * range + 1f
 
     val evaluateEntity = fun(entity: CombatEntityAPI) {
-        val entityRange = distToRadius(location, entity.aimLocation, entity.radius)
+        val entityRange = closestHitRange(weapon, entity)
         if (entityRange < upperBound) {
             if (f(entity as T)) {
                 blocker = entity
@@ -76,7 +76,7 @@ fun <T> closestEntityFinder(location: Vector2f, range: Float, grid: CollisionGri
     }
 
     val searchRange = range * 2.0f
-    val entityIterator = grid.getCheckIterator(location, searchRange, searchRange)
+    val entityIterator = grid.getCheckIterator(weapon.location, searchRange, searchRange)
     entityIterator.forEach { evaluateEntity(it as CombatEntityAPI) }
 
     return blocker as T

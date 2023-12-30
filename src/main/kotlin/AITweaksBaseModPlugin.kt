@@ -7,7 +7,7 @@ import com.fs.starfarer.api.PluginPick
 import com.fs.starfarer.api.campaign.CampaignPlugin.PickPriority
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.features.autofire.TurretAutofireAI
+import com.genir.aitweaks.features.autofire.AutofireAI
 
 class AITweaksBaseModPlugin : BaseModPlugin() {
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
@@ -16,7 +16,7 @@ class AITweaksBaseModPlugin : BaseModPlugin() {
         val ai = when {
             Global.getCurrentState() == GameState.TITLE -> null
             weapon.type == WeaponAPI.WeaponType.MISSILE -> null
-            else -> TurretAutofireAI(weapon)
+            else -> AutofireAI(weapon)
         }
 
         return PluginPick(ai, PickPriority.MOD_GENERAL)

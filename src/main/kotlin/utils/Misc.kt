@@ -41,8 +41,6 @@ class Arc(val arc: Float, val facing: Float)
 
 fun arcsOverlap(a: Arc, b: Arc): Boolean = abs(getShortestRotation(a.facing, b.facing)) <= (a.arc + b.arc) / 2f
 
-fun distToRadius(a: Vector2f, b: Vector2f, r: Float): Float = ((b - a).length() - r).coerceAtLeast(0f)
-
 class Log
 
 fun log(message: Any) = Global.getLogger(Log().javaClass).info(message)

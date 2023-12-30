@@ -4,9 +4,11 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
-import com.genir.aitweaks.utils.distToRadius
 import com.genir.aitweaks.utils.div
-import com.genir.aitweaks.utils.extensions.*
+import com.genir.aitweaks.utils.extensions.aimLocation
+import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
+import com.genir.aitweaks.utils.extensions.isPD
+import com.genir.aitweaks.utils.extensions.maneuverTarget
 import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
@@ -17,11 +19,11 @@ import kotlin.math.abs
 
 // TODO
 // fire on shields
+// ir lance tracks fighters
 
 // don't switch targets mid burst
 // target selection
 // paladin ff
-// ir lance tracks fighters
 // track ship target for player
 // avoid station bulk
 // take high-tech station into account
@@ -30,7 +32,7 @@ import kotlin.math.abs
 // profile again
 // custom bounds check
 
-class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
+class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null
     private var maneuverTarget: ShipAPI? = null
     private var prevTarget: CombatEntityAPI? = null
@@ -122,7 +124,7 @@ class TurretAutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val searchRange = if (firePassesTarget) weapon.range else hitRange
         val blocker = firstAlongLineOfFire(weapon, target, searchRange) ?: return true
 
-        val blockerBehindTarget = distToRadius(weapon.location, blocker.aimLocation, blocker.radius) >= hitRange
+        val blockerBehindTarget = closestHitRange(weapon, blocker) >= hitRange
         val friendly = blocker.owner == weapon.ship.owner
         val enemy = !friendly && !blocker.isHulk
 
