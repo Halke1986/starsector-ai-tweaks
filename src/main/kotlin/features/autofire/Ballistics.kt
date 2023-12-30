@@ -13,9 +13,6 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.sqrt
 
-const val cos90 = 0f
-const val cos180 = -1f
-
 /**
  * All functions in this file take into account target velocity
  * when calculating hit location. Target acceleration is ignored.
@@ -24,6 +21,9 @@ const val cos180 = -1f
  * a perfectly accurate weapon, shooting projectiles with zero
  * collision radius.
  */
+
+const val cos90 = 0f
+const val cos180 = -1f
 
 /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
 fun canTrack(weapon: WeaponAPI, target: CombatEntityAPI): Boolean {

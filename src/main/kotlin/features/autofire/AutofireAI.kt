@@ -28,7 +28,6 @@ import kotlin.math.abs
 // track ship target for player
 // STRIKE never targets fighters ??
 
-// drone ff?
 // take high-tech station into account
 // avoid station bulk
 

@@ -52,7 +52,6 @@ fun firstAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, maxRange: F
             it == target -> false
             it == weapon.ship -> false
             it.isFighter -> false
-            it.isDrone -> false
             it.isHulk && !willHitBounds(weapon, it) -> false
             it.owner == weapon.ship.owner && !willHitCautious(weapon, it) -> false
             it.owner != weapon.ship.owner && !willHit(weapon, it) -> false

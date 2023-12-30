@@ -64,7 +64,6 @@ fun weaponShouldTriggerHEF(w: TargetedWeapon, size: WeaponAPI.WeaponSize) = when
     w.weapon.cooldownRemaining != 0f -> false
     w.target == null -> false
     w.target.isFighter -> false
-    w.target.isDrone -> false
     w.target.isPhased -> false
     w.weapon.isAntiArmor && willHitShield(w.weapon, w.target) -> false
     else -> true
