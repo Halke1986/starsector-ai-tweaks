@@ -5,6 +5,16 @@ import com.genir.aitweaks.utils.extensions.isPD
 import com.genir.aitweaks.utils.shieldUptime
 import com.genir.aitweaks.utils.willHitShield
 
+fun avoidPhased(weapon: WeaponAPI, target: ShipAPI?): Boolean = when {
+    target == null -> false
+    !target.isPhased -> false
+    weapon.isBurstBeam -> true
+    weapon.usesAmmo() -> true
+    weapon.isPD -> false
+    weapon.isBeam -> false
+    else -> true
+}
+
 fun avoidShields(weapon: WeaponAPI, target: ShipAPI?): Boolean = when {
     !weapon.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS) -> false
     target == null -> false

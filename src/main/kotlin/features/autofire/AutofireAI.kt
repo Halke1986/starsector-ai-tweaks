@@ -8,7 +8,9 @@ import com.genir.aitweaks.utils.extensions.aimLocation
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.isPD
 import com.genir.aitweaks.utils.extensions.maneuverTarget
+import com.genir.aitweaks.utils.extensions.radius
 import com.genir.aitweaks.utils.rotateAroundPivot
+import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -17,11 +19,10 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
 // TODO
-
 // check bounds for hardpoints?
-// junk avoidance upgrade
-// ammo and burst beams don't attack phased
 
+// fog
+// better shield hit detection
 // don't switch targets mid burst
 // target selection
 // paladin ff
@@ -51,14 +52,12 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun shouldFire(): Boolean {
         if (target == null || Global.getCurrentState() != GameState.COMBAT) return false
 
-        // Only beams and PD weapons attack phased ships.
-        if ((target as? ShipAPI)?.isPhased == true && !weapon.spec.isBeam && !weapon.isPD) return false
-
         // Fire only when the selected target is in range.
         val range = hitRange(weapon, target!!)
 
         return when {
             range.isNaN() || range > weapon.range -> false
+            avoidPhased(weapon, target as? ShipAPI) -> false
             avoidShields(weapon, target as? ShipAPI) -> false
             avoidExposedHull(weapon, target as? ShipAPI) -> false
             avoidFriendlyFire(weapon, target!!, range) -> false

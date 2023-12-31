@@ -36,7 +36,7 @@ fun canTrack(weapon: WeaponAPI, target: CombatEntityAPI): Boolean {
 }
 
 /** Weapon aim offset from the target position, required to hit centerpoint of a moving target.
- * Vector2f(NaN,Nan) if the target is faster than the projectile. */
+ * Vector2f(NaN,NaN) if the target is faster than the projectile. */
 fun interceptOffset(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f =
     targetCoords(weapon, target).let { it.second * solve(it, 0f, 1f, 0f) }
 

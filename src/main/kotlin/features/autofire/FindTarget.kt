@@ -46,19 +46,19 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): Combat
     }
 }
 
-fun firstAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, maxRange: Float): ShipAPI? {
-    return closestEntityFinder<ShipAPI>(weapon, maxRange, shipGrid()) {
+fun firstAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, maxRange: Float): ShipAPI? =
+    closestEntityFinder<ShipAPI>(weapon, maxRange, shipGrid()) {
         when {
             it == target -> false
             it == weapon.ship -> false
             it.isFighter -> false
             it.isHulk && !willHitBounds(weapon, it) -> false
             it.owner == weapon.ship.owner && !willHitCautious(weapon, it) -> false
-            it.owner != weapon.ship.owner && !willHit(weapon, it) -> false
+            it.owner xor weapon.ship.owner == 1 && (it.isPhased || !willHit(weapon, it)) -> false
             else -> true
         }
     }
-}
+
 
 @Suppress("UNCHECKED_CAST")
 fun <T> closestEntityFinder(weapon: WeaponAPI, range: Float, grid: CollisionGridAPI, f: (T) -> Boolean): T? {
