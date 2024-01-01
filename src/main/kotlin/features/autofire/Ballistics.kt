@@ -61,36 +61,53 @@ fun willHitCautious(weapon: WeaponAPI, target: CombatEntityAPI): Boolean = arcsO
 )
 
 /** Calculates if a perfectly accurate projectile will collide with target bounds,
- * given current weapon facing. Collision range is returned, null if no collision. */
-fun willHitBounds(weapon: WeaponAPI, target: CombatEntityAPI): Float? {
+ * given current weapon facing. Collision range is returned, null if no collision.*/
+fun willHitBounds(weapon: WeaponAPI, target: CombatEntityAPI): Float? =
+    willHitBounds(projectileCoords(weapon, target), target)
+
+/** Custom implementation is roughly 5 times faster than CollisionUtils.getCollisionPoint */
+private fun willHitBounds(coords: Pair<Vector2f, Vector2f>, target: CombatEntityAPI): Float? {
     val bounds = target.exactBounds ?: return null
 
-    val (p, v) = projectileCoords(weapon, target)
-    val projectileFacing = VectorUtils.getFacingStrict(v) // strict is required
+    val cos: Float = cos(-target.facing)
+    val sin: Float = sin(-target.facing)
 
-    val pr = rotate(p, -projectileFacing)
-    val targetFacing = target.facing - projectileFacing
+    // Rotate weapon coordinates into target frame of reference.
+    // That way the target bounds don't need to be transformed.
+    // Rotation is implemented in place, as opposed to using library
+    // call, for better execution time.
+    fun rotate(v: Vector2f, sinA: Float, cosA: Float) = Vector2f(
+        v.x * cosA - v.y * sinA,
+        v.x * sinA + v.y * cosA,
+    )
 
-    val cos = cos(targetFacing)
-    val sin = sin(targetFacing)
+    val q1 = rotate(coords.first, sin, cos)
+    val vr = rotate(coords.second, sin, cos)
+
+    // Scale the velocity vector to ensure collision point falls on the vector.
+    val scale = 10e5f
+    val q2 = q1 + vr * scale
 
     return bounds.origSegments.fold(null, fun(closest: Float?, segment): Float? {
-        val y1 = segment.p1.x * sin + segment.p1.y * cos
-        val y2 = segment.p2.x * sin + segment.p2.y * cos
+        // Both sides of the following equation set represent the collision point:
+        // p1 + k(p2-p1) = q1 + t(q2-q1)
+        // Solve if for k and t.
+        val p1 = segment.p1
+        val p2 = segment.p2
 
-        if (y1 < pr.y == y2 < pr.y) return closest // no collision
+        val dp = p2 - p1
+        val dq = q2 - q1
 
-        val x1 = segment.p1.x * cos - segment.p1.y * sin
-        val x2 = segment.p2.x * cos - segment.p2.y * sin
+        val d = dp.x * dq.y - dp.y * dq.x
 
-        val dy = y2 - y1
-        val dx = x2 - x1
+        val pqy = p1.y - q1.y
+        val qpx = q1.x - p1.x
 
-        val k = (pr.y - y1) / dy
-        val x = x1 + k * dx
-        val range = x - pr.x
+        val k = (pqy * dq.x + qpx * dq.y) / d
+        if (k < 0f || k > 1f) return closest // no collision
 
-        return if (range > 0 && (closest == null || range < closest)) range
+        val t = scale * (pqy * dp.x + qpx * dp.y) / d
+        return if (t > 0 && (closest == null || t < closest)) t
         else closest
     })
 }
@@ -102,7 +119,7 @@ private fun targetCoords(weapon: WeaponAPI, target: CombatEntityAPI) = Pair(
 )
 
 /** Projectile location and velocity in target frame of reference. */
-private fun projectileCoords(weapon: WeaponAPI, target: CombatEntityAPI) = Pair(
+fun projectileCoords(weapon: WeaponAPI, target: CombatEntityAPI) = Pair(
     weapon.location - target.aimLocation,
     unitVector(weapon.currAngle) + (weapon.ship.velocity - target.velocity) / weapon.projectileSpeed,
 )

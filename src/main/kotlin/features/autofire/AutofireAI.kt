@@ -20,6 +20,10 @@ import kotlin.math.abs
 // better shield hit detection
 // collision when weapon inside blocker radius
 
+
+// non-pd hardpoints consider only ship target
+// weapon emplacement angular velocity
+
 // audit getFacing (strict)
 
 // don't switch targets mid burst
