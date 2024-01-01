@@ -28,8 +28,11 @@ fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
 }
 
 fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): CombatEntityAPI? {
-    // Prioritize maneuver target.
-    if (maneuver?.isAlive == true && canTrack(weapon, maneuver)) return maneuver
+    // Prioritize maneuver target. Non-PD hardpoint weapons track only ships target.
+    if (maneuver?.isAlive == true && ((weapon.slot.isHardpoint && !weapon.isPD) || canTrack(
+            weapon, maneuver
+        ))
+    ) return maneuver
 
     // Try tracking current target.
     if (current?.isAlive == true && canTrack(weapon, current)) return current

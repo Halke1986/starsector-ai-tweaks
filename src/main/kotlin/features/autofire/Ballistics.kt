@@ -83,10 +83,7 @@ private fun willHitBounds(coords: Pair<Vector2f, Vector2f>, target: CombatEntity
 
     val q1 = rotate(coords.first, sin, cos)
     val vr = rotate(coords.second, sin, cos)
-
-    // Scale the velocity vector to ensure collision point falls on the vector.
-    val scale = 10e5f
-    val q2 = q1 + vr * scale
+    val q2 = q1 + vr
 
     return bounds.origSegments.fold(null, fun(closest: Float?, segment): Float? {
         // Both sides of the following equation set represent the collision point:
@@ -106,7 +103,7 @@ private fun willHitBounds(coords: Pair<Vector2f, Vector2f>, target: CombatEntity
         val k = (pqy * dq.x + qpx * dq.y) / d
         if (k < 0f || k > 1f) return closest // no collision
 
-        val t = scale * (pqy * dp.x + qpx * dp.y) / d
+        val t = (pqy * dp.x + qpx * dp.y) / d
         return if (t > 0 && (closest == null || t < closest)) t
         else closest
     })

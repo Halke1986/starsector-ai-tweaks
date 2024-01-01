@@ -49,6 +49,6 @@ class BallisticsKtTest {
         )
 
         val actual = willHitBounds(weapon, target)
-        Assertions.assertEquals(1341.0204f, actual)
+        Assertions.assertEquals(1340.9568f, actual)
     }
 }
