@@ -3,20 +3,21 @@ package com.genir.aitweaks
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.CombatEngineAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import org.lazywizard.lazylib.ui.LazyFont
 import java.awt.Color
 
+var debugPlugin: DebugPlugin = DebugPlugin()
+
 // DebugPlugin is used to render debug information during combat.
 class DebugPlugin : BaseEveryFrameCombatPlugin() {
-    private var engine: CombatEngineAPI? = null
     private var font: LazyFont? = null
     private var drawable: MutableMap<Int, LazyFont.DrawableString> = mutableMapOf()
 
     operator fun set(index: Int, value: Any) {
         if (font == null) return
+
         drawable[index] = font!!.createText(value.toString(), baseColor = Color.ORANGE)
     }
 
@@ -24,9 +25,9 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         super.advance(amount, events)
         if (Global.getCurrentState() != GameState.COMBAT) return
 
-        if (engine == null) {
-            engine = Global.getCombatEngine()
+        if (font == null) {
             font = LazyFont.loadFont("graphics/fonts/insignia15LTaa.fnt")
+            debugPlugin = this
         }
 
         debug()

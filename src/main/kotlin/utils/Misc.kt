@@ -38,10 +38,14 @@ fun rotateAroundPivot(toRotate: Vector2f, pivot: Vector2f, angle: Float): Vector
     VectorUtils.rotateAroundPivot(toRotate, pivot, angle, Vector2f())
 
 fun rotate(toRotate: Vector2f, angle: Float): Vector2f = VectorUtils.rotate(toRotate, angle, Vector2f())
+fun rotate(toRotate: List<Vector2f>, angle: Float): List<Vector2f> = VectorUtils.rotate(toRotate, angle)
 
 fun unitVector(angle: Float): Vector2f = VectorUtils.rotate(Vector2f(1f, 0f), angle)
 
 fun atan(radians: Float): Float = Math.toDegrees(FastTrig.atan(radians.toDouble())).toFloat()
+
+fun sin(degrees: Float): Float = FastTrig.sin(Math.toRadians(degrees.toDouble())).toFloat()
+fun cos(degrees: Float): Float = FastTrig.cos(Math.toRadians(degrees.toDouble())).toFloat()
 
 class Arc(val arc: Float, val facing: Float)
 

@@ -6,11 +6,8 @@ import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.aimLocation
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
-import com.genir.aitweaks.utils.extensions.isPD
 import com.genir.aitweaks.utils.extensions.maneuverTarget
-import com.genir.aitweaks.utils.extensions.radius
 import com.genir.aitweaks.utils.rotateAroundPivot
-import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -20,19 +17,24 @@ import kotlin.math.abs
 
 // TODO
 // check bounds for hardpoints?
-
-// fog
 // better shield hit detection
+// collision when weapon inside blocker radius
+
+// audit getFacing (strict)
+
 // don't switch targets mid burst
-// target selection
 // paladin ff
 // track ship target for player
-// STRIKE never targets fighters ??
 
 // take high-tech station into account
 // avoid station bulk
 
 // profile again
+
+/** Low priority / won't do */
+// fog
+// target selection
+// STRIKE never targets fighters ??
 
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null

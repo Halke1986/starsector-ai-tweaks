@@ -6,7 +6,6 @@ import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.absoluteArcFacing
 import com.genir.aitweaks.utils.extensions.aimLocation
 import com.genir.aitweaks.utils.extensions.radius
-import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -62,10 +61,38 @@ fun willHitCautious(weapon: WeaponAPI, target: CombatEntityAPI): Boolean = arcsO
 )
 
 /** Calculates if a perfectly accurate projectile will collide with target bounds,
- * given current weapon facing. Weapon range is ignored. */
-fun willHitBounds(weapon: WeaponAPI, target: CombatEntityAPI): Boolean {
-    val (_, v) = projectileCoords(weapon, target)
-    return CollisionUtils.getCollisionPoint(weapon.location, weapon.location + v * 10e5f, target) != null
+ * given current weapon facing. Collision range is returned, null if no collision. */
+fun willHitBounds(weapon: WeaponAPI, target: CombatEntityAPI): Float? {
+    val bounds = target.exactBounds ?: return null
+
+    val (p, v) = projectileCoords(weapon, target)
+    val projectileFacing = VectorUtils.getFacingStrict(v) // strict is required
+
+    val pr = rotate(p, -projectileFacing)
+    val targetFacing = target.facing - projectileFacing
+
+    val cos = cos(targetFacing)
+    val sin = sin(targetFacing)
+
+    return bounds.origSegments.fold(null, fun(closest: Float?, segment): Float? {
+        val y1 = segment.p1.x * sin + segment.p1.y * cos
+        val y2 = segment.p2.x * sin + segment.p2.y * cos
+
+        if (y1 < pr.y == y2 < pr.y) return closest // no collision
+
+        val x1 = segment.p1.x * cos - segment.p1.y * sin
+        val x2 = segment.p2.x * cos - segment.p2.y * sin
+
+        val dy = y2 - y1
+        val dx = x2 - x1
+
+        val k = (pr.y - y1) / dy
+        val x = x1 + k * dx
+        val range = x - pr.x
+
+        return if (range > 0 && (closest == null || range < closest)) range
+        else closest
+    })
 }
 
 /** Target location and velocity in projectile frame of reference. */
