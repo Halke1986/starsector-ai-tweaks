@@ -16,8 +16,6 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
 // TODO
-// check bounds for hardpoints?
-// better shield hit detection
 // collision when weapon inside blocker radius
 
 // weapon emplacement angular velocity
@@ -29,8 +27,6 @@ import kotlin.math.abs
 
 // take high-tech station into account
 // avoid station bulk
-
-// profile again
 
 /** Low priority / won't do */
 // fog
@@ -120,6 +116,26 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
     }
 
+    private fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI): Pair<Float, Boolean>? {
+        val pv = projectileCoords(weapon, target)
+        val range = willHitCircumference(pv, target) ?: return null
+
+        // Simple circumference collision is enough for missiles and fighters.
+        if (target is MissileAPI || (target as? ShipAPI)?.isFighter == true) return Pair(range, false)
+
+        // Check shield arc collision.
+        val shield = target.aliveShield
+        if (shield != null && shield.isOn) {
+            val (p, v) = pv
+            val hitPoint = p + v * range
+            if (vectorInArc(hitPoint, Arc(shield.activeArc, shield.facing))) return Pair(range, true)
+        }
+
+        // Check bounds collision.
+        val boundRange = willHitBounds(pv, target) ?: return null
+        return Pair(boundRange, false)
+    }
+
     /** predictive aiming for hardpoints */
     private fun aimHardpoint(intercept: Vector2f): Vector2f {
         val tgtLocation = target!!.aimLocation - weapon.ship.location
@@ -136,22 +152,3 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 }
 
-fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI): Pair<Float, Boolean>? {
-    val pv = projectileCoords(weapon, target)
-    val range = willHitCircumference(pv, target) ?: return null
-
-    // Simple circumference collision is enough for missiles and fighters.
-    if (target is MissileAPI || (target as? ShipAPI)?.isFighter == true) return Pair(range, false)
-
-    // Check shield arc collision.
-    val shield = target.aliveShield
-    if (shield != null && shield.isOn) {
-        val (p, v) = pv
-        val hitPoint = p + v * range
-        if (vectorInArc(hitPoint, Arc(shield.arc, shield.facing))) return Pair(range, true)
-    }
-
-    // Check bounds collision.
-    val boundRange = willHitBounds(pv, target) ?: return null
-    return Pair(boundRange, false)
-}
