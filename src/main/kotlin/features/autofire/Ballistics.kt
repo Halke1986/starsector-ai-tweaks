@@ -47,15 +47,6 @@ fun interceptOffset(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f? {
 fun closestHitRange(weapon: WeaponAPI, target: CombatEntityAPI): Float? =
     solve(targetCoords(weapon, target), target.radius, 1f, cos180)
 
-/** Range at which the projectile will collide with the target circumference,
- * given current weapon facing. Null if no collision. */
-fun hitRange(weapon: WeaponAPI, target: CombatEntityAPI): Float? =
-    solve(projectileCoords(weapon, target), target.radius, 0f, 0f)
-
-/** Calculates if the projectile will collide with the target circumference,
- * given current weapon facing. Weapon range is ignored. */
-fun willHit(weapon: WeaponAPI, target: CombatEntityAPI) = hitRange(weapon, target)?.let { it > 0f } ?: false
-
 /** Calculates if an inaccurate projectile may collide with target circumference,
  * given current weapon facing. Weapon range is ignored. Assumes projectile has
  * 8.0f collision radius, which was determined experimentally in vanilla. */
@@ -63,17 +54,15 @@ fun willHitCautious(weapon: WeaponAPI, target: CombatEntityAPI): Boolean = arcsO
     Arc(weapon.currSpread, weapon.currAngle), interceptArc(targetCoords(weapon, target), target.radius + 8.0f)
 )
 
-/** Calculates if a perfectly accurate projectile will collide with target bounds,
- * given current weapon facing. Collision range is returned, null if no collision.*/
-fun willHitBounds(weapon: WeaponAPI, target: CombatEntityAPI): Float? =
-    willHitBounds(projectileCoords(weapon, target), target)
+fun willHitCircumference(pv: Pair<Vector2f, Vector2f>, target: CombatEntityAPI): Float? =
+    solve(pv, target.radius, 0f, 0f)
 
 /** Custom implementation is roughly 5 times faster than CollisionUtils.getCollisionPoint */
-private fun willHitBounds(coords: Pair<Vector2f, Vector2f>, target: CombatEntityAPI): Float? {
+fun willHitBounds(pv: Pair<Vector2f, Vector2f>, target: CombatEntityAPI): Float? {
     val bounds = target.exactBounds ?: return null
 
-    val cos: Float = cos(-target.facing)
-    val sin: Float = sin(-target.facing)
+    val cosA: Float = cos(-target.facing)
+    val sinA: Float = sin(-target.facing)
 
     // Rotate weapon coordinates into target frame of reference.
     // That way the target bounds don't need to be transformed.
@@ -84,8 +73,8 @@ private fun willHitBounds(coords: Pair<Vector2f, Vector2f>, target: CombatEntity
         v.x * sinA + v.y * cosA,
     )
 
-    val q1 = rotate(coords.first, sin, cos)
-    val vr = rotate(coords.second, sin, cos)
+    val q1 = rotate(pv.first, sinA, cosA)
+    val vr = rotate(pv.second, sinA, cosA)
     val q2 = q1 + vr
 
     return bounds.origSegments.fold(null, fun(closest: Float?, segment): Float? {
@@ -177,3 +166,21 @@ private fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
         else -> sqrt(d).let { Pair((-b + it) / (2 * a), (-b - it) / (2 * a)) }
     }
 }
+
+
+/** Range at which the projectile will collide with the target circumference,
+ * given current weapon facing. Null if no collision. */
+@Deprecated("use other hit methods")
+fun hitRange(weapon: WeaponAPI, target: CombatEntityAPI): Float? =
+    solve(projectileCoords(weapon, target), target.radius, 0f, 0f)
+
+/** Calculates if the projectile will collide with the target circumference,
+ * given current weapon facing. Weapon range is ignored. */
+@Deprecated("use other hit methods")
+fun willHit(weapon: WeaponAPI, target: CombatEntityAPI) = hitRange(weapon, target)?.let { it > 0f } ?: false
+
+/** Calculates if a perfectly accurate projectile will collide with target bounds,
+ * given current weapon facing. Collision range is returned, null if no collision.*/
+@Deprecated("use other hit methods")
+fun willHitBounds(weapon: WeaponAPI, target: CombatEntityAPI): Float? =
+    willHitBounds(projectileCoords(weapon, target), target)

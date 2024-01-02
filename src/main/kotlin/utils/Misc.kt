@@ -25,7 +25,8 @@ fun willHitActiveShieldArc(weapon: WeaponAPI, shield: ShieldAPI): Boolean {
     return abs(attackAngle) < (shield.activeArc / 2)
 }
 
-fun shieldUptime(shield: ShieldAPI): Float {
+fun shieldUptime(shield: ShieldAPI?): Float {
+    if (shield == null) return 0f
     val r = shield.activeArc / shield.arc
     return if (r >= 1f) Float.MAX_VALUE
     else r * shield.unfoldTime
@@ -48,6 +49,9 @@ fun sin(degrees: Float): Float = FastTrig.sin(Math.toRadians(degrees.toDouble())
 fun cos(degrees: Float): Float = FastTrig.cos(Math.toRadians(degrees.toDouble())).toFloat()
 
 class Arc(val arc: Float, val facing: Float)
+
+fun vectorInArc(v: Vector2f, a: Arc): Boolean =
+    abs(getShortestRotation(VectorUtils.getFacing(v), a.facing)) <= a.arc / 2f
 
 fun arcsOverlap(a: Arc, b: Arc): Boolean = abs(getShortestRotation(a.facing, b.facing)) <= (a.arc + b.arc) / 2f
 

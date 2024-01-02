@@ -3,11 +3,11 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.utils.div
+import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.aimLocation
+import com.genir.aitweaks.utils.extensions.aliveShield
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.maneuverTarget
-import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -56,13 +56,13 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (target == null || Global.getCurrentState() != GameState.COMBAT) return false
 
         // Fire only when the selected target is in range.
-        val range = hitRange(weapon, target!!) ?: return false
+        val (range, willHitShield) = analyzeHit(weapon, target!!) ?: return false
 
         return when {
-            range.isNaN() || range > weapon.range -> false
+            range > weapon.range -> false
             avoidPhased(weapon, target as? ShipAPI) -> false
-            avoidShields(weapon, target as? ShipAPI) -> false
-            avoidExposedHull(weapon, target as? ShipAPI) -> false
+            willHitShield && avoidShields(weapon, target as? ShipAPI) -> false
+            !willHitShield && avoidExposedHull(weapon, target as? ShipAPI) -> false
             avoidFriendlyFire(weapon, target!!, range) -> false
             else -> true
         }
@@ -134,4 +134,24 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         return rotateAroundPivot(intercept, weapon.ship.location, angleToTarget)
     }
+}
+
+fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI): Pair<Float, Boolean>? {
+    val pv = projectileCoords(weapon, target)
+    val range = willHitCircumference(pv, target) ?: return null
+
+    // Simple circumference collision is enough for missiles and fighters.
+    if (target is MissileAPI || (target as? ShipAPI)?.isFighter == true) return Pair(range, false)
+
+    // Check shield arc collision.
+    val shield = target.aliveShield
+    if (shield != null && shield.isOn) {
+        val (p, v) = pv
+        val hitPoint = p + v * range
+        if (vectorInArc(hitPoint, Arc(shield.arc, shield.facing))) return Pair(range, true)
+    }
+
+    // Check bounds collision.
+    val boundRange = willHitBounds(pv, target) ?: return null
+    return Pair(boundRange, false)
 }

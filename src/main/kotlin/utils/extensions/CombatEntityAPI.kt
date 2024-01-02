@@ -13,5 +13,5 @@ val CombatEntityAPI.aimLocation: Vector2f
 
 /** Hulks inherit ship's ShieldAPI, which returns outdated values.
  * aliveShield returns null for dead ships, to avoid this problem. */
-private val CombatEntityAPI.aliveShield: ShieldAPI?
+val CombatEntityAPI.aliveShield: ShieldAPI?
     get() = if ((this as? ShipAPI)?.isAlive == true) this.shield else null
