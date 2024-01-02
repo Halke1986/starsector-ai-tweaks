@@ -69,7 +69,7 @@ fun <T> closestEntityFinder(weapon: WeaponAPI, range: Float, grid: CollisionGrid
     var upperBound = range * range + 1f
 
     val evaluateEntity = fun(entity: CombatEntityAPI) {
-        val entityRange = closestHitRange(weapon, entity)
+        val entityRange = closestHitRange(weapon, entity) ?: return
         if (entityRange < upperBound) {
             if (f(entity as T)) {
                 blocker = entity

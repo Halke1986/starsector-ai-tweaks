@@ -27,7 +27,7 @@ const val cos180 = -1f
 /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
 fun canTrack(weapon: WeaponAPI, target: CombatEntityAPI): Boolean {
     val coords = targetCoords(weapon, target)
-    val closestDistance = solve(coords, target.radius, 1f, cos180)
+    val closestDistance = solve(coords, target.radius, 1f, cos180) ?: return false
 
     return closestDistance <= weapon.range && arcsOverlap(
         Arc(weapon.arc, weapon.absoluteArcFacing), interceptArc(coords, target.radius)
@@ -35,23 +35,26 @@ fun canTrack(weapon: WeaponAPI, target: CombatEntityAPI): Boolean {
 }
 
 /** Weapon aim offset from the target position, required to hit centerpoint of a moving target.
- * Vector2f(NaN,NaN) if the target is faster than the projectile. */
-fun interceptOffset(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f =
-    targetCoords(weapon, target).let { it.second * solve(it, 0f, 1f, 0f) }
+ * Null if the target is faster than the projectile. */
+fun interceptOffset(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f? {
+    val pv = targetCoords(weapon, target)
+    val range = solve(pv, 0f, 1f, 0f) ?: return null
+    return pv.second * range
+}
 
 /** Closest possible range at which the projectile can collide with the target circumference,
- * for any weapon facing. Nan if the target is faster than the projectile. */
-fun closestHitRange(weapon: WeaponAPI, target: CombatEntityAPI): Float =
+ * for any weapon facing. Null if the target is faster than the projectile. */
+fun closestHitRange(weapon: WeaponAPI, target: CombatEntityAPI): Float? =
     solve(targetCoords(weapon, target), target.radius, 1f, cos180)
 
 /** Range at which the projectile will collide with the target circumference,
- * given current weapon facing. NaN if no collision. */
-fun hitRange(weapon: WeaponAPI, target: CombatEntityAPI): Float =
+ * given current weapon facing. Null if no collision. */
+fun hitRange(weapon: WeaponAPI, target: CombatEntityAPI): Float? =
     solve(projectileCoords(weapon, target), target.radius, 0f, 0f)
 
 /** Calculates if the projectile will collide with the target circumference,
  * given current weapon facing. Weapon range is ignored. */
-fun willHit(weapon: WeaponAPI, target: CombatEntityAPI) = hitRange(weapon, target) > 0f
+fun willHit(weapon: WeaponAPI, target: CombatEntityAPI) = hitRange(weapon, target)?.let { it > 0f } ?: false
 
 /** Calculates if an inaccurate projectile may collide with target circumference,
  * given current weapon facing. Weapon range is ignored. Assumes projectile has
@@ -122,10 +125,7 @@ fun projectileCoords(weapon: WeaponAPI, target: CombatEntityAPI) = Pair(
 )
 
 private fun interceptArc(pv: Pair<Vector2f, Vector2f>, radius: Float): Arc {
-    val tangentDistance = solve(pv, radius, 1f, cos90)
-
-    // Target is directly over the weapon.
-    if (tangentDistance.isNaN()) Arc(360f, 0f)
+    val tangentDistance = solve(pv, radius, 1f, cos90) ?: return Arc(360f, 0f)
 
     val (p, v) = pv
     return Arc(
@@ -145,34 +145,34 @@ private fun interceptArc(pv: Pair<Vector2f, Vector2f>, radius: Float): Arc {
  * b(t) = w * t
  *
  * The smaller positive solutions is returned.
- * If no positive solution exists, NaN is returned.
+ * If no positive solution exists, null is returned.
  *
  * Equation can be expanded the following way:
  * (|P + V * t|)^2 = (w * t)^2 + r^2 - 2(w * t * r * cosA)
  * (Px + Vx * t)^2 + (Py + Vy * t)^2 = = w^2 * t^2 + r^2 - 2(w * t * r * cosA)
  * (Vx^2 + Vy^2 - w^2)*t^2 + 2(Px*Vx + Py*Vy + r*w*cosA)*t + (Px^2 + Py^2 - r^2) = 0
  */
-private fun solve(pv: Pair<Vector2f, Vector2f>, r: Float, w: Float, cosA: Float): Float {
+private fun solve(pv: Pair<Vector2f, Vector2f>, r: Float, w: Float, cosA: Float): Float? {
     val (p, v) = pv
     val a = v.lengthSquared() - w * w
     val b = 2f * (p.x * v.x + p.y * v.y + r * w * cosA)
     val c = p.lengthSquared() - r * r
 
-    val (t1, t2) = quad(a, b, c)
+    val (t1, t2) = quad(a, b, c) ?: return null
     return when {
         t1 > 0 && t1 < t2 -> t1
         t2 > 0 -> t2
-        else -> Float.NaN
+        else -> null
     }
 }
 
 /**
  * solve quadratic equation [ax^2 + bx + c = 0] for x.
  */
-private fun quad(a: Float, b: Float, c: Float): Pair<Float, Float> {
+private fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
     val d = b * b - 4f * a * c
     return when {
-        d < 0 -> Pair(Float.NaN, Float.NaN)
+        d < 0 -> null
         a == 0f -> (2 * c / -b).let { Pair(it, it) }
         else -> sqrt(d).let { Pair((-b + it) / (2 * a), (-b - it) / (2 * a)) }
     }

@@ -48,7 +48,7 @@ fun avoidFriendlyFire(weapon: WeaponAPI, target: CombatEntityAPI, hitRange: Floa
     val searchRange = if (firePassesTarget) weapon.range else hitRange
     val blocker = firstAlongLineOfFire(weapon, target, searchRange) ?: return false
 
-    val blockerAheadOfTarget = closestHitRange(weapon, blocker) < hitRange
+    val blockerAheadOfTarget = closestHitRange(weapon, blocker)?.let { it < hitRange } ?: false
     val friendly = blocker.owner == weapon.ship.owner
 
     return friendly || (blocker.isHulk && blockerAheadOfTarget)

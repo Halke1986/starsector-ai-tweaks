@@ -56,7 +56,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (target == null || Global.getCurrentState() != GameState.COMBAT) return false
 
         // Fire only when the selected target is in range.
-        val range = hitRange(weapon, target!!)
+        val range = hitRange(weapon, target!!) ?: return false
 
         return when {
             range.isNaN() || range > weapon.range -> false
@@ -75,7 +75,9 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getTarget(): Vector2f? {
         if (target == null) return null
 
-        val intercept = target!!.aimLocation + interceptOffset(weapon, target!!) / getAccuracy()
+        val offset = interceptOffset(weapon, target!!) ?: return null
+        val intercept = target!!.aimLocation + offset / getAccuracy()
+
         return if (weapon.slot.isTurret) intercept
         else aimHardpoint(intercept)
     }
