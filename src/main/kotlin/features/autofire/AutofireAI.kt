@@ -3,6 +3,7 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.aimLocation
 import com.genir.aitweaks.utils.extensions.aliveShield
@@ -41,11 +42,14 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
 
+    private var selectTargetInterval = IntervalUtil(0.25F, 0.5F);
+
     override fun advance(timeDelta: Float) {
         trackManeuverTarget()
         trackTimes(timeDelta)
+        selectTargetInterval.advance(timeDelta)
 
-        target = selectTarget(weapon, target, maneuverTarget)
+        if (selectTargetInterval.intervalElapsed()) target = selectTarget(weapon, target, maneuverTarget)
     }
 
     override fun shouldFire(): Boolean {

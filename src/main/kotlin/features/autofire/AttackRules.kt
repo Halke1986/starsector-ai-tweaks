@@ -20,7 +20,8 @@ fun avoidShields(weapon: WeaponAPI, target: ShipAPI?): Boolean = when {
     target.isFighter -> false
     weapon.isBurstBeam -> true
     weapon.usesAmmo() -> true
-    else -> shieldUptime(target.shield) > 0.8f
+    shieldUptime(target.shield) > 0.8f -> true
+    else -> !willHitBounds(weapon, target) // ensure hull is in range, not just shields
 }
 
 fun avoidExposedHull(weapon: WeaponAPI, target: ShipAPI?): Boolean = when {

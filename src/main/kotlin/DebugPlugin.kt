@@ -18,7 +18,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     operator fun set(index: Int, value: Any) {
         if (font == null) return
 
-        drawable[index] = font!!.createText(value.toString(), baseColor = Color.ORANGE)
+        drawable[index] = font!!.createText("$index: $value", baseColor = Color.ORANGE)
     }
 
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
