@@ -1,34 +1,57 @@
 package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.utils.extensions.conserveAmmo
 import com.genir.aitweaks.utils.extensions.isPD
+import com.genir.aitweaks.utils.extensions.isShip
 import com.genir.aitweaks.utils.shieldUptime
 
-fun avoidPhased(weapon: WeaponAPI, target: ShipAPI?): Boolean = when {
-    target == null -> false
-    !target.isPhased -> false
-    weapon.isBurstBeam -> true
-    weapon.usesAmmo() -> true
-    weapon.isPD -> false
-    weapon.isBeam -> false
-    else -> true
+const val holdFire = false
+const val fire = true
+const val notApplicable = fire
+
+fun avoidPhased(weapon: WeaponAPI, target: CombatEntityAPI): Boolean = when {
+    (target as? ShipAPI)?.isPhased != true -> fire
+
+    weapon.conserveAmmo -> holdFire
+    weapon.isPD -> fire
+    weapon.isBeam -> fire
+
+    else -> holdFire
 }
 
-fun avoidShields(weapon: WeaponAPI, target: ShipAPI?): Boolean = when {
-    !weapon.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS) -> false
-    target == null -> false
-    target.isFighter -> false
-    weapon.isBurstBeam -> true
-    weapon.usesAmmo() -> true
-    shieldUptime(target.shield) > 0.8f -> true
-    else -> !willHitBounds(weapon, target) // ensure hull is in range, not just shields
+fun avoidShields(weapon: WeaponAPI, target: CombatEntityAPI, willHitShield: Boolean): Boolean = when {
+    !weapon.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS) -> notApplicable
+    !target.isShip -> holdFire
+
+    willHitShield && weapon.conserveAmmo -> holdFire // weapons strict about saving ammo
+    willHitShield && shieldUptime(target.shield) > 0.8f -> holdFire // attack when shields flicker
+    willHitBounds(weapon, target) == null -> holdFire // ensure hull is in range, not just shields
+
+    else -> fire
 }
 
-fun avoidExposedHull(weapon: WeaponAPI, target: ShipAPI?): Boolean = when {
-    weapon.spec.primaryRoleStr != "Strictly Anti Shield" -> false
-    target == null -> false
-    target.isFighter -> false
-    else -> shieldUptime(target.shield) < 0.8f
+fun avoidExposedHull(weapon: WeaponAPI, target: CombatEntityAPI, willHitShield: Boolean): Boolean = when {
+    weapon.spec.primaryRoleStr != "Strictly Anti Shield" -> notApplicable
+    !target.isShip -> holdFire
+
+    !willHitShield || shieldUptime(target.shield) < 0.8f -> holdFire // avoid shield flicker
+
+    else -> fire
+}
+
+fun avoidWastingTorpedo(weapon: WeaponAPI, target: CombatEntityAPI, willHitShield: Boolean): Boolean = when {
+    weapon.spec.primaryRoleStr != "Torpedo" -> notApplicable
+    weapon.damageType != DamageType.HIGH_EXPLOSIVE -> notApplicable
+    !target.isShip -> holdFire
+
+    willHitShield -> holdFire
+    (target as ShipAPI).hullLevel < 0.15f -> holdFire // avoid almost dead ships
+    target.hullSpec.armorRating < 750f -> holdFire // avoid soft targets
+    target.phaseCloak != null -> holdFire // avoid phase targets
+    willHitBounds(weapon, target) == null -> holdFire // ensure hull is in range, not just shields
+
+    else -> fire
 }
 
 fun avoidFriendlyFire(weapon: WeaponAPI, target: CombatEntityAPI, hitRange: Float): Boolean {
@@ -42,10 +65,11 @@ fun avoidFriendlyFire(weapon: WeaponAPI, target: CombatEntityAPI, hitRange: Floa
     // Search for blockers behind target only for attacks that are
     // predicted to pass through the target and be dangerous to friendlies.
     val searchRange = if (firePassesTarget) weapon.range else hitRange
-    val blocker = firstAlongLineOfFire(weapon, target, searchRange) ?: return false
+    val blocker = firstAlongLineOfFire(weapon, target, searchRange) ?: return fire
 
-    val blockerAheadOfTarget = closestHitRange(weapon, blocker)?.let { it < hitRange } ?: false
+    val blockerAheadOfTarget = closestHitRange(weapon, blocker)?.let { it < hitRange } ?: fire
     val friendly = blocker.owner == weapon.ship.owner
 
-    return friendly || (blocker.isHulk && blockerAheadOfTarget)
+    return if (friendly || (blocker.isHulk && blockerAheadOfTarget)) holdFire
+    else fire
 }

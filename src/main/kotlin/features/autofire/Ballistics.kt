@@ -52,23 +52,23 @@ fun closestHitRange(weapon: WeaponAPI, target: CombatEntityAPI): Float? {
 
 /** Calculates if the projectile will collide with the target circumference,
  * given current weapon facing. Weapon range is ignored. */
-fun willHitCircumference(weapon: WeaponAPI, target: CombatEntityAPI): Boolean =
-    willHitCircumference(projectileCoords(weapon, target), target) != null
+fun willHitCircumference(weapon: WeaponAPI, target: CombatEntityAPI): Float? =
+    willHitCircumference(projectileCoords(weapon, target), target)
 
 fun willHitCircumference(pv: Pair<Vector2f, Vector2f>, target: CombatEntityAPI): Float? =
     solve(pv, target.radius, 0f, 0f)
 
 /** Calculates if an inaccurate projectile may collide with target circumference,
  * given current weapon facing. Weapon range is ignored. Assumes projectile has
- * 8.0f collision radius, which was determined experimentally in vanilla. */
+ * 16.0f collision radius. */
 fun willHitCautious(weapon: WeaponAPI, target: CombatEntityAPI): Boolean = arcsOverlap(
-    Arc(weapon.currSpread, weapon.currAngle), interceptArc(targetCoords(weapon, target), target.radius + 8.0f)
+    Arc(weapon.currSpread, weapon.currAngle), interceptArc(targetCoords(weapon, target), target.radius + 16.0f)
 )
 
 /** Calculates if a perfectly accurate projectile will collide with target bounds,
  * given current weapon facing. Collision range is returned, null if no collision.*/
-fun willHitBounds(weapon: WeaponAPI, target: CombatEntityAPI): Boolean =
-    willHitBounds(projectileCoords(weapon, target), target) != null
+fun willHitBounds(weapon: WeaponAPI, target: CombatEntityAPI): Float? =
+    willHitBounds(projectileCoords(weapon, target), target)
 
 /** Custom implementation is roughly 5 times faster than CollisionUtils.getCollisionPoint */
 fun willHitBounds(pv: Pair<Vector2f, Vector2f>, target: CombatEntityAPI): Float? {

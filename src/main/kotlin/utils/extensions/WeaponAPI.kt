@@ -12,6 +12,9 @@ val WeaponAPI.isPD: Boolean
 val WeaponAPI.isAntiFtr: Boolean
     get() = this.isPD || this.hasAIHint(ANTI_FTR)
 
+val WeaponAPI.conserveAmmo: Boolean
+    get() = this.usesAmmo() || this.isBurstBeam
+
 val WeaponAPI.hasBestTargetLeading: Boolean
     get() = this.isPD && !this.hasAIHint(WeaponAPI.AIHints.STRIKE) && ship.mutableStats.dynamic.getValue(
         "pd_best_target_leading", 0f

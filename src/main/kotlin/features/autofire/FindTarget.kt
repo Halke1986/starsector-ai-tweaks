@@ -56,12 +56,11 @@ fun firstAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, maxRange: F
             it == weapon.ship -> false
             it.isFighter -> false
             it.owner == weapon.ship.owner && !willHitCautious(weapon, it) -> false
-            it.isHulk && !willHitBounds(weapon, it) -> false
-            it.owner xor weapon.ship.owner == 1 && (it.isPhased || !willHitCircumference(weapon, it)) -> false
+            it.isHulk && willHitBounds(weapon, it) == null -> false
+            it.owner xor weapon.ship.owner == 1 && (it.isPhased || willHitCircumference(weapon, it) == null) -> false
             else -> true
         }
     }
-
 
 @Suppress("UNCHECKED_CAST")
 fun <T> closestEntityFinder(weapon: WeaponAPI, range: Float, grid: CollisionGridAPI, f: (T) -> Boolean): T? {

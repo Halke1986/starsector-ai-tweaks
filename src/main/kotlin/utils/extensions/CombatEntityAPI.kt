@@ -15,3 +15,6 @@ val CombatEntityAPI.aimLocation: Vector2f
  * aliveShield returns null for dead ships, to avoid this problem. */
 val CombatEntityAPI.aliveShield: ShieldAPI?
     get() = if ((this as? ShipAPI)?.isAlive == true) this.shield else null
+
+val CombatEntityAPI.isShip: Boolean
+    get() = (this is ShipAPI) && !this.isFighter

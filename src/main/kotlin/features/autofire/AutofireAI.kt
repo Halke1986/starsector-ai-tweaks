@@ -50,18 +50,19 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     override fun shouldFire(): Boolean {
-        if (target == null || Global.getCurrentState() != GameState.COMBAT) return false
+        if (target == null || Global.getCurrentState() != GameState.COMBAT) return holdFire
 
         // Fire only when the selected target is in range.
-        val (range, willHitShield) = analyzeHit(weapon, target!!) ?: return false
+        val (range, willHitShield) = analyzeHit(weapon, target!!) ?: return holdFire
 
         return when {
-            range > weapon.range -> false
-            avoidPhased(weapon, target as? ShipAPI) -> false
-            willHitShield && avoidShields(weapon, target as? ShipAPI) -> false
-            !willHitShield && avoidExposedHull(weapon, target as? ShipAPI) -> false
-            avoidFriendlyFire(weapon, target!!, range) -> false
-            else -> true
+            range > weapon.range -> holdFire
+            !avoidPhased(weapon, target!!) -> holdFire
+            !avoidShields(weapon, target!!, willHitShield) -> holdFire
+            !avoidExposedHull(weapon, target!!, willHitShield) -> holdFire
+            !avoidWastingTorpedo(weapon, target!!, willHitShield) -> holdFire
+            !avoidFriendlyFire(weapon, target!!, range) -> holdFire
+            else -> fire
         }
     }
 
