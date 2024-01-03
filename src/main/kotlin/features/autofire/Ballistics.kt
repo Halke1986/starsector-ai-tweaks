@@ -44,8 +44,11 @@ fun interceptOffset(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f? {
 
 /** Closest possible range at which the projectile can collide with the target circumference,
  * for any weapon facing. Null if the target is faster than the projectile. */
-fun closestHitRange(weapon: WeaponAPI, target: CombatEntityAPI): Float? =
-    solve(targetCoords(weapon, target), target.radius, 1f, cos180)
+fun closestHitRange(weapon: WeaponAPI, target: CombatEntityAPI): Float? {
+    val pv = targetCoords(weapon, target)
+    return if (pv.first.lengthSquared() < target.radius * target.radius) 0f
+    else solve(pv, target.radius, 1f, cos180)
+}
 
 /** Calculates if the projectile will collide with the target circumference,
  * given current weapon facing. Weapon range is ignored. */

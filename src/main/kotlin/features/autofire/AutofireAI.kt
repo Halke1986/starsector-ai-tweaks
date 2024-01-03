@@ -17,9 +17,6 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
 // TODO
-// collision when weapon inside blocker radius
-
-// weapon emplacement angular velocity
 // audit getFacing (strict)
 
 // don't switch targets mid burst
