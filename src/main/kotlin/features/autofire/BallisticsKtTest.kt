@@ -1,14 +1,15 @@
 package features.autofire
 
-import com.genir.aitweaks.features.autofire.willHitBounds
+import com.genir.aitweaks.features.autofire.*
+import com.genir.aitweaks.utils.Arc
 import com.genir.aitweaks.utils.mocks.*
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.lwjgl.util.vector.Vector2f
 
 class BallisticsKtTest {
     @Test
-    fun testWillHitBounds2() {
+    fun testWillHitBounds() {
         val bounds = MockBoundsAPI(
             "getOrigSegments" to listOf(
                 MockSegmentAPI(Vector2f(4.0f, 13.0f), Vector2f(3.333332f, -5.666666f)),
@@ -49,6 +50,51 @@ class BallisticsKtTest {
         )
 
         val actual = willHitBounds(weapon, target)
-        Assertions.assertEquals(1340.9568f, actual)
+        assertEquals(1340.9568f, actual)
+    }
+
+    @Test
+    fun testTargetFasterThanProjectile() {
+        val weapon = MockWeaponAPI(
+            "getLocation" to Vector2f(0f, 0f),
+            "getProjectileSpeed" to 1f,
+            "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 0f))
+        )
+
+        val target = MockCombatEntityAPI(
+            "getLocation" to Vector2f(0f, 10f),
+            "getVelocity" to Vector2f(0f, 10f),
+            "getCollisionRadius" to 3f,
+        )
+
+        assertEquals(null, interceptOffset(weapon, target))
+        assertEquals(null, interceptArc(weapon, target))
+        assertEquals(null, closestHitRange(weapon, target))
+    }
+
+    @Test
+    fun testWeaponInsideTargetRadius() {
+        val weapon = MockWeaponAPI(
+            "getLocation" to Vector2f(0f, 0f),
+            "getProjectileSpeed" to 100f,
+            "getRange" to 1000f,
+            "getArc" to 30f,
+            "getArcFacing" to 0f,
+            "getShip" to MockShipAPI(
+                "getVelocity" to Vector2f(0f, 0f),
+                "getFacing" to 90f,
+            )
+        )
+
+        val target = MockCombatEntityAPI(
+            "getLocation" to Vector2f(0f, 10f),
+            "getVelocity" to Vector2f(0f, 10f),
+            "getCollisionRadius" to 30f,
+        )
+
+        assertTrue(canTrack(weapon, target))
+        assertNotNull(interceptOffset(weapon, target))
+        assertEquals(Arc(360f, 0f), interceptArc(weapon, target))
+        assertEquals(0f, closestHitRange(weapon, target))
     }
 }

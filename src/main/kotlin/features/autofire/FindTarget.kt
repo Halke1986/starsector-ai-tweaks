@@ -55,7 +55,7 @@ fun firstAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, maxRange: F
             it == target -> false
             it == weapon.ship -> false
             it.isFighter -> false
-            it.owner == weapon.ship.owner && !willHitCautious(weapon, it) -> false
+            it.owner == weapon.ship.owner && !willHitCircumferenceCautious(weapon, it) -> false
             it.isHulk && willHitBounds(weapon, it) == null -> false
             it.owner xor weapon.ship.owner == 1 && (it.isPhased || willHitCircumference(weapon, it) == null) -> false
             else -> true
@@ -63,7 +63,7 @@ fun firstAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, maxRange: F
     }
 
 @Suppress("UNCHECKED_CAST")
-fun <T> closestEntityFinder(weapon: WeaponAPI, range: Float, grid: CollisionGridAPI, f: (T) -> Boolean): T? {
+private fun <T> closestEntityFinder(weapon: WeaponAPI, range: Float, grid: CollisionGridAPI, f: (T) -> Boolean): T? {
     var blocker: CombatEntityAPI? = null
     var upperBound = range * range + 1f
 
@@ -84,6 +84,6 @@ fun <T> closestEntityFinder(weapon: WeaponAPI, range: Float, grid: CollisionGrid
     return blocker as T
 }
 
-fun shipGrid(): CollisionGridAPI = Global.getCombatEngine().shipGrid
+private fun shipGrid(): CollisionGridAPI = Global.getCombatEngine().shipGrid
 
-fun missileGrid(): CollisionGridAPI = Global.getCombatEngine().missileGrid
+private fun missileGrid(): CollisionGridAPI = Global.getCombatEngine().missileGrid

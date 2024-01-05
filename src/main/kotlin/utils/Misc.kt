@@ -48,7 +48,7 @@ fun atan(radians: Float): Float = Math.toDegrees(FastTrig.atan(radians.toDouble(
 fun sin(degrees: Float): Float = FastTrig.sin(Math.toRadians(degrees.toDouble())).toFloat()
 fun cos(degrees: Float): Float = FastTrig.cos(Math.toRadians(degrees.toDouble())).toFloat()
 
-class Arc(val arc: Float, val facing: Float)
+data class Arc(val arc: Float, val facing: Float)
 
 fun vectorInArc(v: Vector2f, a: Arc): Boolean =
     abs(getShortestRotation(VectorUtils.getFacing(v), a.facing)) <= a.arc / 2f

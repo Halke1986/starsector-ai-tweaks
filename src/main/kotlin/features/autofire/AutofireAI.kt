@@ -4,11 +4,11 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.aimLocation
-import com.genir.aitweaks.utils.extensions.aliveShield
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.maneuverTarget
+import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -17,14 +17,13 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
 // TODO
-// audit getFacing (strict)
+// take high-tech station into account
+// avoid station bulk
+// why station guns no attack
 
 // don't switch targets mid burst
 // paladin ff
 // track ship target for player
-
-// take high-tech station into account
-// avoid station bulk
 
 /** Low priority / won't do */
 // fog
@@ -60,7 +59,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             !avoidPhased(weapon, target!!) -> holdFire
             !avoidShields(weapon, target!!, willHitShield) -> holdFire
             !avoidExposedHull(weapon, target!!, willHitShield) -> holdFire
-            !avoidWastingTorpedo(weapon, target!!, willHitShield) -> holdFire
+            //!avoidWastingTorpedo(weapon, target!!, willHitShield) -> holdFire
             !avoidFriendlyFire(weapon, target!!, range) -> holdFire
             else -> fire
         }
@@ -116,26 +115,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val accBase = weapon.ship.aimAccuracy
         val accBonus = weapon.spec.autofireAccBonus
         return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
-    }
-
-    private fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI): Pair<Float, Boolean>? {
-        val pv = projectileCoords(weapon, target)
-        val range = willHitCircumference(pv, target) ?: return null
-
-        // Simple circumference collision is enough for missiles and fighters.
-        if (target is MissileAPI || (target as? ShipAPI)?.isFighter == true) return Pair(range, false)
-
-        // Check shield arc collision.
-        val shield = target.aliveShield
-        if (shield != null && shield.isOn) {
-            val (p, v) = pv
-            val hitPoint = p + v * range
-            if (vectorInArc(hitPoint, Arc(shield.activeArc, shield.facing))) return Pair(range, true)
-        }
-
-        // Check bounds collision.
-        val boundRange = willHitBounds(pv, target) ?: return null
-        return Pair(boundRange, false)
     }
 
     /** predictive aiming for hardpoints */
