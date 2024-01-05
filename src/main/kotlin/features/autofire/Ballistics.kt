@@ -115,7 +115,7 @@ fun willHitBounds(weapon: WeaponAPI, target: CombatEntityAPI): Float? {
     // Rotate weapon coordinates into target frame of reference.
     // That way the target bounds don't need to be transformed.
     // Rotation is implemented in place, as opposed to using library
-    // call, for better execution time.
+    // call, for better performance.
     fun rotate(v: Vector2f, sinA: Float, cosA: Float) = Vector2f(
         v.x * cosA - v.y * sinA,
         v.x * sinA + v.y * cosA,

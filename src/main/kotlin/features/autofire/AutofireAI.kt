@@ -17,9 +17,8 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
 // TODO
-// take high-tech station into account
 // avoid station bulk
-// why station guns no attack
+// take high-tech station into account
 
 // don't switch targets mid burst
 // paladin ff
