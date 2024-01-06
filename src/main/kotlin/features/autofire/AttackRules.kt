@@ -2,6 +2,7 @@ package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.utils.extensions.conserveAmmo
+import com.genir.aitweaks.utils.extensions.isInert
 import com.genir.aitweaks.utils.extensions.isPD
 import com.genir.aitweaks.utils.extensions.isShip
 import com.genir.aitweaks.utils.shieldUptime
@@ -70,6 +71,6 @@ fun avoidFriendlyFire(weapon: WeaponAPI, target: CombatEntityAPI, hitRange: Floa
     val blockerAheadOfTarget = closestHitRange(weapon, blocker)?.let { it < hitRange } ?: fire
     val friendly = blocker.owner == weapon.ship.owner
 
-    return if (friendly || (blocker.isHulk && blockerAheadOfTarget)) holdFire
+    return if (friendly || (blocker.isInert && blockerAheadOfTarget)) holdFire
     else fire
 }

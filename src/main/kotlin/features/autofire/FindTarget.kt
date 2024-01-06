@@ -2,10 +2,7 @@ package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.utils.extensions.ignoresFlares
-import com.genir.aitweaks.utils.extensions.isAntiFtr
-import com.genir.aitweaks.utils.extensions.isPD
-import com.genir.aitweaks.utils.extensions.isValidTarget
+import com.genir.aitweaks.utils.extensions.*
 
 fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, maneuver: ShipAPI?): CombatEntityAPI? {
     if (weapon.isPD) selectMissile(weapon, current as? MissileAPI)?.let { return it }
@@ -40,7 +37,7 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): Combat
     // Find the closest enemy ship that can be tracked by the weapon.
     return closestEntityFinder<ShipAPI>(weapon, weapon.range, shipGrid()) {
         when {
-            !it.isAlive -> false
+            it.isInert -> false
             it.owner == weapon.ship.owner -> false
             it.isFighter && !weapon.isAntiFtr -> false
             !canTrack(weapon, it) -> false
@@ -55,11 +52,11 @@ fun firstAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, maxRange: F
             it == target -> false
             it == weapon.ship -> false
             it.isFighter -> false
-            weapon.ship.isStationModule && (it.isStation || it.isStationModule) -> false
-            it.owner == weapon.ship.owner && !willHitCircumferenceCautious(weapon, it) -> false
-            it.isHulk && willHitBounds(weapon, it) == null -> false
-            it.owner xor weapon.ship.owner == 1 && (it.isPhased || willHitCircumference(weapon, it) == null) -> false
-            else -> true
+            weapon.ship.isStationModule && it.isAlive && (it.isStation || it.isStationModule) -> false
+
+            it.isInert -> willHitBounds(weapon, it) != null
+            it.owner == weapon.ship.owner -> willHitCircumferenceCautious(weapon, it)
+            else -> !it.isPhased && willHitCircumference(weapon, it) != null
         }
     }
 

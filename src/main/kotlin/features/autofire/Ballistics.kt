@@ -7,8 +7,8 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.absoluteArcFacing
 import com.genir.aitweaks.utils.extensions.aimLocation
-import com.genir.aitweaks.utils.extensions.aliveShield
 import com.genir.aitweaks.utils.extensions.radius
+import com.genir.aitweaks.utils.extensions.trueShield
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -77,7 +77,7 @@ fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI): Pair<Float, Boolean>
     if (target is MissileAPI || (target as? ShipAPI)?.isFighter == true) return Pair(range, false)
 
     // Check shield arc collision.
-    val shield = target.aliveShield
+    val shield = target.trueShield
     if (shield != null && shield.isOn) {
         val (p, v) = projectileCoords(weapon, target)
         val hitPoint = p + v * range

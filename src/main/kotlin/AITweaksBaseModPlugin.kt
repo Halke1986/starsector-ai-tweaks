@@ -16,6 +16,7 @@ class AITweaksBaseModPlugin : BaseModPlugin() {
         val ai = when {
             Global.getCurrentState() == GameState.TITLE -> null
             weapon.type == WeaponAPI.WeaponType.MISSILE -> null
+            weapon.ship.isFighter -> null
             else -> AutofireAI(weapon)
         }
 
