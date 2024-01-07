@@ -11,14 +11,14 @@ fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, maneuver: ShipAPI
 
 fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
     // Try tracking current missile.
-    if (current?.isValidTarget == true && canTrack(weapon, current)) return current
+    if (current?.isValidTarget == true && canTrack(weapon, Target(current))) return current
 
     // Find the closest enemy missile that can be tracked by the weapon.
     return closestEntityFinder<MissileAPI>(weapon, weapon.range, missileGrid()) {
         when {
             it.owner == weapon.ship.owner -> false
             it.isFlare && weapon.ignoresFlares -> false
-            !canTrack(weapon, it) -> false
+            !canTrack(weapon, Target(it)) -> false
             else -> true
         }
     }
@@ -27,12 +27,12 @@ fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
 fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): CombatEntityAPI? {
     // Prioritize maneuver target. Non-PD hardpoint weapons track only ships target.
     if (maneuver?.isAlive == true && ((weapon.slot.isHardpoint && !weapon.isPD) || canTrack(
-            weapon, maneuver
+            weapon, Target(maneuver)
         ))
     ) return maneuver
 
     // Try tracking current target.
-    if (current?.isAlive == true && canTrack(weapon, current)) return current
+    if (current?.isAlive == true && canTrack(weapon, Target(current))) return current
 
     // Find the closest enemy ship that can be tracked by the weapon.
     return closestEntityFinder<ShipAPI>(weapon, weapon.range, shipGrid()) {
@@ -40,7 +40,7 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): Combat
             it.isInert -> false
             it.owner == weapon.ship.owner -> false
             it.isFighter && !weapon.isAntiFtr -> false
-            !canTrack(weapon, it) -> false
+            !canTrack(weapon, Target(it)) -> false
             else -> true
         }
     }
@@ -55,8 +55,8 @@ fun firstAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, maxRange: F
             weapon.ship.isStationModule && it.isAlive && (it.isStation || it.isStationModule) -> false
 
             it.isInert -> willHitBounds(weapon, it) != null
-            it.owner == weapon.ship.owner -> willHitCircumferenceCautious(weapon, it)
-            else -> !it.isPhased && willHitCircumference(weapon, it) != null
+            it.owner == weapon.ship.owner -> willHitShieldCautious(weapon, it)
+            else -> !it.isPhased && willHitCircumference(weapon, Target(it)) != null
         }
     }
 
@@ -66,7 +66,7 @@ private fun <T> closestEntityFinder(weapon: WeaponAPI, range: Float, grid: Colli
     var upperBound = range * range + 1f
 
     val evaluateEntity = fun(entity: CombatEntityAPI) {
-        val entityRange = closestHitRange(weapon, entity) ?: return
+        val entityRange = closestHitRange(weapon, Target(entity)) ?: return
         if (entityRange < upperBound) {
             if (f(entity as T)) {
                 blocker = entity

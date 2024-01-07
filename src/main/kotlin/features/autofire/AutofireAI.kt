@@ -4,15 +4,12 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.utils.div
-import com.genir.aitweaks.utils.extensions.aimLocation
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.maneuverTarget
 import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
@@ -73,8 +70,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getTarget(): Vector2f? {
         if (target == null) return null
 
-        val offset = interceptOffset(weapon, target!!) ?: return null
-        val intercept = target!!.aimLocation + offset / getAccuracy()
+        val intercept = intercept(weapon, Target(target!!), getAccuracy()) ?: return null
 
         return if (weapon.slot.isTurret) intercept
         else aimHardpoint(intercept)
@@ -120,7 +116,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     /** predictive aiming for hardpoints */
     private fun aimHardpoint(intercept: Vector2f): Vector2f {
-        val tgtLocation = target!!.aimLocation - weapon.ship.location
+        val tgtLocation = target!!.location - weapon.ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
         val angleToTarget = MathUtils.getShortestRotation(tgtFacing, weapon.ship.facing)
 
@@ -134,3 +130,16 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 }
 
+/** Analyzes the potential collision between projectile and target. Returns collision range.
+ * Boolean return parameter is true if projectile will hit target shield; always false for
+ * fighters and missiles. Null if no collision. */
+fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI): Pair<Float, Boolean>? {
+    // Simple circumference collision is enough for missiles and fighters.
+    if (target !is ShipAPI || target.isFighter) {
+        val range = willHitCircumference(weapon, Target(target)) ?: return null
+        return Pair(range, false)
+    }
+
+    willHitShield(weapon, target)?.let { return Pair(it, true) }
+    willHitBounds(weapon, target)?.let { return Pair(it, false) } ?: return null
+}

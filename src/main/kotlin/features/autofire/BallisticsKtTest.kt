@@ -1,8 +1,12 @@
 package features.autofire
 
 import com.genir.aitweaks.features.autofire.*
+import com.genir.aitweaks.features.autofire.Target
 import com.genir.aitweaks.utils.Arc
-import com.genir.aitweaks.utils.mocks.*
+import com.genir.aitweaks.utils.mocks.MockBoundsAPI
+import com.genir.aitweaks.utils.mocks.MockSegmentAPI
+import com.genir.aitweaks.utils.mocks.MockShipAPI
+import com.genir.aitweaks.utils.mocks.MockWeaponAPI
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.lwjgl.util.vector.Vector2f
@@ -41,7 +45,7 @@ class BallisticsKtTest {
             "getShip" to MockShipAPI("getVelocity" to Vector2f(2.2171297f, 65.96275f))
         )
 
-        val target = MockCombatEntityAPI(
+        val target = MockShipAPI(
             "getLocation" to Vector2f(1659.4774f, -449.50232f),
             "getVelocity" to Vector2f(52.902084f, -105.472f),
             "getCollisionRadius" to 35.755074f,
@@ -61,13 +65,13 @@ class BallisticsKtTest {
             "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 0f))
         )
 
-        val target = MockCombatEntityAPI(
-            "getLocation" to Vector2f(0f, 10f),
-            "getVelocity" to Vector2f(0f, 10f),
-            "getCollisionRadius" to 3f,
+        val target = Target(
+            location = Vector2f(0f, 10f),
+            velocity = Vector2f(0f, 10f),
+            radius = 3f,
         )
 
-        assertEquals(null, interceptOffset(weapon, target))
+        assertEquals(null, intercept(weapon, target, 1f))
         assertEquals(null, interceptArc(weapon, target))
         assertEquals(null, closestHitRange(weapon, target))
     }
@@ -86,14 +90,14 @@ class BallisticsKtTest {
             )
         )
 
-        val target = MockCombatEntityAPI(
-            "getLocation" to Vector2f(0f, 10f),
-            "getVelocity" to Vector2f(0f, 10f),
-            "getCollisionRadius" to 30f,
+        val target = Target(
+            location = Vector2f(0f, 10f),
+            velocity = Vector2f(0f, 10f),
+            radius = 30f,
         )
 
         assertTrue(canTrack(weapon, target))
-        assertNotNull(interceptOffset(weapon, target))
+        assertNotNull(intercept(weapon, target, 1f))
         assertEquals(Arc(360f, 0f), interceptArc(weapon, target))
         assertEquals(0f, closestHitRange(weapon, target))
     }

@@ -27,7 +27,7 @@ fun avoidShields(weapon: WeaponAPI, target: CombatEntityAPI, willHitShield: Bool
 
     willHitShield && weapon.conserveAmmo -> holdFire // weapons strict about saving ammo
     willHitShield && shieldUptime(target.shield) > 0.8f -> holdFire // attack when shields flicker
-    willHitBounds(weapon, target) == null -> holdFire // ensure hull is in range, not just shields
+    willHitBounds(weapon, target as ShipAPI) == null -> holdFire // ensure hull is in range, not just shields
 
     else -> fire
 }
@@ -68,7 +68,7 @@ fun avoidFriendlyFire(weapon: WeaponAPI, target: CombatEntityAPI, hitRange: Floa
     val searchRange = if (firePassesTarget) weapon.range else hitRange
     val blocker = firstAlongLineOfFire(weapon, target, searchRange) ?: return fire
 
-    val blockerAheadOfTarget = closestHitRange(weapon, blocker)?.let { it < hitRange } ?: fire
+    val blockerAheadOfTarget = closestHitRange(weapon, Target(blocker))?.let { it < hitRange } ?: fire
     val friendly = blocker.owner == weapon.ship.owner
 
     return if (friendly || (blocker.isInert && blockerAheadOfTarget)) holdFire
