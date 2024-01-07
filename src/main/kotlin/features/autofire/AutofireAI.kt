@@ -20,6 +20,8 @@ import kotlin.math.abs
 // take high-tech station shield into account
 // check normal station shield detection
 
+// no_aitweaks
+
 // don't switch targets mid burst
 // paladin ff
 // track ship target for player

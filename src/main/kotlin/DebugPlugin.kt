@@ -42,5 +42,9 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug() {
+//        val ships = Global.getCombatEngine().ships.filter { it.isDrone }
+//        for (i in ships.indices) {
+//            debugPlugin[i] = ships[i].velocity
+//        }
     }
 }
