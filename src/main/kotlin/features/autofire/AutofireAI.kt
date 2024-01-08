@@ -46,14 +46,21 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun shouldFire(): Boolean {
         if (target == null || Global.getCurrentState() != GameState.COMBAT) return holdFire
 
-        // Fire only when the selected target is in range.
-        val expectedHit = analyzeHit(weapon, target!!) ?: return holdFire
-        if (expectedHit.range > weapon.range) return holdFire
+        // Fire only when the selected target can be git. That way the weapons doesn't fire
+        // on targets that are only briefly in the line of sight, when the weapon is turning.
+        val expectedHit = analyzeHit(weapon, target!!, weapon.range) ?: return holdFire
 
-        val actualHit = firstShipAlongLineOfFire(weapon, target!!)// ?: return fire
+        // Check what will actually be hit, and hold fire if it's enemy or hulk.
+        val actualHit = firstShipAlongLineOfFire(weapon, target!!)
         if (!avoidFriendlyFire(weapon, expectedHit, actualHit)) return holdFire
 
-        val hit = if (actualHit != null && actualHit.range < expectedHit.range) actualHit else expectedHit
+        // Rest of the should-fire decisioning will be based on actual hit.
+        val hit = when {
+            actualHit == null -> expectedHit
+            actualHit.range > expectedHit.range -> expectedHit
+            (actualHit.target as ShipAPI).isFrigate && actualHit.target.owner xor weapon.ship.owner == 1 -> expectedHit
+            else -> actualHit
+        }
 
         return when {
             !avoidPhased(weapon, hit) -> holdFire

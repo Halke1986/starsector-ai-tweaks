@@ -28,6 +28,10 @@ data class Target(val location: Vector2f, val velocity: Vector2f, val radius: Fl
     constructor(entity: CombatEntityAPI) : this(entity.location, entity.velocity, entity.collisionRadius)
 }
 
+/** Use ship shields as an approximation for its circumference */
+fun targetShield(ship: ShipAPI): Target =
+    Target(ship.shieldCenterEvenIfNoShield, ship.velocity, ship.shieldRadiusEvenIfNoShield)
+
 /** Weapon aim location required to hit center point of a moving target.
  * Null if projectile is slower than the target. */
 fun intercept(weapon: WeaponAPI, target: Target, accuracy: Float): Vector2f? {
@@ -198,6 +202,3 @@ private fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
 
 /** True if coordinate system zero point is within entity radius */
 private fun targetAboveZero(p: Vector2f, r: Float) = p.lengthSquared() < r * r
-
-private fun targetShield(ship: ShipAPI): Target =
-    Target(ship.shieldCenterEvenIfNoShield, ship.velocity, ship.shieldRadiusEvenIfNoShield)

@@ -14,7 +14,7 @@ fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
     if (current?.isValidTarget == true && canTrack(weapon, Target(current))) return current
 
     // Find the closest enemy missile that can be tracked by the weapon.
-    return closestEntityFinder<MissileAPI>(weapon, weapon.range, missileGrid()) {
+    return closestEntityFinder<MissileAPI>(weapon, missileGrid()) { it, _ ->
         when {
             it.owner == weapon.ship.owner -> null
             it.isFlare && weapon.ignoresFlares -> null
@@ -35,7 +35,7 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): Combat
     if (current?.isAlive == true && canTrack(weapon, Target(current))) return current
 
     // Find the closest enemy ship that can be tracked by the weapon.
-    return closestEntityFinder<ShipAPI>(weapon, weapon.range, shipGrid()) {
+    return closestEntityFinder<ShipAPI>(weapon, shipGrid()) { it, _ ->
         when {
             it.isInert -> null
             it.owner == weapon.ship.owner -> null
@@ -47,7 +47,7 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): Combat
 }
 
 fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI): Hit? =
-    closestEntityFinder<ShipAPI>(weapon, weapon.range, shipGrid()) {
+    closestEntityFinder<ShipAPI>(weapon, shipGrid()) { it, rangeLimit ->
         when {
             it == target -> null
             it == weapon.ship -> null
@@ -60,26 +60,24 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI): Hit? =
             ) else null
 
             it.isPhased -> null
-            else -> analyzeHit(weapon, it)
+            else -> analyzeHit(weapon, it, rangeLimit)
         }
     }
 
 @Suppress("UNCHECKED_CAST")
-private fun <T> closestEntityFinder(
-    weapon: WeaponAPI, range: Float, grid: CollisionGridAPI, f: (T) -> Hit?
-): Hit? {
-    var closestRange = range * range + 1f
+private fun <T> closestEntityFinder(weapon: WeaponAPI, grid: CollisionGridAPI, f: (T, Float) -> Hit?): Hit? {
+    var closestRange = weapon.range
     var closestHit: Hit? = null
 
     val forEachFn = fun(entity: CombatEntityAPI) {
-        val hit = f(entity as T) ?: return
+        val hit = f(entity as T, closestRange) ?: return
         if (hit.range < closestRange) {
             closestRange = hit.range
             closestHit = hit
         }
     }
 
-    val searchRange = range * 2.0f
+    val searchRange = closestRange * 2.0f
     val entityIterator = grid.getCheckIterator(weapon.location, searchRange, searchRange)
     entityIterator.forEach { forEachFn(it as CombatEntityAPI) }
 
