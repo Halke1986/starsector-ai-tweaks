@@ -15,6 +15,7 @@ import kotlin.math.abs
 
 // TODO
 // no_aitweaks
+// what's up with autolance
 
 // don't switch targets mid burst
 // paladin ff
@@ -58,7 +59,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val hit = when {
             actualHit == null -> expectedHit
             actualHit.range > expectedHit.range -> expectedHit
-            (actualHit.target as ShipAPI).isFrigate && actualHit.target.owner xor weapon.ship.owner == 1 -> expectedHit
+            (actualHit.target as ShipAPI).isFrigate && !actualHit.target.isStationModule && actualHit.target.owner xor weapon.ship.owner == 1 -> expectedHit
             else -> actualHit
         }
 
