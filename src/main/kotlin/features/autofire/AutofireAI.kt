@@ -14,9 +14,6 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
 // TODO
-// take high-tech station shield into account
-// check normal station shield detection
-
 // no_aitweaks
 
 // don't switch targets mid burst
@@ -28,8 +25,6 @@ import kotlin.math.abs
 // target selection
 // STRIKE never targets fighters ??
 
-var count = 0
-
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null
     private var maneuverTarget: ShipAPI? = null
@@ -40,15 +35,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     private var selectTargetInterval = IntervalUtil(0.25F, 0.5F);
 
-    private var idx = 0
-
-    init {
-        if (weapon.spec.weaponId == "hil") {
-            count++
-            idx = count
-        }
-    }
-
     override fun advance(timeDelta: Float) {
         trackManeuverTarget()
         trackTimes(timeDelta)
@@ -58,33 +44,21 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     override fun shouldFire(): Boolean {
-//        debugPlugin[idx] = "-"
-
         if (target == null || Global.getCurrentState() != GameState.COMBAT) return holdFire
 
         // Fire only when the selected target is in range.
         val expectedHit = analyzeHit(weapon, target!!) ?: return holdFire
         if (expectedHit.range > weapon.range) return holdFire
 
-        val actualHit = closestEntityFinder2(weapon, weapon.range)// ?: return fire
+        val actualHit = firstShipAlongLineOfFire(weapon, target!!)// ?: return fire
+        if (!avoidFriendlyFire(weapon, expectedHit, actualHit)) return holdFire
 
-        if (weapon.spec.weaponId == "hil") {
-//            debugPlugin[idx] = "$expectedHit $actualHit"
-        }
-        if (actualHit == null) {
-            return fire
-        }
-
-        if (!avoidFriendlyFire1(weapon, expectedHit, actualHit)) return holdFire
-
-        val hit = if (actualHit.range < expectedHit.range) actualHit else expectedHit
+        val hit = if (actualHit != null && actualHit.range < expectedHit.range) actualHit else expectedHit
 
         return when {
             !avoidPhased(weapon, hit) -> holdFire
             !avoidShields(weapon, hit) -> holdFire
             !avoidExposedHull(weapon, hit) -> holdFire
-            //!avoidWastingTorpedo(weapon, target!!, willHitShield) -> holdFire
-//            !avoidFriendlyFire(weapon, target!!, range) -> holdFire
             else -> fire
         }
     }
@@ -156,16 +130,3 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 }
 
-/** Analyzes the potential collision between projectile and target. Returns collision range.
- * Boolean return parameter is true if projectile will hit target shield; always false for
- * fighters and missiles. Null if no collision. */
-fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI): Hit? {
-    // Simple circumference collision is enough for missiles and fighters.
-    if (target !is ShipAPI || target.isFighter) {
-        val range = willHitCircumference(weapon, Target(target)) ?: return null
-        return Hit(target, range, false)
-    }
-
-    willHitShield(weapon, target)?.let { return Hit(target, it, true) }
-    willHitBounds(weapon, target)?.let { return Hit(target, it, false) } ?: return null
-}

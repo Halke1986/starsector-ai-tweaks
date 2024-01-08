@@ -16,12 +16,12 @@ fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
     // Find the closest enemy missile that can be tracked by the weapon.
     return closestEntityFinder<MissileAPI>(weapon, weapon.range, missileGrid()) {
         when {
-            it.owner == weapon.ship.owner -> false
-            it.isFlare && weapon.ignoresFlares -> false
-            !canTrack(weapon, Target(it)) -> false
-            else -> true
+            it.owner == weapon.ship.owner -> null
+            it.isFlare && weapon.ignoresFlares -> null
+            !canTrack(weapon, Target(it)) -> null
+            else -> Hit(it, closestHitRange(weapon, Target(it))!!, false)
         }
-    }
+    }?.target
 }
 
 fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): CombatEntityAPI? {
@@ -37,81 +37,55 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): Combat
     // Find the closest enemy ship that can be tracked by the weapon.
     return closestEntityFinder<ShipAPI>(weapon, weapon.range, shipGrid()) {
         when {
-            it.isInert -> false
-            it.owner == weapon.ship.owner -> false
-            it.isFighter && !weapon.isAntiFtr -> false
-            !canTrack(weapon, Target(it)) -> false
-            else -> true
+            it.isInert -> null
+            it.owner == weapon.ship.owner -> null
+            it.isFighter && !weapon.isAntiFtr -> null
+            !canTrack(weapon, Target(it)) -> null
+            else -> Hit(it, closestHitRange(weapon, Target(it))!!, false)
         }
-    }
+    }?.target
 }
 
-@Suppress("UNCHECKED_CAST")
-private fun <T> closestEntityFinder(weapon: WeaponAPI, range: Float, grid: CollisionGridAPI, f: (T) -> Boolean): T? {
-    var closestEntity: CombatEntityAPI? = null
-    var upperBound = range * range + 1f
+fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI): Hit? =
+    closestEntityFinder<ShipAPI>(weapon, weapon.range, shipGrid()) {
+        when {
+            it == target -> null
+            it == weapon.ship -> null
+            it.isFighter -> null
+            weapon.ship.isStationModule && it.isAlive && (it.isStation || it.isStationModule) -> null
 
-    val evaluateEntity = fun(entity: CombatEntityAPI) {
-        val entityRange = closestHitRange(weapon, Target(entity)) ?: return
-        if (entityRange < upperBound && f(entity as T)) {
-            closestEntity = entity
-            upperBound = entityRange
+            // Handle friendlies.
+            it.owner == weapon.ship.owner -> if (willHitShieldCautious(weapon, it)) Hit(
+                it, closestHitRange(weapon, Target(it))!!, true
+            ) else null
+
+            it.isPhased -> null
+            else -> analyzeHit(weapon, it)
+        }
+    }
+
+@Suppress("UNCHECKED_CAST")
+private fun <T> closestEntityFinder(
+    weapon: WeaponAPI, range: Float, grid: CollisionGridAPI, f: (T) -> Hit?
+): Hit? {
+    var closestRange = range * range + 1f
+    var closestHit: Hit? = null
+
+    val forEachFn = fun(entity: CombatEntityAPI) {
+        val hit = f(entity as T) ?: return
+        if (hit.range < closestRange) {
+            closestRange = hit.range
+            closestHit = hit
         }
     }
 
     val searchRange = range * 2.0f
     val entityIterator = grid.getCheckIterator(weapon.location, searchRange, searchRange)
-    entityIterator.forEach { evaluateEntity(it as CombatEntityAPI) }
+    entityIterator.forEach { forEachFn(it as CombatEntityAPI) }
 
-    return closestEntity as T
+    return closestHit
 }
 
 private fun shipGrid(): CollisionGridAPI = Global.getCombatEngine().shipGrid
 
 private fun missileGrid(): CollisionGridAPI = Global.getCombatEngine().missileGrid
-
-data class Hit(val target: CombatEntityAPI, val range: Float, val shieldHit: Boolean) {
-    override fun toString(): String {
-        val name = when {
-            target is MissileAPI -> "missile"
-            (target as ShipAPI).isHulk -> "hulk"
-            else -> target.name
-        }
-
-        return "($name $range $shieldHit)"
-    }
-}
-
-fun firstAlongLineOfFire2(weapon: WeaponAPI, target: ShipAPI): Hit? = when {
-    target == weapon.ship -> null
-    target.isFighter -> null
-    weapon.ship.isStationModule && target.isAlive && (target.isStation || target.isStationModule) -> null
-
-    target.owner == weapon.ship.owner -> willHitShieldCautious(weapon, target).let {
-        if (it) Hit(
-            target, closestHitRange(weapon, Target(target))!!, true
-        ) else null
-    }
-
-    target.isPhased -> null
-    else -> analyzeHit(weapon, target)
-}
-
-fun closestEntityFinder2(weapon: WeaponAPI, range: Float): Hit? {
-    var closestHit: Hit? = null
-    var upperBound = range * range + 1f
-
-    val evaluateEntity = fun(ship: ShipAPI) {
-        val hit = firstAlongLineOfFire2(weapon, ship) ?: return
-        if (hit.range < upperBound) {
-            closestHit = hit
-            upperBound = hit.range
-        }
-    }
-
-    val searchRange = range * 2.0f
-    val entityIterator = shipGrid().getCheckIterator(weapon.location, searchRange, searchRange)
-    entityIterator.forEach { evaluateEntity(it as ShipAPI) }
-
-    return closestHit
-}
