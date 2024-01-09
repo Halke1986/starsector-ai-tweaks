@@ -25,7 +25,7 @@ fun avoidPhased(weapon: WeaponAPI, hit: Hit): Boolean = when {
 
 fun avoidShields(weapon: WeaponAPI, hit: Hit): Boolean = when {
     !weapon.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS) -> notApplicable
-    !hit.target.isShip -> holdFire
+    !hit.target.isShip -> fire
 
     hit.shieldHit && weapon.conserveAmmo -> holdFire // weapons strict about saving ammo
     hit.shieldHit && shieldUptime(hit.target.shield) > 0.8f -> holdFire // attack when shields flicker
@@ -36,7 +36,7 @@ fun avoidShields(weapon: WeaponAPI, hit: Hit): Boolean = when {
 
 fun avoidExposedHull(weapon: WeaponAPI, hit: Hit): Boolean = when {
     weapon.spec.primaryRoleStr != "Strictly Anti Shield" -> notApplicable
-    !hit.target.isShip -> holdFire
+    !hit.target.isShip -> fire
 
     !hit.shieldHit || shieldUptime(hit.target.shield) < 0.8f -> holdFire // avoid shield flicker
 
