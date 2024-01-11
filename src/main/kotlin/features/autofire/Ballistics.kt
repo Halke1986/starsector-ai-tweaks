@@ -1,78 +1,112 @@
 package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.absoluteArcFacing
-import com.genir.aitweaks.utils.extensions.aimLocation
-import com.genir.aitweaks.utils.extensions.radius
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
  * All functions in this file take into account target velocity
  * when calculating hit location. Target acceleration is ignored.
  *
- * All functions in this file, except willHitCautious(), assume
- * a perfectly accurate weapon, shooting projectiles with zero
+ * All functions in this file, except willHitCircumferenceCautious(),
+ * assume a perfectly accurate weapon, shooting projectiles with zero
  * collision radius.
  */
 
-const val cos90 = 0f
-const val cos180 = -1f
+private const val cos90 = 0f
+private const val cos180 = -1f
 
-/** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
-fun canTrack(weapon: WeaponAPI, target: CombatEntityAPI): Boolean {
-    val coords = targetCoords(weapon, target)
-    val closestDistance = solve(coords, target.radius, 1f, cos180) ?: return false
-
-    return closestDistance <= weapon.range && arcsOverlap(
-        Arc(weapon.arc, weapon.absoluteArcFacing), interceptArc(coords, target.radius)
-    )
+/** Simplified representation of a circular, moving target. */
+data class Target(val location: Vector2f, val velocity: Vector2f, val radius: Float) {
+    constructor(entity: CombatEntityAPI) : this(entity.location, entity.velocity, entity.collisionRadius)
 }
 
-/** Weapon aim offset from the target position, required to hit centerpoint of a moving target.
- * Null if the target is faster than the projectile. */
-fun interceptOffset(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f? {
+/** Use ship shields as an approximation for its circumference */
+fun targetShield(ship: ShipAPI): Target =
+    Target(ship.shieldCenterEvenIfNoShield, ship.velocity, ship.shieldRadiusEvenIfNoShield)
+
+/** Weapon aim location required to hit center point of a moving target.
+ * Null if projectile is slower than the target. */
+fun intercept(weapon: WeaponAPI, target: Target, accuracy: Float): Vector2f? {
     val pv = targetCoords(weapon, target)
     val range = solve(pv, 0f, 1f, 0f) ?: return null
-    return pv.second * range
+    val offset = pv.second * range
+    return target.location + offset * accuracy
+}
+
+/** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
+fun canTrack(weapon: WeaponAPI, target: Target): Boolean {
+    val closestHit = closestHitRange(weapon, target) ?: return false
+    if (closestHit > weapon.range) return false
+
+    val arc = interceptArc(weapon, target) ?: return false
+    return arcsOverlap(Arc(weapon.arc, weapon.absoluteArcFacing), arc)
 }
 
 /** Closest possible range at which the projectile can collide with the target circumference,
  * for any weapon facing. Null if the target is faster than the projectile. */
-fun closestHitRange(weapon: WeaponAPI, target: CombatEntityAPI): Float? {
+fun closestHitRange(weapon: WeaponAPI, target: Target): Float? {
     val pv = targetCoords(weapon, target)
-    return if (pv.first.lengthSquared() < target.radius * target.radius) 0f
+    return if (targetAboveZero(pv.first, target.radius)) 0f
     else solve(pv, target.radius, 1f, cos180)
 }
 
-/** Calculates if the projectile will collide with the target circumference,
+/** Calculates the target intercept arc. If weapon facing is within this arc,
+ * the weapon projectile will collide with target circumference.
+ * Similar to intercept point, but not restricted to target center point.
+ * Null if projectile is slower than the target. */
+fun interceptArc(weapon: WeaponAPI, target: Target): Arc? {
+    val (p, v) = targetCoords(weapon, target)
+    if (targetAboveZero(p, target.radius)) return Arc(360f, 0f)
+
+    val tangentDistance = solve(Pair(p, v), target.radius, 1f, cos90) ?: return null
+    return Arc(
+        arc = atan(target.radius / tangentDistance) * 2f,
+        facing = VectorUtils.getFacing(p + v * tangentDistance),
+    )
+}
+
+/** Calculates if projectile will collide with the target circumference,
  * given current weapon facing. Weapon range is ignored. */
-fun willHitCircumference(weapon: WeaponAPI, target: CombatEntityAPI): Boolean =
-    willHitCircumference(projectileCoords(weapon, target), target) != null
+fun willHitCircumference(weapon: WeaponAPI, target: Target): Float? =
+    solve(projectileCoords(weapon, target), target.radius, 0f, 0f)
 
-fun willHitCircumference(pv: Pair<Vector2f, Vector2f>, target: CombatEntityAPI): Float? =
-    solve(pv, target.radius, 0f, 0f)
+/** Calculates if a perfectly accurate projectile will collide with target shield,
+ * given current weapon facing. Will not detect hits to inside of shield.
+ * Collision range is returned, null if no collision. */
+fun willHitShield(weapon: WeaponAPI, target: ShipAPI): Float? {
+    val shield = target.shield ?: return null
+    if (shield.isOff) return null
 
-/** Calculates if an inaccurate projectile may collide with target circumference,
- * given current weapon facing. Weapon range is ignored. Assumes projectile has
- * 8.0f collision radius, which was determined experimentally in vanilla. */
-fun willHitCautious(weapon: WeaponAPI, target: CombatEntityAPI): Boolean = arcsOverlap(
-    Arc(weapon.currSpread, weapon.currAngle), interceptArc(targetCoords(weapon, target), target.radius + 8.0f)
-)
+    val (p, v) = projectileCoords(weapon, targetShield(target))
+    val range = solve(Pair(p, v), shield.radius, 0f, 0f) ?: return null
+    val hitPoint = p + v * range
+
+    return if (vectorInArc(hitPoint, Arc(shield.activeArc, shield.facing))) range else null
+}
+
+/** Calculates if an inaccurate projectile may collide with target shield,
+ * given current weapon facing. Assumes shield is up and 360 degree.
+ * Weapon range is ignored.  */
+fun willHitShieldCautious(weapon: WeaponAPI, target: ShipAPI): Boolean {
+    val arc = interceptArc(weapon, targetShield(target)) ?: return false
+    return arcsOverlap(Arc(weapon.spec.maxSpread + 2f, weapon.currAngle), arc)
+}
 
 /** Calculates if a perfectly accurate projectile will collide with target bounds,
- * given current weapon facing. Collision range is returned, null if no collision.*/
-fun willHitBounds(weapon: WeaponAPI, target: CombatEntityAPI): Boolean =
-    willHitBounds(projectileCoords(weapon, target), target) != null
-
-/** Custom implementation is roughly 5 times faster than CollisionUtils.getCollisionPoint */
-fun willHitBounds(pv: Pair<Vector2f, Vector2f>, target: CombatEntityAPI): Float? {
+ * given current weapon facing. Collision range is returned, null if no collision. */
+fun willHitBounds(weapon: WeaponAPI, target: ShipAPI): Float? {
     val bounds = target.exactBounds ?: return null
+    val pv = projectileCoords(weapon, Target(target))
 
     val cosA: Float = cos(-target.facing)
     val sinA: Float = sin(-target.facing)
@@ -80,7 +114,7 @@ fun willHitBounds(pv: Pair<Vector2f, Vector2f>, target: CombatEntityAPI): Float?
     // Rotate weapon coordinates into target frame of reference.
     // That way the target bounds don't need to be transformed.
     // Rotation is implemented in place, as opposed to using library
-    // call, for better execution time.
+    // call, for better performance.
     fun rotate(v: Vector2f, sinA: Float, cosA: Float) = Vector2f(
         v.x * cosA - v.y * sinA,
         v.x * sinA + v.y * cosA,
@@ -115,26 +149,16 @@ fun willHitBounds(pv: Pair<Vector2f, Vector2f>, target: CombatEntityAPI): Float?
 }
 
 /** Target location and velocity in projectile frame of reference. */
-private fun targetCoords(weapon: WeaponAPI, target: CombatEntityAPI) = Pair(
-    target.aimLocation - weapon.location,
+private fun targetCoords(weapon: WeaponAPI, target: Target) = Pair(
+    target.location - weapon.location,
     (target.velocity - weapon.ship.velocity) / weapon.projectileSpeed,
 )
 
 /** Projectile location and velocity in target frame of reference. */
-fun projectileCoords(weapon: WeaponAPI, target: CombatEntityAPI) = Pair(
-    weapon.location - target.aimLocation,
+private fun projectileCoords(weapon: WeaponAPI, target: Target) = Pair(
+    weapon.location - target.location,
     unitVector(weapon.currAngle) + (weapon.ship.velocity - target.velocity) / weapon.projectileSpeed,
 )
-
-private fun interceptArc(pv: Pair<Vector2f, Vector2f>, radius: Float): Arc {
-    val tangentDistance = solve(pv, radius, 1f, cos90) ?: return Arc(360f, 0f)
-
-    val (p, v) = pv
-    return Arc(
-        arc = atan(radius / tangentDistance) * 2f,
-        facing = VectorUtils.getFacing(p + v * tangentDistance),
-    )
-}
 
 /**
  * Solve the following cosine law equation for t:
@@ -162,15 +186,13 @@ private fun solve(pv: Pair<Vector2f, Vector2f>, r: Float, w: Float, cosA: Float)
 
     val (t1, t2) = quad(a, b, c) ?: return null
     return when {
-        t1 > 0 && t1 < t2 -> t1
-        t2 > 0 -> t2
+        t1 > 0 && t2 > 0 -> min(t1, t2)
+        t1 < 0 != t2 < 0 -> max(t1, t2)
         else -> null
     }
 }
 
-/**
- * solve quadratic equation [ax^2 + bx + c = 0] for x.
- */
+/** Solve quadratic equation [ax^2 + bx + c = 0] for x. */
 private fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
     val d = b * b - 4f * a * c
     return when {
@@ -179,3 +201,6 @@ private fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
         else -> sqrt(d).let { Pair((-b + it) / (2 * a), (-b - it) / (2 * a)) }
     }
 }
+
+/** True if coordinate system zero point is within entity radius */
+private fun targetAboveZero(p: Vector2f, r: Float) = p.lengthSquared() < r * r

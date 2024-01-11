@@ -1,14 +1,19 @@
 package features.autofire
 
-import com.genir.aitweaks.features.autofire.willHitBounds
-import com.genir.aitweaks.utils.mocks.*
-import org.junit.jupiter.api.Assertions
+import com.genir.aitweaks.features.autofire.*
+import com.genir.aitweaks.features.autofire.Target
+import com.genir.aitweaks.utils.Arc
+import com.genir.aitweaks.utils.mocks.MockBoundsAPI
+import com.genir.aitweaks.utils.mocks.MockSegmentAPI
+import com.genir.aitweaks.utils.mocks.MockShipAPI
+import com.genir.aitweaks.utils.mocks.MockWeaponAPI
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.lwjgl.util.vector.Vector2f
 
 class BallisticsKtTest {
     @Test
-    fun testWillHitBounds2() {
+    fun testWillHitBounds() {
         val bounds = MockBoundsAPI(
             "getOrigSegments" to listOf(
                 MockSegmentAPI(Vector2f(4.0f, 13.0f), Vector2f(3.333332f, -5.666666f)),
@@ -28,7 +33,7 @@ class BallisticsKtTest {
                 MockSegmentAPI(Vector2f(1663.077f, -451.43152f), Vector2f(1666.085f, -454.35114f)),
                 MockSegmentAPI(Vector2f(1666.085f, -454.35114f), Vector2f(1670.2001f, -450.5517f)),
                 MockSegmentAPI(Vector2f(1670.2001f, -450.5517f), Vector2f(1674.2451f, -447.17773f)),
-                MockSegmentAPI(Vector2f(1674.2451f, -447.17773f), Vector2f(1677.0763f, -451.16977f)), // THIS
+                MockSegmentAPI(Vector2f(1674.2451f, -447.17773f), Vector2f(1677.0763f, -451.16977f)), // HIT
                 MockSegmentAPI(Vector2f(1677.0763f, -451.16977f), Vector2f(1664.6791f, -462.06982f)),
             )
         )
@@ -40,7 +45,7 @@ class BallisticsKtTest {
             "getShip" to MockShipAPI("getVelocity" to Vector2f(2.2171297f, 65.96275f))
         )
 
-        val target = MockCombatEntityAPI(
+        val target = MockShipAPI(
             "getLocation" to Vector2f(1659.4774f, -449.50232f),
             "getVelocity" to Vector2f(52.902084f, -105.472f),
             "getCollisionRadius" to 35.755074f,
@@ -49,6 +54,55 @@ class BallisticsKtTest {
         )
 
         val actual = willHitBounds(weapon, target)
-        Assertions.assertEquals(1340.9568f, actual)
+        assertEquals(1340.9568f, actual)
+    }
+
+    @Test
+    fun testTargetFasterThanProjectile() {
+        val weapon = MockWeaponAPI(
+            "getLocation" to Vector2f(0f, 0f),
+            "getProjectileSpeed" to 1f,
+            "getCurrAngle" to 90f,
+            "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 0f))
+        )
+
+        val target = Target(
+            location = Vector2f(0f, 10f),
+            velocity = Vector2f(0f, 10f),
+            radius = 3f,
+        )
+
+        assertNull(intercept(weapon, target, 1f))
+        assertNull(interceptArc(weapon, target))
+        assertNull(closestHitRange(weapon, target))
+        assertNull(willHitCircumference(weapon, target))
+    }
+
+    @Test
+    fun testWeaponInsideTargetRadius() {
+        val weapon = MockWeaponAPI(
+            "getLocation" to Vector2f(0f, 0f),
+            "getProjectileSpeed" to 100f,
+            "getRange" to 1000f,
+            "getArc" to 30f,
+            "getArcFacing" to 0f,
+            "getCurrAngle" to 90f,
+            "getShip" to MockShipAPI(
+                "getVelocity" to Vector2f(0f, 0f),
+                "getFacing" to 90f,
+            )
+        )
+
+        val target = Target(
+            location = Vector2f(0f, 10f),
+            velocity = Vector2f(0f, 10f),
+            radius = 30f,
+        )
+
+        assertTrue(canTrack(weapon, target))
+        assertNotNull(intercept(weapon, target, 1f))
+        assertEquals(Arc(360f, 0f), interceptArc(weapon, target))
+        assertEquals(0f, closestHitRange(weapon, target))
+        assertNotNull(willHitCircumference(weapon, target))
     }
 }
