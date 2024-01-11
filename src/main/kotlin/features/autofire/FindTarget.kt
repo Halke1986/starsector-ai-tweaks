@@ -4,9 +4,9 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.utils.extensions.*
 
-fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, maneuver: ShipAPI?): CombatEntityAPI? {
+fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, shipTarget: ShipAPI?): CombatEntityAPI? {
     if (weapon.isPD) selectMissile(weapon, current as? MissileAPI)?.let { return it }
-    return selectShip(weapon, current as? ShipAPI, maneuver)
+    return selectShip(weapon, current as? ShipAPI, shipTarget)
 }
 
 fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
@@ -24,12 +24,12 @@ fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
     }?.target
 }
 
-fun selectShip(weapon: WeaponAPI, current: ShipAPI?, maneuver: ShipAPI?): CombatEntityAPI? {
-    // Prioritize maneuver target. Non-PD hardpoint weapons track only ships target.
-    if (maneuver?.isAlive == true && ((weapon.slot.isHardpoint && !weapon.isPD) || canTrack(
-            weapon, Target(maneuver)
+fun selectShip(weapon: WeaponAPI, current: ShipAPI?, shipTarget: ShipAPI?): CombatEntityAPI? {
+    // Prioritize ship target. Non-PD hardpoint weapons track only ships target.
+    if (shipTarget?.isAlive == true && ((weapon.slot.isHardpoint && !weapon.isPD) || canTrack(
+            weapon, Target(shipTarget)
         ))
-    ) return maneuver
+    ) return shipTarget
 
     // Try tracking current target.
     if (current?.isAlive == true && canTrack(weapon, Target(current))) return current
@@ -52,7 +52,7 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI): Hit? =
             it == target -> null
             it == weapon.ship -> null
             it.isFighter -> null
-            weapon.ship.isStationModule && it.isAlive && (it.isStation || it.isStationModule) -> null
+            weapon.ship.isStationModule && it.isAlive && (weapon.ship.parentStation.let { p -> p == it || p == it.parentStation }) -> null
 
             // Handle friendlies.
             it.owner == weapon.ship.owner -> if (willHitShieldCautious(weapon, it)) Hit(
@@ -63,6 +63,44 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI): Hit? =
             else -> analyzeHit(weapon, it, rangeLimit)
         }
     }
+
+data class Hit(val target: CombatEntityAPI, val range: Float, val shieldHit: Boolean) {
+    override fun toString(): String {
+        val name = when {
+            target is MissileAPI -> "missile"
+            (target as ShipAPI).isHulk -> "hulk"
+            target.name == null -> target.hullSpec.hullId
+            else -> target.name
+        }
+
+        return "($name $range $shieldHit)"
+    }
+}
+
+/** Analyzes the potential collision between projectile and target. Returns collision range.
+ * Boolean return parameter is true if projectile will hit target shield; always false for
+ * fighters and missiles. Null if no collision. */
+fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, rangeLimit: Float): Hit? {
+    val targetCircumference = if (hasShield(target)) targetShield(target as ShipAPI) else Target(target)
+    val range = willHitCircumference(weapon, targetCircumference) ?: return null
+    if (range > rangeLimit) return null
+
+    // Simple circumference collision is enough for missiles and fighters.
+    if (!target.isShip) return Hit(target, range, false)
+
+    // Check shield hit.
+    if (hasShield(target)) {
+        val shieldRange = willHitShield(weapon, target as ShipAPI)
+        if (shieldRange != null) return if (shieldRange <= rangeLimit) Hit(target, shieldRange, true) else null
+    }
+
+    // Check bounds hit.
+    val boundsRange = willHitBounds(weapon, target as ShipAPI)
+    return if (boundsRange != null && boundsRange <= rangeLimit) Hit(target, boundsRange, false) else null
+}
+
+/** Workaround for hulks retaining outdated ShieldAPI */
+fun hasShield(target: CombatEntityAPI): Boolean = target.isShip && !(target as ShipAPI).isHulk
 
 @Suppress("UNCHECKED_CAST")
 private fun <T> closestEntityFinder(weapon: WeaponAPI, grid: CollisionGridAPI, f: (T, Float) -> Hit?): Hit? {

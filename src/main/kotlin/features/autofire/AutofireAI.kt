@@ -5,7 +5,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
-import com.genir.aitweaks.utils.extensions.maneuverTarget
+import com.genir.aitweaks.utils.extensions.trueShipTarget
 import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
@@ -15,20 +15,18 @@ import kotlin.math.abs
 
 // TODO
 // no_aitweaks
-// modules instead of stations
 
-// don't switch targets mid burst
 // paladin ff
-// track ship target for player
 
 /** Low priority / won't do */
+// don't switch targets mid burst
 // fog
 // target selection
 // STRIKE never targets fighters ??
 
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null
-    private var maneuverTarget: ShipAPI? = null
+    private var shipTarget: ShipAPI? = null
     private var prevTarget: CombatEntityAPI? = null
 
     private var attackTime: Float = 0f
@@ -37,11 +35,11 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var selectTargetInterval = IntervalUtil(0.25F, 0.5F);
 
     override fun advance(timeDelta: Float) {
-        trackManeuverTarget()
+        trackShipTarget()
         trackTimes(timeDelta)
         selectTargetInterval.advance(timeDelta)
 
-        if (selectTargetInterval.intervalElapsed()) target = selectTarget(weapon, target, maneuverTarget)
+        if (selectTargetInterval.intervalElapsed()) target = selectTarget(weapon, target, shipTarget)
     }
 
     override fun shouldFire(): Boolean {
@@ -59,7 +57,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val hit = when {
             actualHit == null -> expectedHit
             actualHit.range > expectedHit.range -> expectedHit
-            (actualHit.target as ShipAPI).isFrigate && !actualHit.target.isStationModule && actualHit.target.owner xor weapon.ship.owner == 1 -> expectedHit
             else -> actualHit
         }
 
@@ -88,9 +85,9 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getWeapon(): WeaponAPI = weapon
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
 
-    private fun trackManeuverTarget() {
-        val newTarget = weapon.ship.maneuverTarget
-        if (newTarget != null || maneuverTarget?.isAlive != true) maneuverTarget = newTarget
+    private fun trackShipTarget() {
+        val newTarget = weapon.ship.trueShipTarget
+        if (newTarget != null || shipTarget?.isAlive != true) shipTarget = newTarget
     }
 
     private fun trackTimes(timeDelta: Float) {
