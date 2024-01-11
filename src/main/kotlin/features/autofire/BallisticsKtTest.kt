@@ -33,7 +33,7 @@ class BallisticsKtTest {
                 MockSegmentAPI(Vector2f(1663.077f, -451.43152f), Vector2f(1666.085f, -454.35114f)),
                 MockSegmentAPI(Vector2f(1666.085f, -454.35114f), Vector2f(1670.2001f, -450.5517f)),
                 MockSegmentAPI(Vector2f(1670.2001f, -450.5517f), Vector2f(1674.2451f, -447.17773f)),
-                MockSegmentAPI(Vector2f(1674.2451f, -447.17773f), Vector2f(1677.0763f, -451.16977f)), // THIS
+                MockSegmentAPI(Vector2f(1674.2451f, -447.17773f), Vector2f(1677.0763f, -451.16977f)), // HIT
                 MockSegmentAPI(Vector2f(1677.0763f, -451.16977f), Vector2f(1664.6791f, -462.06982f)),
             )
         )
@@ -62,6 +62,7 @@ class BallisticsKtTest {
         val weapon = MockWeaponAPI(
             "getLocation" to Vector2f(0f, 0f),
             "getProjectileSpeed" to 1f,
+            "getCurrAngle" to 90f,
             "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 0f))
         )
 
@@ -71,9 +72,10 @@ class BallisticsKtTest {
             radius = 3f,
         )
 
-        assertEquals(null, intercept(weapon, target, 1f))
-        assertEquals(null, interceptArc(weapon, target))
-        assertEquals(null, closestHitRange(weapon, target))
+        assertNull(intercept(weapon, target, 1f))
+        assertNull(interceptArc(weapon, target))
+        assertNull(closestHitRange(weapon, target))
+        assertNull(willHitCircumference(weapon, target))
     }
 
     @Test
@@ -84,6 +86,7 @@ class BallisticsKtTest {
             "getRange" to 1000f,
             "getArc" to 30f,
             "getArcFacing" to 0f,
+            "getCurrAngle" to 90f,
             "getShip" to MockShipAPI(
                 "getVelocity" to Vector2f(0f, 0f),
                 "getFacing" to 90f,
@@ -100,5 +103,6 @@ class BallisticsKtTest {
         assertNotNull(intercept(weapon, target, 1f))
         assertEquals(Arc(360f, 0f), interceptArc(weapon, target))
         assertEquals(0f, closestHitRange(weapon, target))
+        assertNotNull(willHitCircumference(weapon, target))
     }
 }

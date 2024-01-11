@@ -9,6 +9,8 @@ import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
@@ -184,8 +186,8 @@ private fun solve(pv: Pair<Vector2f, Vector2f>, r: Float, w: Float, cosA: Float)
 
     val (t1, t2) = quad(a, b, c) ?: return null
     return when {
-        t1 > 0 && t1 < t2 -> t1
-        t2 > 0 -> t2
+        t1 > 0 && t2 > 0 -> min(t1, t2)
+        t1 < 0 != t2 < 0 -> max(t1, t2)
         else -> null
     }
 }

@@ -15,7 +15,7 @@ import kotlin.math.abs
 
 // TODO
 // no_aitweaks
-// what's up with autolance
+// modules instead of stations
 
 // don't switch targets mid burst
 // paladin ff
