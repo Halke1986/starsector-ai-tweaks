@@ -54,11 +54,7 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI): Hit? =
             it.isFighter -> null
             weapon.ship.isStationModule && it.isAlive && (weapon.ship.parentStation.let { p -> p == it || p == it.parentStation }) -> null
 
-            // Handle friendlies.
-            it.owner == weapon.ship.owner -> if (willHitShieldCautious(weapon, it)) Hit(
-                it, closestHitRange(weapon, Target(it))!!, true
-            ) else null
-
+            it.owner == weapon.ship.owner -> analyzeAllyHit(weapon, it)
             it.isPhased -> null
             else -> analyzeHit(weapon, it, rangeLimit)
         }
@@ -99,6 +95,13 @@ fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, rangeLimit: Float): H
     return if (boundsRange != null && boundsRange <= rangeLimit) Hit(target, boundsRange, false) else null
 }
 
+fun analyzeAllyHit(weapon: WeaponAPI, ally: ShipAPI): Hit? = when {
+    weapon.projectileCollisionClass == CollisionClass.PROJECTILE_FIGHTER -> null
+    weapon.projectileCollisionClass == CollisionClass.RAY_FIGHTER -> null
+    !willHitShieldCautious(weapon, ally) -> null
+    else -> Hit(ally, closestHitRange(weapon, Target(ally))!!, false)
+}
+
 /** Workaround for hulks retaining outdated ShieldAPI */
 fun hasShield(target: CombatEntityAPI): Boolean = target.isShip && !(target as ShipAPI).isHulk
 
@@ -125,3 +128,4 @@ private fun <T> closestEntityFinder(weapon: WeaponAPI, grid: CollisionGridAPI, f
 private fun shipGrid(): CollisionGridAPI = Global.getCombatEngine().shipGrid
 
 private fun missileGrid(): CollisionGridAPI = Global.getCombatEngine().missileGrid
+

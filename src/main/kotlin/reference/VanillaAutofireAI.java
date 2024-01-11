@@ -423,9 +423,9 @@ public class VanillaAutofireAI implements AutofireAIPlugin {
                 this.impossibleToHitTarget0 = true;
             }
 
-            CollisionClass var6 = this.weapon.getProjectileCollisionClass();
+            CollisionClass collisionClass = this.weapon.getProjectileCollisionClass();
             boolean var4 = false;
-            if (var6 != CollisionClass.RAY_FIGHTER && var6 != CollisionClass.PROJECTILE_FIGHTER && var6 != CollisionClass.HITS_SHIPS_ONLY_NO_FF && var6 != CollisionClass.NONE && var6 != CollisionClass.MISSILE_NO_FF && var6 != CollisionClass.PROJECTILE_NO_FF) {
+            if (collisionClass != CollisionClass.RAY_FIGHTER && collisionClass != CollisionClass.PROJECTILE_FIGHTER && collisionClass != CollisionClass.HITS_SHIPS_ONLY_NO_FF && collisionClass != CollisionClass.NONE && collisionClass != CollisionClass.MISSILE_NO_FF && collisionClass != CollisionClass.PROJECTILE_NO_FF) {
                 var4 = true;
             }
 

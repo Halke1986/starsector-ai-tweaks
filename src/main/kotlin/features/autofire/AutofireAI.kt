@@ -16,13 +16,11 @@ import kotlin.math.abs
 // TODO
 // no_aitweaks
 
-// paladin ff
-
 /** Low priority / won't do */
 // don't switch targets mid burst
-// fog
-// target selection
-// STRIKE never targets fighters ??
+// fog of war
+// ship/fighter selection
+// STRIKE never targets fighters
 
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null
