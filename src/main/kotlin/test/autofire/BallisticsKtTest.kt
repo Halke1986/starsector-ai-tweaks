@@ -1,4 +1,4 @@
-package features.autofire
+package com.genir.aitweaks.test.autofire
 
 import com.genir.aitweaks.features.autofire.*
 import com.genir.aitweaks.features.autofire.Target
