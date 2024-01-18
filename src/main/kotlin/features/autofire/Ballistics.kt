@@ -186,8 +186,8 @@ private fun solve(pv: Pair<Vector2f, Vector2f>, r: Float, w: Float, cosA: Float)
 
     val (t1, t2) = quad(a, b, c) ?: return null
     return when {
-        t1 > 0 && t2 > 0 -> min(t1, t2)
-        t1 < 0 != t2 < 0 -> max(t1, t2)
+        t1 >= 0 && t2 >= 0 -> min(t1, t2)
+        t1 <= 0 != t2 <= 0 -> max(t1, t2)
         else -> null
     }
 }
@@ -203,4 +203,4 @@ private fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
 }
 
 /** True if coordinate system zero point is within entity radius */
-private fun targetAboveZero(p: Vector2f, r: Float) = p.lengthSquared() < r * r
+private fun targetAboveZero(p: Vector2f, r: Float) = p.lengthSquared() <= r * r
