@@ -73,9 +73,7 @@ data class Hit(val target: CombatEntityAPI, val range: Float, val shieldHit: Boo
     }
 }
 
-/** Analyzes the potential collision between projectile and target. Returns collision range.
- * Boolean return parameter is true if projectile will hit target shield; always false for
- * fighters and missiles. Null if no collision. */
+/** Analyzes the potential collision between projectile and target. Null if no collision. */
 fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, rangeLimit: Float): Hit? {
     val targetCircumference = if (hasShield(target)) targetShield(target as ShipAPI) else Target(target)
     val range = willHitCircumference(weapon, targetCircumference) ?: return null

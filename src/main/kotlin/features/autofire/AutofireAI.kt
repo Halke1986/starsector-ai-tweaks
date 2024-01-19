@@ -60,8 +60,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         return when {
             !avoidPhased(weapon, hit) -> holdFire
-            !avoidShields(weapon, hit) -> holdFire
-            !avoidExposedHull(weapon, hit) -> holdFire
+            !avoidWrongDamageType(weapon, hit) -> holdFire
             else -> fire
         }
     }

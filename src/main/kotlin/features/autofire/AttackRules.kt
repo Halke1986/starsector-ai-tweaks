@@ -23,23 +23,37 @@ fun avoidPhased(weapon: WeaponAPI, hit: Hit): Boolean = when {
     else -> holdFire
 }
 
-fun avoidShields(weapon: WeaponAPI, hit: Hit): Boolean = when {
-    !weapon.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS) -> notApplicable
+fun avoidWrongDamageType(weapon: WeaponAPI, hit: Hit): Boolean = when {
     !hit.target.isShip -> fire
-
-    hit.shieldHit && weapon.conserveAmmo -> holdFire // weapons strict about saving ammo
-    hit.shieldHit && shieldUptime(hit.target.shield) > 0.8f -> holdFire // attack when shields flicker
-    willHitBounds(weapon, hit.target as ShipAPI) == null -> holdFire // ensure hull is in range, not just shields
+    weapon.spec.primaryRoleStr == "Strictly Anti Shield" -> avoidExposedHull(weapon, hit)
+    weapon.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS) -> avoidShields(weapon, hit) && aimAtHull(weapon, hit)
+    weapon.damageType == DamageType.HIGH_EXPLOSIVE -> aimAtHull(weapon, hit)
 
     else -> fire
 }
 
-fun avoidExposedHull(weapon: WeaponAPI, hit: Hit): Boolean = when {
-    weapon.spec.primaryRoleStr != "Strictly Anti Shield" -> notApplicable
+/** Ensure projectile will not hit shields. */
+fun avoidShields(weapon: WeaponAPI, hit: Hit): Boolean = when {
     !hit.target.isShip -> fire
+    hit.shieldHit && weapon.conserveAmmo -> holdFire // weapons strict about saving ammo
+    hit.shieldHit && shieldUptime(hit.target.shield) > 0.8f -> holdFire // attack when shields flicker
+    else -> fire
+}
 
+/** Ensure projectile will not hit exposed hull. */
+fun avoidExposedHull(weapon: WeaponAPI, hit: Hit): Boolean = when {
+    !hit.target.isShip -> fire
     !hit.shieldHit || shieldUptime(hit.target.shield) < 0.8f -> holdFire // avoid shield flicker
+    else -> fire
+}
 
+/** Ensure projectile will hit hull. Shields are ignored. */
+fun aimAtHull(weapon: WeaponAPI, hit: Hit): Boolean = when {
+    !hit.target.isShip -> fire
+    !hit.shieldHit -> fire // hit on hull was already predicted
+    willHitBounds(
+        weapon, hit.target as ShipAPI
+    ).let { it == null || it > weapon.range } -> holdFire // ensure hull is in range, underneath the shields
     else -> fire
 }
 
