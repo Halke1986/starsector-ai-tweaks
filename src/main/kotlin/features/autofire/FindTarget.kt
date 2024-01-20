@@ -2,7 +2,7 @@ package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.utils.extensions.*
+import com.genir.aitweaks.features.autofire.extensions.*
 
 fun selectTarget(weapon: WeaponAPI, current: CombatEntityAPI?, shipTarget: ShipAPI?): CombatEntityAPI? {
     if (weapon.isPD) selectMissile(weapon, current as? MissileAPI)?.let { return it }

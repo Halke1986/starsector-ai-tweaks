@@ -1,7 +1,7 @@
-package com.genir.aitweaks.utils.extensions
+package com.genir.aitweaks.features.autofire.extensions
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.MissileAPI
 
 val MissileAPI.isValidTarget: Boolean
-    get() = !this.isFizzling && Global.getCombatEngine().isEntityInPlay(this)
+    get() = Global.getCombatEngine().isEntityInPlay(this)

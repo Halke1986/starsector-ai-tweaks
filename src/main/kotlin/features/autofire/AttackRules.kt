@@ -3,10 +3,10 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.utils.extensions.conserveAmmo
-import com.genir.aitweaks.utils.extensions.isInert
-import com.genir.aitweaks.utils.extensions.isPD
-import com.genir.aitweaks.utils.extensions.isShip
+import com.genir.aitweaks.features.autofire.extensions.conserveAmmo
+import com.genir.aitweaks.features.autofire.extensions.isInert
+import com.genir.aitweaks.features.autofire.extensions.isPD
+import com.genir.aitweaks.features.autofire.extensions.isShip
 import com.genir.aitweaks.utils.shieldUptime
 
 const val holdFire = false
