@@ -8,7 +8,6 @@ import com.genir.aitweaks.utils.shieldUptime
 
 const val holdFire = false
 const val fire = true
-const val notApplicable = fire
 
 fun avoidPhased(weapon: WeaponAPI, hit: Hit): Boolean = when {
     (hit.target as? ShipAPI)?.isPhased != true -> fire
@@ -22,7 +21,7 @@ fun avoidPhased(weapon: WeaponAPI, hit: Hit): Boolean = when {
 
 fun avoidWrongDamageType(weapon: WeaponAPI, hit: Hit): Boolean = when {
     !hit.target.isShip -> fire
-    weapon.spec.primaryRoleStr == "Strictly Anti Shield" -> avoidExposedHull(weapon, hit)
+    weapon.isStrictlyAntiShield -> avoidExposedHull(weapon, hit)
     weapon.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS) -> avoidShields(weapon, hit) && aimAtHull(weapon, hit)
     weapon.damageType == DamageType.HIGH_EXPLOSIVE -> aimAtHull(weapon, hit)
 
