@@ -1,6 +1,5 @@
 package com.genir.aitweaks.features.autofire.extensions
 
-import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import org.lazywizard.lazylib.MathUtils
@@ -29,3 +28,6 @@ val WeaponAPI.frontFacing: Boolean
 /** weapon arc facing in absolute coordinates, instead of ship coordinates */
 val WeaponAPI.absoluteArcFacing: Float
     get() = MathUtils.clampAngle(this.arcFacing + this.ship.facing)
+
+val WeaponAPI.totalRange: Float
+    get() = this.range + this.projectileFadeRange * 0.5f

@@ -3,10 +3,7 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.features.autofire.extensions.conserveAmmo
-import com.genir.aitweaks.features.autofire.extensions.isInert
-import com.genir.aitweaks.features.autofire.extensions.isPD
-import com.genir.aitweaks.features.autofire.extensions.isShip
+import com.genir.aitweaks.features.autofire.extensions.*
 import com.genir.aitweaks.utils.shieldUptime
 
 const val holdFire = false
@@ -53,21 +50,7 @@ fun aimAtHull(weapon: WeaponAPI, hit: Hit): Boolean = when {
     !hit.shieldHit -> fire // hit on hull was already predicted
     willHitBounds(
         weapon, hit.target as ShipAPI
-    ).let { it == null || it > weapon.range } -> holdFire // ensure hull is in range, underneath the shields
-    else -> fire
-}
-
-fun avoidWastingTorpedo(weapon: WeaponAPI, hit: Hit): Boolean = when {
-    weapon.spec.primaryRoleStr != "Torpedo" -> notApplicable
-    weapon.damageType != DamageType.HIGH_EXPLOSIVE -> notApplicable
-    !hit.target.isShip -> holdFire
-
-    hit.shieldHit -> holdFire
-    (hit.target as ShipAPI).hullLevel < 0.15f -> holdFire // avoid almost dead ships
-    hit.target.hullSpec.armorRating < 750f -> holdFire // avoid soft targets
-    hit.target.phaseCloak != null -> holdFire // avoid phase targets
-    willHitBounds(weapon, hit.target) == null -> holdFire // ensure hull is in range, not just shields
-
+    ).let { it == null || it > weapon.totalRange } -> holdFire // ensure hull is in range, underneath the shields
     else -> fire
 }
 

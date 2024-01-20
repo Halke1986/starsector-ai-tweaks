@@ -105,7 +105,7 @@ fun hasShield(target: CombatEntityAPI): Boolean = target.isShip && !(target as S
 
 @Suppress("UNCHECKED_CAST")
 private fun <T> closestEntityFinder(weapon: WeaponAPI, grid: CollisionGridAPI, f: (T, Float) -> Hit?): Hit? {
-    var closestRange = weapon.range
+    var closestRange = weapon.totalRange
     var closestHit: Hit? = null
 
     val forEachFn = fun(entity: CombatEntityAPI) {

@@ -3,8 +3,9 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.features.autofire.extensions.absoluteArcFacing
+import com.genir.aitweaks.features.autofire.extensions.totalRange
+import com.genir.aitweaks.utils.*
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -46,7 +47,7 @@ fun intercept(weapon: WeaponAPI, target: Target, accuracy: Float): Vector2f? {
 /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
 fun canTrack(weapon: WeaponAPI, target: Target): Boolean {
     val closestHit = closestHitRange(weapon, target) ?: return false
-    if (closestHit > weapon.range) return false
+    if (closestHit > weapon.totalRange) return false
 
     val arc = interceptArc(weapon, target) ?: return false
     return arcsOverlap(Arc(weapon.arc, weapon.absoluteArcFacing), arc)

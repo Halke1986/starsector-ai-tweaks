@@ -5,6 +5,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.features.autofire.extensions.hasBestTargetLeading
+import com.genir.aitweaks.features.autofire.extensions.totalRange
 import com.genir.aitweaks.features.autofire.extensions.trueShipTarget
 import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
@@ -43,15 +44,15 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun shouldFire(): Boolean {
         if (target == null || Global.getCurrentState() != GameState.COMBAT) return holdFire
 
-        // Fire only when the selected target can be git. That way the weapons doesn't fire
+        // Fire only when the selected target can be hit. That way the weapons doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
-        val expectedHit = analyzeHit(weapon, target!!, weapon.range) ?: return holdFire
+        val expectedHit = analyzeHit(weapon, target!!, weapon.totalRange) ?: return holdFire
 
         // Check what will actually be hit, and hold fire if it's enemy or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, target!!)
         if (!avoidFriendlyFire(weapon, expectedHit, actualHit)) return holdFire
 
-        // Rest of the should-fire decisioning will be based on actual hit.
+        // Rest of the should-fire decisioning will be based on the actual hit.
         val hit = when {
             actualHit == null -> expectedHit
             actualHit.range > expectedHit.range -> expectedHit
@@ -59,6 +60,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         return when {
+            hit.shieldHit && hit.range > weapon.range -> holdFire
             !avoidPhased(weapon, hit) -> holdFire
             !avoidWrongDamageType(weapon, hit) -> holdFire
             else -> fire

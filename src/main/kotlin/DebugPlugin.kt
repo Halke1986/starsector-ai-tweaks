@@ -42,5 +42,9 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug() {
+//        val weapons = Global.getCombatEngine().ships.map { it.allWeapons }.flatten()
+//        for (i in weapons.indices) {
+//            debugPlugin[i] = "${weapons[i].spec.weaponId} ${weapons[i].totalRange / weapons[i].range}"
+//        }
     }
 }
