@@ -12,7 +12,7 @@ val WeaponAPI.isAntiFtr: Boolean
     get() = this.isPD || this.hasAIHint(ANTI_FTR)
 
 val WeaponAPI.isStrictlyAntiShield: Boolean
-    get() = this.spec.primaryRoleStr == "Strictly Anti Shield" && !this.ship.reallyHasTag("ait_default_needler")
+    get() = this.spec.primaryRoleStr == "Strictly Anti Shield"
 
 val WeaponAPI.conserveAmmo: Boolean
     get() = this.usesAmmo() || this.isBurstBeam

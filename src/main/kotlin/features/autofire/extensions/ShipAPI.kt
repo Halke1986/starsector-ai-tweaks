@@ -15,5 +15,3 @@ val ShipAPI.trueShipTarget: ShipAPI?
 
 val ShipAPI.isInert: Boolean
     get() = this.isHulk || this.hullSpec.isBuiltInMod("vastbulk")
-
-fun ShipAPI.reallyHasTag(tag: String): Boolean = this.hasTag(tag) || this.hullSpec.hasTag(tag)
