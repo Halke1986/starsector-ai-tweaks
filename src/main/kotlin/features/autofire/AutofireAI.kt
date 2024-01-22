@@ -15,38 +15,104 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
 // TODO
-// no_aitweaks
-
 /** Low priority / won't do */
 // don't switch targets mid burst
 // fog of war
-// ship/fighter selection
 // STRIKE never targets fighters
 
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null
+    private var prevFrameTarget: CombatEntityAPI? = null
     private var shipTarget: ShipAPI? = null
-    private var prevTarget: CombatEntityAPI? = null
 
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
+    private var onTargetTime: Float = 0f
 
-    private var selectTargetInterval = IntervalUtil(0.25F, 0.5F);
+    private var selectTargetInterval = IntervalUtil(0.25F, 0.50F);
+    private var shouldFireInterval = IntervalUtil(0.1F, 0.2F);
+
+    private var shouldFire: Boolean = false
+    private var targetLocation: Vector2f? = null
 
     override fun advance(timeDelta: Float) {
-        trackShipTarget()
-        trackTimes(timeDelta)
-        selectTargetInterval.advance(timeDelta)
+        if (Global.getCurrentState() != GameState.COMBAT) return
 
-        if (selectTargetInterval.intervalElapsed()) target = selectTarget(weapon, target, shipTarget)
+        trackAttackTimes(timeDelta)
+
+        val targetDiedLastFrame = when (target) {
+            null -> prevFrameTarget != null
+            is ShipAPI -> !(target as ShipAPI).isAlive
+            else -> !Global.getCombatEngine().isEntityInPlay(target)
+        }
+        prevFrameTarget = target
+
+        // Force recalculate if target died last frame.
+        if (targetDiedLastFrame) {
+            selectTargetInterval.forceIntervalElapsed()
+            target = null
+            shouldFire = false
+            targetLocation = null
+            attackTime = 0f
+            onTargetTime = 0f
+        }
+
+        // Select target.
+        selectTargetInterval.advance(timeDelta)
+        if (selectTargetInterval.intervalElapsed()) {
+            trackShipTarget()
+            target = selectTarget(weapon, target, shipTarget)
+        }
+
+        // Calculate if weapon should fire.
+        shouldFireInterval.advance(timeDelta)
+        if (shouldFireInterval.intervalElapsed()) {
+            shouldFire = calculateShouldFire(selectTargetInterval.elapsed)
+        }
+
+        targetLocation = calculateTargetLocation()
     }
 
-    override fun shouldFire(): Boolean {
-        if (target == null || Global.getCurrentState() != GameState.COMBAT) return holdFire
+    override fun shouldFire(): Boolean = target != null && shouldFire
 
-        // Fire only when the selected target can be hit. That way the weapons doesn't fire
+    override fun forceOff() {
+        shouldFire = false
+    }
+
+    override fun getTarget(): Vector2f? = targetLocation
+    override fun getTargetShip(): ShipAPI? = target as? ShipAPI
+    override fun getWeapon(): WeaponAPI = weapon
+    override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
+
+    private fun trackAttackTimes(timeDelta: Float) {
+        if (weapon.isFiring) {
+            attackTime += timeDelta
+            idleTime = 0f
+        } else idleTime += timeDelta
+
+        if (idleTime >= 3f) attackTime = 0f
+    }
+
+    /**
+     * ShipAPI is inconsistent when returning maneuver target. It may return null
+     * in some frames, even when the ship has a maneuver target. To avoid this problem,
+     * last non-null maneuver target may be used.
+     */
+    private fun trackShipTarget() {
+        val newTarget = weapon.ship.trueShipTarget
+        if (newTarget != null || shipTarget?.isAlive != true) shipTarget = newTarget
+    }
+
+    private fun calculateShouldFire(timeDelta: Float): Boolean {
+        // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
-        val expectedHit = analyzeHit(weapon, target!!, weapon.totalRange) ?: return holdFire
+        val expectedHit = target?.let { analyzeHit(weapon, target!!, weapon.totalRange) }
+
+        if (expectedHit == null) {
+            onTargetTime = 0f
+            return holdFire
+        }
+        onTargetTime += timeDelta
 
         // Check what will actually be hit, and hold fire if it's enemy or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, target!!)
@@ -67,41 +133,12 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
     }
 
-    override fun forceOff() {
-        target = null
-    }
-
-    override fun getTarget(): Vector2f? {
+    private fun calculateTargetLocation(): Vector2f? {
         if (target == null) return null
 
         val intercept = intercept(weapon, Target(target!!), getAccuracy()) ?: return null
-
         return if (weapon.slot.isTurret) intercept
         else aimHardpoint(intercept)
-    }
-
-    override fun getTargetShip(): ShipAPI? = target as? ShipAPI
-    override fun getWeapon(): WeaponAPI = weapon
-    override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
-
-    private fun trackShipTarget() {
-        val newTarget = weapon.ship.trueShipTarget
-        if (newTarget != null || shipTarget?.isAlive != true) shipTarget = newTarget
-    }
-
-    private fun trackTimes(timeDelta: Float) {
-        val currentTarget = target
-        if (currentTarget != null && prevTarget != currentTarget) {
-            prevTarget = currentTarget
-            attackTime = 0f
-        }
-
-        if (weapon.isFiring) {
-            attackTime += timeDelta
-            idleTime = 0f
-        } else idleTime += timeDelta
-
-        if (idleTime >= 3f) attackTime = 0f
     }
 
     /**
