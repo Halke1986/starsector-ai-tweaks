@@ -2,6 +2,8 @@ package com.genir.aitweaks.features.autofire.extensions
 
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
+import com.genir.aitweaks.utils.FiringCycle
+import com.genir.aitweaks.utils.firingCycle
 import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
 
@@ -34,3 +36,6 @@ val WeaponAPI.absoluteArcFacing: Float
 
 val WeaponAPI.totalRange: Float
     get() = this.range + this.projectileFadeRange * 0.5f
+
+val WeaponAPI.firingCycle: FiringCycle
+    get() = firingCycle(this)

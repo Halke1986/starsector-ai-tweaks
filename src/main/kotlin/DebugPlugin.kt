@@ -36,8 +36,10 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     override fun renderInUICoords(viewport: ViewportAPI?) {
         super.renderInUICoords(viewport)
 
-        for (i in drawable) {
-            i.value.draw(500f, 500f - i.key * 16f)
+        var i = 0
+        for (v in drawable) {
+            v.value.draw(500f, 500f - i * 16f)
+            i++
         }
     }
 

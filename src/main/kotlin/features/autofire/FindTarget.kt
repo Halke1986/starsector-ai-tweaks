@@ -14,7 +14,7 @@ fun selectMissile(weapon: WeaponAPI, current: MissileAPI?): CombatEntityAPI? {
     if (current?.isValidTarget == true && canTrack(weapon, Target(current))) return current
 
     // Find the closest enemy missile that can be tracked by the weapon.
-    return closestEntityFinder<MissileAPI>(weapon, missileGrid()) { it, _ ->
+    return closestEntityFinder<MissileAPI>(weapon, missileGrid()) { it ->
         when {
             it.owner == weapon.ship.owner -> null
             it.isFlare && weapon.ignoresFlares -> null
@@ -35,7 +35,7 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, shipTarget: ShipAPI?): Comb
     if (current?.isAlive == true && canTrack(weapon, Target(current))) return current
 
     // Find the closest enemy ship that can be tracked by the weapon.
-    return closestEntityFinder<ShipAPI>(weapon, shipGrid()) { it, _ ->
+    return closestEntityFinder<ShipAPI>(weapon, shipGrid()) { it ->
         when {
             it.isInert -> null
             it.owner == weapon.ship.owner -> null
@@ -47,7 +47,7 @@ fun selectShip(weapon: WeaponAPI, current: ShipAPI?, shipTarget: ShipAPI?): Comb
 }
 
 fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI): Hit? =
-    closestEntityFinder<ShipAPI>(weapon, shipGrid()) { it, rangeLimit ->
+    closestEntityFinder<ShipAPI>(weapon, shipGrid()) { it ->
         when {
             it == target -> null
             it == weapon.ship -> null
@@ -56,7 +56,7 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI): Hit? =
 
             it.owner == weapon.ship.owner -> analyzeAllyHit(weapon, it)
             it.isPhased -> null
-            else -> analyzeHit(weapon, it, rangeLimit)
+            else -> analyzeHit(weapon, it)
         }
     }
 
@@ -74,23 +74,18 @@ data class Hit(val target: CombatEntityAPI, val range: Float, val shieldHit: Boo
 }
 
 /** Analyzes the potential collision between projectile and target. Null if no collision. */
-fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, rangeLimit: Float): Hit? {
+fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI): Hit? {
     val targetCircumference = if (hasShield(target)) targetShield(target as ShipAPI) else Target(target)
     val range = willHitCircumference(weapon, targetCircumference) ?: return null
-    if (range > rangeLimit) return null
 
     // Simple circumference collision is enough for missiles and fighters.
     if (!target.isShip) return Hit(target, range, false)
 
     // Check shield hit.
-    if (hasShield(target)) {
-        val shieldRange = willHitShield(weapon, target as ShipAPI)
-        if (shieldRange != null) return if (shieldRange <= rangeLimit) Hit(target, shieldRange, true) else null
-    }
+    if (hasShield(target)) willHitShield(weapon, target as ShipAPI)?.let { return Hit(target, it, true) }
 
     // Check bounds hit.
-    val boundsRange = willHitBounds(weapon, target as ShipAPI)
-    return if (boundsRange != null && boundsRange <= rangeLimit) Hit(target, boundsRange, false) else null
+    return willHitBounds(weapon, target as ShipAPI)?.let { return Hit(target, it, false) }
 }
 
 fun analyzeAllyHit(weapon: WeaponAPI, ally: ShipAPI): Hit? = when {
@@ -104,12 +99,12 @@ fun analyzeAllyHit(weapon: WeaponAPI, ally: ShipAPI): Hit? = when {
 fun hasShield(target: CombatEntityAPI): Boolean = target.isShip && !(target as ShipAPI).isHulk
 
 @Suppress("UNCHECKED_CAST")
-private fun <T> closestEntityFinder(weapon: WeaponAPI, grid: CollisionGridAPI, f: (T, Float) -> Hit?): Hit? {
+private fun <T> closestEntityFinder(weapon: WeaponAPI, grid: CollisionGridAPI, f: (T) -> Hit?): Hit? {
     var closestRange = weapon.totalRange
     var closestHit: Hit? = null
 
     val forEachFn = fun(entity: CombatEntityAPI) {
-        val hit = f(entity as T, closestRange) ?: return
+        val hit = f(entity as T) ?: return
         if (hit.range < closestRange) {
             closestRange = hit.range
             closestHit = hit
