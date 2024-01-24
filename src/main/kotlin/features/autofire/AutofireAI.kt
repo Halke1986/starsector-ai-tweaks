@@ -4,6 +4,7 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
+import com.genir.aitweaks.debugPlugin
 import com.genir.aitweaks.features.autofire.extensions.firingCycle
 import com.genir.aitweaks.features.autofire.extensions.hasBestTargetLeading
 import com.genir.aitweaks.features.autofire.extensions.totalRange
@@ -22,6 +23,8 @@ import kotlin.math.min
 // fog of war
 // STRIKE never targets fighters
 
+private var autofireAICount = 0
+
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null
     private var prevFrameTarget: CombatEntityAPI? = null
@@ -31,11 +34,13 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var idleTime: Float = 0f
     private var onTargetTime: Float = 0f
 
-    private var selectTargetInterval = IntervalUtil(0.25F, 0.50F);
-    private var shouldFireInterval = IntervalUtil(0.1F, 0.2F);
+    private var selectTargetInterval = IntervalUtil(0.25F, 0.50F)
+    private var shouldFireInterval = IntervalUtil(0.1F, 0.2F)
 
     private var shouldFire: Boolean = false
     private var targetLocation: Vector2f? = null
+
+    private var idx = autofireAICount++
 
     override fun advance(timeDelta: Float) {
         if (Global.getCurrentState() != GameState.COMBAT) return
@@ -181,5 +186,11 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         return rotateAroundPivot(intercept, weapon.ship.location, angleToTarget)
+    }
+
+    private fun debug(side: Int?, weaponID: String?, vararg values: Any?) {
+        if (side != null && weapon.ship.owner != side) return
+        if (weaponID != null && weapon.spec.weaponId != weaponID) return
+        debugPlugin[idx] = values.fold(weapon.spec.weaponId) { s, it -> "$s $it" }
     }
 }

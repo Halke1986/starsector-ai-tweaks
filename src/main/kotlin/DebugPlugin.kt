@@ -38,13 +38,13 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
         var i = 0
         for (v in drawable) {
-            v.value.draw(500f, 500f - i * 16f)
+            v.value.draw(500f, 500f + (drawable.count() / 2 - i) * 16f)
             i++
         }
     }
 
     private fun debug() {
-//        val weapons = Global.getCombatEngine().ships.map { it.allWeapons }.flatten()
+//        val weapons = Global.getCombatEngine().ships.filter { it.owner == 0 }.map { it.allWeapons }.flatten()
 //        for (i in weapons.indices) {
 //            debugPlugin[i] = "${weapons[i].spec.weaponId} ${weapons[i].totalRange / weapons[i].range}"
 //        }
