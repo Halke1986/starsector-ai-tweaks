@@ -7,13 +7,14 @@ import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import org.lazywizard.lazylib.ui.LazyFont
 import java.awt.Color
+import java.util.*
 
 var debugPlugin: DebugPlugin = DebugPlugin()
 
 // DebugPlugin is used to render debug information during combat.
 class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var font: LazyFont? = null
-    private var drawable: MutableMap<Int, LazyFont.DrawableString> = mutableMapOf()
+    private var drawable: MutableMap<Int, LazyFont.DrawableString> = TreeMap()
 
     operator fun set(index: Int, value: Any) {
         if (font == null) return
@@ -36,10 +37,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     override fun renderInUICoords(viewport: ViewportAPI?) {
         super.renderInUICoords(viewport)
 
-        var i = 0
-        for (v in drawable) {
+        for ((i, v) in drawable.entries.withIndex()) {
             v.value.draw(500f, 500f + (drawable.count() / 2 - i) * 16f)
-            i++
         }
     }
 

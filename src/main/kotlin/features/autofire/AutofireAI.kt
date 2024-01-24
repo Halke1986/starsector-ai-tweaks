@@ -21,6 +21,7 @@ import kotlin.math.min
 /** Low priority / won't do */
 // don't switch targets mid burst
 // fog of war
+// sometimes station bulk does get attacked
 // STRIKE never targets fighters
 
 private var autofireAICount = 0
@@ -39,8 +40,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     private var shouldFire: Boolean = false
     private var targetLocation: Vector2f? = null
-
-    private var idx = autofireAICount++
 
     override fun advance(timeDelta: Float) {
         if (Global.getCurrentState() != GameState.COMBAT) return
@@ -188,9 +187,11 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return rotateAroundPivot(intercept, weapon.ship.location, angleToTarget)
     }
 
+    private var debugIdx = autofireAICount++
+
     private fun debug(side: Int?, weaponID: String?, vararg values: Any?) {
         if (side != null && weapon.ship.owner != side) return
         if (weaponID != null && weapon.spec.weaponId != weaponID) return
-        debugPlugin[idx] = values.fold(weapon.spec.weaponId) { s, it -> "$s $it" }
+        debugPlugin[debugIdx] = values.fold(weapon.spec.weaponId) { s, it -> "$s $it" }
     }
 }
