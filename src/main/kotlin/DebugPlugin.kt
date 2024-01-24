@@ -7,13 +7,14 @@ import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import org.lazywizard.lazylib.ui.LazyFont
 import java.awt.Color
+import java.util.*
 
 var debugPlugin: DebugPlugin = DebugPlugin()
 
 // DebugPlugin is used to render debug information during combat.
 class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var font: LazyFont? = null
-    private var drawable: MutableMap<Int, LazyFont.DrawableString> = mutableMapOf()
+    private var drawable: MutableMap<Int, LazyFont.DrawableString> = TreeMap()
 
     operator fun set(index: Int, value: Any) {
         if (font == null) return
@@ -36,15 +37,13 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     override fun renderInUICoords(viewport: ViewportAPI?) {
         super.renderInUICoords(viewport)
 
-        var i = 0
-        for (v in drawable) {
-            v.value.draw(500f, 500f - i * 16f)
-            i++
+        for ((i, v) in drawable.entries.withIndex()) {
+            v.value.draw(500f, 500f + (drawable.count() / 2 - i) * 16f)
         }
     }
 
     private fun debug() {
-//        val weapons = Global.getCombatEngine().ships.map { it.allWeapons }.flatten()
+//        val weapons = Global.getCombatEngine().ships.filter { it.owner == 0 }.map { it.allWeapons }.flatten()
 //        for (i in weapons.indices) {
 //            debugPlugin[i] = "${weapons[i].spec.weaponId} ${weapons[i].totalRange / weapons[i].range}"
 //        }

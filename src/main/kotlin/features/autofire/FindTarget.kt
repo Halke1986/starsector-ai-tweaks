@@ -52,7 +52,7 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI): Hit? =
             it == target -> null
             it == weapon.ship -> null
             it.isFighter -> null
-            weapon.ship.isStationModule && it.isAlive && (weapon.ship.parentStation.let { p -> p == it || p == it.parentStation }) -> null
+            it.isAlive && weapon.ship.root == it.root -> null
 
             it.owner == weapon.ship.owner -> analyzeAllyHit(weapon, it)
             it.isPhased -> null
