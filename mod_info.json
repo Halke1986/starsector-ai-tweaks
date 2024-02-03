@@ -9,7 +9,7 @@
     "patch": "6"
   },
   "description": "A mod providing various ship AI improvements.",
-  "gameVersion": "0.96a-RC10",
+  "gameVersion": "0.97a-RC6",
   "jars": [
     "jars/AITweaks.jar"
   ],
@@ -18,7 +18,7 @@
     {
       "id": "lw_lazylib",
       "name": "LazyLib",
-      "version": "2.8"
+      "version": "2.8b"
     }
   ]
 }

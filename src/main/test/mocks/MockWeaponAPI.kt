@@ -189,4 +189,6 @@ open class MockWeaponAPI(vararg values: Pair<String, Any>) : WeaponAPI, Mock(*va
     override fun setWeaponGlowWidthMult(p0: Float) = Unit
 
     override fun setWeaponGlowHeightMult(p0: Float) = Unit
+
+    override fun stopFiring() = Unit
 }

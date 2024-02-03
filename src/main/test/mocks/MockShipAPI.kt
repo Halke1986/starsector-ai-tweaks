@@ -582,4 +582,12 @@ open class MockShipAPI(vararg values: Pair<String, Any>) : ShipAPI, Mock(*values
     override fun getPeakTimeRemaining(): Float = getMockValue(object {})
 
     override fun getActiveLayers(): EnumSet<CombatEngineLayers> = getMockValue(object {})
+
+    override fun isShipSystemDisabled(): Boolean = getMockValue(object {})
+
+    override fun isDoNotFlareEnginesWhenStrafingOrDecelerating(): Boolean = getMockValue(object {})
+
+    override fun setDoNotFlareEnginesWhenStrafingOrDecelerating(p0: Boolean) = Unit
+
+    override fun getFleetCommander(): PersonAPI = getMockValue(object {})
 }

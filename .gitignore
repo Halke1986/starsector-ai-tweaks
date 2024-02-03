@@ -8,3 +8,4 @@ out/
 .idea/csv-editor.xml
 
 *.zip
+deploy.sh

@@ -1,5 +1,6 @@
 package com.genir.aitweaks.utils.mocks
 
+@Suppress("UNCHECKED_CAST")
 open class Mock(vararg pairs: Pair<String, Any>) {
     private val values = mutableMapOf(*pairs)
 
