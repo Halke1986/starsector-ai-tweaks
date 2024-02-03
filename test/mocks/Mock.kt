@@ -1,4 +1,4 @@
-package com.genir.aitweaks.utils.mocks
+package mocks
 
 @Suppress("UNCHECKED_CAST")
 open class Mock(vararg pairs: Pair<String, Any>) {

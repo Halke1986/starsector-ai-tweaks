@@ -3,10 +3,10 @@ package autofire
 import com.genir.aitweaks.features.autofire.*
 import com.genir.aitweaks.features.autofire.Target
 import com.genir.aitweaks.utils.Arc
-import com.genir.aitweaks.utils.mocks.MockBoundsAPI
-import com.genir.aitweaks.utils.mocks.MockSegmentAPI
-import com.genir.aitweaks.utils.mocks.MockShipAPI
-import com.genir.aitweaks.utils.mocks.MockWeaponAPI
+import mocks.MockBoundsAPI
+import mocks.MockSegmentAPI
+import mocks.MockShipAPI
+import mocks.MockWeaponAPI
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.lwjgl.util.vector.Vector2f
@@ -84,6 +84,7 @@ class BallisticsKtTest {
             "getLocation" to Vector2f(0f, 0f),
             "getProjectileSpeed" to 100f,
             "getRange" to 1000f,
+            "getProjectileFadeRange" to 200f,
             "getArc" to 30f,
             "getArcFacing" to 0f,
             "getCurrAngle" to 90f,

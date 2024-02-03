@@ -1,4 +1,4 @@
-package com.genir.aitweaks.utils.mocks
+package mocks
 
 import com.fs.starfarer.api.combat.BoundsAPI
 import org.lwjgl.util.vector.Vector2f
