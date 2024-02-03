@@ -19,11 +19,11 @@ fun avoidPhased(weapon: WeaponAPI, hit: Hit): Boolean = when {
     else -> holdFire
 }
 
-fun avoidWrongDamageType(weapon: WeaponAPI, hit: Hit): Boolean = when {
+fun avoidWrongDamageType(weapon: WeaponAPI, hit: Hit, accuracy: Float): Boolean = when {
     !hit.target.isShip -> fire
     weapon.isStrictlyAntiShield -> avoidExposedHull(weapon, hit)
-    weapon.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS) -> avoidShields(weapon, hit) && aimAtHull(weapon, hit)
-    weapon.damageType == DamageType.HIGH_EXPLOSIVE -> aimAtHull(weapon, hit)
+    weapon.hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS) -> avoidShields(weapon, hit) && aimAtHull(weapon, hit, accuracy)
+    weapon.damageType == DamageType.HIGH_EXPLOSIVE -> aimAtHull(weapon, hit, accuracy)
 
     else -> fire
 }
@@ -44,11 +44,11 @@ fun avoidExposedHull(weapon: WeaponAPI, hit: Hit): Boolean = when {
 }
 
 /** Ensure projectile will hit hull. Shields are ignored. */
-fun aimAtHull(weapon: WeaponAPI, hit: Hit): Boolean = when {
+fun aimAtHull(weapon: WeaponAPI, hit: Hit, accuracy: Float): Boolean = when {
     !hit.target.isShip -> fire
     !hit.shieldHit -> fire // hit on hull was already predicted
     willHitBounds(
-        weapon, hit.target as ShipAPI
+        weapon, hit.target as ShipAPI, accuracy
     ).let { it == null || it > weapon.totalRange } -> holdFire // ensure hull is in range, underneath the shields
     else -> fire
 }

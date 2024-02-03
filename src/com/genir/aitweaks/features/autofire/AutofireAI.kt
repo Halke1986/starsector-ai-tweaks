@@ -67,7 +67,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         selectTargetInterval.advance(timeDelta)
         if (selectTargetInterval.intervalElapsed()) {
             trackShipTarget()
-            target = selectTarget(weapon, target, shipTarget)
+            target = selectTarget(weapon, target, shipTarget, getAccuracy())
         }
 
         targetLocation = calculateTargetLocation()
@@ -113,7 +113,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
         if (targetLocation == null) return holdFire
-        val expectedHit = target?.let { analyzeHit(weapon, target!!) }
+        val expectedHit = target?.let { analyzeHit(weapon, target!!, getAccuracy()) }
 
         onTargetTime += timeDelta
         if (expectedHit == null) {
@@ -130,7 +130,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         // Check what will actually be hit, and hold fire if it's enemy or hulk.
-        val actualHit = firstShipAlongLineOfFire(weapon, target!!)
+        val actualHit = firstShipAlongLineOfFire(weapon, target!!, getAccuracy())
         if (!avoidFriendlyFire(weapon, expectedHit, actualHit)) return holdFire
 
         // Rest of the should-fire decisioning will be based on the actual hit.
@@ -145,7 +145,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             !hit.shieldHit && hit.range > weapon.totalRange -> holdFire
 
             !avoidPhased(weapon, hit) -> holdFire
-            !avoidWrongDamageType(weapon, hit) -> holdFire
+            !avoidWrongDamageType(weapon, hit, getAccuracy()) -> holdFire
             else -> fire
         }
     }

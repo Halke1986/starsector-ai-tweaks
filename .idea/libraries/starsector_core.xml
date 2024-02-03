@@ -1,12 +1,13 @@
 <component name="libraryTable">
   <library name="starsector-core">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../starsector-core/starfarer.api.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../starsector-core/log4j-1.2.9.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../starsector-core/lwjgl.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../starsector-core/lwjgl_util.jar!/" />
+      <root url="file://$PROJECT_DIR$/../../starsector-core" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../../starsector-core" />
+    </SOURCES>
+    <jarDirectory url="file://$PROJECT_DIR$/../../starsector-core" recursive="false" />
+    <jarDirectory url="file://$PROJECT_DIR$/../../starsector-core" recursive="false" type="SOURCES" />
   </library>
 </component>

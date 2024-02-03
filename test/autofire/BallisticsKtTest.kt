@@ -53,7 +53,7 @@ class BallisticsKtTest {
             "getExactBounds" to bounds,
         )
 
-        val actual = willHitBounds(weapon, target)
+        val actual = willHitBounds(weapon, target, 1f)
         assertEquals(1340.9568f, actual)
     }
 
@@ -73,9 +73,9 @@ class BallisticsKtTest {
         )
 
         assertNull(intercept(weapon, target, 1f))
-        assertNull(interceptArc(weapon, target))
-        assertNull(closestHitRange(weapon, target))
-        assertNull(willHitCircumference(weapon, target))
+        assertNull(interceptArc(weapon, target, 1f))
+        assertNull(closestHitRange(weapon, target, 1f))
+        assertNull(willHitCircumference(weapon, target, 1f))
     }
 
     @Test
@@ -100,10 +100,10 @@ class BallisticsKtTest {
             radius = 30f,
         )
 
-        assertTrue(canTrack(weapon, target))
+        assertTrue(canTrack(weapon, target, 1f))
         assertNotNull(intercept(weapon, target, 1f))
-        assertEquals(Arc(360f, 0f), interceptArc(weapon, target))
-        assertEquals(0f, closestHitRange(weapon, target))
-        assertNotNull(willHitCircumference(weapon, target))
+        assertEquals(Arc(360f, 0f), interceptArc(weapon, target, 1f))
+        assertEquals(0f, closestHitRange(weapon, target, 1f))
+        assertNotNull(willHitCircumference(weapon, target, 1f))
     }
 }
