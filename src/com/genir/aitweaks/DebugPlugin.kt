@@ -1,7 +1,5 @@
 package com.genir.aitweaks
 
-import com.fs.starfarer.api.GameState
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
@@ -24,7 +22,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
         super.advance(amount, events)
-        if (Global.getCurrentState() != GameState.COMBAT) return
 
         if (font == null) {
             font = LazyFont.loadFont("graphics/fonts/insignia15LTaa.fnt")
@@ -43,9 +40,17 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug() {
-//        val weapons = Global.getCombatEngine().ships.filter { it.owner == 0 }.map { it.allWeapons }.flatten()
-//        for (i in weapons.indices) {
-//            debugPlugin[i] = "${weapons[i].spec.weaponId} ${weapons[i].totalRange / weapons[i].range}"
+//        val asteroids = Global.getCombatEngine().asteroids
+//        val viewport = Global.getCombatEngine().viewport
+////        val plugins = ship.weaponGroupsCopy.filter { it.isAutofiring }.map { it.aiPlugins }.flatten()
+////
+//        for (i in asteroids.indices) {
+//        val a = asteroids[i]
+//            val x = viewport.convertWorldXtoScreenX(a.location.x)
+//            val y = viewport.convertWorldXtoScreenX(a.location.y)
+//
+//
+//            debugPlugin[i] = "$x $y"
 //        }
     }
 }

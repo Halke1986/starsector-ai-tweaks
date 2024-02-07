@@ -42,7 +42,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var targetLocation: Vector2f? = null
 
     override fun advance(timeDelta: Float) {
-        if (Global.getCurrentState() != GameState.COMBAT) return
+        if (Global.getCurrentState() == GameState.CAMPAIGN) return
 
         trackAttackTimes(timeDelta)
 

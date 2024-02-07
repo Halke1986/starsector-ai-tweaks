@@ -10,8 +10,8 @@ import kotlin.math.abs
 val WeaponAPI.isPD: Boolean
     get() = this.hasAIHint(PD) || this.hasAIHint(PD_ONLY)
 
-val WeaponAPI.isAntiFtr: Boolean
-    get() = this.isPD || this.hasAIHint(ANTI_FTR)
+//val WeaponAPI.isAntiFtr: Boolean
+//    get() = this.isPD || this.hasAIHint(ANTI_FTR)
 
 val WeaponAPI.isStrictlyAntiShield: Boolean
     get() = this.spec.primaryRoleStr == "Strictly Anti Shield"

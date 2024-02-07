@@ -1,58 +1,53 @@
 package com.genir.aitweaks.features.autofire
 
+import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.genir.aitweaks.features.autofire.extensions.*
+import org.lwjgl.util.vector.Vector2f
 
 fun selectTarget(
-    weapon: WeaponAPI,
-    current: CombatEntityAPI?,
-    shipTarget: ShipAPI?,
-    accuracy: Float
+    weapon: WeaponAPI, current: CombatEntityAPI?, shipTarget: ShipAPI?, accuracy: Float
 ): CombatEntityAPI? {
-    if (weapon.isPD) selectMissile(weapon, current as? MissileAPI, accuracy)?.let { return it }
-    return selectShip(weapon, current as? ShipAPI, shipTarget, accuracy)
+    if (Global.getCurrentState() == GameState.TITLE) return selectAsteroid(weapon, current)
+
+    if (weapon.isPD) {
+        selectMissile(weapon, current, accuracy)?.let { return it }
+        selectFighter(weapon, current, accuracy)?.let { return it }
+    }
+
+    return selectShip(weapon, current, shipTarget, accuracy)
 }
 
-fun selectMissile(weapon: WeaponAPI, current: MissileAPI?, accuracy: Float): CombatEntityAPI? {
-    // Try tracking current missile.
-    if (current?.isValidTarget == true && canTrack(weapon, Target(current), accuracy)) return current
+fun selectMissile(w: WeaponAPI, current: CombatEntityAPI?, acc: Float): CombatEntityAPI? =
+    selectEntity<MissileAPI>(w, current, acc, missileGrid()) { it.isValidTarget && (!it.isFlare || w.ignoresFlares) }
 
-    // Find the closest enemy missile that can be tracked by the weapon.
-    return closestEntityFinder<MissileAPI>(weapon, missileGrid()) { it ->
-        when {
-            it.owner == weapon.ship.owner -> null
-            it.isFlare && weapon.ignoresFlares -> null
-            !canTrack(weapon, Target(it), accuracy) -> null
-            else -> Hit(it, closestHitRange(weapon, Target(it), accuracy)!!, false)
-        }
-    }?.target
+fun selectFighter(weapon: WeaponAPI, current: CombatEntityAPI?, accuracy: Float): CombatEntityAPI? =
+    selectEntity<ShipAPI>(weapon, current, accuracy, shipGrid()) { it.isAlive && it.isFighter }
+
+/** Shoot asteroids only when the weapon and asteroid are both in viewport.
+ * Otherwise, it looks weird on the title screen. Also, use perfect accuracy. */
+fun selectAsteroid(weapon: WeaponAPI, current: CombatEntityAPI?): CombatEntityAPI? {
+    val inViewport = { location: Vector2f -> Global.getCombatEngine().viewport.isNearViewport(location, 0f) }
+    if (!inViewport(weapon.location)) return null
+    return selectEntity<CombatAsteroidAPI>(weapon, current, 1f, asteroidGrid()) { inViewport(it.location) }
 }
 
-fun selectShip(weapon: WeaponAPI, current: ShipAPI?, shipTarget: ShipAPI?, accuracy: Float): CombatEntityAPI? {
+fun selectShip(weapon: WeaponAPI, current: CombatEntityAPI?, shipTarget: ShipAPI?, accuracy: Float): CombatEntityAPI? {
     // Prioritize ship target. Non-PD hardpoint weapons track only ships target.
     if (shipTarget?.isAlive == true && ((weapon.slot.isHardpoint && !weapon.isPD) || canTrack(
             weapon, Target(shipTarget), accuracy
         ))
     ) return shipTarget
 
-    // Try tracking current target.
-    if (current?.isAlive == true && canTrack(weapon, Target(current), accuracy)) return current
-
-    // Find the closest enemy ship that can be tracked by the weapon.
-    return closestEntityFinder<ShipAPI>(weapon, shipGrid()) { it ->
-        when {
-            it.isInert -> null
-            it.owner == weapon.ship.owner -> null
-            it.isFighter && !weapon.isAntiFtr -> null
-            !canTrack(weapon, Target(it), accuracy) -> null
-            else -> Hit(it, closestHitRange(weapon, Target(it), accuracy)!!, false)
-        }
-    }?.target
+    return selectEntity<ShipAPI>(
+        weapon, current, accuracy, shipGrid()
+    ) { !it.isInert && (!it.isFighter || weapon.hasAIHint(ANTI_FTR)) }
 }
 
 fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, accuracy: Float): Hit? =
-    closestEntityFinder<ShipAPI>(weapon, shipGrid()) { it ->
+    closestEntityFinder<ShipAPI>(weapon, shipGrid()) {
         when {
             it == target -> null
             it == weapon.ship -> null
@@ -104,7 +99,25 @@ fun analyzeAllyHit(weapon: WeaponAPI, ally: ShipAPI, accuracy: Float): Hit? = wh
 fun hasShield(target: CombatEntityAPI): Boolean = target.isShip && !(target as ShipAPI).isHulk
 
 @Suppress("UNCHECKED_CAST")
-private fun <T> closestEntityFinder(weapon: WeaponAPI, grid: CollisionGridAPI, f: (T) -> Hit?): Hit? {
+private fun <T : CombatEntityAPI> selectEntity(
+    weapon: WeaponAPI, current: CombatEntityAPI?, accuracy: Float, grid: CollisionGridAPI, isValidTarget: (T) -> Boolean
+): CombatEntityAPI? {
+    // Try tracking current target.
+    if (current != null && isValidTarget(current as T) && canTrack(weapon, Target(current), accuracy)) return current
+
+    // Find the closest enemy entity that can be tracked by the weapon.
+    return closestEntityFinder<T>(weapon, grid) {
+        when {
+            it.owner == weapon.ship.owner -> null
+            !isValidTarget(it) -> null
+            !canTrack(weapon, Target(it), accuracy) -> null
+            else -> Hit(it, closestHitRange(weapon, Target(it), accuracy)!!, false)
+        }
+    }?.target
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <T : CombatEntityAPI> closestEntityFinder(weapon: WeaponAPI, grid: CollisionGridAPI, f: (T) -> Hit?): Hit? {
     var closestRange = weapon.totalRange
     var closestHit: Hit? = null
 
@@ -127,3 +140,4 @@ private fun shipGrid(): CollisionGridAPI = Global.getCombatEngine().shipGrid
 
 private fun missileGrid(): CollisionGridAPI = Global.getCombatEngine().missileGrid
 
+private fun asteroidGrid(): CollisionGridAPI = Global.getCombatEngine().asteroidGrid
