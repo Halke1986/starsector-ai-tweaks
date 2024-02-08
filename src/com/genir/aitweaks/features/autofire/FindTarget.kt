@@ -98,12 +98,15 @@ fun analyzeAllyHit(weapon: WeaponAPI, ally: ShipAPI, accuracy: Float): Hit? = wh
 /** Workaround for hulks retaining outdated ShieldAPI */
 fun hasShield(target: CombatEntityAPI): Boolean = target.isShip && !(target as ShipAPI).isHulk
 
-@Suppress("UNCHECKED_CAST")
-private fun <T : CombatEntityAPI> selectEntity(
-    weapon: WeaponAPI, current: CombatEntityAPI?, accuracy: Float, grid: CollisionGridAPI, isValidTarget: (T) -> Boolean
+private inline fun <reified T : CombatEntityAPI> selectEntity(
+    weapon: WeaponAPI,
+    current: CombatEntityAPI?,
+    accuracy: Float,
+    grid: CollisionGridAPI,
+    crossinline isValidTarget: (T) -> Boolean
 ): CombatEntityAPI? {
     // Try tracking current target.
-    if (current != null && isValidTarget(current as T) && canTrack(weapon, Target(current), accuracy)) return current
+    if (current is T && isValidTarget(current) && canTrack(weapon, Target(current), accuracy)) return current
 
     // Find the closest enemy entity that can be tracked by the weapon.
     return closestEntityFinder<T>(weapon, grid) {
