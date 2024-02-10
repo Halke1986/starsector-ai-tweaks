@@ -2,6 +2,7 @@ package com.genir.aitweaks.features.autofire.extensions
 
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
+import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.utils.FiringCycle
 import com.genir.aitweaks.utils.firingCycle
 import org.lazywizard.lazylib.MathUtils
@@ -39,3 +40,14 @@ val WeaponAPI.totalRange: Float
 
 val WeaponAPI.firingCycle: FiringCycle
     get() = firingCycle(this)
+
+val WeaponAPI.timeToAttack: Float
+    get() {
+        val spec = this.spec as? ProjectileWeaponSpecAPI ?: return 0f
+
+        return when {
+            this.isInBurst -> 0f
+            this.cooldownRemaining != 0f -> this.cooldownRemaining + spec.chargeTime
+            else -> spec.chargeTime * (1f - this.chargeLevel)
+        }
+    }

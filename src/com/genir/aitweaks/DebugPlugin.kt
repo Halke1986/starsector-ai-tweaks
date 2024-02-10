@@ -1,9 +1,13 @@
 package com.genir.aitweaks
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.utils.times
+import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ui.LazyFont
+import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
 
@@ -29,6 +33,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
 
         debug()
+//        speedupAsteroids()
     }
 
     override fun renderInUICoords(viewport: ViewportAPI?) {
@@ -40,17 +45,14 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug() {
-//        val asteroids = Global.getCombatEngine().asteroids
-//        val viewport = Global.getCombatEngine().viewport
-////        val plugins = ship.weaponGroupsCopy.filter { it.isAutofiring }.map { it.aiPlugins }.flatten()
-////
-//        for (i in asteroids.indices) {
-//        val a = asteroids[i]
-//            val x = viewport.convertWorldXtoScreenX(a.location.x)
-//            val y = viewport.convertWorldXtoScreenX(a.location.y)
-//
-//
-//            debugPlugin[i] = "$x $y"
-//        }
+    }
+
+    private fun speedupAsteroids() {
+        val asteroids = Global.getCombatEngine().asteroids
+        for (i in asteroids.indices) {
+            val a = asteroids[i]
+            a.mass = 0f
+            a.velocity.set(VectorUtils.getDirectionalVector(Vector2f(), a.velocity) * 1200f)
+        }
     }
 }

@@ -5,10 +5,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.debugPlugin
-import com.genir.aitweaks.features.autofire.extensions.firingCycle
-import com.genir.aitweaks.features.autofire.extensions.hasBestTargetLeading
-import com.genir.aitweaks.features.autofire.extensions.totalRange
-import com.genir.aitweaks.features.autofire.extensions.trueShipTarget
+import com.genir.aitweaks.features.autofire.extensions.*
 import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
@@ -67,7 +64,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         selectTargetInterval.advance(timeDelta)
         if (selectTargetInterval.intervalElapsed()) {
             trackShipTarget()
-            target = selectTarget(weapon, target, shipTarget, getAccuracy())
+            target = selectTarget(weapon, target, shipTarget, currentParams())
         }
 
         targetLocation = calculateTargetLocation()
@@ -113,7 +110,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
         if (targetLocation == null) return holdFire
-        val expectedHit = target?.let { analyzeHit(weapon, target!!, getAccuracy()) }
+        val expectedHit = target?.let { analyzeHit(weapon, target!!, currentParams()) }
 
         onTargetTime += timeDelta
         if (expectedHit == null) {
@@ -130,7 +127,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         // Check what will actually be hit, and hold fire if it's enemy or hulk.
-        val actualHit = firstShipAlongLineOfFire(weapon, target!!, getAccuracy())
+        val actualHit = firstShipAlongLineOfFire(weapon, target!!, currentParams())
         if (!avoidFriendlyFire(weapon, expectedHit, actualHit)) return holdFire
 
         // Rest of the should-fire decisioning will be based on the actual hit.
@@ -145,7 +142,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             !hit.shieldHit && hit.range > weapon.totalRange -> holdFire
 
             !avoidPhased(weapon, hit) -> holdFire
-            !avoidWrongDamageType(weapon, hit, getAccuracy()) -> holdFire
+            !avoidWrongDamageType(weapon, hit, currentParams()) -> holdFire
             else -> fire
         }
     }
@@ -153,10 +150,13 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private fun calculateTargetLocation(): Vector2f? {
         if (target == null) return null
 
-        val intercept = intercept(weapon, Target(target!!), getAccuracy()) ?: return null
+        val intercept = intercept(weapon, Target(target!!), currentParams()) ?: return null
         return if (weapon.slot.isTurret) intercept
         else aimHardpoint(intercept)
     }
+
+    /** get current weapon attack parameters */
+    private fun currentParams() = Params(getAccuracy(), weapon.timeToAttack)
 
     /**
      * getAccuracy returns current weapon accuracy.
@@ -165,7 +165,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
      * position and calculated intercept position.
      */
     private fun getAccuracy(): Float {
-        if (weapon.hasBestTargetLeading) return 1f
+        if (weapon.hasBestTargetLeading || Global.getCurrentState() == GameState.TITLE) return 1f
 
         val accBase = weapon.ship.aimAccuracy
         val accBonus = weapon.spec.autofireAccBonus
