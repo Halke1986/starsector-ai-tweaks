@@ -1,5 +1,6 @@
 {
   "plugins":{
-    "DebugPlugin":"com.genir.aitweaks.DebugPlugin",
+    "com.genir.aitweaks.DebugPlugin":"com.genir.aitweaks.DebugPlugin",
+    "com.genir.aitweaks.autoshield.AutoShield.AutoShield":"com.genir.aitweaks.features.autoshield.AutoShield",
   }
 }
