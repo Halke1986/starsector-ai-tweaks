@@ -19,7 +19,6 @@ import kotlin.math.min
 // don't switch targets mid burst
 // fog of war
 // sometimes station bulk does get attacked
-// STRIKE never targets fighters
 
 private var autofireAICount = 0
 
@@ -64,7 +63,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         selectTargetInterval.advance(timeDelta)
         if (selectTargetInterval.intervalElapsed()) {
             trackShipTarget()
-            target = selectTarget(weapon, target, shipTarget, currentParams())
+            target = SelectTarget(weapon, target, shipTarget, currentParams()).target
             if (target == null) {
                 shouldHoldFire = HoldFire.NO_TARGET
                 return

@@ -4,7 +4,9 @@ import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.features.autofire.extensions.*
+import com.genir.aitweaks.utils.firingCycle
 import com.genir.aitweaks.utils.shieldUptime
+import kotlin.math.min
 
 val fire = null
 
@@ -45,7 +47,9 @@ fun avoidShields(weapon: WeaponAPI, hit: Hit): HoldFire? = when {
 fun avoidExposedHull(weapon: WeaponAPI, hit: Hit): HoldFire? = when {
     !hit.target.isShip -> fire
     !hit.shieldHit -> HoldFire.AVOID_EXPOSED_HULL
-    shieldUptime(hit.target.shield) < 0.8f -> HoldFire.AVOID_EXPOSED_HULL // avoid shield flicker
+    shieldUptime(hit.target.shield) < min(
+        0.8f, firingCycle(weapon).duration
+    ) -> HoldFire.AVOID_EXPOSED_HULL // avoid shield flicker
     else -> fire
 }
 
