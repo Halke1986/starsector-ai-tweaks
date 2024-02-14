@@ -5,6 +5,9 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.genir.aitweaks.features.autofire.extensions.*
+import com.genir.aitweaks.utils.distanceToOrigin
+import com.genir.aitweaks.utils.unitVector
+import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
 fun selectTarget(
@@ -20,8 +23,10 @@ fun selectTarget(
     return selectShip(weapon, current, shipTarget, params)
 }
 
-/** Shoot asteroids only when the weapon and asteroid are both in viewport.
- * Otherwise, it looks weird on the title screen. */
+/**
+ * Target asteroid selection. Selects asteroid only when the weapon and asteroid
+ * are both in viewport. Otherwise, it looks weird on the title screen.
+ */
 fun selectAsteroid(weapon: WeaponAPI, current: CombatEntityAPI?, params: Params): CombatEntityAPI? {
     val inViewport = { location: Vector2f -> Global.getCombatEngine().viewport.isNearViewport(location, 0f) }
     if (!inViewport(weapon.location)) return null
@@ -45,7 +50,7 @@ fun selectShip(weapon: WeaponAPI, current: CombatEntityAPI?, shipTarget: ShipAPI
 }
 
 fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, params: Params): Hit? =
-    closestEntityFinder(weapon, shipGrid()) {
+    closestEntityFinder(weapon.location, weapon.totalRange, shipGrid()) {
         when {
             it !is ShipAPI -> null
             it == target -> null
@@ -59,6 +64,30 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, params:
         }
     }
 
+/**
+ * Fallback method of acquiring ship maneuver target.
+ * Returns closest enemy ship "hit" by the ships heading vector.
+ */
+fun estimateShipTarget(weapon: WeaponAPI): ShipAPI? {
+    val facing = unitVector(weapon.ship.facing)
+    val isTarget = fun(entity: ShipAPI): Boolean {
+        val dist = distanceToOrigin(weapon.ship.location - entity.location, facing) ?: return false
+        return dist < entity.collisionRadius
+    }
+
+    return closestEntityFinder(weapon.ship.location, weapon.totalRange, shipGrid()) {
+        when {
+            it !is ShipAPI -> null
+            !it.isValidTarget -> null
+            it.isFighter -> null
+            it.isInert -> null
+            it.owner == weapon.ship.owner -> null
+            !isTarget(it) -> null
+            else -> Hit(it, (weapon.ship.location - it.location).length(), false)
+        }
+    }?.target as? ShipAPI
+}
+
 private inline fun <reified T : CombatEntityAPI> selectEntity(
     weapon: WeaponAPI,
     current: CombatEntityAPI?,
@@ -70,7 +99,7 @@ private inline fun <reified T : CombatEntityAPI> selectEntity(
     if (current is T && isAcceptableTarget(current) && canTrack(weapon, Target(current), params)) return current
 
     // Find the closest enemy entity that can be tracked by the weapon.
-    return closestEntityFinder(weapon, grid) {
+    return closestEntityFinder(weapon.location, weapon.totalRange, grid) {
         when {
             it !is T -> null
             it.owner == weapon.ship.owner -> null
@@ -82,8 +111,10 @@ private inline fun <reified T : CombatEntityAPI> selectEntity(
     }?.target
 }
 
-private fun closestEntityFinder(weapon: WeaponAPI, grid: CollisionGridAPI, f: (CombatEntityAPI) -> Hit?): Hit? {
-    var closestRange = weapon.totalRange
+private fun closestEntityFinder(
+    location: Vector2f, radius: Float, grid: CollisionGridAPI, f: (CombatEntityAPI) -> Hit?
+): Hit? {
+    var closestRange = radius
     var closestHit: Hit? = null
 
     val forEachFn = fun(entity: CombatEntityAPI) {
@@ -95,7 +126,7 @@ private fun closestEntityFinder(weapon: WeaponAPI, grid: CollisionGridAPI, f: (C
     }
 
     val searchRange = closestRange * 2.0f
-    val entityIterator = grid.getCheckIterator(weapon.location, searchRange, searchRange)
+    val entityIterator = grid.getCheckIterator(location, searchRange, searchRange)
     entityIterator.forEach { forEachFn(it as CombatEntityAPI) }
 
     return closestHit

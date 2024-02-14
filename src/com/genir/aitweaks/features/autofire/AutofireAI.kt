@@ -105,6 +105,9 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
      * ShipAPI is inconsistent when returning maneuver target. It may return null
      * in some frames, even when the ship has a maneuver target. To avoid this problem,
      * last non-null maneuver target may be used.
+     *
+     * Even worse, when a ship is assigned an escort duty, maneuver target will always
+     * be null. In that case the ship target is estimated based on ship heading.
      */
     private fun trackShipTarget() {
         val s = weapon.ship
@@ -115,7 +118,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             val assignment = manager.getTaskManager(s.isAlly).getAssignmentFor(s)
 
             if (assignment?.type.let { it == LIGHT_ESCORT || it == MEDIUM_ESCORT || it == HEAVY_ESCORT }) {
-                shipTarget = null
+                shipTarget = estimateShipTarget(weapon)
                 return
             }
         }
