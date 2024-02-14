@@ -40,13 +40,19 @@ fun selectFighter(weapon: WeaponAPI, current: CombatEntityAPI?, params: Params):
     selectEntity<ShipAPI>(weapon, current, params, shipGrid()) { it.isFighter }
 
 fun selectShip(weapon: WeaponAPI, current: CombatEntityAPI?, shipTarget: ShipAPI?, params: Params): CombatEntityAPI? {
-    // Prioritize ship target. Non-PD hardpoint weapons track only ships target.
-    if (shipTarget?.isValidTarget == true && ((weapon.slot.isHardpoint && !weapon.isPD) || canTrack(
-            weapon, Target(shipTarget), params
-        ))
-    ) return shipTarget
+    //Use ship target as a priority. When ship is on escort assignment, the priority target needs to be estimated.
+    val priorityTarget =
+        if (shipTarget == null && weapon.frontFacing && weapon.ship.hasEscortAssignment) estimateShipTarget(weapon)
+        else shipTarget
 
-    return selectEntity<ShipAPI>(weapon, current, params, shipGrid()) { !it.isFighter || weapon.hasAIHint(ANTI_FTR) }
+    // Prioritize ship target. Non-PD hardpoint weapons track only ships target.
+    return when {
+        priorityTarget?.isValidTarget == true && weapon.slot.isHardpoint && !weapon.isPD -> priorityTarget
+        priorityTarget?.isValidTarget == true && canTrack(weapon, Target(priorityTarget), params) -> priorityTarget
+        else -> selectEntity<ShipAPI>(
+            weapon, current, params, shipGrid()
+        ) { !it.isFighter || weapon.hasAIHint(ANTI_FTR) }
+    }
 }
 
 fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, params: Params): Hit? =

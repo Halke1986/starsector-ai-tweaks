@@ -3,7 +3,6 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.debugPlugin
 import com.genir.aitweaks.features.autofire.extensions.*
@@ -107,23 +106,18 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
      * last non-null maneuver target may be used.
      *
      * Even worse, when a ship is assigned an escort duty, maneuver target will always
-     * be null. In that case the ship target is estimated based on ship heading.
+     * be null. Then the autofire AI needs to drop the previous target, so it doesn't
+     * get outdated.
      */
     private fun trackShipTarget() {
-        val s = weapon.ship
-        val newTarget = s.trueShipTarget
+        val newTarget = weapon.ship.trueShipTarget
 
-        if (newTarget == null) {
-            val manager = Global.getCombatEngine().getFleetManager(s.owner)
-            val assignment = manager.getTaskManager(s.isAlly).getAssignmentFor(s)
-
-            if (assignment?.type.let { it == LIGHT_ESCORT || it == MEDIUM_ESCORT || it == HEAVY_ESCORT }) {
-                shipTarget = estimateShipTarget(weapon)
-                return
-            }
+        shipTarget = when {
+            newTarget == null && shipTarget != null && weapon.ship.hasEscortAssignment -> null
+            newTarget != null -> newTarget
+            shipTarget?.isValidTarget != true -> null
+            else -> shipTarget
         }
-
-        if (newTarget != null || shipTarget?.isAlive != true) shipTarget = newTarget
     }
 
     private fun calculateShouldFire(timeDelta: Float): HoldFire? {
