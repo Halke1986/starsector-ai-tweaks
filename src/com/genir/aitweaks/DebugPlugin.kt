@@ -45,6 +45,15 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug() {
+//        val engine = Global.getCombatEngine()
+//        val ships = engine.ships
+
+//        for (i in ships.indices) {
+//            val ship = ships[i]
+//            val manager = engine.getFleetManager(ship.owner).getTaskManager(ship.isAlly)
+//
+//            debugPlugin[i] = "${ships[i].hullSpec.hullId}  ${manager.getAssignmentFor(ship)?.type?.toString()}"
+//        }
     }
 
     private fun speedupAsteroids() {

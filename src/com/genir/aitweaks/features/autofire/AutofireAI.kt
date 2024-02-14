@@ -3,6 +3,7 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.debugPlugin
 import com.genir.aitweaks.features.autofire.extensions.*
@@ -106,7 +107,19 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
      * last non-null maneuver target may be used.
      */
     private fun trackShipTarget() {
-        val newTarget = weapon.ship.trueShipTarget
+        val s = weapon.ship
+        val newTarget = s.trueShipTarget
+
+        if (newTarget == null) {
+            val manager = Global.getCombatEngine().getFleetManager(s.owner)
+            val assignment = manager.getTaskManager(s.isAlly).getAssignmentFor(s)
+
+            if (assignment?.type.let { it == LIGHT_ESCORT || it == MEDIUM_ESCORT || it == HEAVY_ESCORT }) {
+                shipTarget = null
+                return
+            }
+        }
+
         if (newTarget != null || shipTarget?.isAlive != true) shipTarget = newTarget
     }
 
@@ -151,7 +164,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         avoidWrongDamageType(weapon, hit, currentParams())?.let { return it }
 
         return fire
-
     }
 
     private fun calculateTargetLocation(): Vector2f? {
