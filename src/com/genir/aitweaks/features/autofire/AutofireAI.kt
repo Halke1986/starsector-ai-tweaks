@@ -19,7 +19,6 @@ import kotlin.math.min
 // don't switch targets mid burst
 // fog of war
 // sometimes station bulk does get attacked
-// STRIKE never targets fighters
 
 private var autofireAICount = 0
 
@@ -35,7 +34,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var selectTargetInterval = IntervalUtil(0.25F, 0.50F)
     private var shouldFireInterval = IntervalUtil(0.1F, 0.2F)
 
-    private var shouldFire: Boolean = false
+    private var shouldHoldFire: HoldFire? = HoldFire.NO_TARGET
     private var targetLocation: Vector2f? = null
 
     override fun advance(timeDelta: Float) {
@@ -54,7 +53,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (targetDiedLastFrame) {
             selectTargetInterval.forceIntervalElapsed()
             target = null
-            shouldFire = false
+            shouldHoldFire = HoldFire.NO_TARGET
             targetLocation = null
             attackTime = 0f
             onTargetTime = 0f
@@ -64,7 +63,11 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         selectTargetInterval.advance(timeDelta)
         if (selectTargetInterval.intervalElapsed()) {
             trackShipTarget()
-            target = selectTarget(weapon, target, shipTarget, currentParams())
+            target = SelectTarget(weapon, target, shipTarget, currentParams()).target
+            if (target == null) {
+                shouldHoldFire = HoldFire.NO_TARGET
+                return
+            }
         }
 
         targetLocation = calculateTargetLocation()
@@ -72,14 +75,14 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Calculate if weapon should fire.
         shouldFireInterval.advance(timeDelta)
         if (shouldFireInterval.intervalElapsed()) {
-            shouldFire = calculateShouldFire(selectTargetInterval.elapsed)
+            shouldHoldFire = calculateShouldFire(selectTargetInterval.elapsed)
         }
     }
 
-    override fun shouldFire(): Boolean = target != null && shouldFire
+    override fun shouldFire(): Boolean = shouldHoldFire == null
 
     override fun forceOff() {
-        shouldFire = false
+        shouldHoldFire = HoldFire.FORCE_OFF
     }
 
     override fun getTarget(): Vector2f? = targetLocation
@@ -100,22 +103,33 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
      * ShipAPI is inconsistent when returning maneuver target. It may return null
      * in some frames, even when the ship has a maneuver target. To avoid this problem,
      * last non-null maneuver target may be used.
+     *
+     * Even worse, when a ship is assigned an escort duty, maneuver target will always
+     * be null. Then the autofire AI needs to drop the previous target, so it doesn't
+     * get outdated.
      */
     private fun trackShipTarget() {
         val newTarget = weapon.ship.trueShipTarget
-        if (newTarget != null || shipTarget?.isAlive != true) shipTarget = newTarget
+
+        shipTarget = when {
+            newTarget == null && shipTarget != null && weapon.ship.hasEscortAssignment -> null
+            newTarget != null -> newTarget
+            shipTarget?.isValidTarget != true -> null
+            else -> shipTarget
+        }
     }
 
-    private fun calculateShouldFire(timeDelta: Float): Boolean {
+    private fun calculateShouldFire(timeDelta: Float): HoldFire? {
+        if (target == null) return HoldFire.NO_TARGET
+        if (targetLocation == null) return HoldFire.NO_HIT_EXPECTED
+
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
-        if (targetLocation == null) return holdFire
         val expectedHit = target?.let { analyzeHit(weapon, target!!, currentParams()) }
-
         onTargetTime += timeDelta
         if (expectedHit == null) {
             onTargetTime = 0f
-            return holdFire
+            return HoldFire.NO_HIT_EXPECTED
         }
 
         // Hold fire for a period of time after initially
@@ -123,12 +137,12 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (onTargetTime < min(2f, weapon.firingCycle.duration)) {
             val angleToTarget = VectorUtils.getFacing(targetLocation!! - weapon.location)
             val inaccuracy = abs(MathUtils.getShortestRotation(weapon.currAngle, angleToTarget))
-            if (inaccuracy > 1f) return holdFire
+            if (inaccuracy > 1f) return HoldFire.STABILIZE_ON_TARGET
         }
 
         // Check what will actually be hit, and hold fire if it's enemy or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, target!!, currentParams())
-        if (!avoidFriendlyFire(weapon, expectedHit, actualHit)) return holdFire
+        avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
 
         // Rest of the should-fire decisioning will be based on the actual hit.
         val hit = when {
@@ -137,14 +151,15 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             else -> actualHit
         }
 
-        return when {
-            hit.shieldHit && hit.range > weapon.range -> holdFire
-            !hit.shieldHit && hit.range > weapon.totalRange -> holdFire
-
-            !avoidPhased(weapon, hit) -> holdFire
-            !avoidWrongDamageType(weapon, hit, currentParams()) -> holdFire
-            else -> fire
+        when {
+            hit.shieldHit && hit.range > weapon.range -> return HoldFire.OUT_OF_RANGE
+            !hit.shieldHit && hit.range > weapon.totalRange -> return HoldFire.OUT_OF_RANGE
         }
+
+        avoidPhased(weapon, hit)?.let { return it }
+        avoidWrongDamageType(weapon, hit, currentParams())?.let { return it }
+
+        return fire
     }
 
     private fun calculateTargetLocation(): Vector2f? {

@@ -1,6 +1,7 @@
 package com.genir.aitweaks.features.autofire.extensions
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 
@@ -18,3 +19,7 @@ val ShipAPI.root: ShipAPI
 
 val ShipAPI.isInert: Boolean
     get() = this.isHulk || this.hullSpec.isBuiltInMod("vastbulk")
+
+val ShipAPI.hasEscortAssignment: Boolean
+    get() = Global.getCombatEngine().getFleetManager(this.owner).getTaskManager(this.isAlly)
+        .getAssignmentFor(this)?.type.let { it == LIGHT_ESCORT || it == MEDIUM_ESCORT || it == HEAVY_ESCORT }
