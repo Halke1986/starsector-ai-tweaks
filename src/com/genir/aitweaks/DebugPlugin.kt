@@ -25,14 +25,13 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
-        super.advance(amount, events)
-
         if (font == null) {
             font = LazyFont.loadFont("graphics/fonts/insignia15LTaa.fnt")
             debugPlugin = this
         }
 
         debug()
+        crashOnDemand(events)
 //        speedupAsteroids()
     }
 
@@ -45,6 +44,12 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug() {
+    }
+
+    private fun crashOnDemand(events: MutableList<InputEventAPI>?) {
+        if (events?.firstOrNull { !it.isConsumed && it.eventValue == 11 } != null) {
+            throw Exception("crash on demand")
+        }
     }
 
     private fun speedupAsteroids() {
