@@ -31,7 +31,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
 
         debug()
-        crashOnDemand(events)
 //        speedupAsteroids()
     }
 
@@ -44,12 +43,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug() {
-    }
-
-    private fun crashOnDemand(events: MutableList<InputEventAPI>?) {
-        if (events?.firstOrNull { !it.isConsumed && it.eventValue == 11 } != null) {
-            throw Exception("crash on demand")
-        }
     }
 
     private fun speedupAsteroids() {
