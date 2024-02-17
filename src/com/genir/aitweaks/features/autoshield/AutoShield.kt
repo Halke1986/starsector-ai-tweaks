@@ -33,9 +33,9 @@ class AutoShield : BaseEveryFrameCombatPlugin() {
             doNotUseShields = false
         }
 
-        // Do work only for ship with omni shields.
+        // Do work only for ships with omni shields under player control.
         val shield = engine.playerShip?.shield ?: return
-        if (shield.type != ShieldType.OMNI) return
+        if (shield.type != ShieldType.OMNI || !engine.isUIAutopilotOn) return
 
         // Handle input.
         events?.forEach {
@@ -53,7 +53,12 @@ class AutoShield : BaseEveryFrameCombatPlugin() {
             val ship = engine.playerShip ?: return
             val shield = ship.shield ?: return
 
-            if (!StateAccess.getAutoOmni() || doNotUseShields || !engine.isUIAutopilotOn) return
+            when {
+                shield.type != ShieldType.OMNI -> return
+                !StateAccess.getAutoOmni() -> return
+                !engine.isUIAutopilotOn -> return
+                doNotUseShields -> return
+            }
 
             glPushAttrib(GL_ALL_ATTRIB_BITS)
 
