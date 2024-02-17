@@ -140,8 +140,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             if (inaccuracy > 1f) return HoldFire.STABILIZE_ON_TARGET
         }
 
-        // Check what will actually be hit, and hold fire if it's enemy or hulk.
-        val actualHit = firstShipAlongLineOfFire(weapon, target!!, currentParams())
+        // Check what actually will get hit, and hold fire if it's an ally or hulk.
+        val actualHit = firstShipAlongLineOfFire(weapon, currentParams())
         avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
 
         // Rest of the should-fire decisioning will be based on the actual hit.

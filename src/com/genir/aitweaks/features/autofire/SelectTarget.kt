@@ -41,14 +41,16 @@ class SelectTarget(
 
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
         // Use ship target as a priority. When ship is on escort assignment, the priority target needs to be estimated.
-        val priorityTarget =
-            if (shipTarget == null && weapon.frontFacing && weapon.ship.hasEscortAssignment) estimateShipTarget(weapon)
-            else shipTarget
+        val priorityTarget = when {
+            shipTarget == null && weapon.frontFacing && weapon.ship.hasEscortAssignment -> estimateShipTarget(weapon)
+            shipTarget?.isValidTarget == true && shipTarget.owner != weapon.ship.owner -> shipTarget
+            else -> null
+        }
 
         // Prioritize ship target. Hardpoint weapons track ships target even when it's outside their firing arc.
         return when {
-            priorityTarget?.isValidTarget == true && weapon.slot.isHardpoint -> priorityTarget
-            priorityTarget?.isValidTarget == true && canTrack(weapon, Target(priorityTarget), params) -> priorityTarget
+            priorityTarget != null && weapon.slot.isHardpoint -> priorityTarget
+            priorityTarget != null && canTrack(weapon, Target(priorityTarget), params) -> priorityTarget
             else -> selectEntity<ShipAPI>(shipGrid()) { !it.isFighter || alsoFighter }
         }
     }
@@ -95,11 +97,10 @@ class SelectTarget(
     }
 }
 
-fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, params: Params): Hit? =
+fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: Params): Hit? =
     closestEntityFinder(weapon.location, weapon.totalRange, shipGrid()) {
         when {
             it !is ShipAPI -> null
-            it == target -> null
             it == weapon.ship -> null
             it.isFighter -> null
             it.isAlive && weapon.ship.root == it.root -> null
