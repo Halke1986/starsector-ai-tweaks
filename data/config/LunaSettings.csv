@@ -1,0 +1,2 @@
+fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValue,maxValue,tab
+aitweaks_omni_shield_keybind,Omin Shields Keybind,Keycode,29,,Changes the keybind for toggling automatic omni shields.
