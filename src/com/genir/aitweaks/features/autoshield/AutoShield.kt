@@ -5,8 +5,8 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.ShieldAPI.ShieldType
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.Misc
+import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.opengl.DrawUtils.drawArc
-import org.lwjgl.input.Keyboard.KEY_LCONTROL
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 import java.util.*
@@ -17,15 +17,19 @@ const val ID = "com.genir.aitweaks.autoshield.AutoShield"
 class AutoShield : BaseEveryFrameCombatPlugin() {
     private var doNotUseShields = false
     private var prevPlayerShip: ShipAPI? = null
+    private var keybind: Int? = null
 
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
         val engine = Global.getCombatEngine() ?: return
 
-        // Register render plugin.
+        // Initialize omni shield plugin.
         if (!engine.customData.containsKey(ID)) {
             engine.addLayeredRenderingPlugin(RendererAutoShieldIndicator())
+            keybind = LunaSettings.getInt("aitweaks", "aitweaks_omni_shield_keybind")
             engine.customData[ID] = true
         }
+
+        if (keybind == null) return
 
         // Player ship has changed.
         if (engine.playerShip != prevPlayerShip) {
@@ -42,7 +46,7 @@ class AutoShield : BaseEveryFrameCombatPlugin() {
             when {
                 it.isConsumed -> Unit
                 it.isRMBDownEvent && StateAccess.getAutoOmni() -> doNotUseShields = shield.isOn
-                it.isKeyDownEvent && it.eventValue == KEY_LCONTROL -> StateAccess.setAutoOmni(!StateAccess.getAutoOmni())
+                it.isKeyDownEvent && it.eventValue == keybind -> StateAccess.setAutoOmni(!StateAccess.getAutoOmni())
             }
         }
     }
