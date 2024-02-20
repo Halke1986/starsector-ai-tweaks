@@ -1,3 +1,11 @@
+Version 1.3.0
+
+- Integrated AITweaks with LunaLib. Now LunaLib is a required dependency.
+- Automatic omni shield toggle keybind is now configurable via LunaLib settings.
+- Ammo based PD weapons like Burst Laser conserve ammo when attacking non PD targets, similar as vanilla.
+- Ammo based non-PD weapons like Antimatter Blaster conserve ammo when attacking PD targets.
+- Fixed bug where automatic omni shield indicator was displayed for ships with front shields.
+
 Version 1.2.0
 
 - Added automatic omni shields for player controlled ship (left CTRL to deploy).
