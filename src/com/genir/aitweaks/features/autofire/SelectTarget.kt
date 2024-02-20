@@ -112,24 +112,11 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: Params): Hit? =
     }
 
 private fun closestEntityFinder(
-    location: Vector2f, radius: Float, grid: CollisionGridAPI, f: (CombatEntityAPI) -> Hit?
+    location: Vector2f, radius: Float, grid: CollisionGridAPI, considerEntity: (CombatEntityAPI) -> Hit?
 ): Hit? {
-    var closestRange = radius
-    var closestHit: Hit? = null
-
-    val forEachFn = fun(entity: CombatEntityAPI) {
-        val hit = f(entity) ?: return
-        if (hit.range < closestRange) {
-            closestRange = hit.range
-            closestHit = hit
-        }
-    }
-
-    val searchRange = closestRange * 2.0f
-    val entityIterator = grid.getCheckIterator(location, searchRange, searchRange)
-    entityIterator.forEach { forEachFn(it as CombatEntityAPI) }
-
-    return closestHit
+    val entityIterator = grid.getCheckIterator(location, radius * 2.0f, radius * 2.0f)
+    val hits = entityIterator.asSequence().mapNotNull { (it as? CombatEntityAPI)?.let(considerEntity) }
+    return hits.minWithOrNull(compareBy { it.range })
 }
 
 private fun shipGrid(): CollisionGridAPI = Global.getCombatEngine().shipGrid

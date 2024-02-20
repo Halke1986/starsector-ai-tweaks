@@ -156,10 +156,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             !hit.shieldHit && hit.range > weapon.totalRange -> return HoldFire.OUT_OF_RANGE
         }
 
-        avoidPhased(weapon, hit)?.let { return it }
-        avoidWrongDamageType(weapon, hit, currentParams())?.let { return it }
-
-        return fire
+        return AttackRules(weapon, hit, currentParams()).shouldHoldFire
     }
 
     private fun calculateTargetLocation(): Vector2f? {
