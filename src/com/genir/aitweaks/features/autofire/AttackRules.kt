@@ -67,9 +67,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     private fun avoidExposedHull(): HoldFire? = when {
         !hit.target.isShip -> fire
         !hit.shieldHit -> HoldFire.AVOID_EXPOSED_HULL
-        shieldUptime(hit.target.shield) < min(
-            0.8f, firingCycle(weapon).duration
-        ) -> HoldFire.AVOID_EXPOSED_HULL // avoid shield flicker
+        shieldUptime(hit.target.shield) < min(0.8f, firingCycle(weapon).duration) -> HoldFire.AVOID_EXPOSED_HULL // avoid shield flicker
         else -> fire
     }
 
@@ -77,9 +75,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     private fun aimAtHull(): HoldFire? = when {
         !hit.target.isShip -> fire
         !hit.shieldHit -> fire // hit on hull was already predicted
-        willHitBounds(
-            weapon, hit.target as ShipAPI, params
-        ).let { it == null || it > weapon.totalRange } -> HoldFire.AVOID_MISSING_HULL // ensure hull is in range, underneath the shields
+        willHitBounds(weapon, hit.target as ShipAPI, params).let { it == null || it > weapon.totalRange } -> HoldFire.AVOID_MISSING_HULL // ensure hull is in range, underneath the shields
         else -> fire
     }
 }
