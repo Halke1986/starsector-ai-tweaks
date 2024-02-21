@@ -13,7 +13,17 @@ import kotlin.math.min
 val fire = null
 
 enum class HoldFire {
-    AVOID_PHASED, AVOID_SHIELDS, AVOID_EXPOSED_HULL, AVOID_MISSING_HULL, AVOID_FF, NO_TARGET, STABILIZE_ON_TARGET, NO_HIT_EXPECTED, OUT_OF_RANGE, FORCE_OFF, CONSERVE_AMMO
+    AVOID_PHASED,
+    AVOID_SHIELDS,
+    AVOID_EXPOSED_HULL,
+    AVOID_MISSING_HULL,
+    AVOID_FF,
+    NO_TARGET,
+    STABILIZE_ON_TARGET,
+    NO_HIT_EXPECTED,
+    OUT_OF_RANGE,
+    FORCE_OFF,
+    CONSERVE_AMMO
 }
 
 class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private val params: Params) {
