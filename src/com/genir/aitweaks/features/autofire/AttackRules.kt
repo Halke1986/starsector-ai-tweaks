@@ -1,6 +1,7 @@
 package com.genir.aitweaks.features.autofire
 
-import com.fs.starfarer.api.combat.DamageType
+import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
+import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
@@ -18,6 +19,8 @@ enum class HoldFire {
     AVOID_EXPOSED_HULL,
     AVOID_MISSING_HULL,
     AVOID_FF,
+    AVOID_FF_JUNK,
+    AVOID_FF_INERT,
     NO_TARGET,
     STABILIZE_ON_TARGET,
     NO_HIT_EXPECTED,
@@ -51,7 +54,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
         !hit.target.isShip -> fire
         weapon.isStrictlyAntiShield -> avoidExposedHull()
         weapon.hasAIHint(USE_LESS_VS_SHIELDS) -> avoidShields() ?: aimAtHull()
-        weapon.damageType == DamageType.HIGH_EXPLOSIVE -> aimAtHull()
+        weapon.damageType == HIGH_EXPLOSIVE -> aimAtHull()
         else -> fire
     }
 
@@ -80,19 +83,26 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     }
 }
 
-fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire? {
-    if (actual == null || actual.target !is ShipAPI) return fire
+/** Avoiding friendly fire works under the assumption that the provided
+ * actual hit is the first non-fighter, non-phased ship or phased friendly
+ * ship along the line of fire. */
+fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire? = when {
+    actual == null -> fire
+    allowPDFriendlyFire(weapon, expected, actual) -> fire
+    actual.target !is ShipAPI -> fire
+    !actual.target.isAlive -> HoldFire.AVOID_FF_JUNK
+    actual.target.isVastBulk -> HoldFire.AVOID_FF_INERT
+    actual.target.owner != weapon.ship.owner -> fire
+    else -> HoldFire.AVOID_FF
+}
 
-    val target = expected.target
-    val phased = (target as? ShipAPI)?.isPhased == true
-    val beam = weapon.isBeam || weapon.isBurstBeam
-    val fragPD = weapon.spec.damageType == DamageType.FRAGMENTATION && weapon.isPD
-    val firePassesTarget = ((!target.isShip && !beam) || phased) && !fragPD
+/** Allow friendly fire with fragmentation PD when attacking missiles and fighters */
+fun allowPDFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit): Boolean = when {
+    actual.target.owner != weapon.ship.owner -> false
+    actual.range < expected.range -> false
+    !weapon.isPD -> false
+    weapon.spec.damageType != FRAGMENTATION -> false
 
-    val blockerAheadOfTarget = actual.range < expected.range
-    if (!firePassesTarget && !blockerAheadOfTarget) return fire
-
-    val friendly = actual.target.owner == weapon.ship.owner
-    return if (friendly || (actual.target.isInert && blockerAheadOfTarget)) HoldFire.AVOID_FF
-    else fire
+    expected.target !is ShipAPI -> true
+    else -> expected.target.isFighter
 }

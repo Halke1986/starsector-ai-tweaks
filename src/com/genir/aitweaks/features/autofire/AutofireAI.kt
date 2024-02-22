@@ -199,11 +199,9 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return rotateAroundPivot(intercept, weapon.ship.location, angleToTarget)
     }
 
-    private var debugIdx = autofireAICount++
-
     private fun debug(side: Int?, weaponID: String?, vararg values: Any?) {
         if (side != null && weapon.ship.owner != side) return
         if (weaponID != null && weapon.spec.weaponId != weaponID) return
-        debugPlugin[debugIdx] = values.fold(weapon.spec.weaponId) { s, it -> "$s $it" }
+        debugPlugin[weapon.id] = values.fold(weapon.spec.weaponId) { s, it -> "$s $it" }
     }
 }

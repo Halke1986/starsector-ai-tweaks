@@ -8,4 +8,5 @@ val CombatEntityAPI.isShip: Boolean
     get() = (this is ShipAPI) && !this.isFighter
 
 val CombatEntityAPI.isValidTarget: Boolean
-    get() = !this.isExpired && (this as? ShipAPI)?.isAlive != false
+    get() = if (this is ShipAPI) this.isAlive && !this.isVastBulk && !this.isExpired
+    else !this.isExpired

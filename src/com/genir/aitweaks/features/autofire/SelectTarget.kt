@@ -88,7 +88,7 @@ class SelectTarget(
                 it !is ShipAPI -> null
                 !it.isValidTarget -> null
                 it.isFighter -> null
-                it.isInert -> null
+                it.isVastBulk -> null
                 it.owner == weapon.ship.owner -> null
                 !isTarget(it) -> null
                 else -> Hit(it, (weapon.ship.location - it.location).length(), false)
@@ -101,8 +101,8 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: Params): Hit? =
     closestEntityFinder(weapon.location, weapon.totalRange, shipGrid()) {
         when {
             it !is ShipAPI -> null
-            it == weapon.ship -> null
             it.isFighter -> null
+            it == weapon.ship -> null
             it.isAlive && weapon.ship.root == it.root -> null
 
             it.owner == weapon.ship.owner -> analyzeAllyHit(weapon, it, params)

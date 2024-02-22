@@ -17,9 +17,8 @@ val ShipAPI.trueShipTarget: ShipAPI?
 val ShipAPI.root: ShipAPI
     get() = this.parentStation ?: this
 
-val ShipAPI.isInert: Boolean
-    get() = this.isHulk || this.hullSpec.isBuiltInMod("vastbulk")
+val ShipAPI.isVastBulk: Boolean
+    get() = this.hullSpec.isBuiltInMod("vastbulk")
 
 val ShipAPI.hasEscortAssignment: Boolean
-    get() = Global.getCombatEngine().getFleetManager(this.owner).getTaskManager(this.isAlly)
-        .getAssignmentFor(this)?.type.let { it == LIGHT_ESCORT || it == MEDIUM_ESCORT || it == HEAVY_ESCORT }
+    get() = Global.getCombatEngine().getFleetManager(this.owner).getTaskManager(this.isAlly).getAssignmentFor(this)?.type.let { it == LIGHT_ESCORT || it == MEDIUM_ESCORT || it == HEAVY_ESCORT }
