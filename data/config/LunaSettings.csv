@@ -1,2 +1,3 @@
 fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValue,maxValue,tab
-aitweaks_omni_shield_keybind,Omin Shields Keybind,Keycode,29,,Changes the keybind for toggling automatic omni shields.
+aitweaks_omni_shield_keybind,Omni Shields Toggle Keybind,Keycode,29,,
+aitweaks_ai_core_personality,Player Fleet AI Core Personality,Radio,None,"timid, cautious, steady, aggressive, reckless",

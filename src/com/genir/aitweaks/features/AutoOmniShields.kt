@@ -1,10 +1,11 @@
-package com.genir.aitweaks.features.autoshield
+package com.genir.aitweaks.features
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.ShieldAPI.ShieldType
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.Misc
+import com.genir.aitweaks.utils.StarfarerAccess
 import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.opengl.DrawUtils.drawArc
 import org.lwjgl.opengl.GL11.*
@@ -12,14 +13,14 @@ import java.awt.Color
 import java.util.*
 import kotlin.math.max
 
-const val ID = "com.genir.aitweaks.autoshield.AutoShield"
+const val ID = "com.genir.aitweaks.features.AutoOmniShields"
 
-class AutoShield : BaseEveryFrameCombatPlugin() {
+class AutoOmniShields : BaseEveryFrameCombatPlugin() {
     private var doNotUseShields = false
     private var prevPlayerShip: ShipAPI? = null
     private var keybind: Int? = null
 
-    override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
+    override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
         val engine = Global.getCombatEngine() ?: return
 
         // Initialize omni shield plugin.
@@ -45,8 +46,8 @@ class AutoShield : BaseEveryFrameCombatPlugin() {
         events?.forEach {
             when {
                 it.isConsumed -> Unit
-                it.isRMBDownEvent && StateAccess.getAutoOmni() -> doNotUseShields = shield.isOn
-                it.isKeyDownEvent && it.eventValue == keybind -> StateAccess.setAutoOmni(!StateAccess.getAutoOmni())
+                it.isRMBDownEvent && StarfarerAccess.getAutoOmni() -> doNotUseShields = shield.isOn
+                it.isKeyDownEvent && it.eventValue == keybind -> StarfarerAccess.setAutoOmni(!StarfarerAccess.getAutoOmni())
             }
         }
     }
@@ -59,7 +60,7 @@ class AutoShield : BaseEveryFrameCombatPlugin() {
 
             when {
                 shield.type != ShieldType.OMNI -> return
-                !StateAccess.getAutoOmni() -> return
+                !StarfarerAccess.getAutoOmni() -> return
                 !engine.isUIAutopilotOn -> return
                 doNotUseShields -> return
             }

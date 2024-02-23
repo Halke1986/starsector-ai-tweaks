@@ -9,8 +9,6 @@ import com.genir.aitweaks.features.autofire.AutofireAI
 
 class AITweaksBaseModPlugin : BaseModPlugin() {
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
-        super.pickWeaponAutofireAI(weapon)
-
         val ai = if (weapon.type != WeaponAPI.WeaponType.MISSILE) AutofireAI(weapon)
         else null
 
