@@ -1,6 +1,7 @@
 Version 1.4.0
 
-- Added ability to change personality of AI core captains in players fleet. The personality is configured via LunaLib settings.
+- Added the ability to change personality of AI core captains in player fleet. The personality can be changed via LunaLib settings.
+- Default personality of AI cores in player fleet is now aggressive instead of reckless (aka fearless). 
 - Fixed a bug that caused weapons to try to shoot through indestructible parts of space stations.
 
 Version 1.3.0

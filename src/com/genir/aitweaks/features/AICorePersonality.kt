@@ -12,11 +12,14 @@ import lunalib.lunaSettings.LunaSettings
  * in BaseEveryFrameCombatPlugin because placing it in BaseModPlugin
  * and using PluginPick provided no effect. */
 class AICorePersonality : BaseEveryFrameCombatPlugin() {
-    private val personality = LunaSettings.getString("aitweaks", "aitweaks_ai_core_personality")
+    private val personality = fun(): String {
+        val setting = LunaSettings.getString("aitweaks", "aitweaks_ai_core_personality")
+        val allowed = listOf("timid", "cautious", "steady", "aggressive", "reckless")
+        return if (setting != null && allowed.contains(setting)) setting
+        else "aggressive"
+    }()
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
-        personality ?: return
-
         val ships = Global.getCombatEngine().ships
         ships.filter { it.owner == 0 && it?.captain?.isAICore == true && it.captain.personalityAPI.id != personality }.forEach {
             val config = ShipAIConfig()
