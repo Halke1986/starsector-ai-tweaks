@@ -1,3 +1,8 @@
+Version 1.4.0
+
+- Added ability to change personality of AI core captains in players fleet. The personality is configured via LunaLib settings.
+- Fixed a bug that caused weapons to try to shoot through indestructible parts of space stations.
+
 Version 1.3.0
 
 - Integrated AITweaks with LunaLib. Now LunaLib is a required dependency.
