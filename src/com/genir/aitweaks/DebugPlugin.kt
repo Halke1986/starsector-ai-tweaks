@@ -43,6 +43,9 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug() {
+//        Global.getCombatEngine().ships.filter { it.owner == 0 && it.variant.hasHullMod(HullMods.AUTOMATED) }.forEach { ship ->
+//            debugPlugin[ship] = "${ship.hullSpec.hullId} ${ship.AIPersonality}"
+//        }
     }
 
     private fun speedupAsteroids() {

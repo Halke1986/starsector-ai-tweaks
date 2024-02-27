@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.ShieldAPI.ShieldType
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.Misc
-import com.genir.aitweaks.utils.StarfarerAccess
+import com.fs.starfarer.combat.CombatState
 import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.opengl.DrawUtils.drawArc
 import org.lwjgl.opengl.GL11.*
@@ -46,8 +46,8 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
         events?.forEach {
             when {
                 it.isConsumed -> Unit
-                it.isRMBDownEvent && StarfarerAccess.getAutoOmni() -> doNotUseShields = shield.isOn
-                it.isKeyDownEvent && it.eventValue == keybind -> StarfarerAccess.setAutoOmni(!StarfarerAccess.getAutoOmni())
+                it.isRMBDownEvent && CombatState.AUTO_OMNI_SHIELDS -> doNotUseShields = shield.isOn
+                it.isKeyDownEvent && it.eventValue == keybind -> CombatState.AUTO_OMNI_SHIELDS = !CombatState.AUTO_OMNI_SHIELDS
             }
         }
     }
@@ -60,7 +60,7 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
 
             when {
                 shield.type != ShieldType.OMNI -> return
-                !StarfarerAccess.getAutoOmni() -> return
+                !CombatState.AUTO_OMNI_SHIELDS -> return
                 !engine.isUIAutopilotOn -> return
                 doNotUseShields -> return
             }
