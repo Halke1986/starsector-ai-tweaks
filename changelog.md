@@ -1,3 +1,8 @@
+Version 1.4.1
+
+- Improved the personality picker for automated ships in player's fleet. Now it works reliably in all cases.
+- Personality setting for automated ships now applies also to automated ships without AI cores assigned. In vanilla, they are always reckless. 
+
 Version 1.4.0
 
 - Added the ability to change personality of AI core captains in player fleet. The personality can be changed via LunaLib settings.
