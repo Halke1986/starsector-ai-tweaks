@@ -22,8 +22,9 @@ class AICorePersonality : BaseEveryFrameCombatPlugin() {
     }()
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
-        val playerShips = Global.getCombatEngine().ships.filter { it.owner == 0 }
-        val shipsToUpdate = playerShips.filter { it.variant.hasHullMod(HullMods.AUTOMATED) && it.AIPersonality != personalityPreset }
+        val shipsToUpdate = Global.getCombatEngine().ships.filter {
+            it.owner == 0 && it.ai != null && it.variant.hasHullMod(HullMods.AUTOMATED) && it.AIPersonality != personalityPreset
+        }
 
         shipsToUpdate.forEach {
             val config = ShipAIConfig()
