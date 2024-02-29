@@ -1,3 +1,7 @@
+Version 1.4.2
+
+- Automated ships personality setting does not try to take over the control when a player is piloting the ship manually.
+
 Version 1.4.1
 
 - Improved the personality picker for automated ships in player's fleet. Now it works reliably in all cases.
