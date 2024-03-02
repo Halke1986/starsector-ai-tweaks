@@ -1,0 +1,4 @@
+{
+  "aiType": "CUSTOM",
+  "aiScript": "com.genir.aitweaks.features.LidarArrayAI"
+}

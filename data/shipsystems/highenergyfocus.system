@@ -1,4 +1,4 @@
 {
-	"aiType":"CUSTOM",
-	"aiScript":"com.genir.aitweaks.features.HighEnergyFocusAI",
+  "aiType": "CUSTOM",
+  "aiScript": "com.genir.aitweaks.features.HighEnergyFocusAI"
 }
