@@ -5,11 +5,11 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.debugPlugin
-import com.genir.aitweaks.features.autofire.extensions.firingCycle
-import com.genir.aitweaks.features.autofire.extensions.hasBestTargetLeading
-import com.genir.aitweaks.features.autofire.extensions.timeToAttack
-import com.genir.aitweaks.features.autofire.extensions.totalRange
 import com.genir.aitweaks.utils.ShipTargetTracker
+import com.genir.aitweaks.utils.extensions.firingCycle
+import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
+import com.genir.aitweaks.utils.extensions.timeToAttack
+import com.genir.aitweaks.utils.extensions.totalRange
 import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils

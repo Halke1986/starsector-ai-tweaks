@@ -5,15 +5,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.STRIKE
-import com.genir.aitweaks.features.autofire.extensions.frontFacing
-import com.genir.aitweaks.features.autofire.extensions.ignoresFlares
-import com.genir.aitweaks.features.autofire.extensions.isPD
-import com.genir.aitweaks.features.autofire.extensions.totalRange
 import com.genir.aitweaks.utils.distanceToOrigin
-import com.genir.aitweaks.utils.extensions.hasEscortAssignment
-import com.genir.aitweaks.utils.extensions.isValidTarget
-import com.genir.aitweaks.utils.extensions.isVastBulk
-import com.genir.aitweaks.utils.extensions.rootModule
+import com.genir.aitweaks.utils.extensions.*
 import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f

@@ -6,12 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
-import com.genir.aitweaks.features.autofire.extensions.conserveAmmo
-import com.genir.aitweaks.features.autofire.extensions.isPD
-import com.genir.aitweaks.features.autofire.extensions.isStrictlyAntiShield
-import com.genir.aitweaks.features.autofire.extensions.totalRange
-import com.genir.aitweaks.utils.extensions.isShip
-import com.genir.aitweaks.utils.extensions.isVastBulk
+import com.genir.aitweaks.utils.extensions.*
 import com.genir.aitweaks.utils.firingCycle
 import com.genir.aitweaks.utils.shieldUptime
 import kotlin.math.min

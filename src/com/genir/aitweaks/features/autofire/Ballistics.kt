@@ -3,9 +3,9 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.features.autofire.extensions.absoluteArcFacing
-import com.genir.aitweaks.features.autofire.extensions.totalRange
 import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.extensions.absoluteArcFacing
+import com.genir.aitweaks.utils.extensions.totalRange
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
