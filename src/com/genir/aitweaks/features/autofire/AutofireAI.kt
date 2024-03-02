@@ -5,7 +5,11 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.debugPlugin
-import com.genir.aitweaks.features.autofire.extensions.*
+import com.genir.aitweaks.features.autofire.extensions.firingCycle
+import com.genir.aitweaks.features.autofire.extensions.hasBestTargetLeading
+import com.genir.aitweaks.features.autofire.extensions.timeToAttack
+import com.genir.aitweaks.features.autofire.extensions.totalRange
+import com.genir.aitweaks.utils.ShipTargetTracker
 import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
@@ -25,7 +29,7 @@ private var autofireAICount = 0
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null
     private var prevFrameTarget: CombatEntityAPI? = null
-    private var shipTarget: ShipAPI? = null
+    private var targetTracker = ShipTargetTracker(weapon.ship)
 
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
@@ -62,8 +66,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Select target.
         selectTargetInterval.advance(timeDelta)
         if (selectTargetInterval.intervalElapsed()) {
-            trackShipTarget()
-            target = SelectTarget(weapon, target, shipTarget, currentParams()).target
+            targetTracker.advance()
+            target = SelectTarget(weapon, target, targetTracker.target, currentParams()).target
             if (target == null) {
                 shouldHoldFire = HoldFire.NO_TARGET
                 return
@@ -97,26 +101,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         } else idleTime += timeDelta
 
         if (idleTime >= 3f) attackTime = 0f
-    }
-
-    /**
-     * ShipAPI is inconsistent when returning maneuver target. It may return null
-     * in some frames, even when the ship has a maneuver target. To avoid this problem,
-     * last non-null maneuver target may be used.
-     *
-     * Even worse, when a ship is assigned an escort duty, maneuver target will always
-     * be null. Then the autofire AI needs to drop the previous target, so it doesn't
-     * get outdated.
-     */
-    private fun trackShipTarget() {
-        val newTarget = weapon.ship.trueShipTarget
-
-        shipTarget = when {
-            newTarget == null && shipTarget != null && weapon.ship.hasEscortAssignment -> null
-            newTarget != null -> newTarget
-            shipTarget?.isValidTarget != true -> null
-            else -> shipTarget
-        }
     }
 
     private fun calculateShouldFire(timeDelta: Float): HoldFire? {

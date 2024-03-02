@@ -1,4 +1,4 @@
-package com.genir.aitweaks.features.autofire.extensions
+package com.genir.aitweaks.utils.extensions
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI

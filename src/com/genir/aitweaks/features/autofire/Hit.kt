@@ -1,7 +1,7 @@
 package com.genir.aitweaks.features.autofire
 
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.features.autofire.extensions.isShip
+import com.genir.aitweaks.utils.extensions.isShip
 
 data class Hit(val target: CombatEntityAPI, val range: Float, val shieldHit: Boolean) {
     override fun toString(): String {
