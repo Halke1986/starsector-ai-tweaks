@@ -5,9 +5,9 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.STRIKE
-import com.genir.aitweaks.utils.distanceToOrigin
+import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.Target
 import com.genir.aitweaks.utils.extensions.*
-import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
@@ -17,7 +17,7 @@ class SelectTarget(
     private val weapon: WeaponAPI,
     private val current: CombatEntityAPI?,
     private val shipTarget: ShipAPI?,
-    private val params: Params,
+    private val params: BallisticParams,
 ) {
     val target: CombatEntityAPI? = when {
         Global.getCurrentState() == GameState.TITLE -> selectAsteroid()
@@ -97,30 +97,4 @@ class SelectTarget(
     }
 }
 
-fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: Params): Hit? =
-    closestEntityFinder(weapon.location, weapon.totalRange, shipGrid()) {
-        when {
-            it !is ShipAPI -> null
-            it.isFighter -> null
-            it == weapon.ship -> null
-            it.isAlive && weapon.ship.rootModule == it.rootModule -> null
 
-            it.owner == weapon.ship.owner -> analyzeAllyHit(weapon, it, params)
-            it.isPhased -> null
-            else -> analyzeHit(weapon, it, params)
-        }
-    }
-
-private fun closestEntityFinder(
-    location: Vector2f, radius: Float, grid: CollisionGridAPI, considerEntity: (CombatEntityAPI) -> Hit?
-): Hit? {
-    val entityIterator = grid.getCheckIterator(location, radius * 2.0f, radius * 2.0f)
-    val hits = entityIterator.asSequence().mapNotNull { (it as? CombatEntityAPI)?.let(considerEntity) }
-    return hits.minWithOrNull(compareBy { it.range })
-}
-
-private fun shipGrid(): CollisionGridAPI = Global.getCombatEngine().shipGrid
-
-private fun missileGrid(): CollisionGridAPI = Global.getCombatEngine().missileGrid
-
-private fun asteroidGrid(): CollisionGridAPI = Global.getCombatEngine().asteroidGrid

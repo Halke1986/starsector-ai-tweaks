@@ -5,12 +5,12 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.debugPlugin
-import com.genir.aitweaks.utils.ShipTargetTracker
+import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.Target
 import com.genir.aitweaks.utils.extensions.firingCycle
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.timeToAttack
 import com.genir.aitweaks.utils.extensions.totalRange
-import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -152,7 +152,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     /** get current weapon attack parameters */
-    private fun currentParams() = Params(getAccuracy(), weapon.timeToAttack)
+    private fun currentParams() = BallisticParams(getAccuracy(), weapon.timeToAttack)
 
     /**
      * getAccuracy returns current weapon accuracy.

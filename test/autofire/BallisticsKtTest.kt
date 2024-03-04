@@ -1,8 +1,7 @@
 package autofire
 
-import com.genir.aitweaks.features.autofire.*
-import com.genir.aitweaks.features.autofire.Target
-import com.genir.aitweaks.utils.Arc
+import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.Target
 import mocks.MockBoundsAPI
 import mocks.MockSegmentAPI
 import mocks.MockShipAPI
@@ -26,16 +25,16 @@ class BallisticsKtTest {
                 MockSegmentAPI(Vector2f(-12.8621025f, 7.619339f), Vector2f(-12.500004f, 12.5f)),
                 MockSegmentAPI(Vector2f(-12.500004f, 12.5f), Vector2f(4.0f, 13.0f)),
             ), "getSegments" to listOf(
-                MockSegmentAPI(Vector2f(1664.6791f, -462.06982f), Vector2f(1653.2975f, -447.25946f)),
-                MockSegmentAPI(Vector2f(1653.2975f, -447.25946f), Vector2f(1656.7758f, -447.32437f)),
-                MockSegmentAPI(Vector2f(1656.7758f, -447.32437f), Vector2f(1659.2784f, -453.31018f)),
-                MockSegmentAPI(Vector2f(1659.2784f, -453.31018f), Vector2f(1663.077f, -451.43152f)),
-                MockSegmentAPI(Vector2f(1663.077f, -451.43152f), Vector2f(1666.085f, -454.35114f)),
-                MockSegmentAPI(Vector2f(1666.085f, -454.35114f), Vector2f(1670.2001f, -450.5517f)),
-                MockSegmentAPI(Vector2f(1670.2001f, -450.5517f), Vector2f(1674.2451f, -447.17773f)),
-                MockSegmentAPI(Vector2f(1674.2451f, -447.17773f), Vector2f(1677.0763f, -451.16977f)), // HIT
-                MockSegmentAPI(Vector2f(1677.0763f, -451.16977f), Vector2f(1664.6791f, -462.06982f)),
-            )
+            MockSegmentAPI(Vector2f(1664.6791f, -462.06982f), Vector2f(1653.2975f, -447.25946f)),
+            MockSegmentAPI(Vector2f(1653.2975f, -447.25946f), Vector2f(1656.7758f, -447.32437f)),
+            MockSegmentAPI(Vector2f(1656.7758f, -447.32437f), Vector2f(1659.2784f, -453.31018f)),
+            MockSegmentAPI(Vector2f(1659.2784f, -453.31018f), Vector2f(1663.077f, -451.43152f)),
+            MockSegmentAPI(Vector2f(1663.077f, -451.43152f), Vector2f(1666.085f, -454.35114f)),
+            MockSegmentAPI(Vector2f(1666.085f, -454.35114f), Vector2f(1670.2001f, -450.5517f)),
+            MockSegmentAPI(Vector2f(1670.2001f, -450.5517f), Vector2f(1674.2451f, -447.17773f)),
+            MockSegmentAPI(Vector2f(1674.2451f, -447.17773f), Vector2f(1677.0763f, -451.16977f)), // HIT
+            MockSegmentAPI(Vector2f(1677.0763f, -451.16977f), Vector2f(1664.6791f, -462.06982f)),
+        )
         )
 
         val weapon = MockWeaponAPI(
@@ -53,7 +52,7 @@ class BallisticsKtTest {
             "getExactBounds" to bounds,
         )
 
-        val actual = willHitBounds(weapon, target, Params(1f, 0f))
+        val actual = willHitBounds(weapon, target, BallisticParams(1f, 0f))
         assertEquals(1340.9568f, actual)
     }
 
@@ -72,10 +71,10 @@ class BallisticsKtTest {
             radius = 3f,
         )
 
-        assertNull(intercept(weapon, target, Params(1f, 0f)))
-        assertNull(interceptArc(weapon, target, Params(1f, 0f)))
-        assertNull(closestHitRange(weapon, target, Params(1f, 0f)))
-        assertNull(willHitCircumference(weapon, target, Params(1f, 0f)))
+        assertNull(intercept(weapon, target, BallisticParams(1f, 0f)))
+        assertNull(interceptArc(weapon, target, BallisticParams(1f, 0f)))
+        assertNull(closestHitRange(weapon, target, BallisticParams(1f, 0f)))
+        assertNull(willHitCircumference(weapon, target, BallisticParams(1f, 0f)))
     }
 
     @Test
@@ -100,10 +99,10 @@ class BallisticsKtTest {
             radius = 30f,
         )
 
-        assertTrue(canTrack(weapon, target, Params(1f, 0f)))
-        assertNotNull(intercept(weapon, target, Params(1f, 0f)))
-        assertEquals(Arc(360f, 0f), interceptArc(weapon, target, Params(1f, 0f)))
-        assertEquals(0f, closestHitRange(weapon, target, Params(1f, 0f)))
-        assertNotNull(willHitCircumference(weapon, target, Params(1f, 0f)))
+        assertTrue(canTrack(weapon, target, BallisticParams(1f, 0f)))
+        assertNotNull(intercept(weapon, target, BallisticParams(1f, 0f)))
+        assertEquals(Arc(360f, 0f), interceptArc(weapon, target, BallisticParams(1f, 0f)))
+        assertEquals(0f, closestHitRange(weapon, target, BallisticParams(1f, 0f)))
+        assertNotNull(willHitCircumference(weapon, target, BallisticParams(1f, 0f)))
     }
 }

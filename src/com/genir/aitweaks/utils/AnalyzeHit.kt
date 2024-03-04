@@ -1,4 +1,4 @@
-package com.genir.aitweaks.features.autofire
+package com.genir.aitweaks.utils
 
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.utils.extensions.isShip
@@ -17,7 +17,7 @@ data class Hit(val target: CombatEntityAPI, val range: Float, val shieldHit: Boo
 }
 
 /** Analyzes the potential collision between projectile and target. Null if no collision. */
-fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, params: Params): Hit? {
+fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, params: BallisticParams): Hit? {
     // Simple circumference collision is enough for missiles and fighters.
     if (!target.isShip) return willHitCircumference(weapon, Target(target), params)?.let { Hit(target, it, false) }
 
@@ -28,7 +28,7 @@ fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, params: Params): Hit?
     return willHitBounds(weapon, target as ShipAPI, params)?.let { Hit(target, it, false) }
 }
 
-fun analyzeAllyHit(weapon: WeaponAPI, ally: ShipAPI, params: Params): Hit? = when {
+fun analyzeAllyHit(weapon: WeaponAPI, ally: ShipAPI, params: BallisticParams): Hit? = when {
     weapon.projectileCollisionClass == CollisionClass.PROJECTILE_FIGHTER -> null
     weapon.projectileCollisionClass == CollisionClass.RAY_FIGHTER -> null
     !willHitShieldCautious(weapon, ally, params) -> null
@@ -36,4 +36,4 @@ fun analyzeAllyHit(weapon: WeaponAPI, ally: ShipAPI, params: Params): Hit? = whe
 }
 
 /** Workaround for hulks retaining outdated ShieldAPI */
-fun hasShield(target: CombatEntityAPI): Boolean = target.isShip && !(target as ShipAPI).isHulk
+private fun hasShield(target: CombatEntityAPI): Boolean = target.isShip && !(target as ShipAPI).isHulk

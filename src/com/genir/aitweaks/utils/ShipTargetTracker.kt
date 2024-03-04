@@ -1,11 +1,9 @@
 package com.genir.aitweaks.utils
 
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.utils.extensions.hasEscortAssignment
 import com.genir.aitweaks.utils.extensions.isValidTarget
-import com.genir.aitweaks.utils.extensions.rootModule
+import com.genir.aitweaks.utils.extensions.trueShipTarget
 
 class ShipTargetTracker(private val ship: ShipAPI) {
     var target: ShipAPI? = null
@@ -31,11 +29,4 @@ class ShipTargetTracker(private val ship: ShipAPI) {
     }
 }
 
-private val ShipAPI.trueShipTarget: ShipAPI?
-    get() {
-        val ship = this.rootModule
-        val engine = Global.getCombatEngine()
-        val aiControl = ship != engine.playerShip || !engine.isUIAutopilotOn
-        return if (aiControl) ship.aiFlags.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET) as? ShipAPI
-        else ship.shipTarget
-    }
+

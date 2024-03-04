@@ -1,8 +1,17 @@
 package com.genir.aitweaks.features
 
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
+import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
+import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
+import com.fs.starfarer.api.impl.combat.LidarArrayStats
 import com.genir.aitweaks.debugPlugin
-import com.genir.aitweaks.utils.ShipTargetTracker
+import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.Target
+import com.genir.aitweaks.utils.extensions.frontFacing
+import com.genir.aitweaks.utils.extensions.isShip
+import com.genir.aitweaks.utils.extensions.isVastBulk
+import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 
 class LidarArrayAI : ShipSystemAIScript {
@@ -24,10 +33,88 @@ class LidarArrayAI : ShipSystemAIScript {
 
 class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystemAPI, private val flags: ShipwideAIFlags, private val engine: CombatEngineAPI) {
     private val targetTracker = ShipTargetTracker(ship)
+    private var currTarget: ShipAPI? = null
 
     fun advance() {
-        targetTracker.advance()
+        debugPlugin[0] = burstFluxRequired()
+        debugPlugin[1] = ship.maxFlux - ship.currFlux
+        debugPlugin[2] = ship.fluxTracker.timeToVent
+        debugPlugin[3] = system.cooldownRemaining
 
-        debugPlugin[0] = targetTracker.target?.toString() ?: "null"
+        flags.setFlag(AIFlags.DO_NOT_VENT)
+
+        if (!system.isActive) {
+            currTarget = targetTracker.target
+            if (shouldForceVent()) {
+                ship.fluxTracker.ventFlux()
+            } else if (shouldUseSystem()) {
+                ship.useSystem()
+            }
+        } else {
+            flags.setFlag(AIFlags.MANEUVER_TARGET, 1f, currTarget)
+        }
+    }
+
+    private fun shouldUseSystem(): Boolean {
+        // System can be used.
+        if (!canUseSystemThisFrame(ship)) return false
+
+        // Has valid target.
+        targetTracker.advance()
+        val target = targetTracker.target ?: return false
+        if (!target.isShip || (target.isFrigate && !target.isStationModule)) return false
+
+        // All weapons are on target.
+        return applyLidarRangeBonus { weaponsOnTarget(target) && weaponsNotBlocked() }
+    }
+
+    private fun shouldForceVent() = when {
+        burstFluxRequired() < ship.maxFlux - ship.currFlux -> false
+        ship.fluxTracker.fluxLevel < 0.2f -> false
+        else -> ship.fluxTracker.timeToVent >= system.cooldownRemaining
+    }
+
+    private fun weaponsOnTarget(target: ShipAPI): Boolean {
+        return getLidarWeapons().firstOrNull { !canTrack(it, Target(target), defaultBallisticParams(), it.range * 0.85f) } == null
+    }
+
+    private fun weaponsNotBlocked(): Boolean {
+        return getLidarWeapons().firstOrNull { isWeaponBlocked(it) } == null
+    }
+
+    private fun isWeaponBlocked(weapon: WeaponAPI): Boolean {
+        val hit = firstShipAlongLineOfFire(weapon, defaultBallisticParams())?.target
+        return when {
+            hit == null -> false
+            hit !is ShipAPI -> false
+            !hit.isAlive -> true
+            hit.isVastBulk -> true
+            hit.owner == weapon.ship.owner -> true
+            else -> false
+        }
+    }
+
+    private fun <T> applyLidarRangeBonus(f: () -> T): T {
+        val rangeBonus = LidarArrayStats.RANGE_BONUS - LidarArrayStats.PASSIVE_RANGE_BONUS
+
+        ship.mutableStats.ballisticWeaponRangeBonus.modifyPercent("aitweaks_lidar", rangeBonus)
+        ship.mutableStats.energyWeaponRangeBonus.modifyPercent("aitweaks_lidar", rangeBonus)
+
+        val result = f()
+
+        ship.mutableStats.ballisticWeaponRangeBonus.unmodifyPercent("aitweaks_lidar")
+        ship.mutableStats.energyWeaponRangeBonus.unmodifyPercent("aitweaks_lidar")
+
+        return result
+    }
+
+    private fun burstFluxRequired() = getLidarWeapons().fold(0f) { s, it -> s + weaponFluxRequired(it) }
+
+    private fun weaponFluxRequired(weapon: WeaponAPI): Float {
+        return weapon.derivedStats.fluxPerSecond * (1f + LidarArrayStats.ROF_BONUS) * system.chargeActiveDur
+    }
+
+    private fun getLidarWeapons(): List<WeaponAPI> = ship.allWeapons.filter {
+        it.slot.isHardpoint && it.frontFacing && (it.type == ENERGY || it.type == BALLISTIC) && !it.isPermanentlyDisabled
     }
 }

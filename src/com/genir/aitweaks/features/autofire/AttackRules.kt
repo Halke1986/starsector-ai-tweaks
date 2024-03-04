@@ -6,9 +6,8 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
+import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.*
-import com.genir.aitweaks.utils.firingCycle
-import com.genir.aitweaks.utils.shieldUptime
 import kotlin.math.min
 
 val fire = null
@@ -29,7 +28,7 @@ enum class HoldFire {
     CONSERVE_AMMO
 }
 
-class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private val params: Params) {
+class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private val params: BallisticParams) {
     val shouldHoldFire = avoidPhased() ?: conserveAmmo() ?: avoidWrongDamageType()
 
     private fun avoidPhased(): HoldFire? = when {
@@ -69,6 +68,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     /** Ensure projectile will not hit exposed hull. */
     private fun avoidExposedHull(): HoldFire? = when {
         !hit.target.isShip -> fire
+        weapon.ship.system.specAPI.id == "lidararray" && weapon.ship.system.isStateActive -> fire
         !hit.shieldHit -> HoldFire.AVOID_EXPOSED_HULL
         shieldUptime(hit.target.shield) < min(0.8f, firingCycle(weapon).duration) -> HoldFire.AVOID_EXPOSED_HULL // avoid shield flicker
         else -> fire
