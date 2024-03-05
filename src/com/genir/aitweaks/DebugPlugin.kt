@@ -18,7 +18,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var font: LazyFont? = null
     private var drawable: MutableMap<String, LazyFont.DrawableString> = TreeMap()
 
-    operator fun set(index: Any, value: Any) {
+    operator fun set(index: Any, value: Any?) {
         if (font == null) return
 
         drawable[index.toString()] = font!!.createText("$value", baseColor = Color.ORANGE)

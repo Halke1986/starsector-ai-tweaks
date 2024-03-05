@@ -10,6 +10,7 @@ import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.Target
 import com.genir.aitweaks.utils.extensions.frontFacing
 import com.genir.aitweaks.utils.extensions.isShip
+import com.genir.aitweaks.utils.extensions.isValidTarget
 import com.genir.aitweaks.utils.extensions.isVastBulk
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
@@ -21,9 +22,8 @@ class LidarArrayAI : ShipSystemAIScript {
         ship ?: return
         system ?: return
         flags ?: return
-        engine ?: return
 
-        this.ai = LidarArrayAIImpl(ship, system, flags, engine)
+        this.ai = LidarArrayAIImpl(ship, system, flags)
     }
 
     override fun advance(amount: Float, missileDangerDir: Vector2f?, collisionDangerDir: Vector2f?, target: ShipAPI?) {
@@ -31,27 +31,45 @@ class LidarArrayAI : ShipSystemAIScript {
     }
 }
 
-class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystemAPI, private val flags: ShipwideAIFlags, private val engine: CombatEngineAPI) {
+class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystemAPI, private val flags: ShipwideAIFlags) {
     private val targetTracker = ShipTargetTracker(ship)
-    private var currTarget: ShipAPI? = null
+
+    private var aiLock: LockAIOnTarget? = null
 
     fun advance() {
-        debugPlugin[0] = burstFluxRequired()
-        debugPlugin[1] = ship.maxFlux - ship.currFlux
-        debugPlugin[2] = ship.fluxTracker.timeToVent
-        debugPlugin[3] = system.cooldownRemaining
+        debugPlugin[1] = burstFluxRequired()
+        debugPlugin[2] = ship.maxFlux - ship.currFlux
+        debugPlugin[3] = ship.fluxTracker.timeToVent
+        debugPlugin[4] = system.cooldownRemaining
 
         flags.setFlag(AIFlags.DO_NOT_VENT)
 
-        if (!system.isActive) {
-            currTarget = targetTracker.target
+        debugPlugin[0] = ""
+
+        if (aiLock != null) {
+            debugPlugin[0] = "LOCKED"
+        }
+
+        if (!system.isOn) {
             if (shouldForceVent()) {
                 ship.fluxTracker.ventFlux()
             } else if (shouldUseSystem()) {
                 ship.useSystem()
             }
-        } else {
-            flags.setFlag(AIFlags.MANEUVER_TARGET, 1f, currTarget)
+        }
+
+        // Attack has started, lock the ship AI on target.
+        if (system.isOn && aiLock == null && targetTracker.target?.isValidTarget == true) {
+            aiLock = LockAIOnTarget(ship, targetTracker.target)
+        }
+
+        // Attack has ended, unlock the AI.
+        if (aiLock != null) {
+            aiLock!!.advance()
+            if (!aiLock!!.isLocked() || !system.isOn) {
+                aiLock!!.unlock()
+                aiLock = null
+            }
         }
     }
 
