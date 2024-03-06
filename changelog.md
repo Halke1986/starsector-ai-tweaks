@@ -1,3 +1,9 @@
+Version 1.4.3
+
+- Changed the default keybind for automatic omni shield toggle to "]" to avoid conflicts with vanilla functionality.
+- Added setting to enable/disable title screen fire.
+- Added alpha version of custom Lidar Array AI. The AI should make Invictus much more focused on killing enemies instead of wobbling around. Can be enabled by uncommenting lines in AITweaks/data/config/shipsystems/lidararray.system. 
+
 Version 1.4.2
 
 - Automated ships personality setting does not try to take over the control when a player is piloting the ship manually.
