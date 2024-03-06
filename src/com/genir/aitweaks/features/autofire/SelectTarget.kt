@@ -8,6 +8,7 @@ import com.fs.starfarer.api.combat.WeaponAPI.AIHints.STRIKE
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.Target
 import com.genir.aitweaks.utils.extensions.*
+import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
@@ -20,7 +21,7 @@ class SelectTarget(
     private val params: BallisticParams,
 ) {
     val target: CombatEntityAPI? = when {
-        Global.getCurrentState() == GameState.TITLE -> selectAsteroid()
+        Global.getCurrentState() == GameState.TITLE && LunaSettings.getBoolean("aitweaks", "aitweaks_title_screen_fire") == true -> selectAsteroid()
         weapon.isPD -> selectMissile() ?: selectFighter() ?: selectShip()
         weapon.hasAIHint(ANTI_FTR) -> selectShip(alsoTargetFighters)
         weapon.hasAIHint(STRIKE) -> selectShip()

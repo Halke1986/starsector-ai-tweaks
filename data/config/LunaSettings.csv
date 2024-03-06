@@ -1,3 +1,4 @@
-fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValue,maxValue,tab
-aitweaks_omni_shield_keybind,Omni Shields Toggle Keybind,Keycode,29,,
-aitweaks_ai_core_personality,Player Fleet AI Core Personality,Radio,None,"timid, cautious, steady, aggressive, reckless",
+fieldID,fieldName,fieldType,defaultValue,secondaryValue,,,fieldDescription,,,minValue,maxValue,tab
+aitweaks_omni_shield_keybind,Omni Shields Toggle Keybind,Keycode,27,,,,,,
+aitweaks_ai_core_personality,Player Fleet AI Core Personality,Radio,None,"timid, cautious, steady, aggressive, reckless",,,,,
+aitweaks_title_screen_fire,Enable Title Screen Fire,Boolean,true,,,,Should ships on the title screen fire at asteroids.,,
