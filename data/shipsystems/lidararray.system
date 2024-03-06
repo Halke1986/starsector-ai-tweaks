@@ -1,4 +1,4 @@
 {
-  "aiType": "CUSTOM",
-  "aiScript": "com.genir.aitweaks.features.LidarArrayAI"
+  #"aiType": "CUSTOM",
+  #"aiScript": "com.genir.aitweaks.features.LidarArrayAI"
 }
