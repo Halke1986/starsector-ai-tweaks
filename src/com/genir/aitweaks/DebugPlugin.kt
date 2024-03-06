@@ -16,12 +16,13 @@ var debugPlugin: DebugPlugin = DebugPlugin()
 // DebugPlugin is used to render debug information during combat.
 class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var font: LazyFont? = null
-    private var drawable: MutableMap<String, LazyFont.DrawableString> = TreeMap()
+    private var logs: MutableMap<String, LazyFont.DrawableString> = TreeMap()
 
     operator fun set(index: Any, value: Any?) {
         if (font == null) return
 
-        drawable[index.toString()] = font!!.createText("$value", baseColor = Color.ORANGE)
+        if (value == null) logs.remove("$index")
+        else logs["$index"] = font!!.createText("$value", baseColor = Color.ORANGE)
     }
 
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
@@ -37,8 +38,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     override fun renderInUICoords(viewport: ViewportAPI?) {
         super.renderInUICoords(viewport)
 
-        for ((i, v) in drawable.entries.withIndex()) {
-            v.value.draw(500f, 500f + (drawable.count() / 2 - i) * 16f)
+        for ((i, v) in logs.entries.withIndex()) {
+            v.value.draw(500f, 500f + (logs.count() / 2 - i) * 16f)
         }
     }
 

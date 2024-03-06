@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
-import com.genir.aitweaks.debugPlugin
+import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.Target
 import com.genir.aitweaks.utils.extensions.frontFacing
@@ -27,30 +27,25 @@ class LidarArrayAI : ShipSystemAIScript {
     }
 
     override fun advance(amount: Float, missileDangerDir: Vector2f?, collisionDangerDir: Vector2f?, target: ShipAPI?) {
-        ai?.advance()
+        ai?.advance(amount)
     }
 }
 
 class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystemAPI, private val flags: ShipwideAIFlags) {
     private val targetTracker = ShipTargetTracker(ship)
-
     private var aiLock: LockAIOnTarget? = null
+    private var advanceInterval = IntervalUtil(0.25F, 0.50F)
 
-    fun advance() {
-        debugPlugin[1] = burstFluxRequired()
-        debugPlugin[2] = ship.maxFlux - ship.currFlux
-        debugPlugin[3] = ship.fluxTracker.timeToVent
-        debugPlugin[4] = system.cooldownRemaining
+    fun advance(timeDelta: Float) {
+        advanceInterval.advance(timeDelta)
+        if (!advanceInterval.intervalElapsed()) return
 
         flags.setFlag(AIFlags.DO_NOT_VENT)
 
-        debugPlugin[0] = ""
-
-        if (aiLock != null) {
-            debugPlugin[0] = "LOCKED"
-        }
-
         if (!system.isOn) {
+            val minLidarRange = applyLidarRangeBonus { getLidarWeapons().minOf { w -> w.range } }
+            flags.setFlag(AIFlags.BACK_OFF_MIN_RANGE, 1.0f, minLidarRange * 0.85f)
+
             if (shouldForceVent()) {
                 ship.fluxTracker.ventFlux()
             } else if (shouldUseSystem()) {
@@ -60,7 +55,7 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
 
         // Attack has started, lock the ship AI on target.
         if (system.isOn && aiLock == null && targetTracker.target?.isValidTarget == true) {
-            aiLock = LockAIOnTarget(ship, targetTracker.target)
+            aiLock = LockAIOnTarget(ship, targetTracker.target, listOf(AIFlags.DO_NOT_BACK_OFF))
         }
 
         // Attack has ended, unlock the AI.
@@ -80,7 +75,7 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
         // Has valid target.
         targetTracker.advance()
         val target = targetTracker.target ?: return false
-        if (!target.isShip || (target.isFrigate && !target.isStationModule)) return false
+        if (!target.isShip || target.armorGrid.armorRating < 500) return false
 
         // All weapons are on target.
         return applyLidarRangeBonus { weaponsOnTarget(target) && weaponsNotBlocked() }
@@ -126,7 +121,9 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
         return result
     }
 
-    private fun burstFluxRequired() = getLidarWeapons().fold(0f) { s, it -> s + weaponFluxRequired(it) }
+    private fun burstFluxRequired(): Float {
+        return getLidarWeapons().fold(0f) { s, it -> s + weaponFluxRequired(it) }
+    }
 
     private fun weaponFluxRequired(weapon: WeaponAPI): Float {
         return weapon.derivedStats.fluxPerSecond * (1f + LidarArrayStats.ROF_BONUS) * system.chargeActiveDur

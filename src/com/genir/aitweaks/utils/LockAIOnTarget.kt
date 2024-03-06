@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
@@ -13,7 +14,7 @@ import com.fs.starfarer.combat.systems.G
 import org.lwjgl.util.vector.Vector2f
 
 /** Force ship AI to continuously strafe the given target. */
-class LockAIOnTarget(private val ship: ShipAPI, private val target: ShipAPI?) {
+class LockAIOnTarget(private val ship: ShipAPI, private val target: ShipAPI?, private val flags: List<AIFlags> = listOf()) {
     private var lockManeuver: StrafeTargetManeuverV2? = null
 
     init {
@@ -27,6 +28,7 @@ class LockAIOnTarget(private val ship: ShipAPI, private val target: ShipAPI?) {
                 val ai = ship.ai as BasicShipAI
                 lockManeuver = StrafeTargetManeuverV2(ship, target, badTarget, tilt, unknownFloat, ai.flockingAI, KeepTargetAI(ai), unknownBool)
                 ai.setManeuver(lockManeuver, 100f)
+                setFlags(true)
             }
         } catch (e: Exception) {
             Global.getLogger(this.javaClass).error(e)
@@ -49,15 +51,24 @@ class LockAIOnTarget(private val ship: ShipAPI, private val target: ShipAPI?) {
                 ai.setManeuver(lockManeuver, 100f)
             }
 
+            setFlags(true)
+
         } catch (e: Exception) {
             Global.getLogger(this.javaClass).error(e)
         }
     }
 
+    private fun setFlags(set: Boolean) {
+        flags.forEach { f -> ship.aiFlags.let { if (set) it.setFlag(f) else it.unsetFlag(f) } }
+    }
+
     /** Unlock the AI. Once unlock is called, the
      * LockAIOnTarget object cannot be reused. */
     fun unlock() {
-        if (lockManeuver != null) (ship.ai as? BasicShipAI)?.cancelCurrentManeuver()
+        if (lockManeuver == null) return
+
+        setFlags(false)
+        (ship.ai as? BasicShipAI)?.cancelCurrentManeuver()
         lockManeuver = null
     }
 
