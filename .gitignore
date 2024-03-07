@@ -9,3 +9,4 @@ out/
 
 *.zip
 deploy.sh
+campaign.xml
