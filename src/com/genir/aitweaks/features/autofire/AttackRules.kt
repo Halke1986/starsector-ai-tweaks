@@ -68,7 +68,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     /** Ensure projectile will not hit exposed hull. */
     private fun avoidExposedHull(): HoldFire? = when {
         !hit.target.isShip -> fire
-        weapon.ship.system.specAPI.id == "lidararray" && weapon.ship.system.isStateActive -> fire
+        weapon.ship.system?.let { it.specAPI.id == "lidararray" && it.isOn } == true -> fire
         !hit.shieldHit -> HoldFire.AVOID_EXPOSED_HULL
         shieldUptime(hit.target.shield) < min(0.8f, firingCycle(weapon).duration) -> HoldFire.AVOID_EXPOSED_HULL // avoid shield flicker
         else -> fire
