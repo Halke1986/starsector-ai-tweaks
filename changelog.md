@@ -1,3 +1,5 @@
+- AI Tweaks can now be removed from the game, without breaking saves. 
+
 Version 1.4.3
 
 - Changed the default keybind for automatic omni shield toggle to "]" to avoid conflicts with vanilla functionality.
