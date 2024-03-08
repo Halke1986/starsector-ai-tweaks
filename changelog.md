@@ -1,5 +1,9 @@
 - AI Tweaks can now be removed from the game, without breaking saves. 
 
+Version 1.4.4
+
+- Fixed null pointer exception in autofire AI logic.
+
 Version 1.4.3
 
 - Changed the default keybind for automatic omni shield toggle to "]" to avoid conflicts with vanilla functionality.
