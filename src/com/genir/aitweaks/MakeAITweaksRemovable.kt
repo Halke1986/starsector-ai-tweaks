@@ -3,10 +3,8 @@ package com.genir.aitweaks
 import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.FactionAPI
-import com.fs.starfarer.api.campaign.econ.MarketAPI
 import com.fs.starfarer.api.campaign.econ.SubmarketAPI
 import com.fs.starfarer.api.fleet.FleetMemberAPI
-import com.fs.starfarer.api.util.Misc
 import com.fs.starfarer.campaign.CampaignEngine
 import com.fs.starfarer.loading.specs.HullVariantSpec
 
@@ -30,27 +28,23 @@ open class MakeAITweaksRemovable : BaseModPlugin() {
     }
 
     private fun traverseState(process: (HasHullMod) -> Unit) {
+        val locations = Global.getSector().allLocations
+        val submarkets = locations.flatMap { it.allEntities }.mapNotNull { it.market }.flatMap { it.submarketsCopy }
+
+        // Global variants.
         CampaignEngine.getInstance().savedVariantData.variantMap.forEach { process(Variant(it)) }
 
-        // All active fleets.
-        Global.getSector().allLocations.forEach { loc ->
-            loc.fleets.forEach { fleet ->
-                fleet.fleetData.membersListCopy.forEach { process(Ship(it)) }
-            }
-        }
+        // Factions.
+        Global.getSector().allFactions.forEach { process(Faction(it)) }
 
-        Global.getSector().allFactions.forEach { faction ->
-            process(Faction(faction))
+        // Ships in active fleets.
+        locations.flatMap { it.fleets }.flatMap { it.fleetData.membersListCopy }.forEach { process(Ship(it)) }
 
-            Misc.getFactionMarkets(faction).forEach { market ->
-                market.submarketsCopy.forEach { submarket ->
-                    process(SubMarketFaction(faction, market, submarket))
-                    submarket.cargo?.mothballedShips?.membersListCopy?.forEach { member ->
-                        process(SubMarketShip(member, faction, market, submarket))
-                    }
-                }
-            }
-        }
+        // Ships in storage.
+        submarkets.mapNotNull { it.cargo?.mothballedShips }.flatMap { it.membersListCopy }.forEach { process(Ship(it)) }
+
+        // Submarkets.
+        submarkets.forEach { process(Submarket(it)) }
     }
 
     private fun processBeforeSave(e: HasHullMod) {
@@ -97,12 +91,7 @@ private class Faction(val faction: FactionAPI) : HasHullMod {
     override fun hullMods(): MutableCollection<String> = faction.knownHullMods
 }
 
-private class SubMarketFaction(val faction: FactionAPI, val market: MarketAPI, val submarket: SubmarketAPI) : HasHullMod {
-    override fun key() = "submarket faction ${faction.id} ${market.id} ${submarket.name}"
+private class Submarket(val submarket: SubmarketAPI) : HasHullMod {
+    override fun key() = "submarket ${submarket.market.primaryEntity.id} ${submarket.nameOneLine}"
     override fun hullMods(): MutableCollection<String> = submarket.faction.knownHullMods
-}
-
-private class SubMarketShip(val member: FleetMemberAPI, val faction: FactionAPI, val market: MarketAPI, val submarket: SubmarketAPI) : HasHullMod {
-    override fun key() = "submarket ship ${faction.id} ${market.id} ${submarket.name} ${member.id}"
-    override fun hullMods(): MutableCollection<String> = member.variant.hullMods
 }
