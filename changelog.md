@@ -1,3 +1,5 @@
+Version 1.4.5
+
 - AI Tweaks can be removed from the game without breaking saves.
 - Changed the way weapon behavior is configured, to not interfere with game localisation. 
 
