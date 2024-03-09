@@ -13,7 +13,5 @@ class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
 
         return PluginPick(ai, PickPriority.MOD_GENERAL)
     }
-
-
 }
 

@@ -25,7 +25,7 @@ val WeaponAPI.conserveAmmo: Boolean
     get() = this.usesAmmo() || this.isBurstBeam
 
 val WeaponAPI.hasAmmoToSpare: Boolean
-    get() = !this.usesAmmo() || this.ammoTracker.let { it.reloadSize > 0 && (it.ammo + it.reloadSize >= it.maxAmmo) }
+    get() = !this.usesAmmo() || this.ammoTracker.let { it.reloadSize > 0 && (it.ammo + it.reloadSize > it.maxAmmo) }
 
 val WeaponAPI.hasBestTargetLeading: Boolean
     get() = this.isPD && !this.hasAIHint(WeaponAPI.AIHints.STRIKE) && ship.mutableStats.dynamic.getValue(
