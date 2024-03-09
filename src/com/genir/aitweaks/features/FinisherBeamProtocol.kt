@@ -23,7 +23,7 @@ class FinisherBeamProtocol : BaseHullMod() {
 
 fun WeaponAPI.isFinisherBeam() = when {
     !this.spec.isBeam && !this.spec.isBurstBeam -> false
-    else -> this.spec.primaryRoleStr == "Finisher Beam"
+    else -> this.spec.hasTag("aitweaks_finisher_beam")
 }
 
 fun setFinisherBeamProtocol(weapon: WeaponAPI) {

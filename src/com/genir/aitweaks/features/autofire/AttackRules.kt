@@ -29,7 +29,7 @@ enum class HoldFire {
 }
 
 class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private val params: BallisticParams) {
-    val shouldHoldFire = avoidPhased() ?: conserveAmmo() ?: avoidWrongDamageType()
+    val shouldHoldFire = avoidPhased() ?: conservePDAmmo() ?: avoidWrongDamageType()
 
     private fun avoidPhased(): HoldFire? = when {
         (hit.target as? ShipAPI)?.isPhased != true -> fire
@@ -41,11 +41,12 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
         else -> HoldFire.AVOID_PHASED
     }
 
-    private fun conserveAmmo(): HoldFire? = when {
+    /** Do not waste PD ammo on ships, and non-PD ammo on fighters and missiles. */
+    private fun conservePDAmmo(): HoldFire? = when {
         weapon.isPD != hit.target.isShip -> fire
         weapon.hasAIHint(ANTI_FTR) && (hit.target as? ShipAPI)?.isFighter == true -> fire
         !weapon.usesAmmo() -> fire
-        weapon.ammoTracker.maxAmmo - weapon.ammoTracker.ammo >= weapon.ammoTracker.reloadSize -> HoldFire.CONSERVE_AMMO
+        !weapon.hasAmmoToSpare -> HoldFire.CONSERVE_AMMO
         else -> fire
     }
 
@@ -69,6 +70,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     private fun avoidExposedHull(): HoldFire? = when {
         !hit.target.isShip -> fire
         weapon.ship.system?.let { it.specAPI.id == "lidararray" && it.isOn } == true -> fire
+        // weapon.hasAmmoToSpare -> fire
         !hit.shieldHit -> HoldFire.AVOID_EXPOSED_HULL
         shieldUptime(hit.target.shield) < min(0.8f, firingCycle(weapon).duration) -> HoldFire.AVOID_EXPOSED_HULL // avoid shield flicker
         else -> fire

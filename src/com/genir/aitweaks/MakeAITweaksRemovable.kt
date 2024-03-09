@@ -8,7 +8,7 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.fs.starfarer.campaign.CampaignEngine
 import com.fs.starfarer.loading.specs.HullVariantSpec
 
-const val fbeam = "fnisherbeamprotocol"
+const val fbeam = "fnisherbeamprotocol" // TODO rename "aitweaks_finisherbeamprotocol"
 const val keyPrefix = "\$aitweaks_finisherbeamprotocol"
 
 open class MakeAITweaksRemovable : BaseModPlugin() {
