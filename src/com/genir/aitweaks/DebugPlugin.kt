@@ -2,19 +2,14 @@ package com.genir.aitweaks
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipCommand
-import com.fs.starfarer.api.combat.ShipCommand.TURN_LEFT
-import com.fs.starfarer.api.combat.ShipCommand.TURN_RIGHT
+import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.utils.setHeading
 import com.genir.aitweaks.utils.times
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
-import org.lazywizard.lazylib.ext.isZeroVector
-import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -55,18 +50,26 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private fun debug(dt: Float) {
         val ship = Global.getCombatEngine().ships.firstOrNull { it.variant.hasHullMod(HullMods.AUTOMATED) } ?: return
 
+        debugPlugin[STRAFE_RIGHT] = null
+        debugPlugin[STRAFE_LEFT] = null
+        debugPlugin[TURN_LEFT] = null
+        debugPlugin[TURN_RIGHT] = null
+        debugPlugin[ACCELERATE] = null
+        debugPlugin[ACCELERATE_BACKWARDS] = null
+
         (ship as Ship).ai = null
 
-        if (!ship.velocity.isZeroVector()) {
-            ship.giveCommand(ShipCommand.DECELERATE, null, 0)
-            return
-        }
+//        if (!ship.velocity.isZeroVector()) {
+//            ship.giveCommand(ShipCommand.DECELERATE, null, 0)
+//            return
+//        }
 
         val target = Vector2f(Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()), Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat())
 
         )
 
-        setFacing(ship, target)
+//        setFacing(ship, target)
+        setHeading(ship, target)
     }
 
     private fun speedupAsteroids() {
@@ -78,24 +81,3 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
     }
 }
-
-fun setFacing(ship: ShipAPI, target: Vector2f) {
-    val tgtFacing = VectorUtils.getFacing(target - ship.location)
-    val d = MathUtils.getShortestRotation(ship.facing, tgtFacing)
-    val v = ship.angularVelocity
-    val a = ship.turnAcceleration
-
-    val cmd = if (d > 0) setFacing2(d, v, a, TURN_LEFT, TURN_RIGHT)
-    else setFacing2(-d, -v, a, TURN_RIGHT, TURN_LEFT)
-
-    cmd?.let { ship.giveCommand(it, null, 0) }
-}
-
-fun setFacing2(d: Float, v: Float, a: Float, accel: ShipCommand, decel: ShipCommand) = when {
-    v < 0 -> accel
-    (v * v) / (a * 2f) > d -> decel
-    d < 0.75f -> null
-    else -> accel
-}
-
-fun angleToStop(v: Float, a: Float) = (v * v) / (a * 2f)
