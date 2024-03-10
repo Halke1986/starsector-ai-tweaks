@@ -1,3 +1,7 @@
+Version 1.4.6
+
+- Fixed bug that prevented weapons from shooting over armor modules from the Knights of Ludd mod. 
+
 Version 1.4.5
 
 - AI Tweaks can be removed from the game without breaking saves.
