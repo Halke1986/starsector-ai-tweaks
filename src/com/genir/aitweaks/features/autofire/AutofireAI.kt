@@ -4,7 +4,6 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.debugPlugin
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.Target
 import com.genir.aitweaks.utils.extensions.firingCycle
@@ -181,11 +180,5 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         return rotateAroundPivot(intercept, weapon.ship.location, angleToTarget)
-    }
-
-    private fun debug(side: Int?, weaponID: String?, vararg values: Any?) {
-        if (side != null && weapon.ship.owner != side) return
-        if (weaponID != null && weapon.spec.weaponId != weaponID) return
-        debugPlugin[weapon.id] = values.fold(weapon.spec.weaponId) { s, it -> "$s $it" }
     }
 }

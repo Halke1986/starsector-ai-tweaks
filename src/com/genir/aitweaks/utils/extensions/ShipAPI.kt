@@ -12,7 +12,7 @@ val ShipAPI.AIPersonality: String
     get() = (this.ai as? BasicShipAI)?.config?.personalityOverride ?: (this as Ship).personality
 
 val ShipAPI.rootModule: ShipAPI
-    get() = this.parentStation ?: this
+    get() = if (this.stationSlot != null) this.parentStation else this
 
 val ShipAPI.isVastBulk: Boolean
     get() = this.hullSpec.isBuiltInMod("vastbulk")

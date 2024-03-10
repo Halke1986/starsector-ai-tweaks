@@ -23,7 +23,7 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: BallisticParams): Hit? =
             it !is ShipAPI -> null
             it.isFighter -> null
             it == weapon.ship -> null
-            it.isAlive && weapon.ship.rootModule == it.rootModule -> null
+            weapon.ship.rootModule == it.rootModule -> null
 
             it.owner == weapon.ship.owner -> analyzeAllyHit(weapon, it, params)
             it.isPhased -> null

@@ -44,8 +44,11 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug() {
-//        Global.getCombatEngine().ships.filter { it.owner == 0 && it.variant.hasHullMod(HullMods.AUTOMATED) }.forEach { ship ->
-//            debugPlugin[ship] = "${ship.hullSpec.hullId} ${ship.AIPersonality}"
+//        val ships = Global.getCombatEngine().ships
+//
+//        for (i in ships.indices) {
+//            val it = ships[i]
+//            debugPlugin[i] = "${it.hullSpec.hullId} ${it.stationSlot} ${it.owner}"
 //        }
     }
 
