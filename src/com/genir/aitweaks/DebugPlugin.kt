@@ -50,12 +50,12 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private fun debug(dt: Float) {
         val ship = Global.getCombatEngine().ships.firstOrNull { it.variant.hasHullMod(HullMods.AUTOMATED) } ?: return
 
-        debugPlugin[STRAFE_RIGHT] = null
-        debugPlugin[STRAFE_LEFT] = null
-        debugPlugin[TURN_LEFT] = null
-        debugPlugin[TURN_RIGHT] = null
-        debugPlugin[ACCELERATE] = null
-        debugPlugin[ACCELERATE_BACKWARDS] = null
+        debugPlugin[STRAFE_RIGHT] = " "
+        debugPlugin[STRAFE_LEFT] = " "
+        debugPlugin[TURN_LEFT] = " "
+        debugPlugin[TURN_RIGHT] = " "
+        debugPlugin[ACCELERATE] = " "
+        debugPlugin[ACCELERATE_BACKWARDS] = " "
 
         (ship as Ship).ai = null
 
