@@ -2,25 +2,33 @@ package com.genir.aitweaks
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
+import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.utils.DtTracker
 import com.genir.aitweaks.utils.setHeading
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
+import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
+import org.magiclib.subsystems.drones.PIDController
 import java.awt.Color
 import java.util.*
 
 var debugPlugin: DebugPlugin = DebugPlugin()
 
+val pid = PIDController(10f, 3f, 1f, 1f)
+
 // DebugPlugin is used to render debug information during combat.
 class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var font: LazyFont? = null
     private var logs: MutableMap<String, LazyFont.DrawableString> = TreeMap()
+
+    var dtTracker = DtTracker(2f)
 
     operator fun set(index: Any, value: Any?) {
         if (font == null) return
@@ -35,7 +43,10 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             debugPlugin = this
         }
 
+        dtTracker.advance(amount)
+
         debug(amount)
+
 //        speedupAsteroids()
     }
 
@@ -47,7 +58,11 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
     }
 
+    var stopped = false
+
     private fun debug(dt: Float) {
+//        if (Global.getCombatEngine().isPaused) return
+
         val ship = Global.getCombatEngine().ships.firstOrNull { it.variant.hasHullMod(HullMods.AUTOMATED) } ?: return
 
         debugPlugin[STRAFE_RIGHT] = " "
@@ -59,17 +74,23 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
         (ship as Ship).ai = null
 
-//        if (!ship.velocity.isZeroVector()) {
-//            ship.giveCommand(ShipCommand.DECELERATE, null, 0)
-//            return
-//        }
+        if (!ship.velocity.isZeroVector()) {
+            if (!stopped) {
+                ship.giveCommand(ShipCommand.DECELERATE, null, 0)
+                return
+            }
+        } else {
+            stopped = true
+        }
 
         val target = Vector2f(Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()), Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat())
 
         )
 
+        pid.move(target, ship)
+
 //        setFacing(ship, target)
-        setHeading(ship, target)
+       // setHeading(ship, target, dt)
     }
 
     private fun speedupAsteroids() {
