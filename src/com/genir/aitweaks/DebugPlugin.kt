@@ -9,6 +9,7 @@ import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.utils.DtTracker
+import com.genir.aitweaks.utils.setFacing
 import com.genir.aitweaks.utils.setHeading
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
@@ -84,14 +85,16 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             stopped = true
         }
 
-        val target = Vector2f(Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()), Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat())
+        val position = Vector2f(Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()), Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat())
 
         )
 
 //        pid.move(target, ship)
 
-//        setFacing(ship, target)
-        setHeading(ship, target, dt)
+        val target = Global.getCombatEngine().playerShip?.location ?: return
+
+        setFacing(ship, target)
+        setHeading(ship, position)
     }
 
     private fun speedupAsteroids() {

@@ -28,3 +28,13 @@ val ShipAPI.trueShipTarget: ShipAPI?
         return if (aiControl) ship.aiFlags.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET) as? ShipAPI
         else ship.shipTarget
     }
+
+val ShipAPI.strafeAcceleration: Float
+    get() = this.acceleration * when (this.hullSize) {
+        ShipAPI.HullSize.FIGHTER -> 0.75f
+        ShipAPI.HullSize.FRIGATE -> 1.0f
+        ShipAPI.HullSize.DESTROYER -> 0.75f
+        ShipAPI.HullSize.CRUISER -> 0.5f
+        ShipAPI.HullSize.CAPITAL_SHIP -> 0.25f
+        else -> 1.0f
+    }
