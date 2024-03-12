@@ -71,6 +71,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         debugPlugin[TURN_RIGHT] = " "
         debugPlugin[ACCELERATE] = " "
         debugPlugin[ACCELERATE_BACKWARDS] = " "
+        debugPlugin[DECELERATE] = " "
 
         (ship as Ship).ai = null
 

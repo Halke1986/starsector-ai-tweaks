@@ -11,6 +11,7 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.sqrt
 
 fun setFacing(ship: ShipAPI, target: Vector2f) {
@@ -32,48 +33,12 @@ fun setFacing2(d: Float, v: Float, a: Float, accel: ShipCommand, decel: ShipComm
     else -> accel                   // Turn towards target
 }
 
-var vPrev = Vector2f(0f, 0f)
-var expd = 0f
-
-var vMax = 0f
-
 fun setHeading(ship: ShipAPI, target: Vector2f, dtUnused: Float) {
-    val dt = debugPlugin.dtTracker.dt()
-
     val d = rotate(target - ship.location, -ship.facing + 90f)
     val e = d.normalise(null) * ship.maxSpeed
     val v = rotate(ship.velocity, -ship.facing + 90f)
 
-    val a = ship.strafeAcceleration
-//    expd = abs(((a / 60) * (abs(v.x) / a)) + (v.x * v.x) / (a * 2f))
-//    expd = abs((abs(v.x) / 30f) + (v.x * v.x) / (a * 2f))
-
-//    val brk = if ((v.x * v.x) / (a * 2f) > abs(d.x)) "brk" else "  "
-
-    val s = abs(d.x) - abs(v.x) * dt
-    val t = sqrt(2f * s / ship.strafeAcceleration)
-    val k = ship.strafeAcceleration * dt * 0.5f
-    vMax = t * ship.strafeAcceleration - k
-
-
-//    expd = brkDist + abs(v.x) * dt
-//
-    debugPlugin[0] = "v ${v.x}"
-    debugPlugin[1] = "m $vMax"
-    debugPlugin[2] = "t $t"
-    debugPlugin[3] = "d ${d.x}"
-//    debugPlugin[1] = "f $f"
-//    debugPlugin[2] = "b $brkDist"
-//    debugPlugin[4] = "dt ${debugPlugin.dtTracker.dt()}"
-//
-//
-//    if (!Global.getCombatEngine().isPaused) {
-//        Global.getLogger(Helm::class.java).info("${v.x} ${d.x} $brkDist $dt")
-//    }
-
-
-//    debugPlugin[3] = "a ${ship.strafeAcceleration / 60}"
-//    debugPlugin[4] = "s ${ship.velocity.length()}"
+    debugPlugin[0] = ship.velocity.length()
 
     if (abs(d.x) < 1f && !v.isZeroVector()) {
         giveCommand(ship, DECELERATE)
@@ -84,27 +49,31 @@ fun setHeading(ship: ShipAPI, target: Vector2f, dtUnused: Float) {
         return
     }
 
-//    setHeading2(ship, d.y, e.y, v.y, ship.acceleration, ship.deceleration, ACCELERATE, ACCELERATE_BACKWARDS)
-//    setHeading2(ship, d.x, e.x, v.x, ship.strafeAcceleration, ship.strafeAcceleration, STRAFE_RIGHT, STRAFE_LEFT)
-    setHeading2(ship, d.x, e.x, v.x, ship.strafeAcceleration * dt, ship.strafeAcceleration * dt, STRAFE_RIGHT, STRAFE_LEFT)
-
-    vPrev = v
+    setHeading2(ship, d.y, e.y, v.y, ship.acceleration, ship.deceleration, ACCELERATE, ACCELERATE_BACKWARDS)
+    setHeading2(ship, d.x, e.x, v.x, ship.strafeAcceleration, ship.strafeAcceleration, STRAFE_RIGHT, STRAFE_LEFT)
 }
 
 fun setHeading2(ship: ShipAPI, d: Float, e: Float, v: Float, ap: Float, an: Float, positive: ShipCommand, negative: ShipCommand) {
-    val cmd = if (d > 0) setHeading3(d, e, v, ap, positive, negative)
-    else setHeading3(-d, -e, -v, an, negative, positive)
+    val cmd = if (d > 0) setHeading3(d, e, v, ap, an, positive, negative)
+    else setHeading3(-d, -e, -v, an, ap, negative, positive)
 
     cmd?.let { giveCommand(ship, it) }
 }
 
-fun setHeading3(d: Float, e: Float, v: Float, a: Float, accel: ShipCommand, decel: ShipCommand) = when {
-    v < 0 -> accel                  // Is heading away from target
-    v > vMax -> decel
-    d < 0.75f -> null               // Is already on target
-    v + a <= vMax -> accel
-//    v > e -> decel
-    else -> null                   // Head towards target
+fun setHeading3(d: Float, e: Float, v: Float, a: Float, ad: Float, accel: ShipCommand, decel: ShipCommand): ShipCommand? {
+    val dt = debugPlugin.dtTracker.dt()
+    val s = d - v * dt
+    val t = sqrt(2f * s / ad)
+    val k = ad * dt / 2f
+    val vMax = min(t * ad - k, e)
+
+    return when {
+        v < 0 -> accel                  // Is heading away from target
+        v > vMax -> decel
+        d < 0.75f -> null               // Is already on target
+        v + a * dt <= vMax -> accel
+        else -> null                   // Head towards target
+    }
 }
 
 val ShipAPI.strafeAcceleration: Float
@@ -119,7 +88,7 @@ val ShipAPI.strafeAcceleration: Float
 
 
 fun giveCommand(ship: ShipAPI, cmd: ShipCommand) {
-//    debugPlugin[cmd] = cmd
+    debugPlugin[cmd] = cmd
     ship.giveCommand(cmd, null, 0)
 }
 
@@ -139,19 +108,4 @@ class DtTracker(val span: Float) {
     }
 
     fun dt() = tSum / dts.count()
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
