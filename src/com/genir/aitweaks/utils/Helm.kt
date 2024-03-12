@@ -1,6 +1,5 @@
 package com.genir.aitweaks.utils
 
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipAPI.HullSize
 import com.fs.starfarer.api.combat.ShipCommand
@@ -12,8 +11,7 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
-import kotlin.math.floor
-
+import kotlin.math.sqrt
 
 fun setFacing(ship: ShipAPI, target: Vector2f) {
     val tgtFacing = VectorUtils.getFacing(target - ship.location)
@@ -35,8 +33,9 @@ fun setFacing2(d: Float, v: Float, a: Float, accel: ShipCommand, decel: ShipComm
 }
 
 var vPrev = Vector2f(0f, 0f)
-
 var expd = 0f
+
+var vMax = 0f
 
 fun setHeading(ship: ShipAPI, target: Vector2f, dtUnused: Float) {
     val dt = debugPlugin.dtTracker.dt()
@@ -51,26 +50,26 @@ fun setHeading(ship: ShipAPI, target: Vector2f, dtUnused: Float) {
 
 //    val brk = if ((v.x * v.x) / (a * 2f) > abs(d.x)) "brk" else "  "
 
+    val s = abs(d.x) - abs(v.x) * dt
+    val t = sqrt(2f * s / ship.strafeAcceleration)
+    val k = ship.strafeAcceleration * dt * 0.5f
+    vMax = t * ship.strafeAcceleration - k
 
-    val dv = a * dt
-    val f = floor(abs(v.x) / dv)
 
-    val base = (f + 1) * (f + 1) - 1
-    val rem = ((abs(v.x) / dv) - f) * f
-    val brkDist = (base + rem) * a * dt * dt * 0.5f
-
-    expd = brkDist + abs(v.x) * dt
-
+//    expd = brkDist + abs(v.x) * dt
+//
     debugPlugin[0] = "v ${v.x}"
-//    debugPlugin[1] = "f $f"
-    debugPlugin[2] = "b $brkDist"
+    debugPlugin[1] = "m $vMax"
+    debugPlugin[2] = "t $t"
     debugPlugin[3] = "d ${d.x}"
-    debugPlugin[4] = "dt ${debugPlugin.dtTracker.dt()}"
-
-
-    if (!Global.getCombatEngine().isPaused) {
-        Global.getLogger(Helm::class.java).info("${v.x} ${d.x} $brkDist $dt")
-    }
+//    debugPlugin[1] = "f $f"
+//    debugPlugin[2] = "b $brkDist"
+//    debugPlugin[4] = "dt ${debugPlugin.dtTracker.dt()}"
+//
+//
+//    if (!Global.getCombatEngine().isPaused) {
+//        Global.getLogger(Helm::class.java).info("${v.x} ${d.x} $brkDist $dt")
+//    }
 
 
 //    debugPlugin[3] = "a ${ship.strafeAcceleration / 60}"
@@ -87,25 +86,25 @@ fun setHeading(ship: ShipAPI, target: Vector2f, dtUnused: Float) {
 
 //    setHeading2(ship, d.y, e.y, v.y, ship.acceleration, ship.deceleration, ACCELERATE, ACCELERATE_BACKWARDS)
 //    setHeading2(ship, d.x, e.x, v.x, ship.strafeAcceleration, ship.strafeAcceleration, STRAFE_RIGHT, STRAFE_LEFT)
-    setHeading2(ship, d.x, e.x, v.x, ship.strafeAcceleration, ship.strafeAcceleration, STRAFE_RIGHT, STRAFE_LEFT)
+    setHeading2(ship, d.x, e.x, v.x, ship.strafeAcceleration * dt, ship.strafeAcceleration * dt, STRAFE_RIGHT, STRAFE_LEFT)
 
     vPrev = v
 }
 
 fun setHeading2(ship: ShipAPI, d: Float, e: Float, v: Float, ap: Float, an: Float, positive: ShipCommand, negative: ShipCommand) {
-    val cmd = if (d > 0) setHeading3(d, e, v, an, positive, negative)
-    else setHeading3(-d, -e, -v, ap, negative, positive)
+    val cmd = if (d > 0) setHeading3(d, e, v, ap, positive, negative)
+    else setHeading3(-d, -e, -v, an, negative, positive)
 
     cmd?.let { giveCommand(ship, it) }
 }
 
 fun setHeading3(d: Float, e: Float, v: Float, a: Float, accel: ShipCommand, decel: ShipCommand) = when {
     v < 0 -> accel                  // Is heading away from target
-//    (v * v) / (a * 2f) > d -> decel     // Will overshot target
-    expd > d -> decel     // Will overshot target
+    v > vMax -> decel
     d < 0.75f -> null               // Is already on target
+    v + a <= vMax -> accel
 //    v > e -> decel
-    else -> accel                   // Head towards target
+    else -> null                   // Head towards target
 }
 
 val ShipAPI.strafeAcceleration: Float

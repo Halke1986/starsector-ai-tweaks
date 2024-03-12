@@ -87,10 +87,10 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
         )
 
-        pid.move(target, ship)
+//        pid.move(target, ship)
 
 //        setFacing(ship, target)
-       // setHeading(ship, target, dt)
+        setHeading(ship, target, dt)
     }
 
     private fun speedupAsteroids() {
