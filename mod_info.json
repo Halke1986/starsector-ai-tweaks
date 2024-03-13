@@ -3,7 +3,7 @@
   "name": "AI Tweaks",
   "author": "Genir",
   "utility": "true",
-  "version": "1.4.5",
+  "version": "1.4.7-rc1",
   "description": "A mod providing various ship AI improvements.",
   "gameVersion": "0.97a-RC6",
   "jars": [

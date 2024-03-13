@@ -1,41 +1,38 @@
 package com.genir.aitweaks
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.BaseCombatLayeredRenderingPlugin
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.ShipCommand
-import com.fs.starfarer.api.combat.ShipCommand.*
+import com.fs.starfarer.api.combat.CombatEngineLayers
 import com.fs.starfarer.api.combat.ViewportAPI
-import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.utils.DtTracker
-import com.genir.aitweaks.utils.setFacing
-import com.genir.aitweaks.utils.setHeading
+import com.fs.starfarer.api.util.Misc
+import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
-import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ui.LazyFont
+import org.lwjgl.opengl.GL11
 import org.lwjgl.util.vector.Vector2f
-import org.magiclib.subsystems.drones.PIDController
 import java.awt.Color
 import java.util.*
 
-var debugPlugin: DebugPlugin = DebugPlugin()
+private const val ID = "com.genir.aitweaks.DebugPlugin"
 
-val pid = PIDController(10f, 3f, 1f, 1f)
+var debugPlugin: DebugPlugin = DebugPlugin()
+var debugVertices: MutableList<Line> = mutableListOf()
+
+data class Line(val a: Vector2f, val b: Vector2f, val color: Color)
 
 // DebugPlugin is used to render debug information during combat.
 class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var font: LazyFont? = null
     private var logs: MutableMap<String, LazyFont.DrawableString> = TreeMap()
 
-    var dtTracker = DtTracker(2f)
-
     operator fun set(index: Any, value: Any?) {
         if (font == null) return
 
         if (value == null) logs.remove("$index")
-        else logs["$index"] = font!!.createText("${if (index is String) index else ""} $value", baseColor = Color.ORANGE)
+        else logs["$index"] = font!!.createText("$value", baseColor = Color.ORANGE)
     }
 
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
@@ -44,10 +41,14 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             debugPlugin = this
         }
 
-        dtTracker.advance(amount)
+        // Initialize debug renderer.
+        val engine = Global.getCombatEngine()
+        if (!engine.customData.containsKey(ID)) {
+            engine.addLayeredRenderingPlugin(RenderDebugLines())
+            engine.customData[ID] = true
+        }
 
-        debug(amount)
-
+        debug()
 //        speedupAsteroids()
     }
 
@@ -59,42 +60,13 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
     }
 
-    var stopped = false
-
-    private fun debug(dt: Float) {
-//        if (Global.getCombatEngine().isPaused) return
-
-        val ship = Global.getCombatEngine().ships.firstOrNull { it.variant.hasHullMod(HullMods.AUTOMATED) } ?: return
-
-        debugPlugin[STRAFE_RIGHT] = " "
-        debugPlugin[STRAFE_LEFT] = " "
-        debugPlugin[TURN_LEFT] = " "
-        debugPlugin[TURN_RIGHT] = " "
-        debugPlugin[ACCELERATE] = " "
-        debugPlugin[ACCELERATE_BACKWARDS] = " "
-        debugPlugin[DECELERATE] = " "
-
-        (ship as Ship).ai = null
-
-        if (!ship.velocity.isZeroVector()) {
-            if (!stopped) {
-                ship.giveCommand(ShipCommand.DECELERATE, null, 0)
-                return
-            }
-        } else {
-            stopped = true
-        }
-
-        val position = Vector2f(Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()), Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat())
-
-        )
-
-//        pid.move(target, ship)
-
-        val target = Global.getCombatEngine().playerShip?.location ?: return
-
-        setFacing(ship, target)
-        setHeading(ship, position)
+    private fun debug() {
+//        val ships = Global.getCombatEngine().ships
+//
+//        for (i in ships.indices) {
+//            val it = ships[i]
+//            debugPlugin[i] = "${it.hullSpec.hullId} ${it.stationSlot} ${it.owner}"
+//        }
     }
 
     private fun speedupAsteroids() {
@@ -104,5 +76,45 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             a.mass = 0f
             a.velocity.set(VectorUtils.getDirectionalVector(Vector2f(), a.velocity) * 1200f)
         }
+    }
+
+    inner class RenderDebugLines : BaseCombatLayeredRenderingPlugin() {
+        private fun getVertices(): List<Line> {
+            val ships = Global.getCombatEngine().ships.filter { it != Global.getCombatEngine().playerShip }
+            val ais = ships.flatMap { it.weaponGroupsCopy }.flatMap { it.aiPlugins }.filterIsInstance<AutofireAI>()
+            val hardpoints = ais.filter { it.weapon.slot.isHardpoint && it.target != null }
+
+            return hardpoints.map { Line(it.weapon.location, it.target!!, Color.RED) }
+        }
+
+        override fun render(layer: CombatEngineLayers?, viewport: ViewportAPI?) {
+            if (debugVertices.isEmpty()) {
+                return
+            }
+
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+
+            GL11.glDisable(GL11.GL_TEXTURE_2D)
+            GL11.glEnable(GL11.GL_BLEND)
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+
+            GL11.glLineWidth(2f / Global.getCombatEngine().viewport.viewMult)
+
+            debugVertices.forEach {
+                Misc.setColor(it.color)
+                GL11.glBegin(GL11.GL_LINE_STRIP);
+                GL11.glVertex2f(it.a.x, it.a.y);
+                GL11.glVertex2f(it.b.x, it.b.y);
+                GL11.glEnd();
+            }
+
+            GL11.glPopAttrib()
+
+            debugVertices.clear()
+        }
+
+        override fun getRenderRadius(): Float = 1e6f
+
+        override fun getActiveLayers(): EnumSet<CombatEngineLayers> = EnumSet.of(CombatEngineLayers.JUST_BELOW_WIDGETS)
     }
 }
