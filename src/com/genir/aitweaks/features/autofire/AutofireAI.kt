@@ -151,7 +151,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     /** get current weapon attack parameters */
-    private fun currentParams() = BallisticParams(getAccuracy(), weapon.timeToAttack)
+    private fun currentParams() = BallisticParams(getAccuracy(), if (weapon.slot.isTurret) weapon.timeToAttack else 0f)
 
     /**
      * getAccuracy returns current weapon accuracy.
