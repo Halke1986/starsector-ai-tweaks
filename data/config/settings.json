@@ -1,6 +1,6 @@
 {
   "plugins": {
-    "com.genir.aitweaks.DebugPlugin": "com.genir.aitweaks.DebugPlugin",
+    "com.genir.aitweaks.debug.DebugPlugin": "com.genir.aitweaks.debug.DebugPlugin",
     "com.genir.aitweaks.features.AutoOmniShields": "com.genir.aitweaks.features.AutoOmniShields",
     "com.genir.aitweaks.features.AICorePersonality": "com.genir.aitweaks.features.AICorePersonality"
   }

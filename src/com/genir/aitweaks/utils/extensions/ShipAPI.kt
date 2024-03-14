@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatAssignmentType
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
+import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 
@@ -38,3 +39,6 @@ val ShipAPI.strafeAcceleration: Float
         ShipAPI.HullSize.CAPITAL_SHIP -> 0.25f
         else -> 1.0f
     }
+
+val ShipAPI.isAutomated: Boolean
+    get() = this.variant.hasHullMod(HullMods.AUTOMATED)

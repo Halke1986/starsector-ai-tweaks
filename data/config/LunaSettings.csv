@@ -2,3 +2,4 @@ fieldID,fieldName,fieldType,defaultValue,secondaryValue,,,fieldDescription,,,min
 aitweaks_omni_shield_keybind,Omni Shields Toggle Keybind,Keycode,27,,,,,,
 aitweaks_ai_core_personality,Player Fleet AI Core Personality,Radio,None,"timid, cautious, steady, aggressive, reckless",,,,,
 aitweaks_title_screen_fire,Enable Title Screen Fire,Boolean,true,,,,Should ships on the title screen fire at asteroids.,,
+aitweaks_debug_weapon_target,Draw Weapon Debug Lines,Boolean,false,,,,"Draws debug lines between each autofire weapon and its target, taking lead into account. Lines for PD weapons are yellow. Works only for player ship.",,,,,Debug

@@ -3,9 +3,9 @@ package com.genir.aitweaks.utils
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
-import com.genir.aitweaks.Line
-import com.genir.aitweaks.debugPlugin
-import com.genir.aitweaks.debugVertices
+import com.genir.aitweaks.debug.Line
+import com.genir.aitweaks.debug.debugPlugin
+import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.utils.extensions.strafeAcceleration
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils

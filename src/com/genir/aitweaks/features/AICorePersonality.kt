@@ -3,11 +3,11 @@ package com.genir.aitweaks.features
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAIConfig
-import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.utils.extensions.AIPersonality
+import com.genir.aitweaks.utils.extensions.isAutomated
 import lunalib.lunaSettings.LunaSettings
 
 /** Overriding AI core captains personality. The override is done
@@ -23,7 +23,7 @@ class AICorePersonality : BaseEveryFrameCombatPlugin() {
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
         val shipsToUpdate = Global.getCombatEngine().ships.filter {
-            it.owner == 0 && it.ai != null && it.variant.hasHullMod(HullMods.AUTOMATED) && it.AIPersonality != personalityPreset
+            it.owner == 0 && it.ai != null && it.isAutomated && it.AIPersonality != personalityPreset
         }
 
         shipsToUpdate.forEach {
