@@ -1,22 +1,17 @@
-package com.genir.aitweaks
+package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.BaseCombatLayeredRenderingPlugin
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.CombatEngineLayers
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.api.util.Misc
-import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ui.LazyFont
-import org.lwjgl.opengl.GL11
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
 
-const val ID = "com.genir.aitweaks.DebugPlugin"
+const val ID = "com.genir.aitweaks.debug.DebugPlugin"
 
 var debugPlugin: DebugPlugin = DebugPlugin()
 
@@ -41,7 +36,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         // Initialize debug renderer.
         val engine = Global.getCombatEngine()
         if (!engine.customData.containsKey(ID)) {
-//            engine.addLayeredRenderingPlugin(RenderDebugLines())
+            engine.addLayeredRenderingPlugin(RenderLines())
             engine.customData[ID] = true
         }
 
@@ -73,46 +68,5 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             a.mass = 0f
             a.velocity.set(VectorUtils.getDirectionalVector(Vector2f(), a.velocity) * 1200f)
         }
-    }
-
-    inner class RenderDebugLines : BaseCombatLayeredRenderingPlugin() {
-        inner class Line(val a: Vector2f, val b: Vector2f, val color: Color)
-
-        private fun getVertices(): List<Line> {
-            val ships = Global.getCombatEngine().ships.filter { it.owner == 0 }
-            val ais = ships.flatMap { it.weaponGroupsCopy }.flatMap { it.aiPlugins }.filterIsInstance<AutofireAI>()
-            val hardpoints = ais.filter { it.weapon.slot.isHardpoint && it.target != null }
-
-            return hardpoints.map { Line(it.weapon.location, it.target!!, Color.RED) }
-        }
-
-        override fun render(layer: CombatEngineLayers?, viewport: ViewportAPI?) {
-            val lines = getVertices()
-            if (lines.isEmpty()) {
-                return
-            }
-
-            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-
-            GL11.glDisable(GL11.GL_TEXTURE_2D)
-            GL11.glEnable(GL11.GL_BLEND)
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-
-            GL11.glLineWidth(2f / Global.getCombatEngine().viewport.viewMult)
-
-            lines.forEach {
-                Misc.setColor(it.color)
-                GL11.glBegin(GL11.GL_LINE_STRIP);
-                GL11.glVertex2f(it.a.x, it.a.y);
-                GL11.glVertex2f(it.b.x, it.b.y);
-                GL11.glEnd();
-            }
-
-            GL11.glPopAttrib()
-        }
-
-        override fun getRenderRadius(): Float = 1e6f
-
-        override fun getActiveLayers(): EnumSet<CombatEngineLayers> = EnumSet.of(CombatEngineLayers.JUST_BELOW_WIDGETS)
     }
 }

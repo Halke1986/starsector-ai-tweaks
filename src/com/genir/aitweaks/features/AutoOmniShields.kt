@@ -26,11 +26,13 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
         // Initialize omni shield plugin.
         if (!engine.customData.containsKey(ID)) {
             engine.addLayeredRenderingPlugin(RendererAutoShieldIndicator())
-            keybind = LunaSettings.getInt("aitweaks", "aitweaks_omni_shield_keybind")
             engine.customData[ID] = true
         }
 
-        if (keybind == null) return
+        // Load keybind.
+        if (keybind == null) {
+            keybind = LunaSettings.getInt("aitweaks", "aitweaks_omni_shield_keybind") ?: return
+        }
 
         // Player ship has changed.
         if (engine.playerShip != prevPlayerShip) {

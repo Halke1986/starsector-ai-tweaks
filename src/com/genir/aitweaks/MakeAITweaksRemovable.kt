@@ -67,7 +67,6 @@ open class MakeAITweaksRemovable : BaseModPlugin() {
         ).flatten()
     }
 
-
     private fun FleetMemberAPI.moduleVariants(): Map<String, ShipVariantAPI> {
         return this.variant.stationModules.mapValues { this.variant.getModuleVariant(it.key) }
     }
