@@ -16,6 +16,7 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import kotlin.math.min
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 class Controller {
     fun facing(ship: ShipAPI, target: Vector2f, dt: Float) {
@@ -27,18 +28,44 @@ class Controller {
         ship.move(selectDir(r, 0f, ship.angularVelocity, a, a, dt), TURN_LEFT, TURN_RIGHT)
     }
 
+    fun heading2(ship: ShipAPI, target: Vector2f, dt: Float) {
+        val r = -ship.facing + 90f
+        val d = rotate(target - ship.location, r)
+        val v = rotate(ship.velocity, r)
+
+        val v2 = d / d.length() * ship.maxSpeed
+        val e = v2 - v
+
+        val s = ship.strafeAcceleration * dt
+        val a = ship.acceleration * dt
+        val b = ship.deceleration * dt
+
+        val absAccel = listOf(e.y / a, -e.y / b, -e.x / s, e.x / s).map { if (it < 1f) 0f else it }
+        val maxAccel = absAccel.maxOrNull()!!
+        val accel = absAccel.map { it / maxAccel }
+
+        debugPlugin[0] = "a ${accel[0]}"
+        debugPlugin[1] = "d ${accel[1]}"
+        debugPlugin[2] = "l ${accel[2]}"
+        debugPlugin[3] = "r ${accel[3]}"
+
+        if (Random.nextFloat() < accel[0]) ship.move(true, ACCELERATE, DECELERATE)
+        if (Random.nextFloat() < accel[1]) ship.move(true, ACCELERATE_BACKWARDS, DECELERATE)
+        if (Random.nextFloat() < accel[2]) ship.move(true, STRAFE_LEFT, DECELERATE)
+        if (Random.nextFloat() < accel[3]) ship.move(true, STRAFE_RIGHT, DECELERATE)
+    }
+
     fun heading(ship: ShipAPI, target: Vector2f, dt: Float) {
         val d = rotate(target - ship.location, -ship.facing + 90f)
         val e = d.normalise(null) * ship.maxSpeed
         val v = rotate(ship.velocity, -ship.facing + 90f)
 
         debugVertices.add(Line(ship.location, ship.location + rotate(e, ship.facing - 90f), Color.YELLOW))
-        debugVertices.add(Line(ship.location, ship.location + rotate(e-v, ship.facing - 90f), Color.GREEN))
+        debugVertices.add(Line(ship.location, ship.location + rotate(e - v, ship.facing - 90f), Color.GREEN))
 
-        debugPlugin[0] = e.x
-        debugPlugin[1] = e.y
-        debugPlugin[2] = v.x
-        debugPlugin[3] = v.y
+        debugPlugin[0] = ship.acceleration
+        debugPlugin[1] = ship.deceleration
+        debugPlugin[2] = ship.strafeAcceleration
 
         if (d.length() >= 1f) {
             val s = ship.strafeAcceleration

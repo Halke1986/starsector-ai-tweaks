@@ -96,7 +96,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
         val con = Controller()
         con.facing(ship, position, dt)
-        con.heading(ship, position, dt)
+//        con.heading(ship, position, dt)
+        con.heading2(ship, position, dt)
     }
 
     private fun speedupAsteroids() {
