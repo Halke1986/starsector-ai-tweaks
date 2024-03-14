@@ -151,7 +151,12 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     /** get current weapon attack parameters */
-    private fun currentParams() = BallisticParams(getAccuracy(), if (weapon.slot.isTurret) weapon.timeToAttack else 0f)
+    private fun currentParams() = BallisticParams(
+        getAccuracy(),
+        // Provide weapon attack delay time only for turrets. It's not required for hardpoints,
+        // since the ship rotating to face the target will compensate for the delay.
+        if (weapon.slot.isTurret) weapon.timeToAttack else 0f,
+    )
 
     /**
      * getAccuracy returns current weapon accuracy.

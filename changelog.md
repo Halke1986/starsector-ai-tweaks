@@ -1,3 +1,6 @@
+- Fixed regression in hardpoint weapon aiming.
+- Fixed unhandled case of cleanup when AI Tweaks is removed from the game - station modules with Finisher Beam Protocol hullmod. 
+
 Version 1.4.6
 
 - Fixed bug that prevented weapons from shooting over armor modules from the Knights of Ludd mod. 
