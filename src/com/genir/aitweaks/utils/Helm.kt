@@ -27,8 +27,21 @@ class Controller {
         ship.move(selectDir(r, 0f, ship.angularVelocity, a, a, dt), TURN_LEFT, TURN_RIGHT)
     }
 
+    fun facing2(ship: ShipAPI, target: Vector2f, dt: Float) {
+        if ((target - ship.location).length() < 1f) return
+        val tgtFacing = VectorUtils.getFacing(target - ship.location)
+
+        val r = MathUtils.getShortestRotation(ship.facing, tgtFacing)
+        val a = ship.turnAcceleration * dt * dt
+        val w = ship.angularVelocity * dt
+
+        if (selectDir4(+r, +w, 1f, a, a)) ship.move2(TURN_LEFT)
+        if (selectDir4(-r, -w, 1f, a, a)) ship.move2(TURN_RIGHT)
+    }
+
     fun heading3(ship: ShipAPI, target: Vector2f, dt: Float) {
-        val r = -ship.facing + 90f
+        val w = ship.angularVelocity * dt
+        val r = -(ship.facing + w) + 90f
         val d = rotate(target - ship.location, r)
         val v = rotate(ship.velocity, r) * dt
 
@@ -47,35 +60,26 @@ class Controller {
 //        debugVertices.add(Line(ship.location, ship.location + rotate(e - v, ship.facing - 90f), Color.GREEN))
 
         if (d.length() >= 1f) {
-            ship.move(selectDir3(d.y, v.y, f[0], f[1], a, b), ACCELERATE, ACCELERATE_BACKWARDS)
-            ship.move(selectDir3(d.x, v.x, f[2], f[3], s, s), STRAFE_RIGHT, STRAFE_LEFT)
+            if (selectDir4(+d.y, +v.y, f[0], a, b)) ship.move2(ACCELERATE)
+            if (selectDir4(-d.y, -v.y, f[1], b, a)) ship.move2(ACCELERATE_BACKWARDS)
+            if (selectDir4(-d.x, -v.x, f[3], s, s)) ship.move2(STRAFE_LEFT)
+            if (selectDir4(+d.x, +v.x, f[2], s, s)) ship.move2(STRAFE_RIGHT)
         } else if (!v.isZeroVector()) ship.giveCommand(DECELERATE, null, 0)
     }
 
-    private fun selectDir3(d: Float, v: Float, fp: Float, fn: Float, ap: Float, an: Float): Boolean? {
-        return if (d > 0) selectDir3B(d, v, fp, ap, an)
-        else selectDir3B(-d, -v, fn, an, ap)?.let { !it }
+    private fun selectDir4(d: Float, v: Float, f: Float, ap: Float, an: Float) = when {
+        d < 0 && v < 0 && vMax(-d, -v, ap) < -v -> true // decelerate
+        d < 0 -> false
+        v + ap > vMax(d, v, an) -> false
+        f >= 1f -> true
+        Random.nextFloat() < f -> true
+        else -> false
     }
 
-    private fun selectDir3B(d: Float, v: Float, f: Float, ap: Float, an: Float): Boolean? {
+    private fun vMax(d: Float, v: Float, a: Float): Float {
         val s = d - v
-        val t = sqrt(2f * s / an)
-        val k = an / 2f
-        val vMax = t * an - k
-
-        return when {
-            v > vMax -> false
-            v + ap > vMax -> null
-            f >= 1f -> true
-            Random.nextFloat() < f -> true
-            else -> null
-        }
-    }
-
-    private fun vMax(d: Float, v: Float, a: Float, dt: Float): Float {
-        val s = d - v * dt
         val t = sqrt(2f * s / a)
-        val k = a * dt / 2f
+        val k = a / 2f
         return t * a - k
     }
 
@@ -101,6 +105,10 @@ class Controller {
         if (dir == null) return
         val cmd = if (dir) positive else negative
 
+        this.move2(cmd)
+    }
+
+    private fun ShipAPI.move2(cmd: ShipCommand) {
         when (cmd) {
             ACCELERATE -> Vector2f(0f, this.acceleration)
             ACCELERATE_BACKWARDS -> Vector2f(0f, -this.deceleration)
