@@ -16,8 +16,7 @@ import kotlin.random.Random
 class Controller {
     fun heading(ship: ShipAPI, target: Vector2f, dt: Float) {
         if ((target - ship.location).length() < 1f) {
-            if (!ship.velocity.isZeroVector())
-                ship.giveCommand(DECELERATE, null, 0)
+            if (!ship.velocity.isZeroVector()) ship.move(DECELERATE)
             return
         }
 
@@ -39,20 +38,20 @@ class Controller {
         val v2 = d / d.length() * (ship.maxSpeed * dt)
         val e = v2 - v
 
-        // Calculate proportional thrust required to achieve
-        // expected velocity change.
-        val absAccel = listOf(e.y / a, -e.y / b, e.x / s, -e.x / s).map { if (it > 1f) it else 0f }
+        // Calculate proportional thrust required
+        // to achieve the expected velocity change.
+        val absAccel = listOf(e.y / a, -e.y / b, -e.x / s, e.x / s).map { if (it > 1f) it else 0f }
         val maxAccel = absAccel.maxOrNull()!!
         val f = absAccel.map { if (maxAccel != 0f) it / maxAccel else 0f }.toMutableList()
 
-        // Apply forward trust continuously if heading
+        // Apply forward trust continuously if heading is
         // within ~1deg towards target, for visual effect.
         if (d.y > 50f * abs(d.x)) f[0] = 1f
 
         if (shouldAccelerate(+d.y, +v.y, f[0], a, b)) ship.move(ACCELERATE)
         if (shouldAccelerate(-d.y, -v.y, f[1], b, a)) ship.move(ACCELERATE_BACKWARDS)
-        if (shouldAccelerate(-d.x, -v.x, f[3], s, s)) ship.move(STRAFE_LEFT)
-        if (shouldAccelerate(+d.x, +v.x, f[2], s, s)) ship.move(STRAFE_RIGHT)
+        if (shouldAccelerate(-d.x, -v.x, f[2], s, s)) ship.move(STRAFE_LEFT)
+        if (shouldAccelerate(+d.x, +v.x, f[3], s, s)) ship.move(STRAFE_RIGHT)
     }
 
     fun facing(ship: ShipAPI, target: Vector2f, dt: Float) {
@@ -69,7 +68,7 @@ class Controller {
 
     private fun shouldAccelerate(d: Float, v: Float, f: Float, ap: Float, an: Float) = when {
         d < 0 && v < 0 && vMax(-d, -v, ap) < -v -> true // decelerate to avoid overshooting target
-        d < 0 -> false
+        d < 0 || f == 0f -> false
         v + ap > vMax(d, v, an) -> false // accelerate only if it will not cause overshooting
         f >= 1f -> true
         Random.nextFloat() < f -> true // apply proportional thrust
@@ -84,17 +83,5 @@ class Controller {
         return t * a - k
     }
 
-    private fun ShipAPI.move(cmd: ShipCommand) {
-//        when (cmd) {
-//            ACCELERATE -> Vector2f(0f, this.acceleration)
-//            ACCELERATE_BACKWARDS -> Vector2f(0f, -this.deceleration)
-//            STRAFE_RIGHT -> Vector2f(this.strafeAcceleration, 0f)
-//            STRAFE_LEFT -> Vector2f(-this.strafeAcceleration, 0f)
-//            else -> null
-//        }?.let {
-//            val l = Line(this.location, this.location + rotate(it.scale(1f / 3f) as Vector2f, this.facing - 90f), Color.BLUE)
-//            debugVertices.add(l)
-//        }
-        this.giveCommand(cmd, null, 0)
-    }
+    private fun ShipAPI.move(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
 }
