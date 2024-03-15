@@ -76,12 +76,12 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //        pid.move(position, ship)
 //        pid.rotate(VectorUtils.getFacing(position - ship.location), ship)
 
-//        val target = Global.getCombatEngine().playerShip?.location ?: return
+        val target = Global.getCombatEngine().playerShip?.location ?: return
 
         val con = Controller()
-//        con.facing(ship, position, dt)
+        con.facing(ship, target, dt)
 //        con.heading(ship, position, dt)
-        con.heading2(ship, position, dt)
+        con.heading3(ship, position, dt)
 
     }
 

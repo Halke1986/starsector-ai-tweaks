@@ -28,6 +28,74 @@ class Controller {
         ship.move(selectDir(r, 0f, ship.angularVelocity, a, a, dt), TURN_LEFT, TURN_RIGHT)
     }
 
+    fun heading3(ship: ShipAPI, target: Vector2f, dt: Float) {
+        val r = -ship.facing + 90f
+        val d = rotate(target - ship.location, r)
+        val v = rotate(ship.velocity, r) * dt
+
+        val v2 = d / d.length() * (ship.maxSpeed * dt)
+        val e = v2 - v
+
+        val s = ship.strafeAcceleration * dt * dt
+        val a = ship.acceleration * dt * dt
+        val b = ship.deceleration * dt * dt
+
+        val absAccel = listOf(e.y / a, -e.y / b, e.x / s, -e.x / s)
+        val maxAccel = absAccel.maxOrNull()!!
+        val f = absAccel.map { it / maxAccel }
+
+//        debugPlugin[0] = v
+//        debugPlugin[1] = e
+
+//        debugVertices.add(Line(ship.location, ship.location + rotate(e, -r) / dt, Color.YELLOW))
+//        debugVertices.add(Line(ship.location, ship.location + rotate(e - v, ship.facing - 90f), Color.GREEN))
+
+        if (d.length() >= 1f) {
+
+            ship.move(selectDir3(d.y, e.y, v.y, f[0], f[1], a, b), ACCELERATE, ACCELERATE_BACKWARDS)
+            ship.move(selectDir3(d.x, e.x, v.x, f[2], f[3], s, s), STRAFE_RIGHT, STRAFE_LEFT)
+        } else if (!v.isZeroVector()) ship.giveCommand(DECELERATE, null, 0)
+    }
+
+    private fun selectDir3(d: Float, e: Float, v: Float, fp: Float, fn: Float, ap: Float, an: Float): Boolean? {
+        return if (d > 0) selectDir3B(d, e, v, fp, ap, an)
+        else selectDir3B(-d, -e, -v, fn, an, ap)?.let { !it }
+    }
+
+    private fun selectDir3B(d: Float, e: Float, v: Float, f: Float, ap: Float, an: Float): Boolean? {
+        val s = d - v
+        val t = sqrt(2f * s / an)
+        val k = an / 2f
+        val vMax = t * an - k
+
+//        debugPlugin[4] = "s $s"
+//        debugPlugin[1] = "ap $ap"
+//        debugPlugin[2] = "v $v"
+//        debugPlugin[3] = "e $e"
+
+//        debugPlugin[4] = "s $s"
+//        debugPlugin[5] = "t $t"
+//        debugPlugin[6] = "k $k"
+//        debugPlugin[7] = "m $vMax"
+
+//        return when {
+//            v > vMax -> false
+//            v + ap <= vMax && e > ap -> true
+//            else -> null
+//        }
+
+//        debugPlugin[0] = f
+
+        return when {
+            v > vMax -> false
+            v + ap > vMax -> null
+//            f <= 0f -> null
+            f >= 1f -> true
+            Random.nextFloat() < f -> true
+            else -> null
+        }
+    }
+
     fun heading2(ship: ShipAPI, target: Vector2f, dt: Float) {
         if ((target - ship.location).length() < 1f) {
             if (!ship.velocity.isZeroVector()) ship.giveCommand(DECELERATE, null, 0)
@@ -40,26 +108,8 @@ class Controller {
         val v = rotate(ship.velocity, r)
 
         var v2 = d / d.length() * ship.maxSpeed
-//
-//
-//
-//        debugPlugin[4] = if (v.y > vMaxa) (vMaxa / v.y) else ""
-//        if (v.y > vMaxa) v2 *= (vMaxa / v.y)
-//
-//        debugPlugin[5] = if (-v.y > vMaxb) (vMaxb / -v.y) else ""
-//        if (-v.y > vMaxb) v2 *= (vMaxb / -v.y)
-//
-//        debugPlugin[6] = if (-v.x > vMaxl) (vMaxl / -v.x) else ""
-//        if (-v.x > vMaxl) v2 *= (vMaxl / -v.x)
-//
-//        debugPlugin[7] = if (v.x > vMaxr) (vMaxr / v.x) else ""
-//        if (v.x > vMaxr) v2 *= (vMaxr / v.x)
-
 
         val e = v2 - v
-//        debugVertices.add(Line(ship.location, ship.location + rotate(v2, -r), Color.YELLOW))
-//        debugVertices.add(Line(ship.location, ship.location + rotate(e, -r), Color.CYAN))
-
 
         val s = ship.strafeAcceleration * dt
         val a = ship.acceleration * dt
@@ -69,25 +119,15 @@ class Controller {
         val maxAccel = absAccel.maxOrNull()!!
         val accel = absAccel.map { it / maxAccel }
 
-//        debugPlugin[0] = "a ${shouldDecel(d.y, v.y, ship.acceleration, dt)} ${vMax(d.y, v.y, ship.acceleration, dt)} ${d.y} ${v.y}"
-//        debugPlugin[1] = "d ${shouldDecel(-d.y, -v.y, ship.deceleration, dt)} ${vMax(-d.y, -v.y, ship.deceleration, dt)}  ${-d.y} ${-v.y}"
-//        debugPlugin[2] = "l ${shouldDecel(-d.x, -v.x, ship.strafeAcceleration, dt)} ${vMax(-d.x, -v.x, ship.strafeAcceleration, dt)}  ${-d.x} ${-v.x}"
-//        debugPlugin[3] = "r ${shouldDecel(d.x, v.x, ship.strafeAcceleration, dt)} ${vMax(d.x, v.x, ship.strafeAcceleration, dt)} ${d.x} ${v.x}"
-
-        debugPlugin[0] = "a ${accel[0]}"
-        debugPlugin[1] = "d ${accel[1]}"
-        debugPlugin[2] = "l ${accel[2]}"
-        debugPlugin[3] = "r ${accel[3]}"
-
         val da = shouldDecel(d.y, v.y, ship.deceleration, dt)
         val db = shouldDecel(-d.y, -v.y, ship.acceleration, dt)
         val dl = shouldDecel(-d.x, -v.x, ship.strafeAcceleration, dt)
         val dr = shouldDecel(d.x, v.x, ship.strafeAcceleration, dt)
 //
-        if (!da && (db || Random.nextFloat() < accel[0])) ship.move(true, ACCELERATE, DECELERATE)
-        if (!db && (da || Random.nextFloat() < accel[1])) ship.move(true, ACCELERATE_BACKWARDS, DECELERATE)
-        if (!dl && (dr || Random.nextFloat() < accel[2])) ship.move(true, STRAFE_LEFT, DECELERATE)
-        if (!dr && (dl || Random.nextFloat() < accel[3])) ship.move(true, STRAFE_RIGHT, DECELERATE)
+        if (!da && (db || 0 < accel[0])) ship.move(true, ACCELERATE, DECELERATE)
+        if (!db && (da || 0 < accel[1])) ship.move(true, ACCELERATE_BACKWARDS, DECELERATE)
+        if (!dl && (dr || 0 < accel[2])) ship.move(true, STRAFE_LEFT, DECELERATE)
+        if (!dr && (dl || 0 < accel[3])) ship.move(true, STRAFE_RIGHT, DECELERATE)
     }
 
     private fun shouldDecel(d: Float, v: Float, a: Float, dt: Float) = vMax(d, v, a, dt) < v
@@ -121,11 +161,11 @@ class Controller {
     }
 
     private fun selectDir(d: Float, e: Float, v: Float, ap: Float, an: Float, dt: Float): Boolean? {
-        return if (d > 0) selectDir2(d, e, v, ap, an, dt)
-        else selectDir2(-d, -e, -v, an, ap, dt)?.let { !it }
+        return if (d > 0) selectDirB(d, e, v, ap, an, dt)
+        else selectDirB(-d, -e, -v, an, ap, dt)?.let { !it }
     }
 
-    private fun selectDir2(d: Float, e: Float, v: Float, a: Float, ad: Float, dt: Float): Boolean? {
+    private fun selectDirB(d: Float, e: Float, v: Float, a: Float, ad: Float, dt: Float): Boolean? {
         val s = d - v * dt
         val t = sqrt(2f * s / ad)
         val k = ad * dt / 2f
