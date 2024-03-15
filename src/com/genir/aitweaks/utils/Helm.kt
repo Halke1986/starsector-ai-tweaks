@@ -29,12 +29,37 @@ class Controller {
     }
 
     fun heading2(ship: ShipAPI, target: Vector2f, dt: Float) {
+        if ((target - ship.location).length() < 1f) {
+            if (!ship.velocity.isZeroVector()) ship.giveCommand(DECELERATE, null, 0)
+            return
+        }
+
+
         val r = -ship.facing + 90f
         val d = rotate(target - ship.location, r)
         val v = rotate(ship.velocity, r)
 
-        val v2 = d / d.length() * ship.maxSpeed
+        var v2 = d / d.length() * ship.maxSpeed
+//
+//
+//
+//        debugPlugin[4] = if (v.y > vMaxa) (vMaxa / v.y) else ""
+//        if (v.y > vMaxa) v2 *= (vMaxa / v.y)
+//
+//        debugPlugin[5] = if (-v.y > vMaxb) (vMaxb / -v.y) else ""
+//        if (-v.y > vMaxb) v2 *= (vMaxb / -v.y)
+//
+//        debugPlugin[6] = if (-v.x > vMaxl) (vMaxl / -v.x) else ""
+//        if (-v.x > vMaxl) v2 *= (vMaxl / -v.x)
+//
+//        debugPlugin[7] = if (v.x > vMaxr) (vMaxr / v.x) else ""
+//        if (v.x > vMaxr) v2 *= (vMaxr / v.x)
+
+
         val e = v2 - v
+//        debugVertices.add(Line(ship.location, ship.location + rotate(v2, -r), Color.YELLOW))
+//        debugVertices.add(Line(ship.location, ship.location + rotate(e, -r), Color.CYAN))
+
 
         val s = ship.strafeAcceleration * dt
         val a = ship.acceleration * dt
@@ -44,15 +69,34 @@ class Controller {
         val maxAccel = absAccel.maxOrNull()!!
         val accel = absAccel.map { it / maxAccel }
 
+//        debugPlugin[0] = "a ${shouldDecel(d.y, v.y, ship.acceleration, dt)} ${vMax(d.y, v.y, ship.acceleration, dt)} ${d.y} ${v.y}"
+//        debugPlugin[1] = "d ${shouldDecel(-d.y, -v.y, ship.deceleration, dt)} ${vMax(-d.y, -v.y, ship.deceleration, dt)}  ${-d.y} ${-v.y}"
+//        debugPlugin[2] = "l ${shouldDecel(-d.x, -v.x, ship.strafeAcceleration, dt)} ${vMax(-d.x, -v.x, ship.strafeAcceleration, dt)}  ${-d.x} ${-v.x}"
+//        debugPlugin[3] = "r ${shouldDecel(d.x, v.x, ship.strafeAcceleration, dt)} ${vMax(d.x, v.x, ship.strafeAcceleration, dt)} ${d.x} ${v.x}"
+
         debugPlugin[0] = "a ${accel[0]}"
         debugPlugin[1] = "d ${accel[1]}"
         debugPlugin[2] = "l ${accel[2]}"
         debugPlugin[3] = "r ${accel[3]}"
 
-        if (Random.nextFloat() < accel[0]) ship.move(true, ACCELERATE, DECELERATE)
-        if (Random.nextFloat() < accel[1]) ship.move(true, ACCELERATE_BACKWARDS, DECELERATE)
-        if (Random.nextFloat() < accel[2]) ship.move(true, STRAFE_LEFT, DECELERATE)
-        if (Random.nextFloat() < accel[3]) ship.move(true, STRAFE_RIGHT, DECELERATE)
+        val da = shouldDecel(d.y, v.y, ship.deceleration, dt)
+        val db = shouldDecel(-d.y, -v.y, ship.acceleration, dt)
+        val dl = shouldDecel(-d.x, -v.x, ship.strafeAcceleration, dt)
+        val dr = shouldDecel(d.x, v.x, ship.strafeAcceleration, dt)
+//
+        if (!da && (db || Random.nextFloat() < accel[0])) ship.move(true, ACCELERATE, DECELERATE)
+        if (!db && (da || Random.nextFloat() < accel[1])) ship.move(true, ACCELERATE_BACKWARDS, DECELERATE)
+        if (!dl && (dr || Random.nextFloat() < accel[2])) ship.move(true, STRAFE_LEFT, DECELERATE)
+        if (!dr && (dl || Random.nextFloat() < accel[3])) ship.move(true, STRAFE_RIGHT, DECELERATE)
+    }
+
+    private fun shouldDecel(d: Float, v: Float, a: Float, dt: Float) = vMax(d, v, a, dt) < v
+
+    private fun vMax(d: Float, v: Float, a: Float, dt: Float): Float {
+        val s = d - v * dt
+        val t = sqrt(2f * s / a)
+        val k = a * dt / 2f
+        return t * a - k
     }
 
     fun heading(ship: ShipAPI, target: Vector2f, dt: Float) {

@@ -79,7 +79,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //        val target = Global.getCombatEngine().playerShip?.location ?: return
 
         val con = Controller()
-        con.facing(ship, position, dt)
+//        con.facing(ship, position, dt)
 //        con.heading(ship, position, dt)
         con.heading2(ship, position, dt)
 
