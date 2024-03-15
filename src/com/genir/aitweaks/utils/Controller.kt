@@ -3,21 +3,24 @@ package com.genir.aitweaks.utils
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
-import com.genir.aitweaks.debug.Line
-import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.utils.extensions.strafeAcceleration
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
+import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.random.Random
 
 class Controller {
     fun heading(ship: ShipAPI, target: Vector2f, dt: Float) {
+        if ((target - ship.location).length() < 1f) {
+            if (!ship.velocity.isZeroVector())
+                ship.giveCommand(DECELERATE, null, 0)
+            return
+        }
+
         // Transform input into ships frame of reference.
         // Account for ship angular velocity, as linear
         // acceleration is applied by the game engine after
@@ -38,16 +41,18 @@ class Controller {
 
         // Calculate proportional thrust required to achieve
         // expected velocity change.
-        val absAccel = listOf(e.y / a, -e.y / b, e.x / s, -e.x / s)
+        val absAccel = listOf(e.y / a, -e.y / b, e.x / s, -e.x / s).map { if (it > 1f) it else 0f }
         val maxAccel = absAccel.maxOrNull()!!
-        val f = absAccel.map { it / maxAccel }
+        val f = absAccel.map { if (maxAccel != 0f) it / maxAccel else 0f }.toMutableList()
 
-        if (d.length() >= 1f) {
-            if (shouldAccelerate(+d.y, +v.y, f[0], a, b)) ship.move(ACCELERATE)
-            if (shouldAccelerate(-d.y, -v.y, f[1], b, a)) ship.move(ACCELERATE_BACKWARDS)
-            if (shouldAccelerate(-d.x, -v.x, f[3], s, s)) ship.move(STRAFE_LEFT)
-            if (shouldAccelerate(+d.x, +v.x, f[2], s, s)) ship.move(STRAFE_RIGHT)
-        } else if (!v.isZeroVector()) ship.giveCommand(DECELERATE, null, 0)
+        // Apply forward trust continuously if heading
+        // within ~1deg towards target, for visual effect.
+        if (d.y > 50f * abs(d.x)) f[0] = 1f
+
+        if (shouldAccelerate(+d.y, +v.y, f[0], a, b)) ship.move(ACCELERATE)
+        if (shouldAccelerate(-d.y, -v.y, f[1], b, a)) ship.move(ACCELERATE_BACKWARDS)
+        if (shouldAccelerate(-d.x, -v.x, f[3], s, s)) ship.move(STRAFE_LEFT)
+        if (shouldAccelerate(+d.x, +v.x, f[2], s, s)) ship.move(STRAFE_RIGHT)
     }
 
     fun facing(ship: ShipAPI, target: Vector2f, dt: Float) {
@@ -80,17 +85,16 @@ class Controller {
     }
 
     private fun ShipAPI.move(cmd: ShipCommand) {
-        when (cmd) {
-            ACCELERATE -> Vector2f(0f, this.acceleration)
-            ACCELERATE_BACKWARDS -> Vector2f(0f, -this.deceleration)
-            STRAFE_RIGHT -> Vector2f(this.strafeAcceleration, 0f)
-            STRAFE_LEFT -> Vector2f(-this.strafeAcceleration, 0f)
-            else -> null
-        }?.let {
-            val l = Line(this.location, this.location + rotate(it.scale(1f / 3f) as Vector2f, this.facing - 90f), Color.BLUE)
-            debugVertices.add(l)
-        }
-
+//        when (cmd) {
+//            ACCELERATE -> Vector2f(0f, this.acceleration)
+//            ACCELERATE_BACKWARDS -> Vector2f(0f, -this.deceleration)
+//            STRAFE_RIGHT -> Vector2f(this.strafeAcceleration, 0f)
+//            STRAFE_LEFT -> Vector2f(-this.strafeAcceleration, 0f)
+//            else -> null
+//        }?.let {
+//            val l = Line(this.location, this.location + rotate(it.scale(1f / 3f) as Vector2f, this.facing - 90f), Color.BLUE)
+//            debugVertices.add(l)
+//        }
         this.giveCommand(cmd, null, 0)
     }
 }
