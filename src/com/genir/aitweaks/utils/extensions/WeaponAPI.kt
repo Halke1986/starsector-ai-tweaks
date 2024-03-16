@@ -4,8 +4,8 @@ import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
-import com.genir.aitweaks.utils.FiringCycle
-import com.genir.aitweaks.utils.firingCycle
+import com.genir.aitweaks.utils.attack.FiringCycle
+import com.genir.aitweaks.utils.attack.firingCycle
 import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
 

@@ -5,6 +5,10 @@ import com.fs.starfarer.api.combat.CollisionGridAPI
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.utils.attack.BallisticParams
+import com.genir.aitweaks.utils.attack.Hit
+import com.genir.aitweaks.utils.attack.analyzeAllyHit
+import com.genir.aitweaks.utils.attack.analyzeHit
 import com.genir.aitweaks.utils.extensions.rootModule
 import com.genir.aitweaks.utils.extensions.totalRange
 import org.lwjgl.util.vector.Vector2f

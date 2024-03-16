@@ -4,12 +4,13 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.utils.*
-import com.genir.aitweaks.utils.Target
+import com.genir.aitweaks.utils.attack.*
 import com.genir.aitweaks.utils.extensions.firingCycle
 import com.genir.aitweaks.utils.extensions.hasBestTargetLeading
 import com.genir.aitweaks.utils.extensions.timeToAttack
 import com.genir.aitweaks.utils.extensions.totalRange
+import com.genir.aitweaks.utils.firstShipAlongLineOfFire
+import com.genir.aitweaks.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -145,7 +146,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private fun calculateTargetLocation(): Vector2f? {
         if (target == null) return null
 
-        val intercept = intercept(weapon, Target(target!!), currentParams()) ?: return null
+        val intercept = intercept(weapon, AttackTarget(target!!), currentParams()) ?: return null
         return if (weapon.slot.isTurret) intercept
         else aimHardpoint(intercept)
     }

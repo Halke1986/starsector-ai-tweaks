@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.STRIKE
 import com.genir.aitweaks.utils.*
-import com.genir.aitweaks.utils.Target
+import com.genir.aitweaks.utils.attack.*
 import com.genir.aitweaks.utils.extensions.*
 import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.ext.minus
@@ -51,7 +51,7 @@ class SelectTarget(
         // Prioritize ship target. Hardpoint weapons track ships target even when it's outside their firing arc.
         return when {
             priorityTarget != null && weapon.slot.isHardpoint -> priorityTarget
-            priorityTarget != null && canTrack(weapon, Target(priorityTarget), params) -> priorityTarget
+            priorityTarget != null && canTrack(weapon, AttackTarget(priorityTarget), params) -> priorityTarget
             else -> selectEntity<ShipAPI>(shipGrid()) { !it.isFighter || alsoFighter }
         }
     }
@@ -60,7 +60,7 @@ class SelectTarget(
         grid: CollisionGridAPI, crossinline isAcceptableTarget: (T) -> Boolean
     ): CombatEntityAPI? {
         // Try tracking current target.
-        if (current is T && isAcceptableTarget(current) && canTrack(weapon, Target(current), params)) return current
+        if (current is T && isAcceptableTarget(current) && canTrack(weapon, AttackTarget(current), params)) return current
 
         // Find the closest enemy entity that can be tracked by the weapon.
         return closestEntityFinder(weapon.location, weapon.totalRange, grid) {
@@ -69,8 +69,8 @@ class SelectTarget(
                 it.owner == weapon.ship.owner -> null
                 !it.isValidTarget -> null
                 !isAcceptableTarget(it) -> null
-                !canTrack(weapon, Target(it), params) -> null
-                else -> Hit(it, closestHitRange(weapon, Target(it), params)!!, false)
+                !canTrack(weapon, AttackTarget(it), params) -> null
+                else -> Hit(it, closestHitRange(weapon, AttackTarget(it), params)!!, false)
             }
         }?.target
     }

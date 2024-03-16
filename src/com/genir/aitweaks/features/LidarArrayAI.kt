@@ -6,12 +6,16 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.utils.*
-import com.genir.aitweaks.utils.Target
+import com.genir.aitweaks.utils.LockAIOnTarget
+import com.genir.aitweaks.utils.attack.AttackTarget
+import com.genir.aitweaks.utils.attack.ShipTargetTracker
+import com.genir.aitweaks.utils.attack.canTrack
+import com.genir.aitweaks.utils.attack.defaultBallisticParams
 import com.genir.aitweaks.utils.extensions.frontFacing
 import com.genir.aitweaks.utils.extensions.isShip
 import com.genir.aitweaks.utils.extensions.isValidTarget
 import com.genir.aitweaks.utils.extensions.isVastBulk
+import com.genir.aitweaks.utils.firstShipAlongLineOfFire
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 
@@ -88,7 +92,7 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
     }
 
     private fun weaponsOnTarget(target: ShipAPI): Boolean {
-        return getLidarWeapons().firstOrNull { !canTrack(it, Target(target), defaultBallisticParams(), it.range * 0.85f) } == null
+        return getLidarWeapons().firstOrNull { !canTrack(it, AttackTarget(target), defaultBallisticParams(), it.range * 0.85f) } == null
     }
 
     private fun weaponsNotBlocked(): Boolean {

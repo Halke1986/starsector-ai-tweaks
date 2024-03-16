@@ -1,7 +1,7 @@
 package autofire
 
-import com.genir.aitweaks.utils.*
-import com.genir.aitweaks.utils.Target
+import com.genir.aitweaks.utils.Arc
+import com.genir.aitweaks.utils.attack.*
 import mocks.MockBoundsAPI
 import mocks.MockSegmentAPI
 import mocks.MockShipAPI
@@ -65,7 +65,7 @@ class BallisticsKtTest {
             "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 0f))
         )
 
-        val target = Target(
+        val target = AttackTarget(
             location = Vector2f(0f, 10f),
             velocity = Vector2f(0f, 10f),
             radius = 3f,
@@ -93,7 +93,7 @@ class BallisticsKtTest {
             )
         )
 
-        val target = Target(
+        val target = AttackTarget(
             location = Vector2f(0f, 10f),
             velocity = Vector2f(0f, 10f),
             radius = 30f,

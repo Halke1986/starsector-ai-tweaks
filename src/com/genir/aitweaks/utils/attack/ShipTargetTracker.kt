@@ -1,4 +1,4 @@
-package com.genir.aitweaks.utils
+package com.genir.aitweaks.utils.attack
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.utils.extensions.hasEscortAssignment

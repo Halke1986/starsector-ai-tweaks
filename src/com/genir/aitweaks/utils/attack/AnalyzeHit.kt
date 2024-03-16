@@ -1,4 +1,4 @@
-package com.genir.aitweaks.utils
+package com.genir.aitweaks.utils.attack
 
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.utils.extensions.isShip
@@ -19,7 +19,7 @@ data class Hit(val target: CombatEntityAPI, val range: Float, val shieldHit: Boo
 /** Analyzes the potential collision between projectile and target. Null if no collision. */
 fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, params: BallisticParams): Hit? {
     // Simple circumference collision is enough for missiles and fighters.
-    if (!target.isShip) return willHitCircumference(weapon, Target(target), params)?.let { Hit(target, it, false) }
+    if (!target.isShip) return willHitCircumference(weapon, AttackTarget(target), params)?.let { Hit(target, it, false) }
 
     // Check shield hit.
     if (hasShield(target)) willHitShield(weapon, target as ShipAPI, params)?.let { return Hit(target, it, true) }

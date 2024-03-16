@@ -6,8 +6,12 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
-import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.attack.BallisticParams
+import com.genir.aitweaks.utils.attack.Hit
+import com.genir.aitweaks.utils.attack.firingCycle
+import com.genir.aitweaks.utils.attack.willHitBounds
 import com.genir.aitweaks.utils.extensions.*
+import com.genir.aitweaks.utils.shieldUptime
 import kotlin.math.min
 
 val fire = null

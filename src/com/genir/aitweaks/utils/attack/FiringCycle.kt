@@ -1,4 +1,4 @@
-package com.genir.aitweaks.utils
+package com.genir.aitweaks.utils.attack
 
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
