@@ -43,7 +43,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             engine.customData[ID] = true
         }
 
-        debug(amount)
+//        debug(amount)
 //        speedupAsteroids()
     }
 
