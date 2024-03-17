@@ -1,4 +1,4 @@
-package com.genir.aitweaks.features
+package com.genir.aitweaks.features.lidar
 
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
