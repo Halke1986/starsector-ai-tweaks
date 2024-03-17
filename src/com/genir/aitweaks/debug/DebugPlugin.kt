@@ -43,7 +43,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             engine.customData[ID] = true
         }
 
-        debug(amount)
+//        debug(amount)
 //        speedupAsteroids()
     }
 
@@ -81,7 +81,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         val targetShip = Global.getCombatEngine().playerShip ?: return
 
         val con = Controller()
-//        val con2 = Controller2()
         con.facing(ship, position, dt)
         con.heading(ship, position, Vector2f(), dt)
 
