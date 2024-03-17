@@ -1,14 +1,15 @@
 package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.BaseCombatLayeredRenderingPlugin
+import com.fs.starfarer.api.combat.CombatEngineLayers
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.util.Misc
-import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.features.autofire.AutofireAI
-import com.genir.aitweaks.utils.div
+import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.extensions.isPD
-import com.genir.aitweaks.utils.extensions.strafeAcceleration
-import com.genir.aitweaks.utils.rotate
+import com.genir.aitweaks.utils.times
 import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.opengl.GL11
@@ -43,7 +44,7 @@ class RenderLines : BaseCombatLayeredRenderingPlugin() {
         GL11.glEnable(GL11.GL_BLEND)
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
 
-        GL11.glLineWidth(2f / Global.getCombatEngine().viewport.viewMult)
+        GL11.glLineWidth(3f / Global.getCombatEngine().viewport.viewMult)
 
         debugVertices.forEach {
             Misc.setColor(it.color)
@@ -64,16 +65,15 @@ class RenderLines : BaseCombatLayeredRenderingPlugin() {
 }
 
 fun drawEngineLines(ship: ShipAPI) {
-    val cmds = (ship as Ship).commands.mapNotNull { runCatching { ShipCommand.valueOf(it.new.name) }.getOrNull() }
-    cmds.mapNotNull {
-        when (it) {
-            ShipCommand.ACCELERATE -> Vector2f(0f, ship.acceleration)
-            ShipCommand.ACCELERATE_BACKWARDS -> Vector2f(0f, -ship.deceleration)
-            ShipCommand.STRAFE_RIGHT -> Vector2f(ship.strafeAcceleration, 0f)
-            ShipCommand.STRAFE_LEFT -> Vector2f(-ship.strafeAcceleration, 0f)
-            else -> null
-        }
-    }.forEach {
-        debugVertices.add(Line(ship.location, ship.location + rotate(it / 3f, ship.facing - 90f), Color.BLUE))
+    val r = Rotation(ship.facing - 90f)
+    val engine = ship.engineController
+
+    listOfNotNull(
+        if (engine.isAccelerating) Vector2f(0f, 1f) else null,
+        if (engine.isAcceleratingBackwards) Vector2f(0f, -1f) else null,
+        if (engine.isStrafingLeft) Vector2f(-1f, 0f) else null,
+        if (engine.isStrafingRight) Vector2f(1f, 0f) else null,
+    ).forEach {
+        debugVertices.add(Line(ship.location, ship.location + r.rotate(it * ship.collisionRadius * 1.2f), Color.BLUE))
     }
 }

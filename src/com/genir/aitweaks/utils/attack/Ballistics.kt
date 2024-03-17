@@ -113,20 +113,11 @@ fun willHitBounds(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
     val bounds = target.exactBounds ?: return null
     val pv = projectileCoords(weapon, AttackTarget(target), params)
 
-    val cosA: Float = cos(-target.facing)
-    val sinA: Float = sin(-target.facing)
-
     // Rotate weapon coordinates into target frame of reference.
     // That way the target bounds don't need to be transformed.
-    // Rotation is implemented in place, as opposed to using library
-    // call, for better performance.
-    fun rotate(v: Vector2f, sinA: Float, cosA: Float) = Vector2f(
-        v.x * cosA - v.y * sinA,
-        v.x * sinA + v.y * cosA,
-    )
-
-    val q1 = rotate(pv.first, sinA, cosA)
-    val vr = rotate(pv.second, sinA, cosA)
+    val r = Rotation(-target.facing)
+    val q1 = r.rotate(pv.first)
+    val vr = r.rotate(pv.second)
     val q2 = q1 + vr
 
     return bounds.origSegments.fold(null, fun(closest: Float?, segment): Float? {

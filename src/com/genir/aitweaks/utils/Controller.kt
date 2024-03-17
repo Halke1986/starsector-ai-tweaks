@@ -27,10 +27,10 @@ class Controller {
         // rotation.
         // Change unit of time from second to animation frame (* dt).
         val w = ship.angularVelocity * dt
-        val r = -(ship.facing + w) + 90f
-        val d = rotate(target - ship.location, r)
-        val v = rotate(ship.velocity, r) * dt
-        val vt = rotate(targetVelocity, r) * dt
+        val r = Rotation(90f - ship.facing - w)
+        val d = r.rotate(target - ship.location)
+        val v = r.rotate(ship.velocity) * dt
+        val vt = r.rotate(targetVelocity) * dt
 
         val af = ship.acceleration * dt * dt
         val ab = ship.deceleration * dt * dt
