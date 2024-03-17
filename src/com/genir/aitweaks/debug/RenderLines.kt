@@ -1,13 +1,16 @@
 package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.BaseCombatLayeredRenderingPlugin
-import com.fs.starfarer.api.combat.CombatEngineLayers
-import com.fs.starfarer.api.combat.ViewportAPI
+import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.Misc
+import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.features.autofire.AutofireAI
+import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.isPD
+import com.genir.aitweaks.utils.extensions.strafeAcceleration
+import com.genir.aitweaks.utils.rotate
 import lunalib.lunaSettings.LunaSettings
+import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.opengl.GL11
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -58,4 +61,19 @@ class RenderLines : BaseCombatLayeredRenderingPlugin() {
     override fun getRenderRadius(): Float = 1e6f
 
     override fun getActiveLayers(): EnumSet<CombatEngineLayers> = EnumSet.of(CombatEngineLayers.JUST_BELOW_WIDGETS)
+}
+
+fun drawEngineLines(ship: ShipAPI) {
+    val cmds = (ship as Ship).commands.mapNotNull { runCatching { ShipCommand.valueOf(it.new.name) }.getOrNull() }
+    cmds.mapNotNull {
+        when (it) {
+            ShipCommand.ACCELERATE -> Vector2f(0f, ship.acceleration)
+            ShipCommand.ACCELERATE_BACKWARDS -> Vector2f(0f, -ship.deceleration)
+            ShipCommand.STRAFE_RIGHT -> Vector2f(ship.strafeAcceleration, 0f)
+            ShipCommand.STRAFE_LEFT -> Vector2f(-ship.strafeAcceleration, 0f)
+            else -> null
+        }
+    }.forEach {
+        debugVertices.add(Line(ship.location, ship.location + rotate(it / 3f, ship.facing - 90f), Color.BLUE))
+    }
 }

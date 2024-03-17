@@ -43,7 +43,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             engine.customData[ID] = true
         }
 
-//        debug(amount)
+        debug(amount)
 //        speedupAsteroids()
     }
 
@@ -73,15 +73,22 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
         )
 
+//        ship.giveCommand(ShipCommand.DECELERATE, null, 0)
+
 //        pid.move(position, ship)
 //        pid.rotate(VectorUtils.getFacing(position - ship.location), ship)
 
-        val target = Global.getCombatEngine().playerShip?.location ?: return
+        val targetShip = Global.getCombatEngine().playerShip ?: return
 
         val con = Controller()
+//        val con2 = Controller2()
         con.facing(ship, position, dt)
-        con.heading(ship, position, dt)
+        con.heading(ship, position, Vector2f(), dt)
 
+//        con.facing(ship, targetShip.location, dt)
+//        con.heading(ship, targetShip.location + Vector2f(250f, 250f), targetShip.velocity, dt)
+
+        drawEngineLines(ship)
     }
 
     private fun speedupAsteroids() {
