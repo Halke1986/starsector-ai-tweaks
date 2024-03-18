@@ -6,14 +6,12 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.utils.LockAIOnTarget
 import com.genir.aitweaks.utils.attack.AttackTarget
 import com.genir.aitweaks.utils.attack.ShipTargetTracker
 import com.genir.aitweaks.utils.attack.canTrack
 import com.genir.aitweaks.utils.attack.defaultBallisticParams
 import com.genir.aitweaks.utils.extensions.frontFacing
 import com.genir.aitweaks.utils.extensions.isShip
-import com.genir.aitweaks.utils.extensions.isValidTarget
 import com.genir.aitweaks.utils.extensions.isVastBulk
 import com.genir.aitweaks.utils.firstShipAlongLineOfFire
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
@@ -37,7 +35,6 @@ class LidarArrayAI : ShipSystemAIScript {
 
 class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystemAPI, private val flags: ShipwideAIFlags) {
     private val targetTracker = ShipTargetTracker(ship)
-    private var aiLock: LockAIOnTarget? = null
     private var advanceInterval = IntervalUtil(0.25F, 0.50F)
 
     fun advance(timeDelta: Float) {
@@ -46,29 +43,20 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
 
         flags.setFlag(AIFlags.DO_NOT_VENT)
 
-        if (!system.isOn) {
-            val minLidarRange = applyLidarRangeBonus { getLidarWeapons().minOf { w -> w.range } }
-            flags.setFlag(AIFlags.BACK_OFF_MIN_RANGE, 1.0f, minLidarRange * 0.85f)
+        // Assume ship is not under vanilla AI
+        // control when lidar array is active.
+        if (system.isOn) return
 
-            if (shouldForceVent()) {
-                ship.fluxTracker.ventFlux()
-            } else if (shouldUseSystem()) {
-                ship.useSystem()
-            }
-        }
+        val minLidarRange = minLidarWeaponRange()
+        flags.setFlag(AIFlags.BACK_OFF_MIN_RANGE, 1.0f, minLidarRange * 0.9f)
 
-        // Attack has started, lock the ship AI on target.
-        if (system.isOn && aiLock == null && targetTracker.target?.isValidTarget == true) {
-            aiLock = LockAIOnTarget(ship, targetTracker.target, listOf(AIFlags.DO_NOT_BACK_OFF))
-        }
+        if (shouldForceVent()) {
+            ship.fluxTracker.ventFlux()
+        } else if (shouldUseSystem()) {
+            ship.useSystem()
 
-        // Attack has ended, unlock the AI.
-        if (aiLock != null) {
-            aiLock!!.advance()
-            if (!aiLock!!.isLocked() || !system.isOn) {
-                aiLock!!.unlock()
-                aiLock = null
-            }
+            // Set data to be used by ShipAI.
+            ship.setCustomData(lidarDataID, LidarData(targetTracker.target, minLidarRange))
         }
     }
 
@@ -111,18 +99,8 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
         }
     }
 
-    private fun <T> applyLidarRangeBonus(f: () -> T): T {
-        val rangeBonus = LidarArrayStats.RANGE_BONUS - LidarArrayStats.PASSIVE_RANGE_BONUS
-
-        ship.mutableStats.ballisticWeaponRangeBonus.modifyPercent("aitweaks_lidar", rangeBonus)
-        ship.mutableStats.energyWeaponRangeBonus.modifyPercent("aitweaks_lidar", rangeBonus)
-
-        val result = f()
-
-        ship.mutableStats.ballisticWeaponRangeBonus.unmodifyPercent("aitweaks_lidar")
-        ship.mutableStats.energyWeaponRangeBonus.unmodifyPercent("aitweaks_lidar")
-
-        return result
+    private fun minLidarWeaponRange(): Float {
+        return applyLidarRangeBonus { getLidarWeapons().minOf { w -> w.range + w.slot.location.x } }
     }
 
     private fun burstFluxRequired(): Float {
@@ -135,5 +113,19 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
 
     private fun getLidarWeapons(): List<WeaponAPI> = ship.allWeapons.filter {
         it.slot.isHardpoint && it.frontFacing && (it.type == ENERGY || it.type == BALLISTIC) && !it.isPermanentlyDisabled
+    }
+
+    private fun <T> applyLidarRangeBonus(f: () -> T): T {
+        val rangeBonus = LidarArrayStats.RANGE_BONUS - LidarArrayStats.PASSIVE_RANGE_BONUS
+
+        ship.mutableStats.ballisticWeaponRangeBonus.modifyPercent("aitweaks_lidar", rangeBonus)
+        ship.mutableStats.energyWeaponRangeBonus.modifyPercent("aitweaks_lidar", rangeBonus)
+
+        val result = f()
+
+        ship.mutableStats.ballisticWeaponRangeBonus.unmodifyPercent("aitweaks_lidar")
+        ship.mutableStats.energyWeaponRangeBonus.unmodifyPercent("aitweaks_lidar")
+
+        return result
     }
 }

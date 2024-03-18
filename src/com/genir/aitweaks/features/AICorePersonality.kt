@@ -22,8 +22,9 @@ class AICorePersonality : BaseEveryFrameCombatPlugin() {
     }()
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
+        // Replace only vanilla AI with incorrect personality.
         val shipsToUpdate = Global.getCombatEngine().ships.filter {
-            it.owner == 0 && it.ai != null && it.isAutomated && it.AIPersonality != personalityPreset
+            it.owner == 0 && it.ai != null && it.isAutomated && it.ai is BasicShipAI && it.AIPersonality != personalityPreset
         }
 
         shipsToUpdate.forEach {

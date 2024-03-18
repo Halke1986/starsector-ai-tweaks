@@ -41,6 +41,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var shouldHoldFire: HoldFire? = HoldFire.NO_TARGET
     private var targetLocation: Vector2f? = null
 
+    private val debugIdx = autofireAICount++
+
     override fun advance(timeDelta: Float) {
         if (Global.getCurrentState() == GameState.CAMPAIGN) return
 
