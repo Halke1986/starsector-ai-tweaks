@@ -1,3 +1,7 @@
+Version 1.5.0
+
+- Added custom Lidar Array AI. The AI should make Invictus much more focused on killing enemies instead of wobbling around.
+
 Version 1.4.7
 
 - Fixed regression in hardpoint weapon aiming.
