@@ -8,7 +8,6 @@ import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -29,18 +28,15 @@ class Controller {
         val w = ship.angularVelocity * dt
         val r = Rotation(90f - ship.facing - w)
         val d = r.rotate(target - ship.location)
-        val v = r.rotate(ship.velocity) * dt
-        val vt = r.rotate(targetVelocity) * dt
+        val v = r.rotate(ship.velocity - targetVelocity) * dt
 
         val af = ship.acceleration * dt * dt
         val ab = ship.deceleration * dt * dt
         val al = ship.strafeAcceleration * dt * dt
 
         // Calculate expected velocity change.
-        val vm = ship.maxSpeed * dt
-        val v2 = VectorUtils.resize(Vector2f(d), vm)
-        val v3 = VectorUtils.resize(v2 + vt, vm)
-        val e = v3 - v
+        val v2 = VectorUtils.resize(Vector2f(d), ship.maxSpeed * dt)
+        val e = v2 - v
 
         // Calculate proportional thrust required
         // to achieve the expected velocity change.
@@ -52,13 +48,10 @@ class Controller {
         // within ~1deg towards target, for visual effect.
         if (d.y > 50f * abs(d.x)) f[0] = 1f
 
-        // Velocity relative to target.
-        val vr = v - vt
-
-        if (shouldAccelerate(+d.y, +vr.y, f[0], af, ab)) ship.move(ACCELERATE)
-        if (shouldAccelerate(-d.y, -vr.y, f[1], ab, af)) ship.move(ACCELERATE_BACKWARDS)
-        if (shouldAccelerate(-d.x, -vr.x, f[2], al, al)) ship.move(STRAFE_LEFT)
-        if (shouldAccelerate(+d.x, +vr.x, f[3], al, al)) ship.move(STRAFE_RIGHT)
+        if (shouldAccelerate(+d.y, +v.y, f[0], af, ab)) ship.move(ACCELERATE)
+        if (shouldAccelerate(-d.y, -v.y, f[1], ab, af)) ship.move(ACCELERATE_BACKWARDS)
+        if (shouldAccelerate(-d.x, -v.x, f[2], al, al)) ship.move(STRAFE_LEFT)
+        if (shouldAccelerate(+d.x, +v.x, f[3], al, al)) ship.move(STRAFE_RIGHT)
     }
 
     fun facing(ship: ShipAPI, target: Vector2f, dt: Float) {

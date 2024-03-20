@@ -9,6 +9,7 @@ import com.genir.aitweaks.utils.Controller
 import com.genir.aitweaks.utils.extensions.isAutomated
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
+import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -43,7 +44,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             engine.customData[ID] = true
         }
 
-//        debug(amount)
+        debug(amount)
 //        speedupAsteroids()
     }
 
@@ -81,11 +82,11 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         val targetShip = Global.getCombatEngine().playerShip ?: return
 
         val con = Controller()
-        con.facing(ship, position, dt)
-        con.heading(ship, position, Vector2f(), dt)
+//        con.facing(ship, position, dt)
+//        con.heading(ship, position, Vector2f(), dt)
 
-//        con.facing(ship, targetShip.location, dt)
-//        con.heading(ship, targetShip.location + Vector2f(250f, 250f), targetShip.velocity, dt)
+        con.facing(ship, targetShip.location, dt)
+        con.heading(ship, targetShip.location + Vector2f(250f, 250f), targetShip.velocity, dt)
 
         drawEngineLines(ship)
     }
