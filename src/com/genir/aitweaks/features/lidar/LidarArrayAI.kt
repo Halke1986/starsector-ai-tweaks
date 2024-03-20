@@ -5,11 +5,11 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
-import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.utils.attack.AttackTarget
 import com.genir.aitweaks.utils.attack.ShipTargetTracker
 import com.genir.aitweaks.utils.attack.canTrack
 import com.genir.aitweaks.utils.attack.defaultBallisticParams
+import com.genir.aitweaks.utils.defaultAIInterval
 import com.genir.aitweaks.utils.extensions.frontFacing
 import com.genir.aitweaks.utils.extensions.isShip
 import com.genir.aitweaks.utils.extensions.isVastBulk
@@ -35,7 +35,7 @@ class LidarArrayAI : ShipSystemAIScript {
 
 class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystemAPI, private val flags: ShipwideAIFlags) {
     private val targetTracker = ShipTargetTracker(ship)
-    private var advanceInterval = IntervalUtil(0.25F, 0.50F)
+    private var advanceInterval = defaultAIInterval()
 
     fun advance(timeDelta: Float) {
         advanceInterval.advance(timeDelta)
@@ -48,7 +48,7 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
         if (system.isOn) return
 
         val minLidarRange = minLidarWeaponRange()
-        flags.setFlag(AIFlags.BACK_OFF_MIN_RANGE, 1.0f, minLidarRange * 0.9f)
+        flags.setFlag(AIFlags.BACK_OFF_MIN_RANGE, 1.0f, minLidarRange * 0.6f)
 
         if (shouldForceVent()) {
             ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
@@ -67,7 +67,11 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
         // Has valid target.
         targetTracker.advance()
         val target = targetTracker.target ?: return false
-        if (!target.isShip || target.armorGrid.armorRating < 500) return false
+        when {
+            !target.isShip -> return false
+            target.isFrigate && !target.isStationModule -> return false
+            target.armorGrid.armorRating < 250 -> return false
+        }
 
         // All weapons are on target.
         return applyLidarRangeBonus { weaponsOnTarget(target) && weaponsNotBlocked() }

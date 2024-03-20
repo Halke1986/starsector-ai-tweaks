@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
-import com.genir.aitweaks.debug.drawEngineLines
 import com.genir.aitweaks.utils.extensions.hasAIType
 import com.genir.aitweaks.utils.extensions.isValidTarget
 
@@ -30,7 +29,6 @@ class AIManager : BaseEveryFrameCombatPlugin() {
                     ship.shipAI = LidarShipAI(ship, target, config.range)
                 }
             } else if (ship.hasAIType<LidarShipAI>()) {
-                drawEngineLines(ship)
                 if (!ship.system.isOn || target?.isValidTarget != true) {
                     // Redeploy vanilla AI
                     ship.shipAI = ship.customData[lidarAIStashID] as? ShipAIPlugin ?: return
