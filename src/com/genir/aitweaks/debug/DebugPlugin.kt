@@ -6,10 +6,11 @@ import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.utils.Controller
+import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.isAutomated
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
-import org.lazywizard.lazylib.ext.plus
+import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -44,7 +45,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             engine.customData[ID] = true
         }
 
-        debug(amount)
+//        debug(amount)
 //        speedupAsteroids()
     }
 
@@ -55,6 +56,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             v.value.draw(500f, 500f + (logs.count() / 2 - i) * 16f)
         }
     }
+
+    private var prevPositions: MutableList<Vector2f> = mutableListOf(Vector2f())
 
     private fun debug(dt: Float) {
 //        val ships = Global.getCombatEngine().ships
@@ -70,25 +73,33 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         (ship as Ship).ai = null
 
 
-        val position = Vector2f(Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()), Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat())
-
-        )
+        val targetShip = Global.getCombatEngine().playerShip ?: return
+        val position = Vector2f(Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()), Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()))
+//        val position = targetShip.location + Vector2f(250f, 250f)
 
 //        ship.giveCommand(ShipCommand.DECELERATE, null, 0)
 
 //        pid.move(position, ship)
 //        pid.rotate(VectorUtils.getFacing(position - ship.location), ship)
 
-        val targetShip = Global.getCombatEngine().playerShip ?: return
 
         val con = Controller()
-//        con.facing(ship, position, dt)
-//        con.heading(ship, position, Vector2f(), dt)
+//        con.facing(ship, targetShip.location, dt)
+        con.facing(ship, position, dt)
+        val v = (position - prevPositions.first()) / (dt * prevPositions.size.toFloat())
 
-        con.facing(ship, targetShip.location, dt)
-        con.heading(ship, targetShip.location + Vector2f(250f, 250f), targetShip.velocity, dt)
+//        debugPlugin[0] = v
+//        debugPlugin[1] = targetShip.velocity
 
-        drawEngineLines(ship)
+        con.heading(ship, position, Vector2f(), dt)
+//        con.heading(ship, position, v, dt)
+
+        prevPositions.add(position)
+        if (prevPositions.size > 4) {
+            prevPositions.removeFirst()
+        }
+
+//        drawEngineLines(ship)
     }
 
     private fun speedupAsteroids() {
