@@ -51,12 +51,12 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
         flags.setFlag(AIFlags.BACK_OFF_MIN_RANGE, 1.0f, minLidarRange * 0.9f)
 
         if (shouldForceVent()) {
-            ship.fluxTracker.ventFlux()
+            ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
         } else if (shouldUseSystem()) {
             ship.useSystem()
 
             // Set data to be used by ShipAI.
-            ship.setCustomData(lidarDataID, LidarData(targetTracker.target, minLidarRange))
+            ship.setCustomData(lidarConfigID, LidarConfig(targetTracker.target, minLidarRange))
         }
     }
 

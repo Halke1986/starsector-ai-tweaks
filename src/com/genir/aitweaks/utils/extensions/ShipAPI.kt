@@ -42,3 +42,6 @@ val ShipAPI.strafeAcceleration: Float
 
 val ShipAPI.isAutomated: Boolean
     get() = this.variant.hasHullMod(HullMods.AUTOMATED)
+
+inline fun <reified T> ShipAPI.hasAIType(): Boolean = (this as Ship).shipAI?.let { it is T || (it as? Ship.ShipAIWrapper)?.ai is T }
+    ?: false
