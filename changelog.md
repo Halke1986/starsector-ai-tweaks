@@ -1,3 +1,5 @@
+- Improved Lidar Array AI; now the entire ship rotates to properly lead target with hardpoint weapons.
+
 Version 1.5.0
 
 - Added custom Lidar Array AI. The AI should make Invictus much more focused on killing enemies instead of wobbling around.

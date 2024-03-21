@@ -22,17 +22,18 @@ var debugVertices = mutableListOf<Line>()
 class Line(val a: Vector2f, val b: Vector2f, val color: Color)
 
 private var shipsToDrawEngineLines: MutableSet<ShipAPI> = mutableSetOf()
+private var shipsToDrawWeaponLines: MutableSet<ShipAPI> = mutableSetOf()
 
 fun drawEngineLines(ship: ShipAPI) = shipsToDrawEngineLines.add(ship)
 
+fun drawWeaponLines(ship: ShipAPI) = shipsToDrawWeaponLines.add(ship)
+
 class RenderLines : BaseCombatLayeredRenderingPlugin() {
-    private fun drawWeaponLines() {
-        if (LunaSettings.getBoolean("aitweaks", "aitweaks_debug_weapon_target") != true) return
-
-        val ship = Global.getCombatEngine().playerShip ?: return
-        val ais = ship.weaponGroupsCopy.flatMap { it.aiPlugins }.filter { it is AutofireAI && it.target != null }
-
-        debugVertices.addAll(ais.map { Line(it.weapon.location, it.target!!, if (it.weapon.isPD) Color.YELLOW else Color.RED) })
+    private fun drawDebugWeaponLines() {
+        if (LunaSettings.getBoolean("aitweaks", "aitweaks_debug_weapon_target") == true) {
+            val ship = Global.getCombatEngine().playerShip ?: return
+            shipsToDrawWeaponLines.add(ship)
+        }
     }
 
     private fun drawEngineLines(ship: ShipAPI) {
@@ -49,10 +50,19 @@ class RenderLines : BaseCombatLayeredRenderingPlugin() {
         }
     }
 
+    private fun drawWeaponLines(ship: ShipAPI) {
+        val ais = ship.weaponGroupsCopy.flatMap { it.aiPlugins }.filter { it is AutofireAI && it.target != null }
+        debugVertices.addAll(ais.map { Line(it.weapon.location, it.target!!, if (it.weapon.isPD) Color.YELLOW else Color.RED) })
+    }
+
     override fun render(layer: CombatEngineLayers?, viewport: ViewportAPI?) {
-        drawWeaponLines()
+        drawDebugWeaponLines()
+
         shipsToDrawEngineLines.forEach { drawEngineLines(it) }
         shipsToDrawEngineLines.clear()
+
+        shipsToDrawWeaponLines.forEach { drawWeaponLines(it) }
+        shipsToDrawWeaponLines.clear()
 
         if (debugVertices.isEmpty()) {
             return

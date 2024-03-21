@@ -116,7 +116,7 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
     }
 
     private fun getLidarWeapons(): List<WeaponAPI> = ship.allWeapons.filter {
-        it.slot.isHardpoint && it.frontFacing && (it.type == ENERGY || it.type == BALLISTIC) && !it.isPermanentlyDisabled
+        it.isLidarWeapon && !it.isPermanentlyDisabled
     }
 
     private fun <T> applyLidarRangeBonus(f: () -> T): T {
@@ -133,3 +133,6 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
         return result
     }
 }
+
+internal val WeaponAPI.isLidarWeapon: Boolean
+    get() = this.slot.isHardpoint && this.frontFacing && (this.type == ENERGY || this.type == BALLISTIC)

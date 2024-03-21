@@ -10,6 +10,7 @@ import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ext.resize
+import org.lwjgl.util.vector.Vector2f
 
 /** LidarShipAI replaces vanilla BasicShipAI only when the lidar array is active. */
 class LidarShipAI(private val ship: ShipAPI, private val target: ShipAPI, private val range: Float) : ShipAIPlugin {
@@ -35,8 +36,17 @@ class LidarShipAI(private val ship: ShipAPI, private val target: ShipAPI, privat
         }
 
         val con = Controller()
-        con.facing(ship, target.location, dt)
+        con.facing(ship, getAimPoint(), dt)
         con.heading(ship, target.location + offset, target.velocity, dt)
+    }
+
+    /** Get average aim point of lidar weapons. */
+    private fun getAimPoint(): Vector2f {
+        val allAIs = ship.weaponGroupsCopy.flatMap { it.aiPlugins }
+        val lidarAutofireAIs = allAIs.filter { it.weapon.isLidarWeapon && it.shouldFire() && it.target != null }
+
+        return if (lidarAutofireAIs.isEmpty()) target.location
+        else lidarAutofireAIs.fold(Vector2f()) { sum, ai -> sum + ai.target } / lidarAutofireAIs.size.toFloat()
     }
 
     override fun setDoNotFireDelay(amount: Float) = Unit
