@@ -38,7 +38,10 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var shouldFireInterval = IntervalUtil(0.1F, 0.2F)
 
     private var shouldHoldFire: HoldFire? = HoldFire.NO_TARGET
-    private var targetLocation: Vector2f? = null
+    private var aimLocation: Vector2f? = null
+
+    // intercept may be different from aim location for hardpoint weapons
+    var intercept: Vector2f? = null
 
     private val debugIdx = autofireAICount++
 
@@ -59,7 +62,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             selectTargetInterval.forceIntervalElapsed()
             target = null
             shouldHoldFire = HoldFire.NO_TARGET
-            targetLocation = null
+            aimLocation = null
             attackTime = 0f
             onTargetTime = 0f
         }
@@ -75,7 +78,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             }
         }
 
-        targetLocation = calculateTargetLocation()
+        updateAimLocation()
 
         // Calculate if weapon should fire.
         shouldFireInterval.advance(timeDelta)
@@ -90,7 +93,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         shouldHoldFire = HoldFire.FORCE_OFF
     }
 
-    override fun getTarget(): Vector2f? = targetLocation
+    override fun getTarget(): Vector2f? = aimLocation
     override fun getTargetShip(): ShipAPI? = target as? ShipAPI
     override fun getWeapon(): WeaponAPI = weapon
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
@@ -106,7 +109,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     private fun calculateShouldFire(timeDelta: Float): HoldFire? {
         if (target == null) return HoldFire.NO_TARGET
-        if (targetLocation == null) return HoldFire.NO_HIT_EXPECTED
+        if (aimLocation == null) return HoldFire.NO_HIT_EXPECTED
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
@@ -120,7 +123,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Hold fire for a period of time after initially
         // acquiring the target to increase first volley accuracy.
         if (onTargetTime < min(2f, weapon.firingCycle.duration)) {
-            val angleToTarget = VectorUtils.getFacing(targetLocation!! - weapon.location)
+            val angleToTarget = VectorUtils.getFacing(aimLocation!! - weapon.location)
             val inaccuracy = abs(MathUtils.getShortestRotation(weapon.currAngle, angleToTarget))
             if (inaccuracy > 1f) return HoldFire.STABILIZE_ON_TARGET
         }
@@ -144,12 +147,15 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return AttackRules(weapon, hit, currentParams()).shouldHoldFire
     }
 
-    private fun calculateTargetLocation(): Vector2f? {
-        if (target == null) return null
+    private fun updateAimLocation() {
+        intercept = null
+        aimLocation = null
 
-        val intercept = intercept(weapon, AttackTarget(target!!), currentParams()) ?: return null
-        return if (weapon.slot.isTurret) intercept
-        else aimHardpoint(intercept)
+        if (target == null) return
+
+        intercept = intercept(weapon, AttackTarget(target!!), currentParams()) ?: return
+        aimLocation = if (weapon.slot.isTurret) intercept
+        else aimHardpoint(intercept!!)
     }
 
     /** get current weapon attack parameters */
@@ -177,7 +183,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     /** predictive aiming for hardpoints */
     private fun aimHardpoint(intercept: Vector2f): Vector2f {
         // Weapon is already facing the target. Return the
-        // original target location to not overcompensate.
+        // original intercept location to not overcompensate.
         if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing)))
             return intercept
 

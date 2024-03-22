@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
+import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.isShip
 import org.lazywizard.lazylib.ext.getFacing
@@ -42,11 +43,11 @@ class LidarShipAI(private val ship: ShipAPI, private val target: ShipAPI, privat
 
     /** Get average aim point of lidar weapons. */
     private fun getAimPoint(): Vector2f {
-        val allAIs = ship.weaponGroupsCopy.flatMap { it.aiPlugins }
-        val lidarAutofireAIs = allAIs.filter { it.weapon.isLidarWeapon && it.shouldFire() && it.target != null }
+        val allAIs = ship.weaponGroupsCopy.flatMap { it.aiPlugins }.filterIsInstance<AutofireAI>()
+        val lidarAutofireAIs = allAIs.filter { it.weapon.isLidarWeapon && it.shouldFire() && it.intercept != null }
 
         return if (lidarAutofireAIs.isEmpty()) target.location
-        else lidarAutofireAIs.fold(Vector2f()) { sum, ai -> sum + ai.target } / lidarAutofireAIs.size.toFloat()
+        else lidarAutofireAIs.fold(Vector2f()) { sum, ai -> sum + ai.intercept!! } / lidarAutofireAIs.size.toFloat()
     }
 
     override fun setDoNotFireDelay(amount: Float) = Unit
