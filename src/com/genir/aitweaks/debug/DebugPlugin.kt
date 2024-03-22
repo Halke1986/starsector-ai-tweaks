@@ -4,13 +4,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.utils.Controller
-import com.genir.aitweaks.utils.div
-import com.genir.aitweaks.utils.extensions.isAutomated
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
-import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -57,49 +52,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
     }
 
-    private var prevPositions: MutableList<Vector2f> = mutableListOf(Vector2f())
-
     private fun debug(dt: Float) {
-//        val ships = Global.getCombatEngine().ships
-//
-//        for (i in ships.indices) {
-//            val it = ships[i]
-//            debugPlugin[i] = "${it.hullSpec.hullId} ${it.stationSlot} ${it.owner}"
-//        }
-
-        val ship = Global.getCombatEngine().ships.firstOrNull { it.isAutomated } ?: return
-
-
-        (ship as Ship).ai = null
-
-
-        val targetShip = Global.getCombatEngine().playerShip ?: return
-        val position = Vector2f(Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()), Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()))
-//        val position = targetShip.location + Vector2f(250f, 250f)
-
-//        ship.giveCommand(ShipCommand.DECELERATE, null, 0)
-
-//        pid.move(position, ship)
-//        pid.rotate(VectorUtils.getFacing(position - ship.location), ship)
-
-
-        val con = Controller()
-//        con.facing(ship, targetShip.location, dt)
-        con.facing(ship, position, dt)
-        val v = (position - prevPositions.first()) / (dt * prevPositions.size.toFloat())
-
-//        debugPlugin[0] = v
-//        debugPlugin[1] = targetShip.velocity
-
-        con.heading(ship, position, Vector2f(), dt)
-//        con.heading(ship, position, v, dt)
-
-        prevPositions.add(position)
-        if (prevPositions.size > 4) {
-            prevPositions.removeFirst()
-        }
-
-//        drawEngineLines(ship)
+        Global.getCombatEngine().ships.filter { it.owner == 0 }.forEach { drawWeaponLines(it) }
     }
 
     private fun speedupAsteroids() {

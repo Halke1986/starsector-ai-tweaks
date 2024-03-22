@@ -4,11 +4,12 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.features.lidar.LidarShipAI
+import com.genir.aitweaks.utils.Arc
 import com.genir.aitweaks.utils.attack.*
 import com.genir.aitweaks.utils.extensions.*
 import com.genir.aitweaks.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.utils.rotateAroundPivot
+import com.genir.aitweaks.utils.vectorInArc
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -147,12 +148,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (target == null) return null
 
         val intercept = intercept(weapon, AttackTarget(target!!), currentParams()) ?: return null
-        return when {
-            // Lidar AI aims hardpoints correctly with the entire ship.
-            weapon.ship.hasAIType<LidarShipAI>() -> intercept
-            weapon.slot.isTurret -> intercept
-            else -> aimHardpoint(intercept)
-        }
+        return if (weapon.slot.isTurret) intercept
+        else aimHardpoint(intercept)
     }
 
     /** get current weapon attack parameters */
@@ -179,16 +176,16 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     /** predictive aiming for hardpoints */
     private fun aimHardpoint(intercept: Vector2f): Vector2f {
+        // Weapon is already facing the target. Return the
+        // original target location to not overcompensate.
+        if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing)))
+            return intercept
+
         val tgtLocation = target!!.location - weapon.ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
         val angleToTarget = MathUtils.getShortestRotation(tgtFacing, weapon.ship.facing)
 
-        // Ship is already facing the target. Return the
-        // original target location to not overcompensate.
-        if (abs(angleToTarget) < weapon.arc / 2f) {
-            return intercept
-        }
-
+        // Aim the hardpoint as if the ship was facing the target directly.
         return rotateAroundPivot(intercept, weapon.ship.location, angleToTarget)
     }
 }

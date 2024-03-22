@@ -39,13 +39,12 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
 
     fun advance(timeDelta: Float) {
         advanceInterval.advance(timeDelta)
-        if (!advanceInterval.intervalElapsed()) return
 
-        flags.setFlag(AIFlags.DO_NOT_VENT)
-
-        // Assume ship is not under vanilla AI
-        // control when lidar array is active.
-        if (system.isOn) return
+        when {
+            !advanceInterval.intervalElapsed() -> return
+            getLidarWeapons().isEmpty() -> return
+            system.isOn -> return
+        }
 
         val minLidarRange = minLidarWeaponRange()
         flags.setFlag(AIFlags.BACK_OFF_MIN_RANGE, 1.0f, minLidarRange * 0.6f)
