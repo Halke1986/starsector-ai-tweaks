@@ -1,3 +1,5 @@
+Version 1.5.1
+
 - Fixed null pointer exception in Lidar Array AI. 
 - Improved Lidar Array AI; now the entire ship rotates to properly lead target with hardpoint weapons.
 
