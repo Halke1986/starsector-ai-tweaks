@@ -29,15 +29,16 @@ class Controller {
         val w = ship.angularVelocity * dt
         val r = Rotation(90f - ship.facing - w)
         val d = r.rotate(target - ship.location)
-        val v = r.rotate(ship.velocity - targetVelocity) * dt
-
-        val af = ship.acceleration * dt * dt
-        val ab = ship.deceleration * dt * dt
-        val al = ship.strafeAcceleration * dt * dt
+        val v = r.rotate(ship.velocity) * dt
+        val vr = r.rotate(ship.velocity - targetVelocity) * dt
 
         // Calculate expected velocity change.
         val v2 = Vector2f(d).resize(ship.maxSpeed * dt)
         val e = v2 - v
+
+        val af = ship.acceleration * dt * dt
+        val ab = ship.deceleration * dt * dt
+        val al = ship.strafeAcceleration * dt * dt
 
         // Calculate proportional thrust required
         // to achieve the expected velocity change.
@@ -49,10 +50,10 @@ class Controller {
         // within ~1deg towards target, for visual effect.
         if (d.y > 50f * abs(d.x)) f[0] = 1f
 
-        if (shouldAccelerate(+d.y, +v.y, f[0], af, ab)) ship.move(ACCELERATE)
-        if (shouldAccelerate(-d.y, -v.y, f[1], ab, af)) ship.move(ACCELERATE_BACKWARDS)
-        if (shouldAccelerate(-d.x, -v.x, f[2], al, al)) ship.move(STRAFE_LEFT)
-        if (shouldAccelerate(+d.x, +v.x, f[3], al, al)) ship.move(STRAFE_RIGHT)
+        if (shouldAccelerate(+d.y, +vr.y, f[0], af, ab)) ship.move(ACCELERATE)
+        if (shouldAccelerate(-d.y, -vr.y, f[1], ab, af)) ship.move(ACCELERATE_BACKWARDS)
+        if (shouldAccelerate(-d.x, -vr.x, f[2], al, al)) ship.move(STRAFE_LEFT)
+        if (shouldAccelerate(+d.x, +vr.x, f[3], al, al)) ship.move(STRAFE_RIGHT)
     }
 
     fun facing(ship: ShipAPI, target: Vector2f, dt: Float) {

@@ -1,3 +1,5 @@
+- Minor improvements to Lidar Array AI.
+
 Version 1.5.1
 
 - Fixed null pointer exception in Lidar Array AI. 

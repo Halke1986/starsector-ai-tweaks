@@ -1,7 +1,6 @@
 package com.genir.aitweaks.features.lidar
 
 import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
@@ -25,7 +24,7 @@ class LidarArrayAI : ShipSystemAIScript {
         system ?: return
         flags ?: return
 
-        this.ai = LidarArrayAIImpl(ship, system, flags)
+        this.ai = LidarArrayAIImpl(ship, system)
     }
 
     override fun advance(amount: Float, missileDangerDir: Vector2f?, collisionDangerDir: Vector2f?, target: ShipAPI?) {
@@ -33,29 +32,22 @@ class LidarArrayAI : ShipSystemAIScript {
     }
 }
 
-class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystemAPI, private val flags: ShipwideAIFlags) {
+class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystemAPI) {
     private val targetTracker = ShipTargetTracker(ship)
-    private var advanceInterval = defaultAIInterval()
+    private var shouldUseSystemInterval = defaultAIInterval()
 
     fun advance(timeDelta: Float) {
-        advanceInterval.advance(timeDelta)
+        shouldUseSystemInterval.advance(timeDelta)
 
         when {
-            !advanceInterval.intervalElapsed() -> return
-            getLidarWeapons().isEmpty() -> return
-            system.isOn -> return
-        }
+            system.isOn || getLidarWeapons().isEmpty() -> return
+            shouldForceVent() -> ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
+            shouldUseSystemInterval.intervalElapsed() && shouldUseSystem() -> {
+                ship.useSystem()
 
-        val minLidarRange = minLidarWeaponRange()
-        flags.setFlag(AIFlags.BACK_OFF_MIN_RANGE, 1.0f, minLidarRange * 0.6f)
-
-        if (shouldForceVent()) {
-            ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
-        } else if (shouldUseSystem()) {
-            ship.useSystem()
-
-            // Set data to be used by ShipAI.
-            ship.setCustomData(lidarConfigID, LidarConfig(targetTracker.target, minLidarRange))
+                // Set data to be used by ShipAI.
+                ship.setCustomData(lidarConfigID, LidarConfig(targetTracker.target, minLidarWeaponRange()))
+            }
         }
     }
 
