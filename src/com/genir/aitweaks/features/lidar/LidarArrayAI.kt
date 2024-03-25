@@ -9,7 +9,6 @@ import com.genir.aitweaks.utils.attack.ShipTargetTracker
 import com.genir.aitweaks.utils.attack.canTrack
 import com.genir.aitweaks.utils.attack.defaultBallisticParams
 import com.genir.aitweaks.utils.defaultAIInterval
-import com.genir.aitweaks.utils.extensions.frontFacing
 import com.genir.aitweaks.utils.extensions.isShip
 import com.genir.aitweaks.utils.extensions.isVastBulk
 import com.genir.aitweaks.utils.firstShipAlongLineOfFire
@@ -36,8 +35,8 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
     private val targetTracker = ShipTargetTracker(ship)
     private var shouldUseSystemInterval = defaultAIInterval()
 
-    fun advance(timeDelta: Float) {
-        shouldUseSystemInterval.advance(timeDelta)
+    fun advance(dt: Float) {
+        shouldUseSystemInterval.advance(dt)
 
         when {
             system.isOn || getLidarWeapons().isEmpty() -> return
@@ -99,11 +98,11 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
     }
 
     private fun burstFluxRequired(): Float {
-        return getLidarWeapons().fold(0f) { s, it -> s + weaponFluxRequired(it) }
-    }
+        val weaponBaseFlux = getLidarWeapons().sumOf { it.derivedStats.fluxPerSecond.toDouble() }
+        val weaponFlux = weaponBaseFlux.toFloat() * (1f + LidarArrayStats.ROF_BONUS)
+        val dissipation = ship.mutableStats.fluxDissipation.modifiedValue
 
-    private fun weaponFluxRequired(weapon: WeaponAPI): Float {
-        return weapon.derivedStats.fluxPerSecond * (1f + LidarArrayStats.ROF_BONUS) * system.chargeActiveDur
+        return (weaponFlux - dissipation) * system.chargeActiveDur
     }
 
     private fun getLidarWeapons(): List<WeaponAPI> = ship.allWeapons.filter {
@@ -125,5 +124,5 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
     }
 }
 
-internal val WeaponAPI.isLidarWeapon: Boolean
-    get() = this.slot.isHardpoint && this.frontFacing && (this.type == ENERGY || this.type == BALLISTIC)
+val WeaponAPI.isLidarWeapon: Boolean
+    get() = this.slot.isHardpoint && !this.isBeam && !this.isDecorative && (this.type == ENERGY || this.type == BALLISTIC)
