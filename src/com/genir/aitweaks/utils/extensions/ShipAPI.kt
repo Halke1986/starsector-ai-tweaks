@@ -15,8 +15,8 @@ val ShipAPI.AIPersonality: String
 val ShipAPI.rootModule: ShipAPI
     get() = if (this.stationSlot != null) this.parentStation else this
 
-val ShipAPI.isVastBulk: Boolean
-    get() = this.hullSpec.isBuiltInMod("vastbulk")
+val ShipAPI.isHullDamageable: Boolean
+    get() = this.mutableStats.hullDamageTakenMult.getModifiedValue() > 0f
 
 val ShipAPI.hasEscortAssignment: Boolean
     get() = Global.getCombatEngine().getFleetManager(this.owner).getTaskManager(this.isAlly).getAssignmentFor(this)?.type.let { it == CombatAssignmentType.LIGHT_ESCORT || it == CombatAssignmentType.MEDIUM_ESCORT || it == CombatAssignmentType.HEAVY_ESCORT }

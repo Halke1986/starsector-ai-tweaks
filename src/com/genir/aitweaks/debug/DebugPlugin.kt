@@ -53,7 +53,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        Global.getCombatEngine().ships.filter { it.owner == 0 }.forEach { drawWeaponLines(it) }
+        Global.getCombatEngine().ships.filter { it.owner == 0 && it.isFighter}.forEach { drawWeaponLines(it) }
     }
 
     private fun speedupAsteroids() {

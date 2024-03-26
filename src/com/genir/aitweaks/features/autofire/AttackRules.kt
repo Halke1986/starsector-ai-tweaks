@@ -97,7 +97,7 @@ fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire?
     allowPDFriendlyFire(weapon, expected, actual) -> fire
     actual.target !is ShipAPI -> fire
     !actual.target.isAlive -> HoldFire.AVOID_FF_JUNK
-    actual.target.isVastBulk -> HoldFire.AVOID_FF_INERT
+    !actual.target.isHullDamageable -> HoldFire.AVOID_FF_INERT
     actual.target.owner != weapon.ship.owner -> fire
     else -> HoldFire.AVOID_FF
 }

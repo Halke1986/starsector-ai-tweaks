@@ -96,7 +96,6 @@ class SelectTarget(
                 it !is ShipAPI -> null
                 !it.isValidTarget -> null
                 it.isFighter -> null
-                it.isVastBulk -> null
                 it.owner == weapon.ship.owner -> null
                 !isTarget(it) -> null
                 else -> Hit(it, (weapon.ship.location - it.location).length(), false)

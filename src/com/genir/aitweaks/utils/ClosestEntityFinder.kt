@@ -26,6 +26,7 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: BallisticParams): Hit? =
         when {
             it !is ShipAPI -> null
             it.isFighter -> null
+            it.isExpired -> null
             it == weapon.ship -> null
             weapon.ship.rootModule == it.rootModule -> null
 

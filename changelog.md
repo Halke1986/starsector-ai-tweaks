@@ -1,6 +1,7 @@
 - Fixed issue with Wasps being hesitant to fire Proximity Mines.
 - PD weapons with ANTI_FTR AI tag will now prioritize fighters over missiles.
 - Minor improvements to Lidar Array AI.
+- Improved the logic for recognizing indestructible station modules.
 
 Version 1.5.1
 

@@ -9,8 +9,8 @@ import com.genir.aitweaks.utils.attack.ShipTargetTracker
 import com.genir.aitweaks.utils.attack.canTrack
 import com.genir.aitweaks.utils.attack.defaultBallisticParams
 import com.genir.aitweaks.utils.defaultAIInterval
+import com.genir.aitweaks.utils.extensions.isHullDamageable
 import com.genir.aitweaks.utils.extensions.isShip
-import com.genir.aitweaks.utils.extensions.isVastBulk
 import com.genir.aitweaks.utils.firstShipAlongLineOfFire
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
@@ -73,8 +73,9 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
         else -> ship.fluxTracker.timeToVent >= system.cooldownRemaining
     }
 
+    // TODO delegate to autofire plugin
     private fun weaponsOnTarget(target: ShipAPI): Boolean {
-        return getLidarWeapons().firstOrNull { !canTrack(it, AttackTarget(target), defaultBallisticParams(), it.range * 0.85f) } == null
+        return getLidarWeapons().firstOrNull { !canTrack(it, AttackTarget(target), defaultBallisticParams(), it.range * 0.92f) } == null
     }
 
     private fun weaponsNotBlocked(): Boolean {
@@ -87,7 +88,7 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
             hit == null -> false
             hit !is ShipAPI -> false
             !hit.isAlive -> true
-            hit.isVastBulk -> true
+            !hit.isHullDamageable -> true
             hit.owner == weapon.ship.owner -> true
             else -> false
         }
