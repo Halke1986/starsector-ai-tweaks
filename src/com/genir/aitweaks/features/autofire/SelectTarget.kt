@@ -3,8 +3,7 @@ package com.genir.aitweaks.features.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
-import com.fs.starfarer.api.combat.WeaponAPI.AIHints.STRIKE
+import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.attack.*
 import com.genir.aitweaks.utils.extensions.*
@@ -21,12 +20,20 @@ class SelectTarget(
     private val params: BallisticParams,
 ) {
     val target: CombatEntityAPI? = when {
-        Global.getCurrentState() == GameState.TITLE && LunaSettings.getBoolean("aitweaks", "aitweaks_title_screen_fire") == true -> selectAsteroid()
-        weapon.isPD -> selectMissile() ?: selectFighter() ?: selectShip()
+        Global.getCurrentState() == GameState.TITLE && titleScreenFireIsOn() -> selectAsteroid()
+
+        weapon.hasAIHint(PD_ONLY) && weapon.hasAIHint(ANTI_FTR) -> selectFighter() ?: selectMissile()
+        weapon.hasAIHint(PD_ONLY) -> selectMissile() ?: selectFighter()
+
+        weapon.hasAIHint(PD) && weapon.hasAIHint(ANTI_FTR) -> selectFighter() ?: selectMissile() ?: selectShip()
+        weapon.hasAIHint(PD) -> selectFighter() ?: selectMissile() ?: selectShip()
+
         weapon.hasAIHint(ANTI_FTR) -> selectShip(alsoTargetFighters)
         weapon.hasAIHint(STRIKE) -> selectShip()
         else -> selectShip() ?: selectFighter()
     }
+
+    private fun titleScreenFireIsOn() = LunaSettings.getBoolean("aitweaks", "aitweaks_title_screen_fire") == true
 
     /** Target asteroid selection. Selects asteroid only when the weapon and asteroid
      * are both in viewport. Otherwise, it looks weird on the title screen. */

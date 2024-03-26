@@ -2,7 +2,7 @@ package com.genir.aitweaks.utils.extensions
 
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
+import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.utils.attack.FiringCycle
 import com.genir.aitweaks.utils.attack.firingCycle
@@ -13,10 +13,7 @@ val WeaponAPI.isAntiArmor: Boolean
     get() = this.damageType == DamageType.HIGH_EXPLOSIVE || this.hasAIHint(USE_LESS_VS_SHIELDS)
 
 val WeaponAPI.isPD: Boolean
-    get() = this.hasAIHint(WeaponAPI.AIHints.PD) || this.hasAIHint(WeaponAPI.AIHints.PD_ONLY)
-
-//val WeaponAPI.isAntiFtr: Boolean
-//    get() = this.isPD || this.hasAIHint(ANTI_FTR)
+    get() = this.hasAIHint(PD) || this.hasAIHint(PD_ONLY)
 
 val WeaponAPI.isStrictlyAntiShield: Boolean
     get() = this.spec.hasTag("aitweaks_anti_shield")
@@ -28,12 +25,10 @@ val WeaponAPI.hasAmmoToSpare: Boolean
     get() = !this.usesAmmo() || this.ammoTracker.let { it.reloadSize > 0 && (it.ammo + it.reloadSize > it.maxAmmo) }
 
 val WeaponAPI.hasBestTargetLeading: Boolean
-    get() = this.isPD && !this.hasAIHint(WeaponAPI.AIHints.STRIKE) && ship.mutableStats.dynamic.getValue(
-        "pd_best_target_leading", 0f
-    ) >= 1f
+    get() = this.isPD && !this.hasAIHint(STRIKE) && ship.mutableStats.dynamic.getValue("pd_best_target_leading", 0f) >= 1f
 
 val WeaponAPI.ignoresFlares: Boolean
-    get() = this.hasAIHint(WeaponAPI.AIHints.IGNORES_FLARES) || ship.mutableStats.dynamic.getValue("pd_ignores_flares", 0f) >= 1f
+    get() = this.hasAIHint(IGNORES_FLARES) || ship.mutableStats.dynamic.getValue("pd_ignores_flares", 0f) >= 1f
 
 val WeaponAPI.frontFacing: Boolean
     get() = abs(MathUtils.getShortestRotation(this.arcFacing, 0f)) <= this.arc / 2f

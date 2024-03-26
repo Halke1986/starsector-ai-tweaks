@@ -120,9 +120,10 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             return HoldFire.NO_HIT_EXPECTED
         }
 
-        // Hold fire for a period of time after initially
-        // acquiring the target to increase first volley accuracy.
-        if (onTargetTime < min(2f, weapon.firingCycle.duration)) {
+        // Hold fire for a period of time after initially acquiring
+        // the target to increase first volley accuracy. PD weapons
+        // should fire with no delay.
+        if (!weapon.isPD && onTargetTime < min(2f, weapon.firingCycle.duration)) {
             val angleToTarget = VectorUtils.getFacing(aimLocation!! - weapon.location)
             val inaccuracy = abs(MathUtils.getShortestRotation(weapon.currAngle, angleToTarget))
             if (inaccuracy > 1f) return HoldFire.STABILIZE_ON_TARGET
