@@ -45,3 +45,6 @@ val ShipAPI.isAutomated: Boolean
 
 inline fun <reified T> ShipAPI.hasAIType(): Boolean = (this as Ship).shipAI?.let { it is T || (it as? Ship.ShipAIWrapper)?.ai is T }
     ?: false
+
+val ShipAPI.deploymentPoints: Float
+    get() = this.fleetMember?.unmodifiedDeploymentPointsCost ?: 0f

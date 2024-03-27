@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.extensions.deploymentPoints
 import com.genir.aitweaks.utils.extensions.isShip
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
@@ -70,8 +71,7 @@ fun dangerGradientInDirection(ship: ShipAPI, facing: Float): Float {
     val r = Rotation(90f - facing)
     return threats.fold(0f) { sum, enemy ->
         val pos = r.rotate((enemy as ShipAPI).location - ship.location);
-        val member = enemy.fleetMember
-        val dp = member.unmodifiedDeploymentPointsCost
+        val dp = enemy.deploymentPoints
         sum + (dp * dp * pos.length() * pos.y) / 1e6f;
     }
 }
