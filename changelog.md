@@ -1,3 +1,8 @@
+Version 1.5.3
+
+- Fixed another null pointer exception in Lidar Array AI.
+- Previous fix to Proximity Mine was insufficient. Now Proximity Mine is on autofire blacklist and is controlled by vanilla AI. 
+
 Version 1.5.2
 
 - Fixed issue with Wasps being hesitant to fire Proximity Mines.
