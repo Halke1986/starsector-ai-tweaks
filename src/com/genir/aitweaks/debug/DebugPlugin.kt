@@ -52,6 +52,10 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
     }
 
+    fun clear(){
+        logs.clear()
+    }
+
     private fun debug(dt: Float) {
         Global.getCombatEngine().ships.filter { it.owner == 0 && it.isFighter}.forEach { drawWeaponLines(it) }
     }
