@@ -3,6 +3,7 @@ package com.genir.aitweaks.utils.extensions
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI
+import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
@@ -27,6 +28,9 @@ val ShipAPI.assignment: CombatFleetManagerAPI.AssignmentInfo?
 
 val ShipAPI.hasEscortAssignment: Boolean
     get() = this.assignment?.type.let { it == LIGHT_ESCORT || it == MEDIUM_ESCORT || it == HEAVY_ESCORT }
+
+val ShipAPI.deployedFleetMember: DeployedFleetMemberAPI?
+    get() = Global.getCombatEngine().getFleetManager(this.owner).getDeployedFleetMember(this)
 
 val ShipAPI.maneuverTarget: ShipAPI?
     get() = this.aiFlags.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET) as? ShipAPI
