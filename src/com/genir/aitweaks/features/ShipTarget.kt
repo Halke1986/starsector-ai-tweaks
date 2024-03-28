@@ -15,7 +15,6 @@ import com.genir.aitweaks.utils.extensions.isValidTarget
 import org.lazywizard.lazylib.ext.minus
 import java.awt.Color
 
-
 class ShipTarget : BaseEveryFrameCombatPlugin() {
     private val assignments: MutableMap<DeployedFleetMemberAPI, DeployedFleetMemberAPI> = mutableMapOf()
 
@@ -32,7 +31,25 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        span2(targets)
+        val allTargets = Global.getCombatEngine().ships.filter {
+            when {
+                it.owner != 1 -> false
+                !it.isValidTarget -> false
+                it.deploymentPoints == 0f -> false
+                else -> true
+            }
+        }
+
+//        span2(targets)
+
+        val groups = battlegroups(allTargets.toTypedArray())
+
+        debugPlugin.clear()
+
+        groups.forEach {
+            debugPlugin[it] = it.size
+            drawBattleGroup(it)
+        }
 
 //        centralTarget(1)
 //        val bigShips = Global.getCombatEngine().ships.filter {
@@ -106,69 +123,107 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
 //        return null
 //    }
 
-    private fun span(targets: List<ShipAPI>) {
-        val ts = targets.toTypedArray()
-        val sets = IntArray(ts.size) { it }
+//    private fun span(targets: List<ShipAPI>) {
+//        val ts = targets.toTypedArray()
+//        val sets = IntArray(ts.size) { it }
+//
+//
+//        val es: MutableList<Edge> = mutableListOf()
+//
+//        val maxRange = 1500f
+//
+//        for (i in ts.indices) {
+//            for (j in i + 1 until ts.size) {
+//                val w = (ts[i].location - ts[j].location).lengthSquared()
+//                if (w <= maxRange * maxRange) {
+//                    es.add(Edge(i, j, w))
+//                }
+//            }
+//        }
+//
+//        kruskal(es, ts.size).forEach {
+//            debugVertices.add(Line(ts[it.src].location, ts[it.dest].location, Color.YELLOW))
+//        }
+//    }
 
+//    private fun span2(targets: List<ShipAPI>) {
+//        val ts = targets.toTypedArray()
+//        val sets = IntArray(ts.size) { it }
+//
+//        val maxRange = 2000f
+//
+//        for (i in ts.indices) {
+//            for (j in i + 1 until ts.size) {
+//                if (sets[i] == sets[j]) continue
+//
+//                val w = (ts[i].location - ts[j].location).lengthSquared()
+//                if (w > maxRange * maxRange) continue
+//
+//                for (k in sets.indices) {
+//                    if (sets[k] == sets[j])
+//                        sets[k] = i
+//                }
+//            }
+//        }
+//
+//        val maps: MutableMap<Int, MutableList<ShipAPI>> = mutableMapOf()
+//
+//        for (i in ts.indices) {
+//            if (!maps.contains(sets[i]))
+//                maps[sets[i]] = mutableListOf()
+//
+//            maps[sets[i]]!!.add(ts[i])
+//        }
+//
+//        debugPlugin.clear()
+//
+//        maps.forEach {
+//            debugPlugin[it.key] = it.value.size
+//
+//            drawBattleGroup(it.value)
+//        }
+//    }
 
-        val es: MutableList<Edge> = mutableListOf()
+    private fun battlegroups(targets: Array<ShipAPI>): List<List<ShipAPI>> {
+        val maxRange = 2000f
 
-        val maxRange = 1500f
+        // Assign targets to battle groups.
+        val groups = IntArray(targets.size) { it }
+        for (i in targets.indices) {
+            for (j in targets.indices) {
+                when {
+                    // Cannot attach to battle group via frigate.
+                    targets[j].isFrigate -> continue
 
-        for (i in ts.indices) {
-            for (j in i + 1 until ts.size) {
-                val w = (ts[i].location - ts[j].location).lengthSquared()
-                if (w <= maxRange * maxRange) {
-                    es.add(Edge(i, j, w))
+                    // Frigate already attached to battle group.
+                    targets[i].isFrigate && groups[i] != i -> continue
+
+                    // Both targets already in same battle group.
+                    groups[i] == groups[j] -> continue
+
+                    // Too large distance between targets to connect.
+                    (targets[i].location - targets[j].location).lengthSquared() > maxRange * maxRange -> continue
+                }
+
+                // Merge battle groups.
+                val toMerge = groups[i]
+                for (k in groups.indices) {
+                    if (groups[k] == toMerge)
+                        groups[k] = groups[j]
                 }
             }
         }
 
-        kruskal(es, ts.size).forEach {
-            debugVertices.add(Line(ts[it.src].location, ts[it.dest].location, Color.YELLOW))
-        }
-    }
+        // Build battle groups.
+        val sets: MutableMap<Int, MutableList<ShipAPI>> = mutableMapOf()
+        for (i in targets.indices) {
+            if (!sets.contains(groups[i]))
+                sets[groups[i]] = mutableListOf()
 
-    private fun span2(targets: List<ShipAPI>) {
-        val ts = targets.toTypedArray()
-        val sets = IntArray(ts.size) { it }
-
-
-        val es: MutableList<Edge> = mutableListOf()
-
-        val maxRange = 1500f
-
-        for (i in ts.indices) {
-            for (j in i + 1 until ts.size) {
-                if (sets[i] == sets[j]) continue
-
-                val w = (ts[i].location - ts[j].location).lengthSquared()
-                if (w > maxRange * maxRange) continue
-
-                val old = sets[j]
-                for (k in ts.indices) {
-                    if (sets[k] == old)
-                        sets[k] = i
-                }
-            }
+            sets[groups[i]]!!.add(targets[i])
         }
 
-        val maps: MutableMap<Int, MutableList<ShipAPI>> = mutableMapOf()
-
-        for (i in ts.indices) {
-            if (!maps.contains(sets[i]))
-                maps[sets[i]] = mutableListOf()
-
-            maps[sets[i]]!!.add(ts[i])
-        }
-
-        debugPlugin.clear()
-
-        maps.forEach {
-            debugPlugin[it.key] = it.value.size
-
-            drawBattleGroup(it.value)
-        }
+        return sets.values.toList()
     }
 
     private fun closeToEnemy(ship: ShipAPI, enemies: List<ShipAPI>): Boolean {
