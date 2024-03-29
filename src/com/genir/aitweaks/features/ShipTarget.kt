@@ -7,13 +7,10 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.RALLY_TASK_FORCE
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.debug.Line
-import com.genir.aitweaks.debug.debugPlugin
-import com.genir.aitweaks.debug.debugVertices
+import com.genir.aitweaks.debug.drawBattleGroup
 import com.genir.aitweaks.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 
 class ShipTarget : BaseEveryFrameCombatPlugin() {
     private val knownAssignments: MutableSet<assignmentKey> = mutableSetOf()
@@ -27,16 +24,9 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
         advanceInterval.advance(dt)
         if (!advanceInterval.intervalElapsed()) return
 
-        debugPlugin.clear()
-
-        val targets = Global.getCombatEngine().ships.filter {
-            it.owner == 1 && it.isValidTarget
-        }
-
-        debugPlugin[0] = knownAssignments.size
-
-        val groups = battlegroups(targets.toTypedArray())
-
+        // Identify enemy deathball.
+        val enemyFleet = Global.getCombatEngine().ships.filter { it.owner == 1 && it.isValidTarget }
+        val groups = segmentFleet(enemyFleet.toTypedArray())
         deathball = groups.maxByOrNull { it.sumOf { ship -> ship.deploymentPoints.toDouble() } } ?: return
 
         val ships = Global.getCombatEngine().ships.filter {
@@ -49,17 +39,9 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        ships.forEach {
-            debugPlugin[it] = "${it.hullSpec.hullId} ${it.maneuverTarget}"
-        }
-
-        val bigTargets = deathball.filter { it.isBig }
-        if (bigTargets.isEmpty()) return
-
-
-        ships.forEach {
-            manageAssignments(it, deathball, bigTargets)
-        }
+        val fog = Global.getCombatEngine().getFogOfWar(0)
+        val bigTargets = deathball.filter { it.isBig && fog.isVisible(it) }
+        ships.forEach { manageAssignments(it, deathball, bigTargets) }
 
         Global.getCombatEngine().getFleetManager(0).getTaskManager(false).clearEmptyWaypoints()
     }
@@ -81,7 +63,7 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
         }
 
         // Ship has wrong target.
-        if (!deathBall.contains(ship.maneuverTarget)) {
+        if (ship.maneuverTarget != null && !deathBall.contains(ship.maneuverTarget)) {
             // Find the closest valid target in the main enemy battle group.
             val closestTarget = bigTargets.minByOrNull { target -> (target.location - ship.location).lengthSquared() }
                 ?: return
@@ -95,26 +77,26 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
         }
     }
 
-
-    private fun battlegroups(targets: Array<ShipAPI>): List<Set<ShipAPI>> {
+    // Divide fleet into separate battle groups.
+    private fun segmentFleet(fleet: Array<ShipAPI>): List<Set<ShipAPI>> {
         val maxRange = 2000f
 
         // Assign targets to battle groups.
-        val groups = IntArray(targets.size) { it }
-        for (i in targets.indices) {
-            for (j in targets.indices) {
+        val groups = IntArray(fleet.size) { it }
+        for (i in fleet.indices) {
+            for (j in fleet.indices) {
                 when {
                     // Cannot attach to battle group via frigate.
-                    targets[j].isSmall -> continue
+                    fleet[j].isSmall -> continue
 
                     // Frigate already attached to battle group.
-                    targets[i].isSmall && groups[i] != i -> continue
+                    fleet[i].isSmall && groups[i] != i -> continue
 
                     // Both targets already in same battle group.
                     groups[i] == groups[j] -> continue
 
                     // Too large distance between targets to connect.
-                    (targets[i].location - targets[j].location).lengthSquared() > maxRange * maxRange -> continue
+                    (fleet[i].location - fleet[j].location).lengthSquared() > maxRange * maxRange -> continue
                 }
 
                 // Merge battle groups.
@@ -127,10 +109,10 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
 
         // Build battle groups.
         val sets: MutableMap<Int, MutableSet<ShipAPI>> = mutableMapOf()
-        for (i in targets.indices) {
+        for (i in fleet.indices) {
             if (!sets.contains(groups[i])) sets[groups[i]] = mutableSetOf()
 
-            sets[groups[i]]!!.add(targets[i])
+            sets[groups[i]]!!.add(fleet[i])
         }
 
         return sets.values.toList()
@@ -144,63 +126,11 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
 
 data class assignmentKey(val ship: ShipAPI, val location: Vector2f, val type: CombatAssignmentType)
 
+val ShipAPI.maxFiringRange: Float
+    get() = this.allWeapons.maxOfOrNull { it.range } ?: 0f
+
 private val ShipAPI.isSmall: Boolean
     get() = this.isFighter || (this.isFrigate && !this.isModule)
 
 private val ShipAPI.isBig: Boolean
     get() = this.isCruiser || this.isCapital
-
-val ShipAPI.maxFiringRange: Float
-    get() = this.allWeapons.maxOfOrNull { it.range } ?: 0f
-
-fun drawBattleGroup(group: Set<ShipAPI>) {
-    val ts = group.toTypedArray()
-    val es: MutableList<Edge> = mutableListOf()
-
-    for (i in ts.indices) {
-        for (j in i + 1 until ts.size) {
-            val w = (ts[i].location - ts[j].location).lengthSquared()
-            es.add(Edge(i, j, w))
-        }
-    }
-
-    kruskal(es, ts.size).forEach {
-        debugVertices.add(Line(ts[it.src].location, ts[it.dest].location, Color.YELLOW))
-    }
-}
-
-data class Edge(val src: Int, val dest: Int, val weight: Float)
-
-fun kruskal(graph: List<Edge>, numVertices: Int): List<Edge> {
-    val sortedEdges = graph.sortedBy { it.weight }
-    val disjointSet = IntArray(numVertices) { -1 }
-    val mst = mutableListOf<Edge>()
-
-    fun find(parents: IntArray, i: Int): Int {
-        if (parents[i] < 0) return i
-        return find(parents, parents[i]).also { parents[i] = it }
-    }
-
-    fun union(parents: IntArray, i: Int, j: Int) {
-        val root1 = find(parents, i)
-        val root2 = find(parents, j)
-        if (root1 != root2) {
-            if (parents[root1] < parents[root2]) {
-                parents[root1] += parents[root2]
-                parents[root2] = root1
-            } else {
-                parents[root2] += parents[root1]
-                parents[root1] = root2
-            }
-        }
-    }
-
-    for (edge in sortedEdges) {
-        if (mst.size >= numVertices - 1) break
-        if (find(disjointSet, edge.src) != find(disjointSet, edge.dest)) {
-            union(disjointSet, edge.src, edge.dest)
-            mst.add(edge)
-        }
-    }
-    return mst
-}
