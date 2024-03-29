@@ -3,33 +3,35 @@ package com.genir.aitweaks.features
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.CombatAssignmentType
+import com.fs.starfarer.api.combat.CombatAssignmentType.AVOID
 import com.fs.starfarer.api.combat.CombatAssignmentType.RALLY_TASK_FORCE
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
+import com.genir.aitweaks.debug.Line
+import com.genir.aitweaks.debug.debugPlugin
+import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.debug.drawBattleGroup
 import com.genir.aitweaks.utils.extensions.*
+import com.genir.aitweaks.utils.targetTracker
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 
 class ShipTarget : BaseEveryFrameCombatPlugin() {
-    private val knownAssignments: MutableSet<assignmentKey> = mutableSetOf()
+    private val knownAssignments: MutableSet<AssignmentKey> = mutableSetOf()
     private val advanceInterval = IntervalUtil(0.75f, 1f)
-
-    private var deathball: Set<ShipAPI> = setOf()
+    private var deathBall: Set<ShipAPI> = setOf()
+    private var deathBallTime: MutableMap<ShipAPI, Float> = mutableMapOf()
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        drawBattleGroup(deathball)
+        drawBattleGroup(deathBall)
 
-        advanceInterval.advance(dt)
-        if (!advanceInterval.intervalElapsed()) return
+        deathBall.forEach {
+            deathBallTime[it] = if (deathBallTime.contains(it)) deathBallTime[it]!! + dt else 0f
+        }
 
-        // Identify enemy deathball.
-        val enemyFleet = Global.getCombatEngine().ships.filter { it.owner == 1 && it.isValidTarget }
-        val groups = segmentFleet(enemyFleet.toTypedArray())
-        deathball = groups.maxByOrNull { it.sumOf { ship -> ship.deploymentPoints.toDouble() } } ?: return
-
-        val ships = Global.getCombatEngine().ships.filter {
+        val shipsInit = Global.getCombatEngine().ships.filter {
             when {
                 it.owner != 0 -> false
                 !it.isAlive -> false
@@ -39,41 +41,88 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        val fog = Global.getCombatEngine().getFogOfWar(0)
-        val bigTargets = deathball.filter { it.isBig && fog.isVisible(it) }
-        ships.forEach { manageAssignments(it, deathball, bigTargets) }
+        shipsInit.forEach {
+            debugPlugin[it] = "${it.hullSpec.hullId} ${targetTracker[it]}"
+            //${deathBall.contains(targetTracker[it])}
 
-        Global.getCombatEngine().getFleetManager(0).getTaskManager(false).clearEmptyWaypoints()
-    }
+            val t = targetTracker[it]
+            if (t != null)
+                debugVertices.add(Line(it.location, t.location, Color.RED))
+        }
 
-    private fun manageAssignments(ship: ShipAPI, deathBall: Set<ShipAPI>, bigTargets: List<ShipAPI>) {
-        val fleetManager = Global.getCombatEngine().getFleetManager(ship.owner)
-        val taskManager = fleetManager.getTaskManager(ship.isAlly)
+        val engine = Global.getCombatEngine()
+        if (engine.isPaused || engine.isSimulation) return
 
-        if (ship.assignment != null) {
-            val key = assignmentKey(ship, ship.assignment!!.target.location, ship.assignment!!.type)
+        advanceInterval.advance(dt)
+        if (!advanceInterval.intervalElapsed()) return
 
-            if (knownAssignments.contains(key)) {
-                taskManager.removeAssignment(ship.assignment)
-                knownAssignments.remove(key)
-            } else {
-                // Ship has foreign assignment.
-                return
+        val ships = engine.ships.filter {
+            when {
+                it.owner != 0 -> false
+                !it.isAlive -> false
+                it.isExpired -> false
+                !it.isBig -> false
+                else -> true
             }
         }
 
-        // Ship has wrong target.
-        if (ship.maneuverTarget != null && !deathBall.contains(ship.maneuverTarget)) {
-            // Find the closest valid target in the main enemy battle group.
-            val closestTarget = bigTargets.minByOrNull { target -> (target.location - ship.location).lengthSquared() }
-                ?: return
+        // Do not force targets if there's an avoid assignment active.
+        val taskManager = engine.getFleetManager(0).getTaskManager(false)
+        if (taskManager.allAssignments.firstOrNull { it.type == AVOID } != null) {
+            ships.forEach { clearAssignment(it) }
+            return
+        }
 
-            val waypoint = fleetManager.createWaypoint(closestTarget.location, false)
-            val assignment = taskManager.createAssignment(RALLY_TASK_FORCE, waypoint, false)
-            taskManager.giveAssignment(ship.deployedFleetMember, assignment, false)
+        // Identify enemy deathball.
+        val enemyFleet = engine.ships.filter { it.owner == 1 && it.isValidTarget }
+        val groups = segmentFleet(enemyFleet.toTypedArray())
+        deathBall = groups.maxByOrNull { it.sumOf { ship -> ship.deploymentPoints.toDouble() } } ?: return
 
-            val key = assignmentKey(ship, ship.assignment!!.target.location, ship.assignment!!.type)
-            knownAssignments.add(key)
+
+        val fog = engine.getFogOfWar(0)
+        val bigTargets = deathBall.filter { it.isBig && fog.isVisible(it) }
+        ships.forEach { manageAssignments(it, deathBall, bigTargets) }
+
+        taskManager.clearEmptyWaypoints()
+    }
+
+    private fun manageAssignments(ship: ShipAPI, deathBall: Set<ShipAPI>, bigTargets: List<ShipAPI>) {
+        clearAssignment(ship)
+
+        // Ship has foreign assignment.
+        if (ship.assignment != null) {
+            return
+        }
+
+        val target = targetTracker[ship]
+
+        when {
+            target == null -> return
+            deathBall.contains(target) -> return
+//            !target.isSmall && deathBallTime[target]?.let { it > 10f } == true -> return
+        }
+
+        // Ship has wrong target. Find the closest valid target in the main enemy battle group.
+        val closestTarget = bigTargets.minByOrNull { (it.location - ship.location).lengthSquared() }
+            ?: return
+
+        val fleetManager = Global.getCombatEngine().getFleetManager(ship.owner)
+        val waypoint = fleetManager.createWaypoint(closestTarget.location, false)
+        val assignment = ship.taskManager.createAssignment(RALLY_TASK_FORCE, waypoint, false)
+        ship.taskManager.giveAssignment(ship.deployedFleetMember, assignment, false)
+
+        val key = AssignmentKey(ship, ship.assignment!!.target.location, ship.assignment!!.type)
+        knownAssignments.add(key)
+    }
+
+    private fun clearAssignment(ship: ShipAPI) {
+        if (ship.assignment == null) return
+
+        // Clear old assignment.
+        val key = AssignmentKey(ship, ship.assignment!!.target.location, ship.assignment!!.type)
+        if (knownAssignments.contains(key)) {
+            ship.taskManager.removeAssignment(ship.assignment)
+            knownAssignments.remove(key)
         }
     }
 
@@ -124,7 +173,7 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
     }
 }
 
-data class assignmentKey(val ship: ShipAPI, val location: Vector2f, val type: CombatAssignmentType)
+private data class AssignmentKey(val ship: ShipAPI, val location: Vector2f, val type: CombatAssignmentType)
 
 val ShipAPI.maxFiringRange: Float
     get() = this.allWeapons.maxOfOrNull { it.range } ?: 0f

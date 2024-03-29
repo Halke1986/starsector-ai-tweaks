@@ -4,12 +4,9 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.utils.Arc
+import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.attack.*
 import com.genir.aitweaks.utils.extensions.*
-import com.genir.aitweaks.utils.firstShipAlongLineOfFire
-import com.genir.aitweaks.utils.rotateAroundPivot
-import com.genir.aitweaks.utils.vectorInArc
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -28,7 +25,6 @@ private var autofireAICount = 0
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var target: CombatEntityAPI? = null
     private var prevFrameTarget: CombatEntityAPI? = null
-    private var targetTracker = ShipTargetTracker(weapon.ship)
 
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
@@ -70,8 +66,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Select target.
         selectTargetInterval.advance(timeDelta)
         if (selectTargetInterval.intervalElapsed()) {
-            targetTracker.advance()
-            target = SelectTarget(weapon, target, targetTracker.target, currentParams()).target
+            target = SelectTarget(weapon, target, targetTracker[weapon.ship], currentParams()).target
             if (target == null) {
                 shouldHoldFire = HoldFire.NO_TARGET
                 return
