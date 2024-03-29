@@ -2,8 +2,8 @@ package com.genir.aitweaks.features
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.CombatAssignmentType.*
-import com.fs.starfarer.api.combat.CombatFleetManagerAPI.AssignmentInfo
+import com.fs.starfarer.api.combat.CombatAssignmentType
+import com.fs.starfarer.api.combat.CombatAssignmentType.RALLY_TASK_FORCE
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
@@ -12,19 +12,22 @@ import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
+import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
 class ShipTarget : BaseEveryFrameCombatPlugin() {
-    private val knownAssignments: MutableMap<ShipAPI, AssignmentInfo> = mutableMapOf()
+    private val knownAssignments: MutableSet<assignmentKey> = mutableSetOf()
     private val advanceInterval = IntervalUtil(0.75f, 1f)
 
-    override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-//        debugPlugin[0] = Global.getCombatEngine().getFleetManager(0).admiralAI?.javaClass?.canonicalName
+    private var deathball: Set<ShipAPI> = setOf()
 
+    override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
+        drawBattleGroup(deathball)
 
         advanceInterval.advance(dt)
         if (!advanceInterval.intervalElapsed()) return
 
+        debugPlugin.clear()
 
         val targets = Global.getCombatEngine().ships.filter {
             it.owner == 1 && it.isValidTarget
@@ -34,8 +37,7 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
 
         val groups = battlegroups(targets.toTypedArray())
 
-        val deathBall = groups.maxByOrNull { it.sumOf { ship -> ship.deploymentPoints.toDouble() } } ?: return
-        drawBattleGroup(deathBall)
+        deathball = groups.maxByOrNull { it.sumOf { ship -> ship.deploymentPoints.toDouble() } } ?: return
 
         val ships = Global.getCombatEngine().ships.filter {
             when {
@@ -47,56 +49,50 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        val bigTargets = deathBall.filter { it.isBig }
+        ships.forEach {
+            debugPlugin[it] = "${it.hullSpec.hullId} ${it.maneuverTarget}"
+        }
+
+        val bigTargets = deathball.filter { it.isBig }
         if (bigTargets.isEmpty()) return
 
 
         ships.forEach {
-            manageAssignments(it, deathBall, bigTargets)
+            manageAssignments(it, deathball, bigTargets)
         }
+
+        Global.getCombatEngine().getFleetManager(0).getTaskManager(false).clearEmptyWaypoints()
     }
 
-    var count = 0
-
     private fun manageAssignments(ship: ShipAPI, deathBall: Set<ShipAPI>, bigTargets: List<ShipAPI>) {
-        val taskManager = Global.getCombatEngine().getFleetManager(ship.owner).getTaskManager(ship.isAlly)
+        val fleetManager = Global.getCombatEngine().getFleetManager(ship.owner)
+        val taskManager = fleetManager.getTaskManager(ship.isAlly)
 
-        if (knownAssignments.contains(ship)) {
+        if (ship.assignment != null) {
+            val key = assignmentKey(ship, ship.assignment!!.target.location, ship.assignment!!.type)
 
-            // Ship assignment was overridden.
-            if (ship.assignment != knownAssignments[ship]) {
-                if (ship.assignment != null) taskManager.removeAssignment(ship.assignment)
-                knownAssignments.remove(ship)
-            }
-
-            if (deathBall.contains(ship.maneuverTarget)) {
-                if (ship.assignment != null) taskManager.removeAssignment(ship.assignment)
-                knownAssignments.remove(ship)
+            if (knownAssignments.contains(key)) {
+                taskManager.removeAssignment(ship.assignment)
+                knownAssignments.remove(key)
+            } else {
+                // Ship has foreign assignment.
+                return
             }
         }
 
         // Ship has wrong target.
-        if (ship.assignment == null && !deathBall.contains(ship.maneuverTarget)) {
-            val closestTarget = bigTargets.minByOrNull { target -> (target.location - ship.location).lengthSquared() }!!
+        if (!deathBall.contains(ship.maneuverTarget)) {
+            // Find the closest valid target in the main enemy battle group.
+            val closestTarget = bigTargets.minByOrNull { target -> (target.location - ship.location).lengthSquared() }
+                ?: return
 
-            val assignment = taskManager.createAssignment(INTERCEPT, closestTarget.deployedFleetMember, false)
+            val waypoint = fleetManager.createWaypoint(closestTarget.location, false)
+            val assignment = taskManager.createAssignment(RALLY_TASK_FORCE, waypoint, false)
             taskManager.giveAssignment(ship.deployedFleetMember, assignment, false)
 
-            count++
-            debugPlugin[1] = count
-
-            knownAssignments[ship] = assignment
-            return
+            val key = assignmentKey(ship, ship.assignment!!.target.location, ship.assignment!!.type)
+            knownAssignments.add(key)
         }
-
-//        // Ship has foreign assignment.
-//        if (ship.assignment != null && !knownAssignments.contains(ship)) {
-//            return
-//        }
-//
-//        if (deathBall.contains(ship.maneuverTarget)) {
-//            taskManager.removeAssignment(ship.assignment)
-//        }
     }
 
 
@@ -124,8 +120,7 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
                 // Merge battle groups.
                 val toMerge = groups[i]
                 for (k in groups.indices) {
-                    if (groups[k] == toMerge)
-                        groups[k] = groups[j]
+                    if (groups[k] == toMerge) groups[k] = groups[j]
                 }
             }
         }
@@ -133,8 +128,7 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
         // Build battle groups.
         val sets: MutableMap<Int, MutableSet<ShipAPI>> = mutableMapOf()
         for (i in targets.indices) {
-            if (!sets.contains(groups[i]))
-                sets[groups[i]] = mutableSetOf()
+            if (!sets.contains(groups[i])) sets[groups[i]] = mutableSetOf()
 
             sets[groups[i]]!!.add(targets[i])
         }
@@ -148,6 +142,7 @@ class ShipTarget : BaseEveryFrameCombatPlugin() {
     }
 }
 
+data class assignmentKey(val ship: ShipAPI, val location: Vector2f, val type: CombatAssignmentType)
 
 private val ShipAPI.isSmall: Boolean
     get() = this.isFighter || (this.isFrigate && !this.isModule)

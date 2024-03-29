@@ -1,11 +1,8 @@
 package com.genir.aitweaks.utils.extensions
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
-import com.fs.starfarer.api.combat.CombatFleetManagerAPI
-import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
@@ -23,8 +20,11 @@ val ShipAPI.rootModule: ShipAPI
 val ShipAPI.isHullDamageable: Boolean
     get() = this.mutableStats.hullDamageTakenMult.getModifiedValue() > 0f
 
+val ShipAPI.taskManager: CombatTaskManagerAPI
+    get() = Global.getCombatEngine().getFleetManager(this.owner).getTaskManager(this.isAlly)
+
 val ShipAPI.assignment: CombatFleetManagerAPI.AssignmentInfo?
-    get() = Global.getCombatEngine().getFleetManager(this.owner).getTaskManager(this.isAlly).getAssignmentFor(this)
+    get() = this.taskManager.getAssignmentFor(this)
 
 val ShipAPI.hasEscortAssignment: Boolean
     get() = this.assignment?.type.let { it == LIGHT_ESCORT || it == MEDIUM_ESCORT || it == HEAVY_ESCORT }
