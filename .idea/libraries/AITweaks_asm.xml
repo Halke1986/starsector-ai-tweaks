@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="AITweaks_asm">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/jars/AITweaks_asm.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -3,8 +3,13 @@ package com.genir.aitweaks
 import com.fs.starfarer.api.PluginPick
 import com.fs.starfarer.api.campaign.CampaignPlugin.PickPriority
 import com.fs.starfarer.api.combat.AutofireAIPlugin
+import com.fs.starfarer.api.combat.ShipAIPlugin
+import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.MISSILE
+import com.fs.starfarer.api.fleet.FleetMemberAPI
+import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.asm.BasicShipAI
 import com.genir.aitweaks.features.autofire.AutofireAI
 
 val autofireBlacklist = setOf(
@@ -18,5 +23,9 @@ class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
 
         return PluginPick(ai, PickPriority.MOD_GENERAL)
     }
+
+//    override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI?): PluginPick<ShipAIPlugin> {
+//        return PluginPick(BasicShipAI(ship as Ship), PickPriority.MOD_GENERAL)
+//    }
 }
 

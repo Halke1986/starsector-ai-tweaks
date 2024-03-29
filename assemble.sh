@@ -1,0 +1,1 @@
+python ../../../Krakatau/assemble.py -out ./jars/AITweaks_asm.jar -r ./src/com/genir/aitweaks/asm
