@@ -49,7 +49,28 @@ private class FleetCohesionImpl {
 
         clearAssignments()
 
-        if (taskManager.isFullAssault || taskManager.isInFullRetreat) return
+        when {
+            taskManager.isInFullRetreat -> return
+
+            // Giving assignments disrupts the full assault.
+            taskManager.isFullAssault -> return
+
+            // Do not force targets if there's an avoid assignment active.
+            taskManager.allAssignments.firstOrNull { it.type == AVOID } != null -> return
+
+            // Battle is already won.
+            engine.getFleetManager(1).getTaskManager(false).isInFullRetreat -> return
+        }
+
+        // Identify enemy battle groups.
+        val enemyFleet = engine.ships.filter { it.owner == 1 && it.isValidTarget }
+        if (enemyFleet.isEmpty()) return
+        val groups = segmentFleet(enemyFleet.toTypedArray())
+        val groupsFromLargest = groups.sortedBy { it.dpSum }.reversed()
+        validGroups = groupsFromLargest.filter { it.dpSum * 4f >= groupsFromLargest.first().dpSum }
+
+        val fog = engine.getFogOfWar(0)
+        val primaryTargets = validGroups.first().filter { it.isBig && fog.isVisible(it) }
 
         val ships = engine.ships.filter {
             when {
@@ -62,27 +83,13 @@ private class FleetCohesionImpl {
             }
         }
 
-        // Do not force targets if there's an avoid assignment active.
-        if (taskManager.allAssignments.firstOrNull { it.type == AVOID } != null) return
-
-        // Identify enemy battle groups.
-        val enemyFleet = engine.ships.filter { it.owner == 1 && it.isValidTarget }
-        if (enemyFleet.isEmpty()) return
-        val groups = segmentFleet(enemyFleet.toTypedArray())
-        val groupsFromLargest = groups.sortedBy { it.dpSum }.reversed()
-        validGroups = groupsFromLargest.filter { it.dpSum * 4f >= groupsFromLargest.first().dpSum }
-
-        val fog = engine.getFogOfWar(0)
-        val primaryTargets = validGroups.first().filter { it.isBig && fog.isVisible(it) }
-
         // Assign targets.
         val channelWasOpen = taskManager.isCommChannelOpen
         ships.forEach { manageAssignments(it, primaryTargets) }
 
         // Cleanup.
         taskManager.clearEmptyWaypoints()
-        if (!channelWasOpen && taskManager.isCommChannelOpen)
-            taskManager.closeCommChannel()
+        if (!channelWasOpen && taskManager.isCommChannelOpen) taskManager.closeCommChannel()
     }
 
     private fun manageAssignments(ship: ShipAPI, primaryTargets: List<ShipAPI>) {
@@ -105,9 +112,8 @@ private class FleetCohesionImpl {
 
         // Create waypoint on the target ship. Make sure it follow the target even on the map edge.
         val fleetManager = Global.getCombatEngine().getFleetManager(ship.owner)
-        val waypoint = fleetManager.createWaypoint(closestTarget.location, true)
-        if (waypoint.location != closestTarget.location)
-            waypoint.location.set(closestTarget.location)
+        val waypoint = fleetManager.createWaypoint(Vector2f(), true)
+        waypoint.location.set(closestTarget.location)
 
         // Assign target to ship.
         val doNotRefundCP = taskManager.isCommChannelOpen
