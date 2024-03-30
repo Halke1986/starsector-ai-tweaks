@@ -1,3 +1,5 @@
+Version 1.6.1
+
 - Fixed bug that caused Fleet Cohesion AI to take over control of player ship. Reported by @WilliamDraco.
 
 Version 1.6.0
