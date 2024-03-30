@@ -79,6 +79,7 @@ private class FleetCohesionImpl {
                 it.isExpired -> false
                 !it.isBig -> false
                 it.isAlly -> false
+                it == engine.playerShip && engine.isUIAutopilotOn -> false
                 else -> true
             }
         }
