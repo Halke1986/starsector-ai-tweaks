@@ -26,7 +26,7 @@ fun drawEngineLines(ship: ShipAPI) = shipsToDrawEngineLines.add(ship)
 
 fun drawWeaponLines(ship: ShipAPI) = shipsToDrawWeaponLines.add(ship)
 
-fun drawBattleGroup(group: Set<ShipAPI>) = DrawBattleGroup().drawBattleGroup(group)
+fun drawBattleGroup(group: Set<ShipAPI>, color: Color = Color.YELLOW) = DrawBattleGroup().drawBattleGroup(group, color)
 
 class RenderLines : BaseCombatLayeredRenderingPlugin() {
     private fun drawDebugWeaponLines() {
@@ -100,7 +100,7 @@ private var shipsToDrawWeaponLines: MutableSet<ShipAPI> = mutableSetOf()
 private class DrawBattleGroup {
     data class Edge(val src: Int, val dest: Int, val weight: Float)
 
-    fun drawBattleGroup(group: Set<ShipAPI>) {
+    fun drawBattleGroup(group: Set<ShipAPI>, color: Color) {
         val ts = group.toTypedArray()
         val es: MutableList<Edge> = mutableListOf()
 
@@ -112,7 +112,7 @@ private class DrawBattleGroup {
         }
 
         kruskal(es, ts.size).forEach {
-            debugVertices.add(Line(ts[it.src].location, ts[it.dest].location, Color.YELLOW))
+            debugVertices.add(Line(ts[it.src].location, ts[it.dest].location, color))
         }
     }
 

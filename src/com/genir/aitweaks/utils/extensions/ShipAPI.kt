@@ -62,3 +62,6 @@ inline fun <reified T> ShipAPI.hasAIType(): Boolean = (this as Ship).shipAI?.let
 
 val ShipAPI.deploymentPoints: Float
     get() = this.fleetMember?.unmodifiedDeploymentPointsCost ?: 0f
+
+val ShipAPI.maxFiringRange: Float
+    get() = this.allWeapons.maxOfOrNull { it.range } ?: 0f
