@@ -10,7 +10,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
-import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.utils.extensions.*
 import com.genir.aitweaks.utils.targetTracker
 import lunalib.lunaSettings.LunaSettings
@@ -19,11 +18,19 @@ import org.lwjgl.util.vector.Vector2f
 
 class FleetCohesion : BaseEveryFrameCombatPlugin() {
     private var impl: FleetCohesionImpl? = null
+    private var isOn = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai") ?: false
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        if (impl == null) impl = FleetCohesionImpl()
+        when {
+            Global.getCurrentState() != GameState.COMBAT -> return
+            Global.getCombatEngine().isSimulation -> return
+            !isOn -> return
+        }
 
-        impl!!.advance(dt, events)
+        if (impl == null)
+            impl = FleetCohesionImpl()
+
+        impl!!.advance(dt)
     }
 }
 
@@ -33,25 +40,16 @@ private class FleetCohesionImpl {
     private var validGroups: List<Set<ShipAPI>> = listOf()
     private var taskManager: CombatTaskManager = Global.getCombatEngine().getFleetManager(0).getTaskManager(false) as CombatTaskManager
 
-    private var isOn = LunaSettings.getBoolean("aitweaks", "aitweaks_fleet_cohesion_default_state") ?: false
-//    private var toggleKeybind = LunaSettings.getInt("aitweaks", "aitweaks_fleet_cohesion_keybid") ?: -1
-
-    fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        val engine = Global.getCombatEngine()
-        if (Global.getCurrentState() != GameState.COMBAT || engine.isSimulation) return
-
-//        // Handle input.
-//        events?.forEach {
-//            if (!it.isConsumed && it.isKeyDownEvent && it.eventValue == toggleKeybind) {
-//                if (isOn) clearAssignments()
-//                isOn = !isOn
-//            }
-//        }
-
-        if (engine.isPaused || !isOn) return
-
+    fun advance(dt: Float) {
         advanceInterval.advance(dt)
         if (!advanceInterval.intervalElapsed()) return
+
+        val engine = Global.getCombatEngine()
+        if (engine.isPaused) return
+
+        clearAssignments()
+
+        if (taskManager.isFullAssault || taskManager.isInFullRetreat) return
 
         val ships = engine.ships.filter {
             when {
@@ -63,28 +61,6 @@ private class FleetCohesionImpl {
                 else -> true
             }
         }
-
-        debugPlugin.clear()
-        ships.forEach {
-            if (it.assignment != null) {
-                debugPlugin[it] = "${it.hullSpec.hullId} ${it.assignment!!.target}"
-            }
-        }
-
-        clearAssignments()
-
-        if (taskManager.isFullAssault || taskManager.isInFullRetreat) return
-
-//        val ships = engine.ships.filter {
-//            when {
-//                it.owner != 0 -> false
-//                !it.isAlive -> false
-//                it.isExpired -> false
-//                !it.isBig -> false
-//                it.isAlly -> false
-//                else -> true
-//            }
-//        }
 
         // Do not force targets if there's an avoid assignment active.
         if (taskManager.allAssignments.firstOrNull { it.type == AVOID } != null) return
@@ -103,11 +79,10 @@ private class FleetCohesionImpl {
         val channelWasOpen = taskManager.isCommChannelOpen
         ships.forEach { manageAssignments(it, primaryTargets) }
 
+        // Cleanup.
         taskManager.clearEmptyWaypoints()
-
-        if (!channelWasOpen && taskManager.isCommChannelOpen) {
+        if (!channelWasOpen && taskManager.isCommChannelOpen)
             taskManager.closeCommChannel()
-        }
     }
 
     private fun manageAssignments(ship: ShipAPI, primaryTargets: List<ShipAPI>) {
@@ -128,8 +103,13 @@ private class FleetCohesionImpl {
         val closestTarget = primaryTargets.minByOrNull { (it.location - ship.location).lengthSquared() }
             ?: return
 
+        // Create waypoint on the target ship. Make sure it follow the target even on the map edge.
         val fleetManager = Global.getCombatEngine().getFleetManager(ship.owner)
         val waypoint = fleetManager.createWaypoint(closestTarget.location, true)
+        if (waypoint.location != closestTarget.location)
+            waypoint.location.set(closestTarget.location)
+
+        // Assign target to ship.
         val doNotRefundCP = taskManager.isCommChannelOpen
         val assignment = taskManager.createAssignment(RALLY_TASK_FORCE, waypoint, doNotRefundCP)
         taskManager.giveAssignment(ship.deployedFleetMember, assignment, false)

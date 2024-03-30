@@ -1,3 +1,5 @@
+- Implemented Fleet Cohesion AI. The AI will attempt to maintain fleet cohesion by auto-assigning move commands to cruisers and capitals that stray off from the rest of the fleet. Configurable via LunaLib settings.
+
 Version 1.5.2
 
 - Fixed issue with Wasps being hesitant to fire Proximity Mines.
