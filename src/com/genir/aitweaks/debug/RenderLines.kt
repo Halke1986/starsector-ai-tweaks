@@ -11,6 +11,7 @@ import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.extensions.isPD
 import com.genir.aitweaks.utils.times
 import lunalib.lunaSettings.LunaSettings
+import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.opengl.GL11
 import org.lwjgl.util.vector.Vector2f
@@ -21,12 +22,11 @@ var debugVertices = mutableListOf<Line>()
 
 class Line(val a: Vector2f, val b: Vector2f, val color: Color)
 
-private var shipsToDrawEngineLines: MutableSet<ShipAPI> = mutableSetOf()
-private var shipsToDrawWeaponLines: MutableSet<ShipAPI> = mutableSetOf()
-
 fun drawEngineLines(ship: ShipAPI) = shipsToDrawEngineLines.add(ship)
 
 fun drawWeaponLines(ship: ShipAPI) = shipsToDrawWeaponLines.add(ship)
+
+fun drawBattleGroup(group: Set<ShipAPI>, color: Color = Color.YELLOW) = DrawBattleGroup().drawBattleGroup(group, color)
 
 class RenderLines : BaseCombatLayeredRenderingPlugin() {
     private fun drawDebugWeaponLines() {
@@ -94,4 +94,59 @@ class RenderLines : BaseCombatLayeredRenderingPlugin() {
     override fun getActiveLayers(): EnumSet<CombatEngineLayers> = EnumSet.of(CombatEngineLayers.JUST_BELOW_WIDGETS)
 }
 
+private var shipsToDrawEngineLines: MutableSet<ShipAPI> = mutableSetOf()
+private var shipsToDrawWeaponLines: MutableSet<ShipAPI> = mutableSetOf()
 
+private class DrawBattleGroup {
+    data class Edge(val src: Int, val dest: Int, val weight: Float)
+
+    fun drawBattleGroup(group: Set<ShipAPI>, color: Color) {
+        val ts = group.toTypedArray()
+        val es: MutableList<Edge> = mutableListOf()
+
+        for (i in ts.indices) {
+            for (j in i + 1 until ts.size) {
+                val w = (ts[i].location - ts[j].location).lengthSquared()
+                es.add(Edge(i, j, w))
+            }
+        }
+
+        kruskal(es, ts.size).forEach {
+            debugVertices.add(Line(ts[it.src].location, ts[it.dest].location, color))
+        }
+    }
+
+    fun kruskal(graph: List<Edge>, numVertices: Int): List<Edge> {
+        val sortedEdges = graph.sortedBy { it.weight }
+        val disjointSet = IntArray(numVertices) { -1 }
+        val mst = mutableListOf<Edge>()
+
+        fun find(parents: IntArray, i: Int): Int {
+            if (parents[i] < 0) return i
+            return find(parents, parents[i]).also { parents[i] = it }
+        }
+
+        fun union(parents: IntArray, i: Int, j: Int) {
+            val root1 = find(parents, i)
+            val root2 = find(parents, j)
+            if (root1 != root2) {
+                if (parents[root1] < parents[root2]) {
+                    parents[root1] += parents[root2]
+                    parents[root2] = root1
+                } else {
+                    parents[root2] += parents[root1]
+                    parents[root1] = root2
+                }
+            }
+        }
+
+        for (edge in sortedEdges) {
+            if (mst.size >= numVertices - 1) break
+            if (find(disjointSet, edge.src) != find(disjointSet, edge.dest)) {
+                union(disjointSet, edge.src, edge.dest)
+                mst.add(edge)
+            }
+        }
+        return mst
+    }
+}
