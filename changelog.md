@@ -1,3 +1,5 @@
+Version 1.6.2
+
 - Fixed null pointer exception in Fleet Cohesion AI caused by incorrect handling of modular ships. Reported by Celepito.
 
 Version 1.6.1
