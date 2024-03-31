@@ -1,6 +1,8 @@
+- Fixed null pointer exception in Fleet Cohesion AI caused by incorrect handling of modular ships. Reported by Celepito.
+
 Version 1.6.1
 
-- Fixed bug that caused Fleet Cohesion AI to take over control of player ship. Reported by @WilliamDraco.
+- Fixed bug that caused Fleet Cohesion AI to take over control of player ship. Reported by @WilliamDraco and CV514.
 
 Version 1.6.0
 

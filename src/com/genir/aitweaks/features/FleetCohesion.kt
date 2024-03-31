@@ -79,6 +79,8 @@ private class FleetCohesionImpl {
                 it.isExpired -> false
                 !it.isBig -> false
                 it.isAlly -> false
+                it.isStation -> false
+                it.isStationModule -> false
                 it == engine.playerShip && engine.isUIAutopilotOn -> false
                 else -> true
             }
@@ -121,8 +123,10 @@ private class FleetCohesionImpl {
         val assignment = taskManager.createAssignment(RALLY_TASK_FORCE, waypoint, doNotRefundCP)
         taskManager.giveAssignment(ship.deployedFleetMember, assignment, false)
 
-        val key = AssignmentKey(ship, ship.assignment!!.target.location, ship.assignment!!.type)
-        knownAssignments.add(key)
+        if (ship.assignment != null) {
+            val key = AssignmentKey(ship, ship.assignment!!.target.location, ship.assignment!!.type)
+            knownAssignments.add(key)
+        }
     }
 
     private fun clearAssignments() {
