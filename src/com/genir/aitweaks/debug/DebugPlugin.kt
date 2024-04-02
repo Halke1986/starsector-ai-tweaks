@@ -2,17 +2,16 @@ package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
+import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.CustomClassLoader
+import com.fs.starfarer.combat.CombatFleetManager.O0
+import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-import java.lang.invoke.MethodHandles
-import java.lang.invoke.MethodType
-import java.net.URLClassLoader
 import java.util.*
 
 const val ID = "com.genir.aitweaks.debug.DebugPlugin"
@@ -56,53 +55,20 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
     }
 
-    fun xx() {
-        var cl: ClassLoader = DebugPlugin::class.java.getClassLoader()
-        while (cl !is URLClassLoader) cl = cl.parent
-        val urls = cl.urLs
-
-        val cls: Class<*> = CustomClassLoader(urls, ClassLoader.getSystemClassLoader())
-            .loadClass("com.genir.aitweaks.asm.BasicShipAI")
-
-        val ctor = MethodHandles.lookup().findConstructor(cls, MethodType.methodType(Void.TYPE))
-    }
-
-
-//
-//            while (cl != null && !(cl instanceof URLClassLoader)) cl = cl.getParent();
-//            if (cl == null) throw new RuntimeException("Unable to find URLClassLoader");
-//            URL[] urls = ((URLClassLoader) cl).getURLs();
-//
-//            @SuppressWarnings("resource")
-//            Class<?> cls = new CustomClassLoader(urls, ClassLoader.getSystemClassLoader())
-//                .loadClass(PluginMain.class.getPackage().getName() + ".CoreUIWatchScript");
-//
-//            ctor = MethodHandles.lookup().findConstructor(cls, MethodType.methodType(void.class));
-//        } catch (RuntimeException | Error ex) {
-//            throw ex;
-//        } catch (Throwable t) {
-//            throw new ExceptionInInitializerError(t);
-//        }
-//        scriptCtor = ctor;
-//    }
-
     fun clear() {
         logs.clear()
     }
 
     private fun debug(dt: Float) {
-//        Global.getCombatEngine().ships.forEach{
-//        xx()
-            val klas = Class.forName("com.genir.aitweaks.asm.BasicShipAI")
+//        Global.getCombatEngine().ships.filter { it.owner == 0 && it.isFighter}.forEach { drawWeaponLines(it) }
+//        Global.getCombatEngine().getFleetManager(0).admiralAI = null
 
-        debugPlugin[0] = "OK"
-
-//            com.fs.starfarer.combat.ai.N.`String.super`(ship as Ship)
-
-//            val ai = (it.shipAI as? Ship.ShipAIWrapper)?.ai ?: it.shipAI
-
-//            debugPlugin[it] = ai.javaClass.canonicalName
-
+//        debugPlugin.clear()
+//
+//        Global.getCombatEngine().ships.filter {
+//            it.owner == 0 && it.hasDirectOrder
+//        }.forEach {
+//            debugPlugin[it] = it
 //        }
     }
 
@@ -115,3 +81,12 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
     }
 }
+
+
+val ShipAPI.hasDirectOrder: Boolean
+    get() {
+        val fleetManager = Global.getCombatEngine().getFleetManager(this.owner)
+        val taskManager = fleetManager.getTaskManager(this.isAlly) as CombatTaskManager
+        val deployedFleetMember = fleetManager.getDeployedFleetMember(this) as? O0 ?: return false
+        return taskManager.hasDirectOrders(deployedFleetMember)
+    }

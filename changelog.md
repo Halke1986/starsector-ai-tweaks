@@ -1,3 +1,20 @@
+Version 1.6.2
+
+- Fixed null pointer exception in Fleet Cohesion AI caused by incorrect handling of modular ships. Reported by Celepito.
+
+Version 1.6.1
+
+- Fixed bug that caused Fleet Cohesion AI to take over control of player ship. Reported by @WilliamDraco and CV514.
+
+Version 1.6.0
+
+- Implemented Fleet Cohesion AI. The AI will attempt to maintain fleet cohesion by auto-assigning move commands to cruisers and capitals that stray off from the rest of the fleet. Configurable via LunaLib settings.
+
+Version 1.5.3
+
+- Fixed another null pointer exception in Lidar Array AI.
+- Previous fix to Proximity Mine was insufficient. Now Proximity Mine is on autofire blacklist and is controlled by vanilla AI. 
+
 Version 1.5.2
 
 - Fixed issue with Wasps being hesitant to fire Proximity Mines.
