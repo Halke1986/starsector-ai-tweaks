@@ -61,11 +61,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
     private fun debug(dt: Float) {
         debugPlugin[0] = Global.getCombatEngine().ships.filter { it.hasAIType<BasicShipAI>() }.size
-
-
-        I(null, null, null, null).o().`Ò00000`
-
-
     }
 
     private fun speedupAsteroids() {
