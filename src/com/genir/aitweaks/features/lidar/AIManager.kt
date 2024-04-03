@@ -5,8 +5,8 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.combat.ai.BasicShipAI
-import com.genir.aitweaks.utils.extensions.hasAIType
+import com.genir.aitweaks.utils.ai.hasAIType
+import com.genir.aitweaks.utils.ai.hasVanillaAI
 import com.genir.aitweaks.utils.extensions.isValidTarget
 
 const val lidarConfigID = "aitweaks_lidar_config"
@@ -22,7 +22,7 @@ class AIManager : BaseEveryFrameCombatPlugin() {
             val config = ship.customData[lidarConfigID] as? LidarConfig
             val target = config?.target
 
-            if (ship.hasAIType<BasicShipAI>()) {
+            if (ship.hasVanillaAI) {
                 if (ship.system.isOn && target?.isValidTarget == true) {
                     // Deploy lidar ship AI
                     ship.setCustomData(lidarAIStashID, ship.shipAI)

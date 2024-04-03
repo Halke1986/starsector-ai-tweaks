@@ -4,9 +4,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.combat.ai.I
-import com.genir.aitweaks.asm.BasicShipAI
-import com.genir.aitweaks.utils.extensions.hasAIType
+import com.genir.aitweaks.asm.AssemblyShipAI
+import com.genir.aitweaks.utils.ai.hasAIType
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ui.LazyFont
@@ -60,7 +59,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        debugPlugin[0] = Global.getCombatEngine().ships.filter { it.hasAIType<BasicShipAI>() }.size
+        debugPlugin[0] = Global.getCombatEngine().ships.filter { it.hasAIType<AssemblyShipAI>() }.size
     }
 
     private fun speedupAsteroids() {

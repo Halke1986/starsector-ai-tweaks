@@ -4,6 +4,7 @@
     "com.genir.aitweaks.utils.TargetTracker": "com.genir.aitweaks.utils.TargetTracker",
     "com.genir.aitweaks.features.AutoOmniShields": "com.genir.aitweaks.features.AutoOmniShields",
     "com.genir.aitweaks.features.AICorePersonality": "com.genir.aitweaks.features.AICorePersonality",
-    "com.genir.aitweaks.features.lidar.AIManager": "com.genir.aitweaks.features.lidar.AIManager"
+    "com.genir.aitweaks.features.lidar.AIManager": "com.genir.aitweaks.features.lidar.AIManager",
+    "com.genir.aitweaks.features.FleetCohesion": "com.genir.aitweaks.features.FleetCohesion"
   }
 }

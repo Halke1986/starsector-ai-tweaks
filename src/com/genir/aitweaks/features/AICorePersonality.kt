@@ -4,9 +4,9 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.combat.ai.BasicShipAI
-import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.utils.extensions.AIPersonality
+import com.genir.aitweaks.utils.ai.AIPersonality
+import com.genir.aitweaks.utils.ai.hasVanillaAI
+import com.genir.aitweaks.utils.ai.newVanillaAI
 import com.genir.aitweaks.utils.extensions.isAutomated
 import lunalib.lunaSettings.LunaSettings
 
@@ -24,13 +24,14 @@ class AICorePersonality : BaseEveryFrameCombatPlugin() {
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
         // Replace only vanilla AI with incorrect personality.
         val shipsToUpdate = Global.getCombatEngine().ships.filter {
-            it.owner == 0 && it.ai != null && it.isAutomated && it.ai is BasicShipAI && it.AIPersonality != personalityPreset
+            it.owner == 0 && it.ai != null && it.isAutomated && it.hasVanillaAI && it.AIPersonality != personalityPreset
         }
 
         shipsToUpdate.forEach {
+            it.captain.setPersonality(personalityPreset)
             val config = ShipAIConfig()
             config.personalityOverride = personalityPreset
-            (it as Ship).ai = BasicShipAI(it, config)
+            it.shipAI = newVanillaAI(it, config)
         }
     }
 }

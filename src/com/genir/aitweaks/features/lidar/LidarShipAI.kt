@@ -14,7 +14,7 @@ import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ext.resize
 import org.lwjgl.util.vector.Vector2f
 
-/** LidarShipAI replaces vanilla BasicShipAI only when the lidar array is active. */
+/** LidarShipAI replaces vanilla AI only when the lidar array is active. */
 class LidarShipAI(private val ship: ShipAPI, private val target: ShipAPI, private val range: Float) : ShipAIPlugin {
     private val flags = ship.aiFlags
     private var advanceInterval = defaultAIInterval()

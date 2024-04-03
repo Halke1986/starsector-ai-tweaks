@@ -8,9 +8,8 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.MISSILE
 import com.fs.starfarer.api.fleet.FleetMemberAPI
-import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.asm.BasicShipAI
 import com.genir.aitweaks.features.autofire.AutofireAI
+import com.genir.aitweaks.utils.ai.newVanillaAI
 
 val autofireBlacklist = setOf(
     "fragbomb", // Stinger-class Proximity Mine is classified as a ballistic weapon, but works more like missile.
@@ -24,8 +23,8 @@ class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
         return PluginPick(ai, PickPriority.MOD_GENERAL)
     }
 
-    override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI?): PluginPick<ShipAIPlugin> {
-        return PluginPick(BasicShipAI(ship as Ship), PickPriority.MOD_GENERAL)
+    override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin> {
+        return PluginPick(newVanillaAI(ship), PickPriority.MOD_GENERAL)
     }
 }
 
