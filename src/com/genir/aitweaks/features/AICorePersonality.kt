@@ -28,7 +28,12 @@ class AICorePersonality : BaseEveryFrameCombatPlugin() {
         }
 
         shipsToUpdate.forEach {
+            // AssemblyShipAI needs captain personality change,
+            // because configured personality override is ignored.
             it.captain.setPersonality(personalityPreset)
+
+            // BasicShipAI needs configured personality override,
+            // because captain personality is ignored for automated ships.
             val config = ShipAIConfig()
             config.personalityOverride = personalityPreset
             it.shipAI = newVanillaAI(it, config)
