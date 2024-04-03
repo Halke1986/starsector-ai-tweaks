@@ -1,6 +1,5 @@
 package autofire
 
-import com.genir.aitweaks.CustomClassLoader
 import com.genir.aitweaks.utils.Arc
 import com.genir.aitweaks.utils.attack.*
 import mocks.MockBoundsAPI
@@ -10,23 +9,9 @@ import mocks.MockWeaponAPI
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.lwjgl.util.vector.Vector2f
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Paths
 
 
 class BallisticsKtTest {
-    @Test
-    fun xx() {
-
-//        ClassLoader.getSystemClassLoader().loadClass("com.genir.aitweaks.asm.BasicShipAI")
-
-        CustomClassLoader().loadClassFromFile("/home/mwojcik/starfarer/starsector97/mods/starsector-ai-tweaks/BasicShipAI.class")
-//        ClassLoader.getSystemClassLoader().loadClass("com.fs.starfarer.combat.ai.BasicShipAI")
-
-//        val klas = Class.forName
-    }
-
     @Test
     fun testWillHitBounds() {
         val bounds = MockBoundsAPI(
@@ -120,33 +105,5 @@ class BallisticsKtTest {
         assertEquals(Arc(360f, 0f), interceptArc(weapon, target, BallisticParams(1f, 0f)))
         assertEquals(0f, closestHitRange(weapon, target, BallisticParams(1f, 0f)))
         assertNotNull(willHitCircumference(weapon, target, BallisticParams(1f, 0f)))
-    }
-}
-
-class CustomClassLoader : ClassLoader() {
-    fun loadClassFromFile(path: String): Class<*> {
-        try {
-            // Read class file to byte array
-            val classData = Files.readAllBytes(Paths.get(path))
-            // Define the class with the byte array
-            return defineClass(null, classData, 0, classData.size)
-        } catch (e: IOException) {
-            throw RuntimeException("Failed to load class from path: $path", e)
-        }
-    }
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val loader: autofire.CustomClassLoader = CustomClassLoader()
-            try {
-                // Replace "path/to/your/classfile.class" with the actual file path
-                val clazz: Class<*> = loader.loadClassFromFile("path/to/your/classfile.class")
-                println("Class loaded: " + clazz.name)
-                // Optionally, you can instantiate and use the loaded class here
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
     }
 }

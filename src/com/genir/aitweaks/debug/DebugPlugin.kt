@@ -2,11 +2,11 @@ package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.combat.CombatFleetManager.O0
-import com.fs.starfarer.combat.tasks.CombatTaskManager
+import com.fs.starfarer.combat.ai.I
+import com.genir.aitweaks.asm.BasicShipAI
+import com.genir.aitweaks.utils.extensions.hasAIType
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ui.LazyFont
@@ -60,16 +60,12 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-//        Global.getCombatEngine().ships.filter { it.owner == 0 && it.isFighter}.forEach { drawWeaponLines(it) }
-//        Global.getCombatEngine().getFleetManager(0).admiralAI = null
+        debugPlugin[0] = Global.getCombatEngine().ships.filter { it.hasAIType<BasicShipAI>() }.size
 
-//        debugPlugin.clear()
-//
-//        Global.getCombatEngine().ships.filter {
-//            it.owner == 0 && it.hasDirectOrder
-//        }.forEach {
-//            debugPlugin[it] = it
-//        }
+
+        I(null, null, null, null).o().`Ò00000`
+
+
     }
 
     private fun speedupAsteroids() {
@@ -81,12 +77,3 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
     }
 }
-
-
-val ShipAPI.hasDirectOrder: Boolean
-    get() {
-        val fleetManager = Global.getCombatEngine().getFleetManager(this.owner)
-        val taskManager = fleetManager.getTaskManager(this.isAlly) as CombatTaskManager
-        val deployedFleetMember = fleetManager.getDeployedFleetMember(this) as? O0 ?: return false
-        return taskManager.hasDirectOrders(deployedFleetMember)
-    }

@@ -24,8 +24,8 @@ class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
         return PluginPick(ai, PickPriority.MOD_GENERAL)
     }
 
-//    override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI?): PluginPick<ShipAIPlugin> {
-//        return PluginPick(BasicShipAI(ship as Ship), PickPriority.MOD_GENERAL)
-//    }
+    override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI?): PluginPick<ShipAIPlugin> {
+        return PluginPick(BasicShipAI(ship as Ship), PickPriority.MOD_GENERAL)
+    }
 }
 
