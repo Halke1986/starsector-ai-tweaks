@@ -2322,7 +2322,7 @@ L1167:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI target Lc
 L1170:  ifnull L1218 
 L1173:  ldc_w +5.0f 
 L1176:  fstore 8 
-L1178:  new com/fs/starfarer/combat/ai/movement/maneuvers/StrafeTargetManeuverV2 
+L1178:  new com/genir/aitweaks/features/maneuver/ManeuverObf 
 L1181:  dup 
 L1182:  aload_0 
 L1183:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI ship Lcom/fs/starfarer/combat/entities/Ship; 
@@ -2336,7 +2336,7 @@ L1196:  aload_0
 L1197:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI flockingAI Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L1200:  aload_0 
 L1201:  iconst_0 
-L1202:  invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/StrafeTargetManeuverV2 <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;ZFFFLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;Z)V 
+L1202:  invokespecial Method com/genir/aitweaks/features/maneuver/ManeuverObf <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;ZFFFLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;Z)V 
 L1205:  astore 9 
 L1207:  aload_0 
 L1208:  aload 9 
@@ -3774,7 +3774,7 @@ L4423:  fload 54
 L4425:  fconst_0 
 L4426:  fcmpl 
 L4427:  ifeq L4473 
-L4430:  new com/fs/starfarer/combat/ai/movement/maneuvers/StrafeTargetManeuverV2 
+L4430:  new com/genir/aitweaks/features/maneuver/ManeuverObf 
 L4433:  dup 
 L4434:  aload_0 
 L4435:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI ship Lcom/fs/starfarer/combat/entities/Ship; 
@@ -3789,7 +3789,7 @@ L4451:  aload_0
 L4452:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI flockingAI Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L4455:  aload_0 
 L4456:  iload_1 
-L4457:  invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/StrafeTargetManeuverV2 <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;ZFFFLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;Z)V 
+L4457:  invokespecial Method com/genir/aitweaks/features/maneuver/ManeuverObf <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;ZFFFLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;Z)V 
 L4460:  astore 55 
 L4462:  aload_0 
 L4463:  aload 55 
@@ -3804,7 +3804,7 @@ L4477:  ldc_w +1000.0f
 L4480:  fadd 
 L4481:  fcmpg 
 L4482:  ifge L4526 
-L4485:  new com/fs/starfarer/combat/ai/movement/maneuvers/StrafeTargetManeuverV2 
+L4485:  new com/genir/aitweaks/features/maneuver/ManeuverObf 
 L4488:  dup 
 L4489:  aload_0 
 L4490:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI ship Lcom/fs/starfarer/combat/entities/Ship; 
@@ -5663,6 +5663,6 @@ L101:
 .const [u96] = Utf8 com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO 
 .const [u153] = Utf8 com/fs/starfarer/combat/ai/movement/maneuvers/oooO 
 .const [u483] = Utf8 com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags 
-.const [u501] = Utf8 com/fs/starfarer/combat/ai/movement/maneuvers/StrafeTargetManeuverV2 
+.const [u501] = Utf8 com/genir/aitweaks/features/maneuver/ManeuverObf 
 .const [u543] = Utf8 com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO$Oo 
 .end class 
