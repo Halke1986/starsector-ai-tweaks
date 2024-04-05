@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.asm.AssemblyShipAI
+import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
 
 inline fun <reified T> ShipAPI.hasAIType(): Boolean = (this as Ship).shipAI?.let { it is T || (it as? Ship.ShipAIWrapper)?.ai is T }
     ?: false

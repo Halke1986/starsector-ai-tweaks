@@ -1,5 +1,5 @@
 .version 49 0 
-.class public super com/genir/aitweaks/asm/OrderResponseModule 
+.class public super com/genir/aitweaks/asm/combat/ai/OrderResponseModule 
 .super java/lang/Object 
 .field public static final 'ÓO0000' F = +1750.0f 
 .field public static final OO0000 F = +1000.0f 
@@ -23,43 +23,43 @@ L0:     aload_0
 L1:     invokespecial Method java/lang/Object <init> ()V 
 L4:     aload_0 
 L5:     iconst_0 
-L6:     putfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ø00000' Z 
+L6:     putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ø00000' Z 
 L9:     aload_0 
 L10:    iconst_0 
-L11:    putfield Field com/genir/aitweaks/asm/OrderResponseModule while Z 
+L11:    putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule while Z 
 L14:    aload_0 
 L15:    iconst_0 
-L16:    putfield Field com/genir/aitweaks/asm/OrderResponseModule class Z 
+L16:    putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule class Z 
 L19:    aload_0 
 L20:    iconst_0 
-L21:    putfield Field com/genir/aitweaks/asm/OrderResponseModule 'ö00000' Z 
+L21:    putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'ö00000' Z 
 L24:    aload_0 
 L25:    aload_1 
-L26:    putfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L26:    putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L29:    aload_0 
 L30:    aload_2 
-L31:    putfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ó00000' Lcom/fs/starfarer/combat/ai/movement/oOOO; 
+L31:    putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ó00000' Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L34:    aload_0 
 L35:    aload_3 
-L36:    putfield Field com/genir/aitweaks/asm/OrderResponseModule null Lcom/fs/starfarer/combat/ai/attack/AttackAIModule; 
+L36:    putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule null Lcom/fs/starfarer/combat/ai/attack/AttackAIModule; 
 L39:    aload_0 
 L40:    aload 4 
-L42:    putfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
+L42:    putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
 L45:    aload_0 
 L46:    invokestatic Method com/fs/starfarer/combat/CombatEngine getInstance ()Lcom/fs/starfarer/combat/CombatEngine; 
 L49:    aload_1 
 L50:    invokevirtual Method com/fs/starfarer/combat/entities/Ship getOriginalOwner ()I 
 L53:    invokevirtual Method com/fs/starfarer/combat/CombatEngine getFleetManager (I)Lcom/fs/starfarer/combat/CombatFleetManager; 
-L56:    putfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ö00000' Lcom/fs/starfarer/combat/CombatFleetManager; 
+L56:    putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ö00000' Lcom/fs/starfarer/combat/CombatFleetManager; 
 L59:    aload_0 
 L60:    aload_0 
-L61:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ö00000' Lcom/fs/starfarer/combat/CombatFleetManager; 
+L61:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ö00000' Lcom/fs/starfarer/combat/CombatFleetManager; 
 L64:    aload_1 
 L65:    invokevirtual Method com/fs/starfarer/combat/entities/Ship isAlly ()Z 
 L68:    invokevirtual Method com/fs/starfarer/combat/CombatFleetManager getTaskManager (Z)Lcom/fs/starfarer/combat/tasks/CombatTaskManager; 
-L71:    putfield Field com/genir/aitweaks/asm/OrderResponseModule o00000 Lcom/fs/starfarer/combat/tasks/CombatTaskManager; 
+L71:    putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule o00000 Lcom/fs/starfarer/combat/tasks/CombatTaskManager; 
 L74:    aload_0 
-L75:    invokespecial Method com/genir/aitweaks/asm/OrderResponseModule 'Ø00000' ()V 
+L75:    invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ø00000' ()V 
 L78:    return 
 L79:    
     .end code 
@@ -68,9 +68,9 @@ L79:
 .method private class : ()Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
     .code stack 1 locals 1 
 L0:     aload_0 
-L1:     invokespecial Method com/genir/aitweaks/asm/OrderResponseModule 'Ø00000' ()V 
+L1:     invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ø00000' ()V 
 L4:     aload_0 
-L5:     getfield Field com/genir/aitweaks/asm/OrderResponseModule float Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
+L5:     getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule float Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
 L8:     areturn 
 L9:     
     .end code 
@@ -79,27 +79,27 @@ L9:
 .method private 'Ø00000' : ()V 
     .code stack 3 locals 1 
 L0:     aload_0 
-L1:     getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ö00000' Lcom/fs/starfarer/combat/CombatFleetManager; 
+L1:     getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ö00000' Lcom/fs/starfarer/combat/CombatFleetManager; 
 L4:     ifnull L50 
 L7:     aload_0 
-L8:     getfield Field com/genir/aitweaks/asm/OrderResponseModule float Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
+L8:     getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule float Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
 L11:    ifnonnull L50 
 L14:    aload_0 
 L15:    aload_0 
-L16:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ö00000' Lcom/fs/starfarer/combat/CombatFleetManager; 
+L16:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ö00000' Lcom/fs/starfarer/combat/CombatFleetManager; 
 L19:    aload_0 
-L20:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L20:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L23:    invokevirtual Method com/fs/starfarer/combat/CombatFleetManager getDeployedFleetMember (Lcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
-L26:    putfield Field com/genir/aitweaks/asm/OrderResponseModule float Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
+L26:    putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule float Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
 L29:    aload_0 
-L30:    getfield Field com/genir/aitweaks/asm/OrderResponseModule float Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
+L30:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule float Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
 L33:    ifnull L50 
 L36:    aload_0 
 L37:    aload_0 
-L38:    getfield Field com/genir/aitweaks/asm/OrderResponseModule float Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
+L38:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule float Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
 L41:    invokevirtual Method com/fs/starfarer/combat/CombatFleetManager$O0 getMember ()Lcom/fs/starfarer/campaign/fleet/FleetMember; 
 L44:    invokevirtual Method com/fs/starfarer/campaign/fleet/FleetMember isCarrier ()Z 
-L47:    putfield Field com/genir/aitweaks/asm/OrderResponseModule while Z 
+L47:    putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule while Z 
 L50:    return 
 L51:    
     .end code 
@@ -108,7 +108,7 @@ L51:
 .method public new : ()Z 
     .code stack 2 locals 2 
 L0:     aload_0 
-L1:     invokevirtual Method com/genir/aitweaks/asm/OrderResponseModule 'Ó00000' ()Lcom/fs/starfarer/combat/tasks/C; 
+L1:     invokevirtual Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ó00000' ()Lcom/fs/starfarer/combat/tasks/C; 
 L4:     astore_1 
 L5:     aload_1 
 L6:     invokevirtual Method com/fs/starfarer/combat/tasks/C o00000 ()Lcom/fs/starfarer/combat/tasks/C$o; 
@@ -175,9 +175,9 @@ L98:
 .method public 'Ó00000' : ()Lcom/fs/starfarer/combat/tasks/C; 
     .code stack 2 locals 1 
 L0:     aload_0 
-L1:     getfield Field com/genir/aitweaks/asm/OrderResponseModule o00000 Lcom/fs/starfarer/combat/tasks/CombatTaskManager; 
+L1:     getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule o00000 Lcom/fs/starfarer/combat/tasks/CombatTaskManager; 
 L4:     aload_0 
-L5:     invokespecial Method com/genir/aitweaks/asm/OrderResponseModule class ()Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
+L5:     invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule class ()Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
 L8:     invokevirtual Method com/fs/starfarer/combat/tasks/CombatTaskManager getOrdersForFleetMember (Lcom/fs/starfarer/combat/CombatFleetManager$O0;)Lcom/fs/starfarer/combat/tasks/C; 
 L11:    areturn 
 L12:    
@@ -187,9 +187,9 @@ L12:
 .method public 'Ö00000' : ()Z 
     .code stack 2 locals 1 
 L0:     aload_0 
-L1:     getfield Field com/genir/aitweaks/asm/OrderResponseModule o00000 Lcom/fs/starfarer/combat/tasks/CombatTaskManager; 
+L1:     getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule o00000 Lcom/fs/starfarer/combat/tasks/CombatTaskManager; 
 L4:     aload_0 
-L5:     invokespecial Method com/genir/aitweaks/asm/OrderResponseModule class ()Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
+L5:     invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule class ()Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
 L8:     invokevirtual Method com/fs/starfarer/combat/tasks/CombatTaskManager getOrdersForFleetMember (Lcom/fs/starfarer/combat/CombatFleetManager$O0;)Lcom/fs/starfarer/combat/tasks/C; 
 L11:    invokevirtual Method com/fs/starfarer/combat/tasks/C o00000 ()Lcom/fs/starfarer/combat/tasks/C$o; 
 L14:    getstatic Field com/fs/starfarer/combat/tasks/C$o new Lcom/fs/starfarer/combat/tasks/C$o; 
@@ -202,20 +202,20 @@ L24:
     .end code 
 .end method 
 
-.method public 'ö00000' : ()Lcom/genir/aitweaks/asm/OrderResponseModule$o; 
+.method public 'ö00000' : ()Lcom/genir/aitweaks/asm/combat/ai/OrderResponseModule$o; 
     .code stack 7 locals 6 
 L0:     aload_0 
-L1:     getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1:     getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L4:     invokevirtual Method com/fs/starfarer/combat/entities/Ship getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 
 L7:     getstatic Field com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags ESCORT_OTHER_SHIP Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags; 
 L10:    invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags hasFlag (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;)Z 
 L13:    ifeq L163 
 L16:    aload_0 
-L17:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L17:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L20:    invokevirtual Method com/fs/starfarer/combat/entities/Ship isRetreating ()Z 
 L23:    ifne L163 
 L26:    aload_0 
-L27:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L27:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L30:    invokevirtual Method com/fs/starfarer/combat/entities/Ship getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 
 L33:    getstatic Field com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags ESCORT_OTHER_SHIP Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags; 
 L36:    invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags getCustom (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;)Ljava/lang/Object; 
@@ -227,16 +227,16 @@ L47:    aload_1
 L48:    checkcast com/fs/starfarer/combat/entities/Ship 
 L51:    astore_2 
 L52:    aload_0 
-L53:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L53:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L56:    invokevirtual Method com/fs/starfarer/combat/entities/Ship getLocation ()Lorg/lwjgl/util/vector/Vector2f; 
 L59:    aload_2 
 L60:    invokevirtual Method com/fs/starfarer/combat/entities/Ship getLocation ()Lorg/lwjgl/util/vector/Vector2f; 
 L63:    invokestatic Method com/fs/starfarer/prototype/Utils void (Lorg/lwjgl/util/vector/Vector2f;Lorg/lwjgl/util/vector/Vector2f;)F 
 L66:    fstore_3 
-L67:    new com/genir/aitweaks/asm/OrderResponseModule$o 
+L67:    new com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 
 L70:    dup 
 L71:    aload_0 
-L72:    invokespecial Method com/genir/aitweaks/asm/OrderResponseModule$o <init> (Lcom/genir/aitweaks/asm/OrderResponseModule;)V 
+L72:    invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o <init> (Lcom/genir/aitweaks/asm/combat/ai/OrderResponseModule;)V 
 L75:    astore 4 
 L77:    fload_3 
 L78:    ldc +2000.0f 
@@ -245,54 +245,54 @@ L81:    ifge L126
 L84:    new com/fs/starfarer/combat/ai/movement/maneuvers/EscortTargetManeuverV3 
 L87:    dup 
 L88:    aload_0 
-L89:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L89:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L92:    aload_2 
 L93:    aload_0 
-L94:    getfield Field com/genir/aitweaks/asm/OrderResponseModule null Lcom/fs/starfarer/combat/ai/attack/AttackAIModule; 
+L94:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule null Lcom/fs/starfarer/combat/ai/attack/AttackAIModule; 
 L97:    aload_0 
-L98:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ó00000' Lcom/fs/starfarer/combat/ai/movement/oOOO; 
+L98:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ó00000' Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L101:   aload_0 
-L102:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
+L102:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
 L105:   invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/EscortTargetManeuverV3 <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/attack/AttackAIModule;Lcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L108:   astore 5 
 L110:   aload 4 
 L112:   aload 5 
-L114:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
+L114:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
 L117:   aload 4 
 L119:   fconst_2 
-L120:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L120:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L123:   aload 4 
 L125:   areturn 
 L126:   new com/fs/starfarer/combat/ai/movement/maneuvers/U 
 L129:   dup 
 L130:   aload_0 
-L131:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L131:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L134:   aload_2 
 L135:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getLocation ()Lorg/lwjgl/util/vector/Vector2f; 
 L138:   aload_0 
-L139:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
+L139:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
 L142:   invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/U <init> (Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L145:   astore 5 
 L147:   aload 4 
 L149:   aload 5 
-L151:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
+L151:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
 L154:   aload 4 
 L156:   fconst_2 
-L157:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L157:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L160:   aload 4 
 L162:   areturn 
 L163:   aload_0 
-L164:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L164:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L167:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 
 L170:   getstatic Field com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags CAMP_LOCATION Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags; 
 L173:   invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags hasFlag (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;)Z 
 L176:   ifeq L256 
 L179:   aload_0 
-L180:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L180:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L183:   invokevirtual Method com/fs/starfarer/combat/entities/Ship isRetreating ()Z 
 L186:   ifne L256 
 L189:   aload_0 
-L190:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L190:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L193:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 
 L196:   getstatic Field com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags CAMP_LOCATION Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags; 
 L199:   invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags getCustom (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;)Ljava/lang/Object; 
@@ -303,61 +303,61 @@ L207:   ifeq L256
 L210:   aload_1 
 L211:   checkcast org/lwjgl/util/vector/Vector2f 
 L214:   astore_2 
-L215:   new com/genir/aitweaks/asm/OrderResponseModule$o 
+L215:   new com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 
 L218:   dup 
 L219:   aload_0 
-L220:   invokespecial Method com/genir/aitweaks/asm/OrderResponseModule$o <init> (Lcom/genir/aitweaks/asm/OrderResponseModule;)V 
+L220:   invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o <init> (Lcom/genir/aitweaks/asm/combat/ai/OrderResponseModule;)V 
 L223:   astore_3 
 L224:   new com/fs/starfarer/combat/ai/movement/maneuvers/U 
 L227:   dup 
 L228:   aload_0 
-L229:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L229:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L232:   aload_2 
 L233:   aload_0 
-L234:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
+L234:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
 L237:   invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/U <init> (Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L240:   astore 4 
 L242:   aload_3 
 L243:   aload 4 
-L245:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
+L245:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
 L248:   aload_3 
 L249:   ldc +3.0f 
-L251:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L251:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L254:   aload_3 
 L255:   areturn 
-L256:   new com/genir/aitweaks/asm/OrderResponseModule$o 
+L256:   new com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 
 L259:   dup 
 L260:   aload_0 
-L261:   invokespecial Method com/genir/aitweaks/asm/OrderResponseModule$o <init> (Lcom/genir/aitweaks/asm/OrderResponseModule;)V 
+L261:   invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o <init> (Lcom/genir/aitweaks/asm/combat/ai/OrderResponseModule;)V 
 L264:   astore_1 
 L265:   aload_0 
-L266:   invokevirtual Method com/genir/aitweaks/asm/OrderResponseModule 'Ó00000' ()Lcom/fs/starfarer/combat/tasks/C; 
+L266:   invokevirtual Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ó00000' ()Lcom/fs/starfarer/combat/tasks/C; 
 L269:   astore_2 
 L270:   aload_0 
 L271:   iconst_0 
-L272:   putfield Field com/genir/aitweaks/asm/OrderResponseModule class Z 
+L272:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule class Z 
 L275:   aload_0 
-L276:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L276:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L279:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getWing ()Lcom/fs/starfarer/combat/ai/L; 
 L282:   ifnull L389 
 L285:   aload_0 
-L286:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L286:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L289:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getWing ()Lcom/fs/starfarer/combat/ai/L; 
 L292:   invokevirtual Method com/fs/starfarer/combat/ai/L getSourceShip ()Lcom/fs/starfarer/combat/entities/Ship; 
 L295:   ifnull L389 
 L298:   aload_0 
-L299:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L299:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L302:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getWing ()Lcom/fs/starfarer/combat/ai/L; 
 L305:   invokevirtual Method com/fs/starfarer/combat/ai/L isCarrierAlive ()Z 
 L308:   ifeq L389 
 L311:   aload_0 
-L312:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L312:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L315:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getWing ()Lcom/fs/starfarer/combat/ai/L; 
 L318:   invokevirtual Method com/fs/starfarer/combat/ai/L getSpec ()Lcom/fs/starfarer/loading/specs/FighterWingSpec; 
 L321:   invokevirtual Method com/fs/starfarer/loading/specs/FighterWingSpec isAlwaysEscort ()Z 
 L324:   ifne L343 
 L327:   aload_0 
-L328:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L328:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L331:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getWing ()Lcom/fs/starfarer/combat/ai/L; 
 L334:   invokevirtual Method com/fs/starfarer/combat/ai/L getSourceShip ()Lcom/fs/starfarer/combat/entities/Ship; 
 L337:   invokevirtual Method com/fs/starfarer/combat/entities/Ship isPullBackFighters ()Z 
@@ -365,38 +365,38 @@ L340:   ifeq L389
 L343:   new com/fs/starfarer/combat/ai/movement/maneuvers/EscortTargetManeuverV3 
 L346:   dup 
 L347:   aload_0 
-L348:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L348:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L351:   aload_0 
-L352:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L352:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L355:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getWing ()Lcom/fs/starfarer/combat/ai/L; 
 L358:   invokevirtual Method com/fs/starfarer/combat/ai/L getSourceShip ()Lcom/fs/starfarer/combat/entities/Ship; 
 L361:   aload_0 
-L362:   getfield Field com/genir/aitweaks/asm/OrderResponseModule null Lcom/fs/starfarer/combat/ai/attack/AttackAIModule; 
+L362:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule null Lcom/fs/starfarer/combat/ai/attack/AttackAIModule; 
 L365:   aload_0 
-L366:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ó00000' Lcom/fs/starfarer/combat/ai/movement/oOOO; 
+L366:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ó00000' Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L369:   aload_0 
-L370:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
+L370:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
 L373:   invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/EscortTargetManeuverV3 <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/attack/AttackAIModule;Lcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L376:   astore_3 
 L377:   aload_1 
 L378:   aload_3 
-L379:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
+L379:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
 L382:   aload_1 
 L383:   fconst_2 
-L384:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L384:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L387:   aload_1 
 L388:   areturn 
 L389:   aload_0 
-L390:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L390:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L393:   invokevirtual Method com/fs/starfarer/combat/entities/Ship isFighter ()Z 
 L396:   ifeq L411 
 L399:   aload_0 
-L400:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L400:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L403:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getWing ()Lcom/fs/starfarer/combat/ai/L; 
 L406:   ifnull L411 
 L409:   aconst_null 
 L410:   areturn 
-L411:   invokestatic Method com/genir/aitweaks/asm/OrderResponseModule 'õ00000' ()[I 
+L411:   invokestatic Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'õ00000' ()[I 
 L414:   aload_2 
 L415:   invokevirtual Method com/fs/starfarer/combat/tasks/C o00000 ()Lcom/fs/starfarer/combat/tasks/C$o; 
 L418:   invokevirtual Method com/fs/starfarer/combat/tasks/C$o ordinal ()I 
@@ -410,33 +410,33 @@ L422:   tableswitch 1
             default : L513 
 
 L456:   aload_0 
-L457:   invokevirtual Method com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' ()Lcom/genir/aitweaks/asm/OrderResponseModule$o; 
+L457:   invokevirtual Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' ()Lcom/genir/aitweaks/asm/combat/ai/OrderResponseModule$o; 
 L460:   areturn 
 L461:   aload_0 
 L462:   aload_2 
-L463:   invokespecial Method com/genir/aitweaks/asm/OrderResponseModule o00000 (Lcom/fs/starfarer/combat/tasks/C;)Lcom/genir/aitweaks/asm/OrderResponseModule$o; 
+L463:   invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule o00000 (Lcom/fs/starfarer/combat/tasks/C;)Lcom/genir/aitweaks/asm/combat/ai/OrderResponseModule$o; 
 L466:   areturn 
 L467:   new com/fs/starfarer/combat/ai/movement/maneuvers/RetreatManeuver 
 L470:   dup 
 L471:   aload_0 
-L472:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L472:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L475:   aload_0 
-L476:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ó00000' Lcom/fs/starfarer/combat/ai/movement/oOOO; 
+L476:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ó00000' Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L479:   aload_0 
-L480:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
+L480:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
 L483:   invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/RetreatManeuver <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L486:   astore_3 
 L487:   aload_1 
 L488:   aload_3 
-L489:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
+L489:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
 L492:   aload_1 
 L493:   ldc +3.0f 
-L495:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L495:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L498:   aload_0 
-L499:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L499:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L502:   iconst_1 
 L503:   aload_0 
-L504:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L504:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L507:   invokevirtual Method com/fs/starfarer/combat/entities/Ship isDirectRetreat ()Z 
 L510:   invokevirtual Method com/fs/starfarer/combat/entities/Ship setRetreating (ZZ)V 
 L513:   aload_1 
@@ -445,7 +445,7 @@ L515:
     .end code 
 .end method 
 
-.method protected 'Ô00000' : ()Lcom/genir/aitweaks/asm/OrderResponseModule$o; 
+.method protected 'Ô00000' : ()Lcom/genir/aitweaks/asm/combat/ai/OrderResponseModule$o; 
     .code stack 1 locals 1 
 L0:     aconst_null 
 L1:     areturn 
@@ -456,7 +456,7 @@ L2:
 .method public o00000 : ()Z 
     .code stack 1 locals 1 
 L0:     aload_0 
-L1:     getfield Field com/genir/aitweaks/asm/OrderResponseModule class Z 
+L1:     getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule class Z 
 L4:     ireturn 
 L5:     
     .end code 
@@ -474,7 +474,7 @@ L1:
 L0:     aload_1 
 L1:     ifnull L23 
 L4:     aload_0 
-L5:     getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L5:     getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L8:     invokevirtual Method com/fs/starfarer/combat/entities/Ship getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 
 L11:    getstatic Field com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags MOVEMENT_DEST Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags; 
 L14:    ldc +3.0f 
@@ -482,7 +482,7 @@ L16:    aload_1
 L17:    invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags setFlag (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;FLjava/lang/Object;)V 
 L20:    goto L36 
 L23:    aload_0 
-L24:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L24:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L27:    invokevirtual Method com/fs/starfarer/combat/entities/Ship getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 
 L30:    getstatic Field com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags MOVEMENT_DEST Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags; 
 L33:    invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags unsetFlag (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;)V 
@@ -509,7 +509,7 @@ L26:    invokeinterface InterfaceMethod com/fs/starfarer/combat/tasks/CombatTask
 L31:    ifnonnull L40 
 L34:    aload_0 
 L35:    aconst_null 
-L36:    invokespecial Method com/genir/aitweaks/asm/OrderResponseModule o00000 (Lorg/lwjgl/util/vector/Vector2f;)V 
+L36:    invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule o00000 (Lorg/lwjgl/util/vector/Vector2f;)V 
 L39:    return 
 L40:    aload_1 
 L41:    invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask 'Ò00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask$Oo; 
@@ -517,11 +517,11 @@ L44:    invokeinterface InterfaceMethod com/fs/starfarer/combat/tasks/CombatTask
 L49:    astore_2 
 L50:    aload_2 
 L51:    aload_0 
-L52:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L52:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L55:    invokevirtual Method com/fs/starfarer/combat/entities/Ship getLocation ()Lorg/lwjgl/util/vector/Vector2f; 
 L58:    invokestatic Method com/fs/starfarer/api/util/Misc getDistance (Lorg/lwjgl/util/vector/Vector2f;Lorg/lwjgl/util/vector/Vector2f;)F 
 L61:    aload_0 
-L62:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L62:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L65:    invokevirtual Method com/fs/starfarer/combat/entities/Ship getCollisionRadius ()F 
 L68:    fsub 
 L69:    fstore_3 
@@ -531,31 +531,31 @@ L73:    fcmpg
 L74:    ifge L83 
 L77:    aload_0 
 L78:    aconst_null 
-L79:    invokespecial Method com/genir/aitweaks/asm/OrderResponseModule o00000 (Lorg/lwjgl/util/vector/Vector2f;)V 
+L79:    invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule o00000 (Lorg/lwjgl/util/vector/Vector2f;)V 
 L82:    return 
 L83:    aload_0 
 L84:    aload_2 
-L85:    invokespecial Method com/genir/aitweaks/asm/OrderResponseModule o00000 (Lorg/lwjgl/util/vector/Vector2f;)V 
+L85:    invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule o00000 (Lorg/lwjgl/util/vector/Vector2f;)V 
 L88:    return 
 L89:    
     .end code 
 .end method 
 
-.method private o00000 : (Lcom/fs/starfarer/combat/tasks/C;)Lcom/genir/aitweaks/asm/OrderResponseModule$o; 
+.method private o00000 : (Lcom/fs/starfarer/combat/tasks/C;)Lcom/genir/aitweaks/asm/combat/ai/OrderResponseModule$o; 
     .code stack 7 locals 27 
 L0:     aload_1 
 L1:     ifnull L12 
 L4:     aload_0 
 L5:     aload_1 
 L6:     invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
-L9:     invokespecial Method com/genir/aitweaks/asm/OrderResponseModule o00000 (Lcom/fs/starfarer/combat/tasks/CombatTask;)V 
-L12:    new com/genir/aitweaks/asm/OrderResponseModule$o 
+L9:     invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule o00000 (Lcom/fs/starfarer/combat/tasks/CombatTask;)V 
+L12:    new com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 
 L15:    dup 
 L16:    aload_0 
-L17:    invokespecial Method com/genir/aitweaks/asm/OrderResponseModule$o <init> (Lcom/genir/aitweaks/asm/OrderResponseModule;)V 
+L17:    invokespecial Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o <init> (Lcom/genir/aitweaks/asm/combat/ai/OrderResponseModule;)V 
 L20:    astore_2 
 L21:    aload_0 
-L22:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L22:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L25:    invokevirtual Method com/fs/starfarer/combat/entities/Ship getLocation ()Lorg/lwjgl/util/vector/Vector2f; 
 L28:    aload_1 
 L29:    invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
@@ -585,46 +585,46 @@ L87:    ifge L141
 L90:    new com/fs/starfarer/combat/ai/movement/maneuvers/EscortTargetManeuverV3 
 L93:    dup 
 L94:    aload_0 
-L95:    getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L95:    getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L98:    aload_1 
 L99:    invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
 L102:   invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask 'Ò00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask$Oo; 
 L105:   checkcast com/fs/starfarer/combat/CombatFleetManager$O0 
 L108:   invokevirtual Method com/fs/starfarer/combat/CombatFleetManager$O0 getShip ()Lcom/fs/starfarer/combat/entities/Ship; 
 L111:   aload_0 
-L112:   getfield Field com/genir/aitweaks/asm/OrderResponseModule null Lcom/fs/starfarer/combat/ai/attack/AttackAIModule; 
+L112:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule null Lcom/fs/starfarer/combat/ai/attack/AttackAIModule; 
 L115:   aload_0 
-L116:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ó00000' Lcom/fs/starfarer/combat/ai/movement/oOOO; 
+L116:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ó00000' Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L119:   aload_0 
-L120:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
+L120:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
 L123:   invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/EscortTargetManeuverV3 <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/attack/AttackAIModule;Lcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L126:   astore 4 
 L128:   aload_2 
 L129:   aload 4 
-L131:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
+L131:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
 L134:   aload_2 
 L135:   fconst_2 
-L136:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L136:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L139:   aload_2 
 L140:   areturn 
 L141:   new com/fs/starfarer/combat/ai/movement/maneuvers/U 
 L144:   dup 
 L145:   aload_0 
-L146:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L146:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L149:   aload_1 
 L150:   invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
 L153:   invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask 'Ò00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask$Oo; 
 L156:   invokeinterface InterfaceMethod com/fs/starfarer/combat/tasks/CombatTask$Oo getLocation ()Lorg/lwjgl/util/vector/Vector2f; 1 
 L161:   aload_0 
-L162:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
+L162:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
 L165:   invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/U <init> (Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L168:   astore 4 
 L170:   aload_2 
 L171:   aload 4 
-L173:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
+L173:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
 L176:   aload_2 
 L177:   fconst_2 
-L178:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L178:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L181:   aload_2 
 L182:   areturn 
 L183:   aload_1 
@@ -639,21 +639,21 @@ L201:   ifle L246
 L204:   new com/fs/starfarer/combat/ai/movement/maneuvers/U 
 L207:   dup 
 L208:   aload_0 
-L209:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L209:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L212:   aload_1 
 L213:   invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
 L216:   invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask 'Ò00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask$Oo; 
 L219:   invokeinterface InterfaceMethod com/fs/starfarer/combat/tasks/CombatTask$Oo getLocation ()Lorg/lwjgl/util/vector/Vector2f; 1 
 L224:   aload_0 
-L225:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
+L225:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o; 
 L228:   invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/U <init> (Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L231:   astore 4 
 L233:   aload_2 
 L234:   aload 4 
-L236:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
+L236:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
 L239:   aload_2 
 L240:   fconst_2 
-L241:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L241:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L244:   aload_2 
 L245:   areturn 
 L246:   fload_3 
@@ -662,7 +662,7 @@ L250:   fcmpl
 L251:   ifle L259 
 L254:   aload_0 
 L255:   iconst_0 
-L256:   putfield Field com/genir/aitweaks/asm/OrderResponseModule 'ö00000' Z 
+L256:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'ö00000' Z 
 L259:   aload_1 
 L260:   invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
 L263:   invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask 'public' ()Lcom/fs/starfarer/combat/tasks/CombatTask$CombatTaskType; 
@@ -681,18 +681,18 @@ L289:   astore 6
 L291:   iconst_0 
 L292:   istore 5 
 L294:   aload_0 
-L295:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L295:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L298:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getHullSize ()Lcom/fs/starfarer/api/combat/ShipAPI$HullSize; 
 L301:   astore 7 
 L303:   aload_0 
-L304:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L304:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L307:   invokevirtual Method com/fs/starfarer/combat/entities/Ship isFrigate ()Z 
 L310:   ifne L318 
 L313:   getstatic Field com/fs/starfarer/api/combat/ShipAPI$HullSize DESTROYER Lcom/fs/starfarer/api/combat/ShipAPI$HullSize; 
 L316:   astore 7 
 L318:   ldc_w +210.0f 
 L321:   aload_0 
-L322:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L322:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L325:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getMaxSpeed ()F 
 L328:   ldc_w +0.5f 
 L331:   fmul 
@@ -701,7 +701,7 @@ L335:   invokestatic Method java/lang/Math min (FF)F
 L338:   fsub 
 L339:   fstore 8 
 L341:   aload_0 
-L342:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L342:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L345:   aload_1 
 L346:   invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
 L349:   invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask 'Ò00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask$Oo; 
@@ -720,7 +720,7 @@ L382:   astore 10
 L384:   aconst_null 
 L385:   astore 11 
 L387:   aload_0 
-L388:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L388:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L391:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getOwner ()I 
 L394:   aload 10 
 L396:   iconst_0 
@@ -728,7 +728,7 @@ L397:   invokestatic Method com/fs/starfarer/combat/ai/N 'super' (ILorg/lwjgl/ut
 L400:   astore 11 
 L402:   invokestatic Method com/fs/starfarer/combat/CombatEngine getInstance ()Lcom/fs/starfarer/combat/CombatEngine; 
 L405:   aload_0 
-L406:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L406:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L409:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getOriginalOwner ()I 
 L412:   invokevirtual Method com/fs/starfarer/combat/CombatEngine getFleetManager (I)Lcom/fs/starfarer/combat/CombatFleetManager; 
 L415:   aload 10 
@@ -742,7 +742,7 @@ L430:   ifnull L457
 L433:   aload 12 
 L435:   invokevirtual Method com/fs/starfarer/combat/CombatFleetManager$O0 getShip ()Lcom/fs/starfarer/combat/entities/Ship; 
 L438:   aload_0 
-L439:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L439:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L442:   if_acmpeq L457 
 L445:   aload 12 
 L447:   invokevirtual Method com/fs/starfarer/combat/CombatFleetManager$O0 getLocation ()Lorg/lwjgl/util/vector/Vector2f; 
@@ -774,7 +774,7 @@ L512:   aload 6
 L514:   getstatic Field com/fs/starfarer/combat/tasks/CombatTask$CombatTaskType ENGAGE Lcom/fs/starfarer/combat/tasks/CombatTask$CombatTaskType; 
 L517:   if_acmpne L563 
 L520:   aload_0 
-L521:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L521:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L524:   ldc_w +3000.0f 
 L527:   invokestatic Method com/fs/starfarer/combat/ai/N 'ø00000' (Lcom/fs/starfarer/combat/entities/Ship;F)Lcom/fs/starfarer/combat/entities/Ship; 
 L530:   astore 15 
@@ -792,16 +792,16 @@ L551:   aload 15
 L553:   ifnull L563 
 L556:   aload_0 
 L557:   iconst_1 
-L558:   putfield Field com/genir/aitweaks/asm/OrderResponseModule class Z 
+L558:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule class Z 
 L561:   aconst_null 
 L562:   areturn 
 L563:   aload_0 
-L564:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L564:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L567:   invokevirtual Method com/fs/starfarer/combat/entities/Ship isCarrier ()Z 
 L570:   istore 15 
 L572:   iload 15 
 L574:   aload_0 
-L575:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L575:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L578:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getHullSpec ()Lcom/fs/starfarer/loading/specs/privatesuper; 
 L581:   invokevirtual Method com/fs/starfarer/loading/specs/privatesuper getHints ()Ljava/util/EnumSet; 
 L584:   getstatic Field com/fs/starfarer/api/combat/ShipHullSpecAPI$ShipTypeHints NO_AUTO_ESCORT Lcom/fs/starfarer/api/combat/ShipHullSpecAPI$ShipTypeHints; 
@@ -814,7 +814,7 @@ L598:   iand
 L599:   istore 15 
 L601:   iload 15 
 L603:   aload_0 
-L604:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L604:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L607:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getHullSpec ()Lcom/fs/starfarer/loading/specs/privatesuper; 
 L610:   invokevirtual Method com/fs/starfarer/loading/specs/privatesuper getHints ()Ljava/util/EnumSet; 
 L613:   getstatic Field com/fs/starfarer/api/combat/ShipHullSpecAPI$ShipTypeHints COMBAT Lcom/fs/starfarer/api/combat/ShipHullSpecAPI$ShipTypeHints; 
@@ -849,13 +849,13 @@ L678:   aload_1
 L679:   invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
 L682:   invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask int ()Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
 L685:   invokevirtual Method com/fs/starfarer/combat/CombatFleetManager$O0 getShip ()Lcom/fs/starfarer/combat/entities/Ship; 
-L688:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o Object Lcom/fs/starfarer/combat/entities/Ship; 
+L688:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o Object Lcom/fs/starfarer/combat/entities/Ship; 
 L691:   aload_2 
 L692:   aconst_null 
-L693:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
+L693:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
 L696:   aload_2 
 L697:   fconst_0 
-L698:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L698:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L701:   aload_2 
 L702:   areturn 
 L703:   iconst_0 
@@ -863,17 +863,17 @@ L704:   istore 16
 L706:   iconst_0 
 L707:   istore 17 
 L709:   aload_0 
-L710:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L710:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L713:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getWing ()Lcom/fs/starfarer/combat/ai/L; 
 L716:   ifnull L749 
 L719:   aload_0 
-L720:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L720:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L723:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getWing ()Lcom/fs/starfarer/combat/ai/L; 
 L726:   invokevirtual Method com/fs/starfarer/combat/ai/L getSpec ()Lcom/fs/starfarer/loading/specs/FighterWingSpec; 
 L729:   invokevirtual Method com/fs/starfarer/loading/specs/FighterWingSpec isBomber ()Z 
 L732:   istore 16 
 L734:   aload_0 
-L735:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L735:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L738:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getWing ()Lcom/fs/starfarer/combat/ai/L; 
 L741:   invokevirtual Method com/fs/starfarer/combat/ai/L getSpec ()Lcom/fs/starfarer/loading/specs/FighterWingSpec; 
 L744:   invokevirtual Method com/fs/starfarer/loading/specs/FighterWingSpec isSupport ()Z 
@@ -895,13 +895,13 @@ L778:   aload_1
 L779:   invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
 L782:   invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask int ()Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
 L785:   invokevirtual Method com/fs/starfarer/combat/CombatFleetManager$O0 getShip ()Lcom/fs/starfarer/combat/entities/Ship; 
-L788:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o Object Lcom/fs/starfarer/combat/entities/Ship; 
+L788:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o Object Lcom/fs/starfarer/combat/entities/Ship; 
 L791:   aload_2 
 L792:   aconst_null 
-L793:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
+L793:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
 L796:   aload_2 
 L797:   fconst_0 
-L798:   putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L798:   putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L801:   aload_2 
 L802:   areturn 
 L803:   iload 4 
@@ -949,11 +949,11 @@ L901:   invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs
 L904:   invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask 'Ò00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask$Oo; 
 L907:   invokeinterface InterfaceMethod com/fs/starfarer/combat/tasks/CombatTask$Oo getOwner ()I 1 
 L912:   aload_0 
-L913:   getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L913:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L916:   invokevirtual Method com/fs/starfarer/combat/entities/Ship getOwner ()I 
 L919:   if_icmpeq L948 
 L922:   aload_0 
-L923:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L923:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L926:   invokeinterface InterfaceMethod com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o getThreatEvaluator ()Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO; 1 
 L931:   invokevirtual Method com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO Object ()Z 
 L934:   ifne L948 
@@ -970,45 +970,45 @@ L956:   aload 6
 L958:   getstatic Field [c323] CIVILIAN_CRAFT [u327] 
 L961:   if_acmpne L1027 
 L964:   aload_0 
-L965:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L965:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L968:   invokeinterface InterfaceMethod com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o getThreatEvaluator ()Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO; 1 
 L973:   invokevirtual Method com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO 'ô00000' ()F 
 L976:   fconst_0 
 L977:   fcmpg 
 L978:   ifle L1011 
 L981:   aload_0 
-L982:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L982:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L985:   invokeinterface InterfaceMethod com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o getThreatEvaluator ()Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO; 1 
 L990:   invokevirtual Method com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO int ()Z 
 L993:   ifeq L1027 
 L996:   aload_0 
-L997:   getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L997:   getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L1000:  invokeinterface InterfaceMethod com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o getThreatEvaluator ()Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO; 1 
 L1005:  invokevirtual Method com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO 'Ô00000' ()Z 
 L1008:  ifne L1027 
 L1011:  aload_0 
-L1012:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1012:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1015:  invokevirtual Method com/fs/starfarer/combat/entities/Ship getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 
 L1018:  getstatic Field com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags MOVEMENT_DEST_WHILE_SIDETRACKED Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags; 
 L1021:  invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags unsetFlag (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;)V 
 L1024:  goto L1334 
 L1027:  aload_0 
-L1028:  getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L1028:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L1031:  invokeinterface InterfaceMethod com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o getThreatEvaluator ()Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO; 1 
 L1036:  invokevirtual Method com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO 'Ô00000' ()Z 
 L1039:  ifne L1092 
 L1042:  aload_0 
-L1043:  getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L1043:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L1046:  invokeinterface InterfaceMethod com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o getThreatEvaluator ()Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO; 1 
 L1051:  invokevirtual Method com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO return ()Z 
 L1054:  ifne L1072 
 L1057:  aload_0 
-L1058:  getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L1058:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L1061:  invokeinterface InterfaceMethod com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o getThreatEvaluator ()Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO; 1 
 L1066:  invokevirtual Method com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO 'Ò00000' ()Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO$Oo; 
 L1069:  ifnonnull L1092 
 L1072:  aload_0 
-L1073:  getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L1073:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L1076:  invokeinterface InterfaceMethod com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o getThreatEvaluator ()Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO; 1 
 L1081:  invokevirtual Method com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO Object ()Z 
 L1084:  ifeq L1278 
@@ -1025,7 +1025,7 @@ L1107:  fmul
 L1108:  fadd 
 L1109:  fstore 18 
 L1111:  aload_0 
-L1112:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1112:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1115:  aload 10 
 L1117:  fload 18 
 L1119:  fload_3 
@@ -1061,9 +1061,9 @@ L1182:  iload 19
 L1184:  ifle L1222 
 L1187:  aload_0 
 L1188:  iconst_1 
-L1189:  putfield Field com/genir/aitweaks/asm/OrderResponseModule class Z 
+L1189:  putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule class Z 
 L1192:  aload_0 
-L1193:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1193:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1196:  invokevirtual Method com/fs/starfarer/combat/entities/Ship getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 
 L1199:  getstatic Field com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags MOVEMENT_DEST_WHILE_SIDETRACKED Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags; 
 L1202:  ldc_w +5.0f 
@@ -1075,28 +1075,28 @@ L1217:  invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags setFlag
 L1220:  aconst_null 
 L1221:  areturn 
 L1222:  aload_0 
-L1223:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1223:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1226:  invokevirtual Method com/fs/starfarer/combat/entities/Ship getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 
 L1229:  getstatic Field com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags MOVEMENT_DEST_WHILE_SIDETRACKED Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags; 
 L1232:  invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags unsetFlag (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;)V 
 L1235:  new com/fs/starfarer/combat/ai/movement/maneuvers/U 
 L1238:  dup 
 L1239:  aload_0 
-L1240:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1240:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1243:  aload_1 
 L1244:  invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
 L1247:  invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask 'Ò00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask$Oo; 
 L1250:  invokeinterface InterfaceMethod com/fs/starfarer/combat/tasks/CombatTask$Oo getLocation ()Lorg/lwjgl/util/vector/Vector2f; 1 
 L1255:  aload_0 
-L1256:  getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L1256:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L1259:  invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/U <init> (Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L1262:  astore 20 
 L1264:  aload_2 
 L1265:  aload 20 
-L1267:  putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' [u29] 
+L1267:  putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' [u29] 
 L1270:  aload_2 
 L1271:  ldc +3.0f 
-L1273:  putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L1273:  putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L1276:  aload_2 
 L1277:  areturn 
 L1278:  fload_3 
@@ -1104,28 +1104,28 @@ L1279:  ldc +2000.0f
 L1281:  fcmpg 
 L1282:  ifge L1334 
 L1285:  aload_0 
-L1286:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1286:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1289:  ldc_w +3000.0f 
 L1292:  invokestatic Method com/fs/starfarer/combat/ai/N 'ø00000' (Lcom/fs/starfarer/combat/entities/Ship;F)Lcom/fs/starfarer/combat/entities/Ship; 
 L1295:  astore 18 
 L1297:  aload_0 
-L1298:  getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L1298:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L1301:  ldc_w +3000.0f 
 L1304:  invokeinterface InterfaceMethod com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o setMaxTargetRange (F)V 2 
 L1309:  aload 18 
 L1311:  ifnull L1334 
 L1314:  aload_0 
 L1315:  iconst_1 
-L1316:  putfield Field com/genir/aitweaks/asm/OrderResponseModule class Z 
+L1316:  putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule class Z 
 L1319:  aload_0 
-L1320:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1320:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1323:  invokevirtual Method com/fs/starfarer/combat/entities/Ship getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 
 L1326:  getstatic Field com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags MOVEMENT_DEST_WHILE_SIDETRACKED Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags; 
 L1329:  invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags unsetFlag (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;)V 
 L1332:  aconst_null 
 L1333:  areturn 
 L1334:  aload_0 
-L1335:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1335:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1338:  invokevirtual Method com/fs/starfarer/combat/entities/Ship getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 
 L1341:  getstatic Field [c197] MOVEMENT_DEST_WHILE_SIDETRACKED [u201] 
 L1344:  invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags unsetFlag (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;)V 
@@ -1156,7 +1156,7 @@ L1402:  dup
 L1403:  invokespecial Method java/util/ArrayList <init> ()V 
 L1406:  astore 20 
 L1408:  aload_0 
-L1409:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ö00000' Lcom/fs/starfarer/combat/CombatFleetManager; 
+L1409:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ö00000' Lcom/fs/starfarer/combat/CombatFleetManager; 
 L1412:  invokevirtual Method com/fs/starfarer/combat/CombatFleetManager getDeployed ()Ljava/util/Set; 
 L1415:  invokeinterface InterfaceMethod java/util/Set iterator ()Ljava/util/Iterator; 1 
 L1420:  astore 22 
@@ -1170,7 +1170,7 @@ L1439:  invokevirtual Method com/fs/starfarer/combat/CombatFleetManager$O0 getSh
 L1442:  ifnonnull L1448 
 L1445:  goto L1494 
 L1448:  aload_0 
-L1449:  getfield Field com/genir/aitweaks/asm/OrderResponseModule o00000 Lcom/fs/starfarer/combat/tasks/CombatTaskManager; 
+L1449:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule o00000 Lcom/fs/starfarer/combat/tasks/CombatTaskManager; 
 L1452:  aload 21 
 L1454:  invokevirtual Method com/fs/starfarer/combat/CombatFleetManager$O0 getShip ()Lcom/fs/starfarer/combat/entities/Ship; 
 L1457:  invokevirtual Method com/fs/starfarer/combat/tasks/CombatTaskManager getAssignmentFor (Lcom/fs/starfarer/api/combat/ShipAPI;)Lcom/fs/starfarer/api/combat/CombatFleetManagerAPI$AssignmentInfo; 
@@ -1247,7 +1247,7 @@ L1628:  invokevirtual Method org/lwjgl/util/vector/Vector2f scale (F)Lorg/lwjgl/
 L1631:  pop 
 L1632:  aload 21 
 L1634:  aload_0 
-L1635:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1635:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1638:  invokevirtual Method com/fs/starfarer/combat/entities/Ship getLocation ()Lorg/lwjgl/util/vector/Vector2f; 
 L1641:  invokestatic Method com/fs/starfarer/api/util/Misc getAngleInDegrees (Lorg/lwjgl/util/vector/Vector2f;Lorg/lwjgl/util/vector/Vector2f;)F 
 L1644:  fstore 23 
@@ -1257,7 +1257,7 @@ L1650:  invokevirtual Method com/fs/starfarer/combat/CombatFleetManager$O0 getSh
 L1653:  invokevirtual Method com/fs/starfarer/combat/entities/Ship getCollisionRadius ()F 
 L1656:  fadd 
 L1657:  aload_0 
-L1658:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1658:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1661:  invokevirtual Method com/fs/starfarer/combat/entities/Ship getCollisionRadius ()F 
 L1664:  fadd 
 L1665:  fstore 24 
@@ -1276,7 +1276,7 @@ L1691:  invokestatic Method org/lwjgl/util/vector/Vector2f add (Lorg/lwjgl/util/
 L1694:  pop 
 L1695:  aload 25 
 L1697:  astore 18 
-L1699:  invokestatic Method com/genir/aitweaks/asm/OrderResponseModule null ()[I 
+L1699:  invokestatic Method com/genir/aitweaks/asm/combat/ai/OrderResponseModule null ()[I 
 L1702:  aload 6 
 L1704:  invokevirtual Method [c323] ordinal ()I 
 L1707:  iaload 
@@ -1316,18 +1316,18 @@ L1824:  astore 20
 L1826:  new com/fs/starfarer/combat/ai/movement/maneuvers/U 
 L1829:  dup 
 L1830:  aload_0 
-L1831:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1831:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1834:  aload 20 
 L1836:  aload_0 
-L1837:  getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L1837:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L1840:  invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/U <init> (Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L1843:  astore 19 
 L1845:  aload_2 
 L1846:  aload 19 
-L1848:  putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' [u29] 
+L1848:  putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' [u29] 
 L1851:  aload_2 
 L1852:  fconst_1 
-L1853:  putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L1853:  putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L1856:  goto L2099 
 L1859:  iload 16 
 L1861:  ifne L1869 
@@ -1342,38 +1342,38 @@ L1880:  aload_1
 L1881:  invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
 L1884:  invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask int ()Lcom/fs/starfarer/combat/CombatFleetManager$O0; 
 L1887:  invokevirtual Method com/fs/starfarer/combat/CombatFleetManager$O0 getShipIfShip ()Lcom/fs/starfarer/combat/entities/Ship; 
-L1890:  putfield Field com/genir/aitweaks/asm/OrderResponseModule$o Object Lcom/fs/starfarer/combat/entities/Ship; 
+L1890:  putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o Object Lcom/fs/starfarer/combat/entities/Ship; 
 L1893:  goto L2099 
 L1896:  new com/fs/starfarer/combat/ai/movement/maneuvers/U 
 L1899:  dup 
 L1900:  aload_0 
-L1901:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1901:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1904:  aload_1 
 L1905:  invokevirtual Method com/fs/starfarer/combat/tasks/C 'Õ00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask; 
 L1908:  invokevirtual Method com/fs/starfarer/combat/tasks/CombatTask 'Ò00000' ()Lcom/fs/starfarer/combat/tasks/CombatTask$Oo; 
 L1911:  invokeinterface InterfaceMethod com/fs/starfarer/combat/tasks/CombatTask$Oo getLocation ()Lorg/lwjgl/util/vector/Vector2f; 1 
 L1916:  aload_0 
-L1917:  getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L1917:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L1920:  invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/U <init> (Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L1923:  astore 19 
 L1925:  aload_2 
 L1926:  aload 19 
-L1928:  putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' [u29] 
+L1928:  putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' [u29] 
 L1931:  aload_2 
 L1932:  fconst_1 
-L1933:  putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L1933:  putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L1936:  goto L2099 
 L1939:  iload 15 
 L1941:  ifeq L2099 
 L1944:  aload_0 
-L1945:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L1945:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L1948:  aconst_null 
 L1949:  invokestatic Method com/fs/starfarer/combat/ai/N 'õ00000' (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;)F 
 L1952:  fstore 21 
 L1954:  ldc_w +200.0f 
 L1957:  fstore 22 
 L1959:  aload_0 
-L1960:  getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L1960:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L1963:  invokeinterface InterfaceMethod com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 1 
 L1968:  getstatic Field [c197] MAINTAINING_STRIKE_RANGE [u201] 
 L1971:  invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags hasFlag (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;)Z 
@@ -1391,7 +1391,7 @@ L1993:  ifle L2099
 L1996:  iload 23 
 L1998:  ifne L2028 
 L2001:  aload_0 
-L2002:  getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L2002:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L2005:  invokeinterface InterfaceMethod [c485] getAIFlags ()Lcom/fs/starfarer/api/combat/ShipwideAIFlags; 1 
 L2010:  getstatic Field [c197] MAINTAINING_STRIKE_RANGE [u201] 
 L2013:  ldc_w +5.0f 
@@ -1403,7 +1403,7 @@ L2024:  fadd
 L2025:  invokevirtual Method com/fs/starfarer/api/combat/ShipwideAIFlags setFlag (Lcom/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags;F)V 
 L2028:  aload 10 
 L2030:  aload_0 
-L2031:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L2031:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L2034:  invokevirtual Method com/fs/starfarer/combat/entities/Ship getLocation ()Lorg/lwjgl/util/vector/Vector2f; 
 L2037:  invokestatic Method com/fs/starfarer/prototype/Utils 'Ó00000' (Lorg/lwjgl/util/vector/Vector2f;Lorg/lwjgl/util/vector/Vector2f;)F 
 L2040:  invokestatic Method com/fs/starfarer/prototype/Utils 'Ó00000' (F)Lorg/lwjgl/util/vector/Vector2f; 
@@ -1422,24 +1422,24 @@ L2065:  pop
 L2066:  new com/fs/starfarer/combat/ai/movement/maneuvers/U 
 L2069:  dup 
 L2070:  aload_0 
-L2071:  getfield Field com/genir/aitweaks/asm/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
+L2071:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'Ô00000' Lcom/fs/starfarer/combat/entities/Ship; 
 L2074:  aload 24 
 L2076:  aload_0 
-L2077:  getfield Field com/genir/aitweaks/asm/OrderResponseModule oO0000 [u176] 
+L2077:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule oO0000 [u176] 
 L2080:  invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/U <init> (Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L2083:  astore 19 
 L2085:  aload_2 
 L2086:  aload 19 
-L2088:  putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' [u29] 
+L2088:  putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' [u29] 
 L2091:  aload_2 
 L2092:  fconst_1 
-L2093:  putfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ô00000' F 
+L2093:  putfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ô00000' F 
 L2096:  goto L2099 
 L2099:  aload_2 
-L2100:  getfield Field com/genir/aitweaks/asm/OrderResponseModule$o Object Lcom/fs/starfarer/combat/entities/Ship; 
+L2100:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o Object Lcom/fs/starfarer/combat/entities/Ship; 
 L2103:  ifnonnull L2115 
 L2106:  aload_2 
-L2107:  getfield Field com/genir/aitweaks/asm/OrderResponseModule$o 'Ò00000' [u29] 
+L2107:  getfield Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o 'Ò00000' [u29] 
 L2110:  ifnonnull L2115 
 L2113:  aconst_null 
 L2114:  areturn 
@@ -1475,7 +1475,7 @@ L37:
 
 .method static synthetic 'õ00000' : ()[I 
     .code stack 3 locals 1 
-L0:     getstatic Field com/genir/aitweaks/asm/OrderResponseModule new [I 
+L0:     getstatic Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule new [I 
 L3:     dup 
 L4:     ifnull L8 
 L7:     areturn 
@@ -1526,7 +1526,7 @@ L77:    goto L81
 L80:    pop 
 L81:    aload_0 
 L82:    dup 
-L83:    putstatic Field com/genir/aitweaks/asm/OrderResponseModule new [I 
+L83:    putstatic Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule new [I 
 L86:    areturn 
 L87:    
     .end code 
@@ -1534,7 +1534,7 @@ L87:
 
 .method static synthetic null : ()[I 
     .code stack 3 locals 1 
-L0:     getstatic Field com/genir/aitweaks/asm/OrderResponseModule 'õ00000' [I 
+L0:     getstatic Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'õ00000' [I 
 L3:     dup 
 L4:     ifnull L8 
 L7:     areturn 
@@ -1697,7 +1697,7 @@ L273:   goto L277
 L276:   pop 
 L277:   aload_0 
 L278:   dup 
-L279:   putstatic Field com/genir/aitweaks/asm/OrderResponseModule 'õ00000' [I 
+L279:   putstatic Field com/genir/aitweaks/asm/combat/ai/OrderResponseModule 'õ00000' [I 
 L282:   areturn 
 L283:   
     .end code 
@@ -1708,7 +1708,7 @@ L283:
     com/fs/starfarer/api/combat/ShipHullSpecAPI$ShipTypeHints com/fs/starfarer/api/combat/ShipHullSpecAPI ShipTypeHints public static final enum 
     [c197] com/fs/starfarer/api/combat/ShipwideAIFlags AIFlags public static final enum 
     com/fs/starfarer/combat/CombatFleetManager$O0 com/fs/starfarer/combat/CombatFleetManager O0 public static 
-    com/genir/aitweaks/asm/OrderResponseModule$o com/genir/aitweaks/asm/OrderResponseModule o public 
+    com/genir/aitweaks/asm/combat/ai/OrderResponseModule$o com/genir/aitweaks/asm/combat/ai/OrderResponseModule o public 
     com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO$Oo com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO Oo public static 
     [c485] com/fs/starfarer/combat/ai/movement/maneuvers/oO0O o public static interface abstract 
     com/fs/starfarer/combat/tasks/CombatTask$Oo com/fs/starfarer/combat/tasks/CombatTask Oo public static interface abstract 
