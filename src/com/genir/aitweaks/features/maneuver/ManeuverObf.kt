@@ -18,7 +18,7 @@ class ManeuverV : oO0O {
 
     override fun o00000(p0: Float) = maneuver.advance(p0)
 
-    override fun o00000(): B? = maneuver.getCurrentTarget() as? Ship
+    override fun o00000(): B = maneuver.target as Ship
 
     override fun Õ00000(): Boolean = maneuver.isDirectControl
 
@@ -34,7 +34,7 @@ class ManeuverB(ship: Ship, target: Ship, var3: Float, flockingAI: oOOO, shipAI:
 
     override fun o00000(p0: Float) = maneuver.advance(p0)
 
-    override fun o00000(): B? = maneuver.getCurrentTarget() as? Ship
+    override fun o00000(): B = maneuver.target as Ship
 
     override fun Õ00000(): Boolean = maneuver.isDirectControl
 

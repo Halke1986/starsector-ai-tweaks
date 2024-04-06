@@ -4,6 +4,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
+import com.genir.aitweaks.utils.ai.FlagID
+import com.genir.aitweaks.utils.ai.getAITFlag
 
 val ShipAPI.isModule: Boolean
     get() = this.stationSlot != null
@@ -34,7 +36,7 @@ val ShipAPI.trueShipTarget: ShipAPI?
         val root = this.rootModule
         val engine = Global.getCombatEngine()
         val aiControl = root != engine.playerShip || !engine.isUIAutopilotOn
-        return if (aiControl) root.maneuverTarget
+        return if (aiControl) this.getAITFlag(FlagID.ATTACK_TARGET) ?: root.maneuverTarget
         else root.shipTarget
     }
 

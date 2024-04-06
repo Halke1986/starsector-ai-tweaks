@@ -1,45 +1,75 @@
 package com.genir.aitweaks.features.maneuver
 
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
+import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.MISSILE
+import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
 import com.genir.aitweaks.debug.Line
+import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.debug.debugVertices
-import com.genir.aitweaks.debug.drawEngineLines
 import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.features.lidar.dangerGradientInDirection
-import com.genir.aitweaks.utils.Controller
-import com.genir.aitweaks.utils.div
-import com.genir.aitweaks.utils.extensions.frontFacing
-import com.genir.aitweaks.utils.extensions.isPD
-import com.genir.aitweaks.utils.unitVector
+import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.ai.FlagID
+import com.genir.aitweaks.utils.ai.getAITFlag
+import com.genir.aitweaks.utils.ai.setAITFlag
+import com.genir.aitweaks.utils.extensions.*
+import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ext.resize
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-
-var c1 = 0
-var c2 = 1
+import kotlin.math.abs
 
 class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
-    val isDirectControl: Boolean = true
     private val controller = Controller()
+    private val shipAI = ship.ai as AssemblyShipAI
 
+    val isDirectControl: Boolean = true
     var desiredHeading: Float = ship.facing
     var desiredFacing: Float = ship.facing
 
     private var dt: Float = 0f
+    private var range: Float = 0f
 
     fun advance(dt: Float) {
         this.dt = dt
 
-        val p = aimPoint()
-        controller.facing(ship, p, dt)
-        desiredFacing = (aimPoint() - ship.location).getFacing()
+        if (target.isExpired || !target.isAlive) {
+            shipAI.cancelCurrentManeuver()
+        }
 
-        drawEngineLines(ship)
-//        drawWeaponLines(ship)
+        debugPlugin[0] = ship.maneuverTarget
+        debugPlugin[1] = targetTracker[ship]
+
+        val weapons = primaryWeapons()
+        range = range(weapons)
+
+        findNewTarget()?.let {
+            debugVertices.add(Line(ship.location, it.location, Color.RED))
+        }
+
+
+        val attackTarget = selectTarget()
+
+        shipAI.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, 1f, range)
+        shipAI.aiFlags.setFlag(MANEUVER_TARGET, 1f, target)
+
+        // Facing is controlled in advance() instead of doManeuver()
+        // because doManeuver() is not called when ShipAI decides
+        // to perform avoidance collision. ShipAI collision avoidance
+        // overrides only heading control, so we still need to
+        // perform facing control.
+        val p = aimPoint() ?: attackTarget.location
+        controller.facing(ship, p, dt)
+        desiredFacing = (p - ship.location).getFacing()
+        ship.setAITFlag(FlagID.AIM_POINT, p)
+
+//        drawEngineLines(ship)
     }
 
     fun doManeuver() {
@@ -51,7 +81,7 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
             threatGradient < -30f -> angleToTarget -= 8f
         }
 
-        val offset = unitVector(angleToTarget).resize(weaponsRange())
+        val offset = unitVector(angleToTarget).resize(range)
         val p = target.location - offset
 
         debugVertices.add(Line(ship.location, p, Color.YELLOW))
@@ -60,10 +90,31 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         desiredHeading = (p - ship.location).getFacing()
     }
 
-    fun getCurrentTarget(): ShipAPI? = if (target.isAlive) target else null
+    private fun selectTarget(): ShipAPI {
+        var attackTarget: ShipAPI? = ship.getAITFlag(FlagID.ATTACK_TARGET)
 
-    private fun weaponsRange(): Float {
-        val weapons = ship.allWeapons.filter {
+        if (attackTarget == null || !attackTarget.isValidTarget || outOfRange(attackTarget, range + target.collisionRadius)) {
+            attackTarget = findNewTarget() ?: target
+        }
+
+        ship.setAITFlag(FlagID.ATTACK_TARGET, attackTarget)
+        return attackTarget
+    }
+
+    private fun outOfRange(target: ShipAPI, range: Float): Boolean {
+        return (target.location - ship.location).length() > range
+    }
+
+    private fun findNewTarget(): ShipAPI? {
+        val radius = range * 2f
+        val ships = shipGrid().getCheckIterator(ship.location, radius, radius).asSequence().filterIsInstance<ShipAPI>()
+        val threats = ships.filter { it.owner != ship.owner && it.isValidTarget && it.isShip && !outOfRange(it, range) }
+
+        return threats.maxByOrNull { -abs(MathUtils.getShortestRotation(ship.facing, (it.location - ship.location).getFacing())) }
+    }
+
+    private fun primaryWeapons(): List<WeaponAPI> {
+        return ship.allWeapons.filter {
             when {
                 it.type == MISSILE -> false
                 !it.frontFacing -> false
@@ -72,23 +123,28 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
                 else -> true
             }
         }
+    }
 
+    /** Range at which all front facing non-PD weapons can hit. */
+    private fun range(weapons: List<WeaponAPI>): Float {
         return weapons.maxOfOrNull { -it.range - it.slot.location.x }?.let { -it } ?: 0f
     }
 
-    private fun aimPoint(): Vector2f {
-        val allAIs = ship.weaponGroupsCopy.flatMap { it.aiPlugins }.filterIsInstance<AutofireAI>()
-        val harpoints = allAIs.filter {
-            when {
-                it.weapon.slot.isHardpoint -> false
-                it.weapon.isBeam -> false
-                !it.shouldFire() -> false
-                it.intercept == null -> false
-                else -> true
-            }
-        }
+    private fun dps(weapons: List<WeaponAPI>): Float {
+        return weapons.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
+    }
 
-        return if (harpoints.isEmpty()) target.location
-        else harpoints.fold(Vector2f()) { sum, ai -> sum + ai.intercept!! } / harpoints.size.toFloat()
+    /** Aim hardpoint weapons with entire ship, if any. */
+    private fun aimPoint(): Vector2f? {
+        val weapons = ship.allWeapons.filter { it.slot.isHardpoint && !it.isBeam }
+        val interceptPoints = weapons.mapNotNull { it.autofireAI?.intercept }
+
+        if (interceptPoints.isEmpty()) return null
+
+        val interceptSum = interceptPoints.fold(Vector2f()) { sum, intercept -> sum + intercept }
+        return interceptSum / interceptPoints.size.toFloat()
     }
 }
+
+val WeaponAPI.autofireAI: AutofireAI?
+    get() = this.ship.getWeaponGroupFor(this).getAutofirePlugin(this) as? AutofireAI
