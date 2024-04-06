@@ -24,7 +24,7 @@ class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
     }
 
     override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin> {
-        if (ship.hullSpec.hullId == "nova")
+        if (ship.owner == 0)
             return PluginPick(newVanillaAI(ship), PickPriority.MOD_GENERAL)
 
         return PluginPick(null, PickPriority.MOD_GENERAL)

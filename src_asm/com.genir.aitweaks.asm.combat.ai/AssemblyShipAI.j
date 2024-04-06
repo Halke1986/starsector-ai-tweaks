@@ -699,7 +699,7 @@ L302:   ifeq L351
 L305:   aload_0 
 L306:   getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI sequence Lcom/fs/starfarer/combat/ai/movement/maneuvers/oooO; 
 L309:   invokevirtual Method com/fs/starfarer/combat/ai/movement/maneuvers/oooO 'Ö00000' ()Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O; 
-L312:   instanceof com/fs/starfarer/combat/ai/movement/maneuvers/B 
+L312:   instanceof com/genir/aitweaks/features/maneuver/ManeuverB 
 L315:   ifne L344 
 L318:   aload_0 
 L319:   getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI sequence Lcom/fs/starfarer/combat/ai/movement/maneuvers/oooO; 
@@ -2322,7 +2322,7 @@ L1167:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI target Lc
 L1170:  ifnull L1218 
 L1173:  ldc_w +5.0f 
 L1176:  fstore 8 
-L1178:  new com/genir/aitweaks/features/maneuver/ManeuverObf 
+L1178:  new com/genir/aitweaks/features/maneuver/ManeuverV 
 L1181:  dup 
 L1182:  aload_0 
 L1183:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI ship Lcom/fs/starfarer/combat/entities/Ship; 
@@ -2336,7 +2336,7 @@ L1196:  aload_0
 L1197:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI flockingAI Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L1200:  aload_0 
 L1201:  iconst_0 
-L1202:  invokespecial Method com/genir/aitweaks/features/maneuver/ManeuverObf <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;ZFFFLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;Z)V 
+L1202:  invokespecial Method com/genir/aitweaks/features/maneuver/ManeuverV <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;ZFFFLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;Z)V 
 L1205:  astore 9 
 L1207:  aload_0 
 L1208:  aload 9 
@@ -3774,7 +3774,7 @@ L4423:  fload 54
 L4425:  fconst_0 
 L4426:  fcmpl 
 L4427:  ifeq L4473 
-L4430:  new com/genir/aitweaks/features/maneuver/ManeuverObf 
+L4430:  new com/genir/aitweaks/features/maneuver/ManeuverV 
 L4433:  dup 
 L4434:  aload_0 
 L4435:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI ship Lcom/fs/starfarer/combat/entities/Ship; 
@@ -3789,7 +3789,7 @@ L4451:  aload_0
 L4452:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI flockingAI Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L4455:  aload_0 
 L4456:  iload_1 
-L4457:  invokespecial Method com/genir/aitweaks/features/maneuver/ManeuverObf <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;ZFFFLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;Z)V 
+L4457:  invokespecial Method com/genir/aitweaks/features/maneuver/ManeuverV <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;ZFFFLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;Z)V 
 L4460:  astore 55 
 L4462:  aload_0 
 L4463:  aload 55 
@@ -3804,7 +3804,7 @@ L4477:  ldc_w +1000.0f
 L4480:  fadd 
 L4481:  fcmpg 
 L4482:  ifge L4526 
-L4485:  new com/genir/aitweaks/features/maneuver/ManeuverObf 
+L4485:  new com/genir/aitweaks/features/maneuver/ManeuverV 
 L4488:  dup 
 L4489:  aload_0 
 L4490:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI ship Lcom/fs/starfarer/combat/entities/Ship; 
@@ -4506,7 +4506,7 @@ L5918:  aload 69
 L5920:  fconst_2 
 L5921:  invokevirtual Method com/genir/aitweaks/asm/combat/ai/AssemblyShipAI setManeuver [u790] 
 L5924:  goto L5957 
-L5927:  new com/fs/starfarer/combat/ai/movement/maneuvers/B 
+L5927:  new com/genir/aitweaks/features/maneuver/ManeuverB 
 L5930:  dup 
 L5931:  aload_0 
 L5932:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI ship Lcom/fs/starfarer/combat/entities/Ship; 
@@ -4516,7 +4516,7 @@ L5939:  fconst_1
 L5940:  aload_0 
 L5941:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI flockingAI Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L5944:  aload_0 
-L5945:  invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/B <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;FLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
+L5945:  invokespecial Method com/genir/aitweaks/features/maneuver/ManeuverB <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;FLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L5948:  astore 69 
 L5950:  aload_0 
 L5951:  aload 69 
@@ -4612,7 +4612,7 @@ L6143:  invokevirtual Method com/fs/starfarer/combat/entities/Ship isFrigate ()Z
 L6146:  ifeq L6154 
 L6149:  iload 74 
 L6151:  ifeq L6262 
-L6154:  new com/fs/starfarer/combat/ai/movement/maneuvers/B 
+L6154:  new com/genir/aitweaks/features/maneuver/ManeuverB 
 L6157:  dup 
 L6158:  aload_0 
 L6159:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI ship Lcom/fs/starfarer/combat/entities/Ship; 
@@ -4622,7 +4622,7 @@ L6166:  fload 71
 L6168:  aload_0 
 L6169:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI flockingAI Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L6172:  aload_0 
-L6173:  invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/B <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;FLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
+L6173:  invokespecial Method com/genir/aitweaks/features/maneuver/ManeuverB <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;FLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L6176:  astore 75 
 L6178:  iload 66 
 L6180:  ifeq L6223 
@@ -4843,7 +4843,7 @@ L6625:  iload 67
 L6627:  ifne L6675 
 L6630:  invokestatic Method java/lang/Math random ()D 
 L6633:  pop2 
-L6634:  new com/fs/starfarer/combat/ai/movement/maneuvers/B 
+L6634:  new com/genir/aitweaks/features/maneuver/ManeuverB 
 L6637:  dup 
 L6638:  aload_0 
 L6639:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI ship Lcom/fs/starfarer/combat/entities/Ship; 
@@ -4853,7 +4853,7 @@ L6646:  fconst_1
 L6647:  aload_0 
 L6648:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI flockingAI Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L6651:  aload_0 
-L6652:  invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/B <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;FLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
+L6652:  invokespecial Method com/genir/aitweaks/features/maneuver/ManeuverB <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;FLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L6655:  astore 73 
 L6657:  aload_0 
 L6658:  aload 73 
@@ -5141,7 +5141,7 @@ L7263:  aload 80
 L7265:  ldc_w +3.0f 
 L7268:  invokevirtual Method com/genir/aitweaks/asm/combat/ai/AssemblyShipAI setManeuver [u790] 
 L7271:  goto L7722 
-L7274:  new com/fs/starfarer/combat/ai/movement/maneuvers/B 
+L7274:  new com/genir/aitweaks/features/maneuver/ManeuverB 
 L7277:  dup 
 L7278:  aload_0 
 L7279:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI ship Lcom/fs/starfarer/combat/entities/Ship; 
@@ -5151,7 +5151,7 @@ L7286:  fconst_1
 L7287:  aload_0 
 L7288:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI flockingAI Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L7291:  aload_0 
-L7292:  invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/B <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;FLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
+L7292:  invokespecial Method com/genir/aitweaks/features/maneuver/ManeuverB <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;FLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L7295:  astore 80 
 L7297:  iload 66 
 L7299:  ifeq L7337 
@@ -5273,7 +5273,7 @@ L7541:  invokevirtual Method com/fs/starfarer/combat/entities/Ship isCapital ()Z
 L7544:  ifeq L7625 
 L7547:  iload 9 
 L7549:  ifne L7625 
-L7552:  new com/fs/starfarer/combat/ai/movement/maneuvers/B 
+L7552:  new com/genir/aitweaks/features/maneuver/ManeuverB 
 L7555:  dup 
 L7556:  aload_0 
 L7557:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI ship Lcom/fs/starfarer/combat/entities/Ship; 
@@ -5283,7 +5283,7 @@ L7564:  fconst_1
 L7565:  aload_0 
 L7566:  getfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI flockingAI Lcom/fs/starfarer/combat/ai/movement/oOOO; 
 L7569:  aload_0 
-L7570:  invokespecial Method com/fs/starfarer/combat/ai/movement/maneuvers/B <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;FLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
+L7570:  invokespecial Method com/genir/aitweaks/features/maneuver/ManeuverB <init> (Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;FLcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V 
 L7573:  astore 82 
 L7575:  iload 66 
 L7577:  ifeq L7615 
@@ -5663,6 +5663,6 @@ L101:
 .const [u96] = Utf8 com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO 
 .const [u153] = Utf8 com/fs/starfarer/combat/ai/movement/maneuvers/oooO 
 .const [u483] = Utf8 com/fs/starfarer/api/combat/ShipwideAIFlags$AIFlags 
-.const [u501] = Utf8 com/genir/aitweaks/features/maneuver/ManeuverObf 
+.const [u501] = Utf8 com/genir/aitweaks/features/maneuver/ManeuverV 
 .const [u543] = Utf8 com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO$Oo 
 .end class 
