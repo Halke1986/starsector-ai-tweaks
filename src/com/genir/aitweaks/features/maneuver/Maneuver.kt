@@ -9,8 +9,8 @@ import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
 import com.genir.aitweaks.debug.Line
 import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.debug.debugVertices
+import com.genir.aitweaks.debug.drawEngineLines
 import com.genir.aitweaks.features.autofire.AutofireAI
-import com.genir.aitweaks.features.lidar.dangerGradientInDirection
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ai.FlagID
 import com.genir.aitweaks.utils.ai.getAITFlag
@@ -24,6 +24,7 @@ import org.lazywizard.lazylib.ext.resize
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import kotlin.math.abs
+import kotlin.math.max
 
 class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     private val controller = Controller()
@@ -49,10 +50,10 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         val weapons = primaryWeapons()
         range = range(weapons)
 
-        findNewTarget()?.let {
-            debugVertices.add(Line(ship.location, it.location, Color.RED))
-        }
-
+//        findNewTarget()?.let {
+//            debugVertices.add(Line(ship.location, it.location, Color.RED))
+//        }
+//        debugVertices.add(Line(ship.location, ship.location + threatDirection(ship.location), Color.RED))
 
         val attackTarget = selectTarget()
 
@@ -69,20 +70,23 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         desiredFacing = (p - ship.location).getFacing()
         ship.setAITFlag(FlagID.AIM_POINT, p)
 
-//        drawEngineLines(ship)
+        drawEngineLines(ship)
     }
 
     fun doManeuver() {
-        var angleToTarget = (target.location - ship.location).getFacing()
-        val threatGradient = dangerGradientInDirection(ship, angleToTarget + 90f)
+//        var angleToTarget = (target.location - ship.location).getFacing()
+//        val threatGradient = dangerGradientInDirection(ship, angleToTarget + 90f)
+//
+//        when {
+//            threatGradient > 30f -> angleToTarget += 8f
+//            threatGradient < -30f -> angleToTarget -= 8f
+//        }
+//
+//        val offset = unitVector(angleToTarget).resize(range)
+//        val p = target.location - offset
 
-        when {
-            threatGradient > 30f -> angleToTarget += 8f
-            threatGradient < -30f -> angleToTarget -= 8f
-        }
-
-        val offset = unitVector(angleToTarget).resize(range)
-        val p = target.location - offset
+        val threat = threatDirection(ship.location).resize(range)
+        val p = target.location - threat
 
         debugVertices.add(Line(ship.location, p, Color.YELLOW))
 
@@ -143,6 +147,25 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
 
         val interceptSum = interceptPoints.fold(Vector2f()) { sum, intercept -> sum + intercept }
         return interceptSum / interceptPoints.size.toFloat()
+    }
+
+    private fun threatDirection(location: Vector2f): Vector2f {
+        val radius = max(2500f, this.range)
+        val ships = shipsInRadius(location, radius)
+        val threats = ships.filter { it.owner != ship.owner && it.isValidTarget && it.isShip }
+
+        val threatSum = threats.fold(Vector2f()) { sum, it ->
+            val dp = it.deploymentPoints
+            val dir = (it.location - ship.location).resize(1f)
+            sum + dir * dp * dp
+        }
+
+        return threatSum
+    }
+
+    private fun shipsInRadius(location: Vector2f, radius: Float): Sequence<ShipAPI> {
+        val r = radius * 2f
+        return shipGrid().getCheckIterator(ship.location, r, r).asSequence().filterIsInstance<ShipAPI>()
     }
 }
 
