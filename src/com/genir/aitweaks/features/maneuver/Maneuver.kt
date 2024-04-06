@@ -3,17 +3,19 @@ package com.genir.aitweaks.features.maneuver
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.MISSILE
 import com.genir.aitweaks.debug.Line
-import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.debug.drawEngineLines
 import com.genir.aitweaks.features.autofire.AutofireAI
+import com.genir.aitweaks.features.lidar.dangerGradientInDirection
 import com.genir.aitweaks.utils.Controller
 import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.frontFacing
 import com.genir.aitweaks.utils.extensions.isPD
+import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
+import org.lazywizard.lazylib.ext.resize
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
@@ -41,15 +43,24 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     }
 
     fun doManeuver() {
-        val p = target.location - Vector2f(0f, weaponsRange())
+        var angleToTarget = (target.location - ship.location).getFacing()
+        val threatGradient = dangerGradientInDirection(ship, angleToTarget + 90f)
 
-        debugPlugin[1] = weaponsRange()
+        when {
+            threatGradient > 30f -> angleToTarget += 8f
+            threatGradient < -30f -> angleToTarget -= 8f
+        }
+
+        val offset = unitVector(angleToTarget).resize(weaponsRange())
+        val p = target.location - offset
 
         debugVertices.add(Line(ship.location, p, Color.YELLOW))
 
         controller.heading(ship, p, target.velocity, dt)
         desiredHeading = (p - ship.location).getFacing()
     }
+
+    fun getCurrentTarget(): ShipAPI? = if (target.isAlive) target else null
 
     private fun weaponsRange(): Float {
         val weapons = ship.allWeapons.filter {
