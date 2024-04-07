@@ -10,7 +10,6 @@ import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
 
 val ShipAPI.isModule: Boolean
     get() = this.stationSlot != null
@@ -64,7 +63,7 @@ val ShipAPI.deploymentPoints: Float
 val ShipAPI.maxFiringRange: Float
     get() = this.allWeapons.maxOfOrNull { it.range } ?: 0f
 
-/** Absolute angle between ship facing and direction from ship to point p. */
-fun ShipAPI.absAngleFromFacing(p: Vector2f): Float {
-    return abs(MathUtils.getShortestRotation((p - this.location).getFacing(), this.facing))
+/** Angle between ship facing and direction from ship to point p. */
+fun ShipAPI.angleFromFacing(p: Vector2f): Float {
+    return MathUtils.getShortestRotation((p - this.location).getFacing(), this.facing)
 }
