@@ -4,6 +4,7 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
+import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ai.FlagID
 import com.genir.aitweaks.utils.ai.getAITFlag
@@ -38,7 +39,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var selectTargetInterval = IntervalUtil(0.25F, 0.50F)
     private var shouldFireInterval = IntervalUtil(0.1F, 0.2F)
 
-    private var shouldHoldFire: HoldFire? = HoldFire.NO_TARGET
+    var shouldHoldFire: HoldFire? = HoldFire.NO_TARGET
     private var aimLocation: Vector2f? = null
 
     // intercept may be different from aim location for hardpoint weapons
@@ -85,6 +86,10 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (shouldFireInterval.intervalElapsed()) {
             shouldHoldFire = calculateShouldFire(selectTargetInterval.elapsed)
         }
+
+//        if (weapon.ship.owner == 0) {
+//            debugPlugin[debugIdx] = "${weapon.id} ${shouldHoldFire}"
+//        }
     }
 
     override fun shouldFire(): Boolean = shouldHoldFire == null

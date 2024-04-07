@@ -63,8 +63,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private fun debug(dt: Float) {
         val ship = Global.getCombatEngine().ships.firstOrNull { it.hasAIType<AssemblyShipAI>() } ?: return
 
-        debugPlugin[0] = ship.maneuverTarget
-        debugPlugin[1] = targetTracker[ship]
+//        debugPlugin[0] = ship.maneuverTarget
+//        debugPlugin[1] = targetTracker[ship]
 
 //        debugPlugin[0] = (ship.ai as AssemblyShipAI).currentManeuver?.javaClass?.canonicalName
         debugPlugin["avoiding collision"] = if ((ship.ai as AssemblyShipAI).flockingAI.String()) "avoiding collision" else ""
