@@ -44,15 +44,9 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
             shipAI.cancelCurrentManeuver()
         }
 
-//        debugPlugin[0] = ship.maneuverTarget
-//        debugPlugin[1] = targetTracker[ship]
-
         val weapons = primaryWeapons()
         range = range(weapons)
 
-//        findNewTarget()?.let {
-//            debugVertices.add(Line(ship.location, it.location, Color.RED))
-//        }
         debugVertices.add(Line(ship.location, ship.location + threatDirection(ship.location), Color.RED))
 
         val attackTarget = selectTarget()

@@ -4,7 +4,6 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ai.FlagID
 import com.genir.aitweaks.utils.ai.getAITFlag
@@ -86,10 +85,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (shouldFireInterval.intervalElapsed()) {
             shouldHoldFire = calculateShouldFire(selectTargetInterval.elapsed)
         }
-
-//        if (weapon.ship.owner == 0) {
-//            debugPlugin[debugIdx] = "${weapon.id} ${shouldHoldFire}"
-//        }
     }
 
     override fun shouldFire(): Boolean = shouldHoldFire == null
