@@ -1,6 +1,7 @@
 package com.genir.aitweaks.features.maneuver
 
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI
@@ -26,8 +27,10 @@ import kotlin.math.max
 
 const val threatEvalRadius = 2500f
 const val aimOffsetSamples = 45
+
 const val backoffUpperThreshold = 0.8f
 const val backoffLowerThreshold = 0.2f
+const val shieldDownVentTime = 2.0f
 
 class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     private val controller = Controller()
@@ -40,6 +43,8 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     private var dt: Float = 0f
     private var range: Float = 0f
     private var averageOffset = RollingAverage(aimOffsetSamples)
+    private var shieldDownTime = 0f
+
     private var attackTarget: ShipAPI = target
     private var isBackingOff: Boolean = false
 
@@ -50,20 +55,16 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
             shipAI.cancelCurrentManeuver()
         }
 
+        // Update state.
         val weapons = primaryWeapons()
         range = range(weapons)
-        attackTarget = updateAttackTarget()
+        updateAttackTarget()
+        updateBackoffStatus()
+        updateShieldDownTime(dt)
 
-        // Update backoff status.
-        isBackingOff = shipAI.aiFlags.getCustom(BACKING_OFF) == true
-        val fluxLevel = ship.fluxTracker.fluxLevel// ship.fluxTracker.hardFlux / ship.fluxTracker.maxFlux
-        if ((isBackingOff && fluxLevel > backoffLowerThreshold) || fluxLevel > backoffUpperThreshold) {
-            shipAI.aiFlags.setFlag(BACKING_OFF, 0.1f, true)
-        }
+        ventIfNeeded()
 
-        debugPlugin[0] = fluxLevel
-        debugPlugin[1] = isBackingOff
-        debugPlugin[2] = shipAI.aiFlags.getCustom(BACKING_OFF)
+        debugPlugin[0] = isBackingOff
 
         shipAI.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, range)
         shipAI.aiFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, target)
@@ -74,6 +75,51 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         // overrides only heading control, so we still need to
         // perform facing control.
         setFacing()
+    }
+
+    /** Select which enemy ship to attack. This may be different
+     * from the maneuver target provided by the ShipAI. */
+    private fun updateAttackTarget() {
+        // Attack target is stored in a flag, so it carries over between Maneuver instances.
+        var currentTarget: ShipAPI? = ship.getAITFlag(FlagID.ATTACK_TARGET)
+
+        val maxRange = range + target.collisionRadius
+        if (currentTarget == null || !currentTarget.isValidTarget || isOutOfRange(currentTarget.location, maxRange)) {
+            currentTarget = findNewTarget() ?: target
+        }
+
+        ship.setAITFlag(FlagID.ATTACK_TARGET, currentTarget)
+        attackTarget = currentTarget
+    }
+
+    /** Decide if ships needs to back off due to high flux level */
+    // TODO shieldless ships
+    private fun updateBackoffStatus() {
+        isBackingOff = shipAI.aiFlags.hasFlag(BACKING_OFF)
+        val fluxLevel = ship.fluxTracker.fluxLevel
+
+        if ((isBackingOff && fluxLevel > backoffLowerThreshold) || fluxLevel > backoffUpperThreshold) {
+            shipAI.aiFlags.setFlag(BACKING_OFF)
+        } else if (isBackingOff) {
+            shipAI.aiFlags.unsetFlag(BACKING_OFF)
+            isBackingOff = false
+        }
+    }
+
+    private fun updateShieldDownTime(dt: Float) {
+        shieldDownTime = if (ship.shield?.isOn == true) 0f
+        else shieldDownTime + dt
+    }
+
+    // TODO test
+    private fun ventIfNeeded() {
+        when {
+            !isBackingOff -> return
+            shieldDownTime < shieldDownVentTime -> return
+            ship.allWeapons.firstOrNull { it.autofireAI?.shouldFire() == true } != null -> return
+        }
+
+        ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
     }
 
     private fun setFacing() {
@@ -90,6 +136,7 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
 //        debugVertices.add(Line(ship.location, ship.location + threatDirection(ship.location), Color.RED))
     }
 
+    // TODO effectively chase
     fun doManeuver() {
         val threat = threatDirection(ship.location)
 
@@ -102,21 +149,11 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         desiredHeading = (p - ship.location).getFacing()
     }
 
-    private fun updateAttackTarget(): ShipAPI {
-        var attackTarget: ShipAPI? = ship.getAITFlag(FlagID.ATTACK_TARGET)
-
-        if (attackTarget == null || !attackTarget.isValidTarget || isOutOfRange(attackTarget.location, range + target.collisionRadius)) {
-            attackTarget = findNewTarget() ?: target
-        }
-
-        ship.setAITFlag(FlagID.ATTACK_TARGET, attackTarget)
-        return attackTarget
-    }
 
     private fun isOutOfRange(target: ShipAPI, range: Float) = isOutOfRange(target.location, range)
 
     private fun isOutOfRange(p: Vector2f, range: Float): Boolean {
-        return (p - ship.location).length() > range
+        return (p - ship.location).lengthSquared() > range * range
     }
 
     private fun findNewTarget(): ShipAPI? {
