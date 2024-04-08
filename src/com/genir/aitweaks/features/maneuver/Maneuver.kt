@@ -1,15 +1,15 @@
 package com.genir.aitweaks.features.maneuver
 
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET
-import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
+import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.MISSILE
 import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
 import com.genir.aitweaks.debug.Line
+import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.debug.drawEngineLines
-import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ai.FlagID
 import com.genir.aitweaks.utils.ai.getAITFlag
@@ -24,6 +24,11 @@ import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.max
 
+const val threatEvalRadius = 2500f
+const val aimOffsetSamples = 45
+const val backoffUpperThreshold = 0.8f
+const val backoffLowerThreshold = 0.2f
+
 class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     private val controller = Controller()
     private val shipAI = ship.ai as AssemblyShipAI
@@ -34,8 +39,9 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
 
     private var dt: Float = 0f
     private var range: Float = 0f
-    private var averageOffset = RollingAverage(45)
+    private var averageOffset = RollingAverage(aimOffsetSamples)
     private var attackTarget: ShipAPI = target
+    private var isBackingOff: Boolean = false
 
     fun advance(dt: Float) {
         this.dt = dt
@@ -46,12 +52,21 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
 
         val weapons = primaryWeapons()
         range = range(weapons)
-
-
         attackTarget = updateAttackTarget()
 
-        shipAI.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, 1f, range)
-        shipAI.aiFlags.setFlag(MANEUVER_TARGET, 1f, target)
+        // Update backoff status.
+        isBackingOff = shipAI.aiFlags.getCustom(BACKING_OFF) == true
+        val fluxLevel = ship.fluxTracker.fluxLevel// ship.fluxTracker.hardFlux / ship.fluxTracker.maxFlux
+        if ((isBackingOff && fluxLevel > backoffLowerThreshold) || fluxLevel > backoffUpperThreshold) {
+            shipAI.aiFlags.setFlag(BACKING_OFF, 0.1f, true)
+        }
+
+        debugPlugin[0] = fluxLevel
+        debugPlugin[1] = isBackingOff
+        debugPlugin[2] = shipAI.aiFlags.getCustom(BACKING_OFF)
+
+        shipAI.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, range)
+        shipAI.aiFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, target)
 
         // Facing is controlled in advance() instead of doManeuver()
         // because doManeuver() is not called when ShipAI decides
@@ -70,18 +85,18 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         desiredFacing = (aimPoint - ship.location).getFacing()
         ship.setAITFlag(FlagID.AIM_POINT, aimPoint)
 
-        debugVertices.add(Line(ship.location, aimPoint, Color.RED))
+//        debugVertices.add(Line(ship.location, aimPoint, Color.RED))
         drawEngineLines(ship)
 //        debugVertices.add(Line(ship.location, ship.location + threatDirection(ship.location), Color.RED))
     }
 
     fun doManeuver() {
-//        debugPlugin[0] = ship.fluxTracker.maxFlux / ship.fluxTracker.hardFlux
+        val threat = threatDirection(ship.location)
 
-        val threat = threatDirection(ship.location).resize(range)
-        val p = target.location - threat
+        val p = if (isBackingOff) ship.location - threat.resize(1000f)
+        else target.location - threat.resize(range)
 
-//        debugVertices.add(Line(ship.location, p, Color.YELLOW))
+        debugVertices.add(Line(ship.location, p, Color.YELLOW))
 
         controller.heading(ship, p, target.velocity, dt)
         desiredHeading = (p - ship.location).getFacing()
@@ -148,7 +163,7 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     }
 
     private fun threatDirection(location: Vector2f): Vector2f {
-        val radius = max(2500f, this.range)
+        val radius = max(threatEvalRadius, this.range)
         val ships = shipsInRadius(location, radius)
         val threats = ships.filter { it.owner != ship.owner && it.isValidTarget && it.isShip }
 
@@ -167,11 +182,5 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     }
 }
 
-val WeaponAPI.autofireAI: AutofireAI?
-    get() = this.ship.getWeaponGroupFor(this).getAutofirePlugin(this) as? AutofireAI
-
 val ShipAPI.isFullAhead: Boolean
     get() = this.angleFromFacing(this.velocity) <= 1f && this.velocity.length() >= this.maxSpeed * 0.9f
-
-
-

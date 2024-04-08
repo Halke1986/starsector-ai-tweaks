@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
+import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.utils.attack.FiringCycle
 import com.genir.aitweaks.utils.attack.firingCycle
 import org.lazywizard.lazylib.MathUtils
@@ -53,3 +54,6 @@ val WeaponAPI.timeToAttack: Float
             else -> spec.chargeTime * (1f - this.chargeLevel)
         }
     }
+
+val WeaponAPI.autofireAI: AutofireAI?
+    get() = this.ship.getWeaponGroupFor(this).getAutofirePlugin(this) as? AutofireAI

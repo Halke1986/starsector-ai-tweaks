@@ -12,7 +12,7 @@ enum class FlagID {
     AIM_POINT,
 }
 
-fun <T> ShipAPI.getAITFlag(flagID: FlagID, maxAge: Int = 60): T? {
+fun <T> ShipAPI.getAITFlag(flagID: FlagID, maxAge: Int = 30): T? {
     val flag = this.customData["${flagsKey}_$flagID"] as? FlagT<*> ?: return null
     if (frameTracker - flag.timestamp > maxAge) return null
     return flag.value as T
