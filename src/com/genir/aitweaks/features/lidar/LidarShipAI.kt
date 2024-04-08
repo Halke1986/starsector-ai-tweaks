@@ -37,7 +37,7 @@ class LidarShipAI(private val ship: ShipAPI, private val target: ShipAPI, privat
             offset = unitVector(angle).resize(range * 0.92f)
         }
 
-        val con = Controller()
+        val con = EngineController()
         con.facing(ship, getAimPoint(), dt)
         con.heading(ship, target.location + offset, target.velocity, dt)
     }

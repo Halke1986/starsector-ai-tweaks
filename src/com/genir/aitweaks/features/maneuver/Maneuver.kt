@@ -16,7 +16,6 @@ import com.genir.aitweaks.utils.ai.FlagID
 import com.genir.aitweaks.utils.ai.getAITFlag
 import com.genir.aitweaks.utils.ai.setAITFlag
 import com.genir.aitweaks.utils.extensions.*
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ext.resize
@@ -30,12 +29,12 @@ const val aimOffsetSamples = 45
 
 const val backoffUpperThreshold = 0.8f
 const val backoffLowerThreshold = 0.2f
-const val shieldDownVentTime = 2.0f
 
-var forceVentCount = 0
+const val shieldDownVentTime = 2.0f
+const val shieldFlickerThreshold = 0.5f
 
 class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
-    private val engineController = Controller()
+    private val engineController = EngineController()
     private val shipAI = ship.ai as AssemblyShipAI
 
     val isDirectControl: Boolean = true
@@ -74,7 +73,7 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
 
         // Facing is controlled in advance() instead of doManeuver()
         // because doManeuver() is not called when ShipAI decides
-        // to perform avoidance collision. ShipAI collision avoidance
+        // to perform collision avoidance. ShipAI collision avoidance
         // overrides only heading control, so we still need to
         // perform facing control.
         setFacing()
@@ -119,24 +118,21 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     }
 
     private fun updateShieldDownTime(dt: Float) {
-        debugPlugin[7] = shieldDownTime
-
-        shieldDownTime = if (ship.shield?.isOn == true) 0f
+        val shieldIsUp = ship.shield?.isOn == true && shieldUptime(ship.shield) > shieldFlickerThreshold
+        shieldDownTime = if (shieldIsUp) 0f
         else shieldDownTime + dt
     }
 
-    // TODO test
+    /** Force vent when the ship is backing off,
+     * not shooting and with shields down. */
     private fun ventIfNeeded() {
-        debugPlugin["vent"] = ""
-
         when {
             !isBackingOff -> return
             shieldDownTime < shieldDownVentTime -> return
             ship.fluxTracker.isVenting -> return
-            ship.allWeapons.firstOrNull { it.autofireAI?.shouldFire() == true }?.let { debugPlugin["vent"] = "no vent ${it.id}" } != null -> return
+            ship.allWeapons.firstOrNull { it.autofireAI?.shouldFire() == true } != null -> return
         }
 
-        forceVentCount++
         ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
     }
 
@@ -145,42 +141,29 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         val offset = averageOffset.update(aimOffset())
         val aimPoint = attackTarget.location + offset
 
-        engineController.facing(ship, aimPoint, dt)
-        desiredFacing = (aimPoint - ship.location).getFacing()
+        desiredFacing = engineController.facing(ship, aimPoint, dt)
         ship.setAITFlag(FlagID.AIM_POINT, aimPoint)
-
-//        debugVertices.add(Line(ship.location, aimPoint, Color.RED))
-        drawEngineLines(ship)
-//        debugVertices.add(Line(ship.location, ship.location + threatDirection(ship.location), Color.RED))
     }
 
-    // TODO effectively chase
     private fun setHeading() {
         val threat = threatDirection(ship.location)
 
-        val distance = (attackTarget.location - ship.location).length()
-        val radius = attackTarget.collisionRadius
-        val rangeOnTarget = ((range + radius - distance) / radius).coerceIn(0f, 1f)
-
-        debugPlugin["on target"] = rangeOnTarget
-
-
-        val p = when {
-            isBackingOff -> ship.location - threat.resize(1000f)
-//            attackTarget == target && distance > 0f && distance < target.collisionRadius -> target.location
-            else -> {
-                val strafePosition = target.location - threat.resize(range)
-                if (target != attackTarget) strafePosition
-                else strafePosition * rangeOnTarget + attackTarget.location * (1f - rangeOnTarget)
-            }
+        val (p, v) = if (isBackingOff) {
+            // Move opposite to threat direction.
+            val backoffLocation = ship.location - threat.resize(1000f)
+            Pair(backoffLocation, Vector2f())
+        } else {
+            // Orbit target at max weapon range, while rotating away from threat.
+            val strafeLocation = target.location - threat.resize(range)
+            Pair(strafeLocation, attackTarget.velocity)
         }
 
-        debugVertices.add(Line(ship.location, p, Color.YELLOW))
+//        debugVertices.add(Line(ship.location, p, Color.YELLOW))
+        debugVertices.add(Line(ship.location, ship.location + unitVector(desiredHeading) * 300f, Color.GREEN))
+        drawEngineLines(ship)
 
-        engineController.heading(ship, p, target.velocity, dt)
-        desiredHeading = (p - ship.location).getFacing()
+        desiredHeading = engineController.heading(ship, p, v, dt)
     }
-
 
     private fun isOutOfRange(target: ShipAPI, range: Float) = isOutOfRange(target.location, range)
 
@@ -250,6 +233,3 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         return shipGrid().getCheckIterator(location, r, r).asSequence().filterIsInstance<ShipAPI>()
     }
 }
-
-val ShipAPI.isFullAhead: Boolean
-    get() = this.angleFromFacing(this.velocity) <= 1f && this.velocity.length() >= this.maxSpeed * 0.9f

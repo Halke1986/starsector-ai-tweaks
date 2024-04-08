@@ -74,6 +74,8 @@ class Rotation(angle: Float) {
     private val cos = kotlin.math.cos(radians)
 
     fun rotate(v: Vector2f) = Vector2f(v.x * cos - v.y * sin, v.x * sin + v.y * cos)
+
+    fun reverse(v: Vector2f) = Vector2f(v.x * cos + v.y * sin, -v.x * sin + v.y * cos)
 }
 
 fun defaultAIInterval() = IntervalUtil(0.25f, 0.50f)
