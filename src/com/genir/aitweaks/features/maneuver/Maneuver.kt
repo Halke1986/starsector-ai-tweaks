@@ -32,8 +32,10 @@ const val backoffUpperThreshold = 0.8f
 const val backoffLowerThreshold = 0.2f
 const val shieldDownVentTime = 2.0f
 
+var forceVentCount = 0
+
 class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
-    private val controller = Controller()
+    private val engineController = Controller()
     private val shipAI = ship.ai as AssemblyShipAI
 
     val isDirectControl: Boolean = true
@@ -64,10 +66,11 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
 
         ventIfNeeded()
 
-        debugPlugin[0] = isBackingOff
+        debugPlugin["backoff"] = if (isBackingOff) "is backing off"
+        else ""
 
-        shipAI.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, range)
-        shipAI.aiFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, target)
+        ship.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, range)
+        ship.aiFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, target)
 
         // Facing is controlled in advance() instead of doManeuver()
         // because doManeuver() is not called when ShipAI decides
@@ -75,7 +78,16 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         // overrides only heading control, so we still need to
         // perform facing control.
         setFacing()
+
+        debugPlugin["override collision"] = ""
+        val engineAI = shipAI.engineAI as OverrideEngineAI
+        if (isBackingOff && engineAI.AIIsAvoidingCollision) {
+            debugPlugin["override collision"] = "override collision ai"
+            setHeading()
+        }
     }
+
+    fun doManeuver() = setHeading()
 
     /** Select which enemy ship to attack. This may be different
      * from the maneuver target provided by the ShipAI. */
@@ -95,30 +107,36 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     /** Decide if ships needs to back off due to high flux level */
     // TODO shieldless ships
     private fun updateBackoffStatus() {
-        isBackingOff = shipAI.aiFlags.hasFlag(BACKING_OFF)
+        isBackingOff = ship.aiFlags.hasFlag(BACKING_OFF)
         val fluxLevel = ship.fluxTracker.fluxLevel
 
         if ((isBackingOff && fluxLevel > backoffLowerThreshold) || fluxLevel > backoffUpperThreshold) {
-            shipAI.aiFlags.setFlag(BACKING_OFF)
+            ship.aiFlags.setFlag(BACKING_OFF)
         } else if (isBackingOff) {
-            shipAI.aiFlags.unsetFlag(BACKING_OFF)
+            ship.aiFlags.unsetFlag(BACKING_OFF)
             isBackingOff = false
         }
     }
 
     private fun updateShieldDownTime(dt: Float) {
+        debugPlugin[7] = shieldDownTime
+
         shieldDownTime = if (ship.shield?.isOn == true) 0f
         else shieldDownTime + dt
     }
 
     // TODO test
     private fun ventIfNeeded() {
+        debugPlugin["vent"] = ""
+
         when {
             !isBackingOff -> return
             shieldDownTime < shieldDownVentTime -> return
-            ship.allWeapons.firstOrNull { it.autofireAI?.shouldFire() == true } != null -> return
+            ship.fluxTracker.isVenting -> return
+            ship.allWeapons.firstOrNull { it.autofireAI?.shouldFire() == true }?.let { debugPlugin["vent"] = "no vent ${it.id}" } != null -> return
         }
 
+        forceVentCount++
         ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
     }
 
@@ -127,7 +145,7 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         val offset = averageOffset.update(aimOffset())
         val aimPoint = attackTarget.location + offset
 
-        controller.facing(ship, aimPoint, dt)
+        engineController.facing(ship, aimPoint, dt)
         desiredFacing = (aimPoint - ship.location).getFacing()
         ship.setAITFlag(FlagID.AIM_POINT, aimPoint)
 
@@ -137,15 +155,29 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     }
 
     // TODO effectively chase
-    fun doManeuver() {
+    private fun setHeading() {
         val threat = threatDirection(ship.location)
 
-        val p = if (isBackingOff) ship.location - threat.resize(1000f)
-        else target.location - threat.resize(range)
+        val distance = (attackTarget.location - ship.location).length()
+        val radius = attackTarget.collisionRadius
+        val rangeOnTarget = ((range + radius - distance) / radius).coerceIn(0f, 1f)
+
+        debugPlugin["on target"] = rangeOnTarget
+
+
+        val p = when {
+            isBackingOff -> ship.location - threat.resize(1000f)
+//            attackTarget == target && distance > 0f && distance < target.collisionRadius -> target.location
+            else -> {
+                val strafePosition = target.location - threat.resize(range)
+                if (target != attackTarget) strafePosition
+                else strafePosition * rangeOnTarget + attackTarget.location * (1f - rangeOnTarget)
+            }
+        }
 
         debugVertices.add(Line(ship.location, p, Color.YELLOW))
 
-        controller.heading(ship, p, target.velocity, dt)
+        engineController.heading(ship, p, target.velocity, dt)
         desiredHeading = (p - ship.location).getFacing()
     }
 

@@ -6,8 +6,6 @@ import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
 import com.genir.aitweaks.utils.ai.hasAIType
-import com.genir.aitweaks.utils.extensions.maneuverTarget
-import com.genir.aitweaks.utils.targetTracker
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ui.LazyFont
@@ -67,7 +65,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //        debugPlugin[1] = targetTracker[ship]
 
 //        debugPlugin[0] = (ship.ai as AssemblyShipAI).currentManeuver?.javaClass?.canonicalName
-        debugPlugin["avoiding collision"] = if ((ship.ai as AssemblyShipAI).flockingAI.String()) "avoiding collision" else ""
+//        debugPlugin["avoiding collision"] = if ((ship.ai as AssemblyShipAI).flockingAI.String()) "avoiding collision" else ""
 
 
     }

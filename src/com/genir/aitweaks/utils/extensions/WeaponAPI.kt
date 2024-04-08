@@ -56,4 +56,4 @@ val WeaponAPI.timeToAttack: Float
     }
 
 val WeaponAPI.autofireAI: AutofireAI?
-    get() = this.ship.getWeaponGroupFor(this).getAutofirePlugin(this) as? AutofireAI
+    get() = this.ship.getWeaponGroupFor(this)?.getAutofirePlugin(this) as? AutofireAI

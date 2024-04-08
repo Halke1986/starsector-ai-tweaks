@@ -164,10 +164,10 @@ L131:   aload_0
 L132:   invokestatic Method com/fs/starfarer/combat/CombatEngine getInstance ()Lcom/fs/starfarer/combat/CombatEngine; 
 L135:   putfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI engine Lcom/fs/starfarer/combat/CombatEngine; 
 L138:   aload_0 
-L139:   new com/fs/starfarer/combat/ai/movement/BasicEngineAI 
+L139:   new com/genir/aitweaks/features/maneuver/OverrideEngineAI 
 L142:   dup 
 L143:   aload_1 
-L144:   invokespecial Method com/fs/starfarer/combat/ai/movement/BasicEngineAI <init> (Lcom/fs/starfarer/combat/entities/Ship;)V 
+L144:   invokespecial Method com/genir/aitweaks/features/maneuver/OverrideEngineAI <init> (Lcom/fs/starfarer/combat/entities/Ship;)V 
 L147:   putfield Field com/genir/aitweaks/asm/combat/ai/AssemblyShipAI engineAI Lcom/fs/starfarer/combat/ai/movement/EngineAI; 
 L150:   aload_0 
 L151:   new com/fs/starfarer/combat/ai/movement/oOOO 
