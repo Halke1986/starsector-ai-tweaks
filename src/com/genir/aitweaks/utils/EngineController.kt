@@ -8,6 +8,7 @@ import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.*
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.sqrt
 import kotlin.random.Random
 
@@ -17,10 +18,17 @@ class EngineController {
      * is already at 'target' location, it will match 'targetVelocity'.
      * Returns the calculated heading angle. */
     fun heading(ship: ShipAPI, target: Vector2f, targetVelocity: Vector2f, dt: Float): Float {
-        if ((target - ship.location).length() < 1f && targetVelocity.isZeroVector()) {
+        val tr = target - ship.location
+        val trl = tr.length()
+        if (trl < 2f && targetVelocity.isZeroVector()) {
             if (!ship.velocity.isZeroVector()) ship.move(DECELERATE)
             return 0f
         }
+
+        // Clamp target velocity.
+        val a = Rotation(90f - tr.getFacing())
+        val vp = a.rotate(targetVelocity)
+        val vc = a.reverse(Vector2f(vp.x, max(vp.y, 0f)))
 
         // Transform input into ships frame of reference.
         // Account for ship angular velocity, as linear
@@ -29,9 +37,9 @@ class EngineController {
         // animation frame (* dt).
         val w = ship.angularVelocity * dt
         val r = Rotation(90f - ship.facing - w)
-        val d = r.rotate(target - ship.location)
+        val d = r.rotate(tr)
         val v = r.rotate(ship.velocity) * dt
-        val vt = r.rotate(targetVelocity) * dt
+        val vt = r.rotate(vc) * dt
         val vr = v - vt
 
         // Calculate expected velocity change.
@@ -58,7 +66,14 @@ class EngineController {
         if (shouldAccelerate(-d.x, -vr.x, f[2], al, al)) ship.move(STRAFE_LEFT)
         if (shouldAccelerate(+d.x, +vr.x, f[3], al, al)) ship.move(STRAFE_RIGHT)
 
-        return r.reverse(vExpected).getFacing()
+        // Return expected heading, when far from target.
+        val h = r.reverse(vExpected).getFacing()
+        val pl = 10f
+        if (trl > pl)
+            return h
+
+        // If close to target, return target heading as expected heading.
+        return ((h * trl) + (targetVelocity.getFacing() * (pl - trl))) / pl
     }
 
     /** Set ship facing towards 'target' location.
