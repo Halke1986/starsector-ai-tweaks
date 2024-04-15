@@ -12,10 +12,10 @@ import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.debug.drawEngineLines
 import com.genir.aitweaks.utils.*
-import com.genir.aitweaks.utils.ai.FlagID
-import com.genir.aitweaks.utils.ai.getAITFlag
-import com.genir.aitweaks.utils.ai.setAITFlag
+import com.genir.aitweaks.utils.ai.AITFlags
 import com.genir.aitweaks.utils.extensions.*
+import org.lazywizard.lazylib.MathUtils
+import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ext.resize
@@ -50,6 +50,9 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
 
     private var attackTarget: ShipAPI? = targetShip
     private var isBackingOff: Boolean = false
+
+    // Make strafe rotation direction random, but consistent for a given ship.
+    private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
 
     fun advance(dt: Float) {
         this.dt = dt
@@ -107,7 +110,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
      * from the maneuver target provided by the ShipAI. */
     private fun updateAttackTarget() {
         // Attack target is stored in a flag, so it carries over between Maneuver instances.
-        var currentTarget: ShipAPI? = ship.getAITFlag(FlagID.ATTACK_TARGET)
+        var currentTarget: ShipAPI? = ship.AITFlags.attackTarget
 
         val currentTargetIsValid = when {
             currentTarget == null -> false
@@ -118,7 +121,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
 
         if (!currentTargetIsValid) currentTarget = findNewTarget() ?: targetShip
 
-        ship.setAITFlag(FlagID.ATTACK_TARGET, currentTarget)
+        ship.AITFlags.attackTarget = currentTarget
         attackTarget = currentTarget
     }
 
@@ -175,7 +178,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
         }
 
         desiredFacing = engineController.facing(ship, aimPoint, dt)
-        ship.setAITFlag(FlagID.AIM_POINT, aimPoint)
+        ship.AITFlags.aimPoint = aimPoint
     }
 
     private fun setHeading() {
@@ -194,8 +197,14 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
             }
 
             targetShip != null -> {
-                // Orbit target at max weapon range, while rotating away from threat.
-                val strafeLocation = targetShip.location - threat.resize(range)
+                val angleToTarget = (targetShip.location - ship.location).getFacing()
+                val angleFromTargetToThreat = MathUtils.getShortestRotation(threat.getFacing(), angleToTarget)
+                val offset = if (angleFromTargetToThreat > 1f) threat
+                else strafeRotation.rotate(threat)
+
+                // Orbit target at max weapon range. Rotate away from threat,
+                // or just strafe randomly if no threat.
+                val strafeLocation = targetShip.location - offset.resize(range)
                 Pair(strafeLocation, attackTarget?.velocity ?: targetShip.velocity)
             }
 
@@ -280,4 +289,11 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
         val r = radius * 2f
         return shipGrid().getCheckIterator(location, r, r).asSequence().filterIsInstance<ShipAPI>()
     }
+
+//    private fun isJunkInLineOfFire(): ShipAPI? {
+//        val weaponAIs = primaryWeapons().mapNotNull { it.autofireAI }
+//        val aimedAtJunk = weaponAIs.firstOrNull { it.shouldHoldFire == HoldFire.AVOID_FF_JUNK } ?: return null
+//
+//        return aimedAtJunk.predictedHit?.target as? ShipAPI
+//    }
 }

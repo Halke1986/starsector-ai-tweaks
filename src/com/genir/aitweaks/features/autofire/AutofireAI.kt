@@ -5,12 +5,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.utils.*
-import com.genir.aitweaks.utils.ai.FlagID
-import com.genir.aitweaks.utils.ai.getAITFlag
-import com.genir.aitweaks.utils.attack.AttackTarget
-import com.genir.aitweaks.utils.attack.BallisticParams
-import com.genir.aitweaks.utils.attack.analyzeHit
-import com.genir.aitweaks.utils.attack.intercept
+import com.genir.aitweaks.utils.ai.AITFlags
+import com.genir.aitweaks.utils.attack.*
 import com.genir.aitweaks.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
@@ -23,7 +19,6 @@ import kotlin.math.min
 /** Low priority / won't do */
 // don't switch targets mid burst
 // fog of war
-// sometimes station bulk does get attacked
 
 private var autofireAICount = 0
 
@@ -38,11 +33,12 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var selectTargetInterval = IntervalUtil(0.25F, 0.50F)
     private var shouldFireInterval = IntervalUtil(0.1F, 0.2F)
 
-    var shouldHoldFire: HoldFire? = HoldFire.NO_TARGET
     private var aimLocation: Vector2f? = null
 
-    // intercept may be different from aim location for hardpoint weapons
-    var intercept: Vector2f? = null
+    // Fields accessed by Assembly Ship AI
+    var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons
+    var shouldHoldFire: HoldFire? = HoldFire.NO_TARGET
+    var predictedHit: Hit? = null
 
     private val debugIdx = autofireAICount++
 
@@ -62,8 +58,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (targetDiedLastFrame) {
             selectTargetInterval.forceIntervalElapsed()
             target = null
-            shouldHoldFire = HoldFire.NO_TARGET
-            aimLocation = null
             attackTime = 0f
             onTargetTime = 0f
         }
@@ -72,10 +66,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         selectTargetInterval.advance(timeDelta)
         if (selectTargetInterval.intervalElapsed()) {
             target = SelectTarget(weapon, target, targetTracker[weapon.ship], currentParams()).target
-            if (target == null) {
-                shouldHoldFire = HoldFire.NO_TARGET
-                return
-            }
+            shouldFireInterval.forceIntervalElapsed()
         }
 
         updateAimLocation()
@@ -108,6 +99,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     private fun calculateShouldFire(timeDelta: Float): HoldFire? {
+        this.predictedHit = null
+
         if (target == null) return HoldFire.NO_TARGET
         if (aimLocation == null) return HoldFire.NO_HIT_EXPECTED
 
@@ -131,6 +124,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, currentParams())
+        this.predictedHit = actualHit
         avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
 
         // Rest of the should-fire decisioning will be based on the actual hit.
@@ -188,7 +182,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing)))
             return intercept
 
-        val aimPoint: Vector2f = weapon.ship.getAITFlag(FlagID.AIM_POINT) ?: target!!.location
+        val aimPoint: Vector2f = weapon.ship.AITFlags.aimPoint ?: target!!.location
         val tgtLocation = aimPoint - weapon.ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
         val angleToTarget = MathUtils.getShortestRotation(tgtFacing, weapon.ship.facing)

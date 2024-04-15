@@ -66,14 +66,10 @@ class EngineController {
         if (shouldAccelerate(-d.x, -vr.x, f[2], al, al)) ship.move(STRAFE_LEFT)
         if (shouldAccelerate(+d.x, +vr.x, f[3], al, al)) ship.move(STRAFE_RIGHT)
 
-        // Return expected heading, when far from target.
-        val h = r.reverse(vExpected).getFacing()
-        val pl = 10f
-        if (trl > pl)
-            return h
-
         // If close to target, return target heading as expected heading.
-        return ((h * trl) + (targetVelocity.getFacing() * (pl - trl))) / pl
+        // Else, return expected heading.
+        return if (trl < 10f) targetVelocity.getFacing()
+        else return r.reverse(vExpected).getFacing()
     }
 
     /** Set ship facing towards 'target' location.

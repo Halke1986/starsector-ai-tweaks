@@ -2,22 +2,34 @@ package com.genir.aitweaks.utils.ai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.utils.frameTracker
+import org.lwjgl.util.vector.Vector2f
 
 private const val flagsKey = "aitweaks_aiflags"
 
-private data class FlagT<T>(val value: T, val timestamp: Int)
+const val maxAge = 0.5f
 
-enum class FlagID {
-    ATTACK_TARGET,
-    AIM_POINT,
+class Flags {
+    /** Enemy target the ship is attacking. */
+    var attackTarget: ShipAPI? = null
+        get() = if (frameTracker - attackTargetT < maxAge) field else null
+        set(value) {
+            field = value; attackTargetT = frameTracker
+        }
+
+    /** Point at which the ship is aiming hardpoint weapons to properly lead its target. */
+    var aimPoint: Vector2f? = null
+        get() = if (frameTracker - aimPointT < maxAge) field else null
+        set(value) {
+            field = value; aimPointT = frameTracker
+        }
+
+    private var attackTargetT = 0f
+    private var aimPointT = 0f
 }
 
-fun <T> ShipAPI.getAITFlag(flagID: FlagID, maxAge: Int = 30): T? {
-    val flag = this.customData["${flagsKey}_$flagID"] as? FlagT<*> ?: return null
-    if (frameTracker - flag.timestamp > maxAge) return null
-    return flag.value as T
-}
-
-fun <T> ShipAPI.setAITFlag(flagID: FlagID, value: T) {
-    this.setCustomData("${flagsKey}_$flagID", FlagT(value, frameTracker))
-}
+val ShipAPI.AITFlags: Flags
+    get() {
+        if (!this.customData.containsKey(flagsKey))
+            this.setCustomData(flagsKey, Flags())
+        return this.customData[flagsKey] as Flags
+    }
