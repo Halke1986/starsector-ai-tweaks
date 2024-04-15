@@ -1,0 +1,1123 @@
+.signature	()Ljava/util/Set<Lcom/fs/starfarer/combat/ai/L;>;
+Lcom/fs/starfarer/combat/entities/o0oO;Lcom/fs/starfarer/combat/ai/ProximityFuseAI$o;Lcom/fs/starfarer/api/combat/DamagingProjectileAPI;Lcom/fs/graphics/LayeredRenderable<Lcom/fs/starfarer/api/combat/CombatEngineLayers;Lcom/fs/starfarer/combat/CombatViewport;>;
+[u22]	=	Utf8	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/api/combat/ShipwideAIFlags;Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO;Lcom/fs/starfarer/combat/ai/attack/AttackAIModule;Lcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)Lcom/fs/starfarer/combat/ai/system/M;
+[u28]	=	Utf8	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C;Lcom/fs/starfarer/combat/ai/L;)V
+[u29]	=	Utf8	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/api/combat/ShipwideAIFlags;Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO;)V
+[u30]	=	Utf8	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/api/combat/ShipwideAIFlags;Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO;Lcom/fs/starfarer/combat/ai/attack/AttackAIModule;Lcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V
+[u319]	=	Utf8	Lcom/fs/starfarer/combat/entities/BaseEntity;Lcom/fs/graphics/LayeredRenderable<Lcom/fs/starfarer/api/combat/CombatEngineLayers;Lcom/fs/starfarer/combat/CombatViewport;>;Lcom/fs/starfarer/combat/entities/ship/H$Oo;Lcom/fs/starfarer/combat/entities/ship/O0OO$o;Lcom/fs/starfarer/renderers/damage/I$o;Lcom/fs/starfarer/combat/ai/float;Lcom/fs/starfarer/api/combat/ShipAPI;Lcom/fs/starfarer/combat/B/super$o;Ljava/lang/Cloneable;Lcom/fs/starfarer/combat/entities/Object;
+[u31]	=	Utf8	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/api/combat/ShipwideAIFlags;Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO;Lcom/fs/starfarer/combat/ai/attack/AttackAIModule;Lcom/fs/starfarer/combat/ai/movement/oOOO;)V
+[u32]	=	Utf8	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/api/combat/ShipwideAIFlags;Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO;Lcom/fs/starfarer/combat/ai/attack/AttackAIModule;Lcom/fs/starfarer/combat/ai/movement/oOOO;Z)V
+[u416]	=	Utf8	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+[u829]	=	Utf8	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/api/combat/ShipwideAIFlags;Lcom/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO;Lcom/fs/starfarer/combat/ai/attack/AttackAIModule;Lcom/fs/starfarer/combat/ai/movement/oOOO;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)Lcom/fs/starfarer/combat/ai/system/M;
+checkcast	com/fs/starfarer/combat/ai/AI
+checkcast	com/fs/starfarer/combat/ai/AI
+checkcast	com/fs/starfarer/combat/ai/BasicShipAI
+checkcast	com/fs/starfarer/combat/ai/BasicShipAI
+checkcast	com/fs/starfarer/combat/ai/BasicShipAI
+checkcast	com/fs/starfarer/combat/ai/BasicShipAI
+checkcast	com/fs/starfarer/combat/ai/FighterAI
+checkcast	com/fs/starfarer/combat/ai/FighterAI
+checkcast	com/fs/starfarer/combat/ai/GuidedProximityFuseAI
+checkcast	com/fs/starfarer/combat/ai/GuidedProximityFuseAI
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/L
+checkcast	com/fs/starfarer/combat/ai/Orderable
+checkcast	com/fs/starfarer/combat/ai/float
+checkcast	com/fs/starfarer/combat/ai/float
+checkcast	com/fs/starfarer/combat/ai/movement/maneuvers/TransferCommandAI
+checkcast	com/fs/starfarer/combat/ai/system/drones/DroneAI
+com/fs/starfarer/combat/ai/AI
+com/fs/starfarer/combat/ai/AI
+com/fs/starfarer/combat/ai/AI
+com/fs/starfarer/combat/ai/AI
+com/fs/starfarer/combat/ai/AI
+com/fs/starfarer/combat/ai/AI
+com/fs/starfarer/combat/ai/L$Oo	com/fs/starfarer/combat/ai/L	Oo	public	static
+com/fs/starfarer/combat/ai/N$O0	com/fs/starfarer/combat/ai/N	O0	public	static
+com/fs/starfarer/combat/ai/N$oo	com/fs/starfarer/combat/ai/N	oo	public	static	final	enum
+com/fs/starfarer/combat/ai/ProximityFuseAI$o	com/fs/starfarer/combat/ai/ProximityFuseAI	o	public	static	interface	abstract
+com/fs/starfarer/combat/ai/ProximityFuseAI$o	com/fs/starfarer/combat/ai/ProximityFuseAI	o	public	static	interface	abstract
+com/fs/starfarer/combat/ai/ProximityFuseAI$o	com/fs/starfarer/combat/ai/ProximityFuseAI	o	public	static	interface	abstract
+com/fs/starfarer/combat/ai/ProximityFuseAI$o	com/fs/starfarer/combat/ai/ProximityFuseAI	o	public	static	interface	abstract
+com/fs/starfarer/combat/ai/ProximityFuseAI$o	com/fs/starfarer/combat/ai/ProximityFuseAI	o	public	static	interface	abstract
+com/fs/starfarer/combat/ai/ProximityFuseAI$o
+com/fs/starfarer/combat/ai/ProximityFuseAI$o
+com/fs/starfarer/combat/ai/ProximityFuseAI$o
+com/fs/starfarer/combat/ai/ProximityFuseAI$o
+com/fs/starfarer/combat/ai/float
+com/fs/starfarer/combat/ai/float
+com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o	com/fs/starfarer/combat/ai/movement/maneuvers/oO0O	o	public	static	interface	abstract
+com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o	com/fs/starfarer/combat/ai/movement/maneuvers/oO0O	o	public	static	interface	abstract
+com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o	com/fs/starfarer/combat/ai/movement/maneuvers/oO0O	o	public	static	interface	abstract
+com/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o	com/fs/starfarer/combat/ai/movement/maneuvers/oO0O	o	public	static	interface	abstract
+com/fs/starfarer/combat/ai/system/M
+getfield	Field	[c1]	formation	Lcom/fs/starfarer/combat/ai/FighterWingFormation;
+getfield	Field	[c1]	formation	Lcom/fs/starfarer/combat/ai/FighterWingFormation;
+getfield	Field	[c1]	formation	Lcom/fs/starfarer/combat/ai/FighterWingFormation;
+getfield	Field	[c1]	public.super'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	public.super'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+getfield	Field	com/fs/starfarer/E/B/o0OO$o	öoÕo00'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/E/B/o0OO$o	öoÕo00'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/E/B/o0OO$o	öoÕo00'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/E/B/o0OO$o	öoÕo00'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/E/B/o0OO$o	öoÕo00'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/E/ooOO/B	String.super'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/E/ooOO/B	String.super'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/E/ooOO/B	String.super'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/E/ooOO/B	String.super'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/E/ooOO/B	String.super'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/J	øöØ000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/J	øöØ000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/J	øöØ000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/J	øöØ000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/J	øöØ000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/CombatState	playerShipShieldAI	Lcom/fs/starfarer/combat/ai/OmniShieldControlAI;
+getfield	Field	com/fs/starfarer/combat/CombatState	playerShipShieldAI	Lcom/fs/starfarer/combat/ai/OmniShieldControlAI;
+getfield	Field	com/fs/starfarer/combat/CombatState	playerShipShieldAI	Lcom/fs/starfarer/combat/ai/OmniShieldControlAI;
+getfield	Field	com/fs/starfarer/combat/CombatState	prevAI	Lcom/fs/starfarer/combat/ai/AI;
+getfield	Field	com/fs/starfarer/combat/CombatState	prevAI	Lcom/fs/starfarer/combat/ai/AI;
+getfield	Field	com/fs/starfarer/combat/Q	o00000	Lcom/fs/starfarer/combat/ai/BattleGroupAI;
+getfield	Field	com/fs/starfarer/combat/Q	o00000	Lcom/fs/starfarer/combat/ai/BattleGroupAI;
+getfield	Field	com/fs/starfarer/combat/Q	o00000	Lcom/fs/starfarer/combat/ai/BattleGroupAI;
+getfield	Field	com/fs/starfarer/combat/Q	o00000	Lcom/fs/starfarer/combat/ai/BattleGroupAI;
+getfield	Field	com/fs/starfarer/combat/Q	o00000	Lcom/fs/starfarer/combat/ai/BattleGroupAI;
+getfield	Field	com/fs/starfarer/combat/Q	o00000	Lcom/fs/starfarer/combat/ai/BattleGroupAI;
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	String	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	String	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	String	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	String	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	String	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	String	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	String	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	String	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	String	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	String	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	Ò00000'	Z
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	Ò00000'	Z
+getfield	Field	com/fs/starfarer/combat/ai/L$Oo	Ò00000'	Z
+getfield	Field	com/fs/starfarer/combat/entities/BaseEntity	ai	Lcom/fs/starfarer/combat/ai/AI;
+getfield	Field	com/fs/starfarer/combat/entities/Missile	ai	Lcom/fs/starfarer/combat/ai/AI;
+getfield	Field	com/fs/starfarer/combat/entities/Missile	ai	Lcom/fs/starfarer/combat/ai/AI;
+getfield	Field	com/fs/starfarer/combat/entities/Missile	ai	Lcom/fs/starfarer/combat/ai/AI;
+getfield	Field	com/fs/starfarer/combat/entities/Missile	ai	Lcom/fs/starfarer/combat/ai/AI;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	armorEvaluator	Lcom/fs/starfarer/combat/ai/new;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	armorEvaluator	Lcom/fs/starfarer/combat/ai/new;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	armorEvaluator	Lcom/fs/starfarer/combat/ai/new;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	armorEvaluator	Lcom/fs/starfarer/combat/ai/new;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+getfield	Field	com/fs/starfarer/combat/entities/o0oO	Õ00000'	Lcom/fs/starfarer/combat/ai/AI;
+getstatic	Field	com/fs/starfarer/combat/ai/N$oo	Ó00000'	Lcom/fs/starfarer/combat/ai/N$oo;
+getstatic	Field	com/fs/starfarer/combat/ai/N$oo	Ô00000'	Lcom/fs/starfarer/combat/ai/N$oo;
+instanceof	com/fs/starfarer/combat/ai/AI
+instanceof	com/fs/starfarer/combat/ai/AI
+instanceof	com/fs/starfarer/combat/ai/BasicShipAI
+instanceof	com/fs/starfarer/combat/ai/BasicShipAI
+instanceof	com/fs/starfarer/combat/ai/BasicShipAI
+instanceof	com/fs/starfarer/combat/ai/FighterAI
+instanceof	com/fs/starfarer/combat/ai/FighterAI
+instanceof	com/fs/starfarer/combat/ai/GuidedProximityFuseAI
+instanceof	com/fs/starfarer/combat/ai/GuidedProximityFuseAI
+instanceof	com/fs/starfarer/combat/ai/L
+instanceof	com/fs/starfarer/combat/ai/L
+instanceof	com/fs/starfarer/combat/ai/L
+instanceof	com/fs/starfarer/combat/ai/L
+instanceof	com/fs/starfarer/combat/ai/L
+instanceof	com/fs/starfarer/combat/ai/L
+instanceof	com/fs/starfarer/combat/ai/Orderable
+instanceof	com/fs/starfarer/combat/ai/P
+instanceof	com/fs/starfarer/combat/ai/system/drones/DroneAI
+invokeinterface	InterfaceMethod	com/fs/starfarer/combat/I	fighterWingDestroyed	(Lcom/fs/starfarer/combat/ai/L;)V	2
+invokeinterface	InterfaceMethod	com/fs/starfarer/combat/ai/AI	advance	(F)V	2
+invokeinterface	InterfaceMethod	com/fs/starfarer/combat/ai/AI	advance	(F)V	2
+invokeinterface	InterfaceMethod	com/fs/starfarer/combat/ai/AI	render	()V	1
+invokeinterface	InterfaceMethod	com/fs/starfarer/combat/ai/Orderable	isEngaged	()Z	1
+invokeinterface	InterfaceMethod	com/fs/starfarer/combat/entities/M	getAI	()Lcom/fs/starfarer/combat/ai/AI;	1
+invokeinterface	InterfaceMethod	com/fs/starfarer/combat/entities/M	getAI	()Lcom/fs/starfarer/combat/ai/AI;	1
+invokespecial	Method	com/fs/starfarer/A/new	super'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/A/new	super'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/A/new	super'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/A/new	super'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/A/new	super'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/A/new	super'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/A/new	super'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/A/new	super'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/A/new	super'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/E/B/o0OO$o	<init>	(Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/E/ooOO/B	<init>	(Lcom/fs/starfarer/combat/ai/L;F)V
+invokespecial	Method	com/fs/starfarer/E/ooOO/H	o00000	(FFFLcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/CombatFleetManager$O0	<init>	(Lcom/fs/starfarer/campaign/fleet/FleetMember;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/CombatFleetManager$O0	<init>	(Lcom/fs/starfarer/campaign/fleet/FleetMember;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/CombatFleetManager$O0	<init>	(Lcom/fs/starfarer/campaign/fleet/FleetMember;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/CombatFleetManager$O0	<init>	(Lcom/fs/starfarer/campaign/fleet/FleetMember;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/CombatFleetManager$O0	<init>	(Lcom/fs/starfarer/campaign/fleet/FleetMember;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/CombatFleetManager$O0	<init>	(Lcom/fs/starfarer/campaign/fleet/FleetMember;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BasicShipAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/api/combat/ShipAIConfig;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/BattleGroupAI	<init>	(Lcom/fs/starfarer/combat/Q;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/FighterAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/FighterAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/FighterAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/FighterAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/FighterAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/FighterAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/FighterWingFormation	<init>	(Lcom/fs/starfarer/api/loading/FormationType;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/GuidedProximityFuseAI	<init>	(Lcom/fs/starfarer/combat/ai/ProximityFuseAI$o;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/loading/specs/OOO0;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/L	<init>	(Lcom/fs/starfarer/loading/specs/FighterWingSpec;IF)V
+invokespecial	Method	com/fs/starfarer/combat/ai/L	<init>	(Lcom/fs/starfarer/loading/specs/FighterWingSpec;IF)V
+invokespecial	Method	com/fs/starfarer/combat/ai/L	<init>	(Lcom/fs/starfarer/loading/specs/FighterWingSpec;IF)V
+invokespecial	Method	com/fs/starfarer/combat/ai/L	<init>	(Lcom/fs/starfarer/loading/specs/FighterWingSpec;IF)V
+invokespecial	Method	com/fs/starfarer/combat/ai/L	<init>	(Lcom/fs/starfarer/loading/specs/FighterWingSpec;IF)V
+invokespecial	Method	com/fs/starfarer/combat/ai/L	<init>	(Lcom/fs/starfarer/loading/specs/FighterWingSpec;IF)V
+invokespecial	Method	com/fs/starfarer/combat/ai/L$Oo	<init>	[u28]
+invokespecial	Method	com/fs/starfarer/combat/ai/L$Oo	<init>	[u28]
+invokespecial	Method	com/fs/starfarer/combat/ai/OmniShieldControlAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/api/combat/ShipwideAIFlags;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/P	<init>	(Lcom/fs/starfarer/combat/systems/thissuper;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/ProximityFuseAI	<init>	(Lcom/fs/starfarer/combat/ai/ProximityFuseAI$o;Lcom/fs/starfarer/loading/specs/OOO0;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/ProximityFuseAI	<init>	(Lcom/fs/starfarer/combat/ai/ProximityFuseAI$o;Lcom/fs/starfarer/loading/specs/OOO0;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/ProximityFuseAI	<init>	(Lcom/fs/starfarer/combat/ai/ProximityFuseAI$o;Lcom/fs/starfarer/loading/specs/OOO0;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/ProximityFuseAI	<init>	(Lcom/fs/starfarer/combat/ai/ProximityFuseAI$o;Lcom/fs/starfarer/loading/specs/OOO0;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/ProximityFuseAI	<init>	(Lcom/fs/starfarer/combat/ai/ProximityFuseAI$o;Lcom/fs/starfarer/loading/specs/OOO0;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/admiral/AdmiralAI	<init>	(Lcom/fs/starfarer/combat/CombatFleetManager;Z)V
+invokespecial	Method	com/fs/starfarer/combat/ai/admiral/AdmiralAI	<init>	(Lcom/fs/starfarer/combat/CombatFleetManager;Z)V
+invokespecial	Method	com/fs/starfarer/combat/ai/admiral/AdmiralAI	<init>	(Lcom/fs/starfarer/combat/CombatFleetManager;Z)V
+invokespecial	Method	com/fs/starfarer/combat/ai/admiral/AdmiralAI	<init>	(Lcom/fs/starfarer/combat/CombatFleetManager;Z)V
+invokespecial	Method	com/fs/starfarer/combat/ai/admiral/AdmiralAI	<init>	(Lcom/fs/starfarer/combat/CombatFleetManager;Z)V
+invokespecial	Method	com/fs/starfarer/combat/ai/collisions/CollisionAnalysisModule	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/missile/CircleTargetAI	<init>	(Lcom/fs/starfarer/combat/entities/Missile;Lorg/lwjgl/util/vector/Vector2f;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/missile/DefaultBombAI	<init>	(Lcom/fs/starfarer/combat/entities/Missile;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/missile/ErraticMissileAI	<init>	(Lcom/fs/starfarer/combat/entities/Missile;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/missile/FlareAI	<init>	(Lcom/fs/starfarer/combat/entities/Missile;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/missile/FlareJammerAI	<init>	(Lcom/fs/starfarer/combat/entities/Missile;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/missile/HeatseekerAI	<init>	(Lcom/fs/starfarer/combat/entities/Missile;Lorg/lwjgl/util/vector/Vector2f;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/missile/MirvAI	<init>	(Lcom/fs/starfarer/combat/entities/Missile;Lcom/fs/starfarer/loading/specs/OOO0;Lorg/lwjgl/util/vector/Vector2f;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/missile/MissileAI	<init>	(Lcom/fs/starfarer/combat/entities/Missile;Lorg/lwjgl/util/vector/Vector2f;Z)V
+invokespecial	Method	com/fs/starfarer/combat/ai/missile/MissileTwoStageSecondUnguidedAI	<init>	(Lcom/fs/starfarer/combat/entities/Missile;Lorg/lwjgl/util/vector/Vector2f;Z)V
+invokespecial	Method	com/fs/starfarer/combat/ai/missile/RocketAI	<init>	(Lcom/fs/starfarer/combat/entities/Missile;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/missile/SeekerFlareAI	<init>	(Lcom/fs/starfarer/combat/entities/Missile;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/movement/maneuvers/OO0O	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/movement/maneuvers/OO0O	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O$o;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/movement/maneuvers/TransferCommandAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/new	<init>	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/system/A	<init>	[u30]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/E	<init>	[u29]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/F	<init>	[u29]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/H	<init>	[u32]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/H	<init>	[u32]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/K	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/N	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/O0oO	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/OO0O	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/Objectsuper	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/OoOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/OoOo	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/P	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/R	<init>	[u29]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/String	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/V	<init>	[u30]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/W	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/Y	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/a	<init>	[u30]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/c	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/d	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/drones/DroneAI	<init>	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/systems/Oo0O;)V
+invokespecial	Method	com/fs/starfarer/combat/ai/system/int	<init>	[u29]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/interface	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/nullsuper	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/o0oo	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/oOOoOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/oo0O	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/ooOO	<init>	[u29]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/oooo	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/returnsuper	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/combat/ai/system/void	<init>	[u31]
+invokespecial	Method	com/fs/starfarer/title/super	Ó00000'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/title/super	Ó00000'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/title/super	Ó00000'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/title/super	Ó00000'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/title/super	Ó00000'	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokespecial	Method	com/fs/starfarer/ui/super/B	o00000	(FFFLcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/ui/super/B	o00000	(FFFLcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+invokespecial	Method	com/fs/starfarer/ui/super/B	o00000	(FFFLcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+invokestatic	Method	com/fs/starfarer/combat/ai/FighterAI	setWaypoint	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;)V
+invokestatic	Method	com/fs/starfarer/combat/ai/N	String	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/entities/Ship;)Z
+invokestatic	Method	com/fs/starfarer/combat/ai/N	if	(Lcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/combat/ai/Orderable;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	if	(Lcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/combat/ai/Orderable;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	if	(Lcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/combat/ai/Orderable;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	if	(Lcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/combat/ai/Orderable;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	()V
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(ILcom/fs/starfarer/combat/o0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/B;)Z
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/ai/float;FF)Z
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/ai/float;Lorg/lwjgl/util/vector/Vector2f;)Z
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;)F
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;FFFZ)F
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;FFFZ)F
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/api/combat/ShipAPI$HullSize;F)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/N$oo;ZLcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/combat/ai/N$O0;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/N$oo;ZLcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/combat/ai/N$O0;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/api/combat/ShipAPI$HullSize;F)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/api/combat/ShipAPI$HullSize;F)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/api/combat/ShipAPI$HullSize;F)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/api/combat/ShipAPI$HullSize;F)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/api/combat/ShipAPI$HullSize;F)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/api/combat/ShipAPI$HullSize;F)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/api/combat/ShipAPI$HullSize;F)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Ljava/lang/Object;ZLorg/lwjgl/util/vector/Vector2f;)Lcom/fs/starfarer/api/combat/ShipAPI;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/A/new;)Lorg/lwjgl/util/vector/Vector2f;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lorg/lwjgl/util/vector/Vector2f;Lcom/fs/starfarer/combat/A/new;)Lorg/lwjgl/util/vector/Vector2f;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	(Lorg/lwjgl/util/vector/Vector2f;Lorg/lwjgl/util/vector/Vector2f;Lorg/lwjgl/util/vector/Vector2f;Lorg/lwjgl/util/vector/Vector2f;)F
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	[u139]
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	[u55]
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	[u55]
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	[u73]
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	[u782]
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	[u864]
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super'	[u864]
+invokestatic	Method	com/fs/starfarer/combat/ai/N	super.super'	(Lcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/api/combat/ShipwideAIFlags;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	()V
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	(ILcom/fs/starfarer/combat/entities/Ship;)Z
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	(Lcom/fs/starfarer/combat/ai/float;FF)V
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	(Lcom/fs/starfarer/combat/ai/float;FF)V
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	(Lcom/fs/starfarer/combat/ai/float;FF)V
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	(Lcom/fs/starfarer/combat/ai/float;FF)V
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	(Lcom/fs/starfarer/combat/ai/float;FF)V
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	(Lcom/fs/starfarer/combat/ai/float;FF)V
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	(Lcom/fs/starfarer/combat/entities/Ship;F)Z
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;)Z
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	(Lcom/fs/starfarer/combat/entities/Ship;Lorg/lwjgl/util/vector/Vector2f;)Z
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	(Lorg/lwjgl/util/vector/Vector2f;Lorg/lwjgl/util/vector/Vector2f;Lorg/lwjgl/util/vector/Vector2f;Lorg/lwjgl/util/vector/Vector2f;)F
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	[u126]
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ò00000'	[u250]
+invokestatic	Method	com/fs/starfarer/combat/ai/N	ÓO0000'	(Lcom/fs/starfarer/combat/entities/Ship;)Ljava/lang/String;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	ÓO0000'	(Lcom/fs/starfarer/combat/entities/Ship;)Ljava/lang/String;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ö00000'	(Lcom/fs/starfarer/combat/entities/Ship;F)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	Ö00000'	(Lcom/fs/starfarer/combat/entities/Ship;F)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	ôO0000'	(Lcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	ôO0000'	(Lcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	ôO0000'	(Lcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/N	ôO0000'	(Lcom/fs/starfarer/combat/entities/Ship;)Lcom/fs/starfarer/combat/entities/Ship;
+invokestatic	Method	com/fs/starfarer/combat/ai/movement/maneuvers/RetreatManeuver	o00000	(ILcom/fs/starfarer/api/fleet/FleetGoal;)Lcom/fs/starfarer/combat/A/new$Oo;
+invokestatic	Method	com/fs/starfarer/combat/ai/movement/maneuvers/RetreatManeuver	o00000	(ILcom/fs/starfarer/api/fleet/FleetGoal;)Lcom/fs/starfarer/combat/A/new$Oo;
+invokestatic	Method	com/fs/starfarer/combat/ai/movement/maneuvers/RetreatManeuver	o00000	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/A/new$Oo;Z)Z
+invokestatic	Method	com/fs/starfarer/combat/ai/movement/maneuvers/RetreatManeuver	o00000	(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/A/new$Oo;Z)Z
+invokestatic	Method	com/fs/starfarer/combat/ai/movement/maneuvers/RetreatManeuver	o00000	(Lcom/fs/starfarer/combat/entities/Ship;Z)V
+invokestatic	Method	com/fs/starfarer/combat/ai/movement/maneuvers/RetreatManeuver	o00000	(Lorg/lwjgl/util/vector/Vector2f;ILcom/fs/starfarer/api/fleet/FleetGoal;)Lorg/lwjgl/util/vector/Vector2f;
+invokestatic	Method	com/fs/starfarer/combat/ai/movement/maneuvers/RetreatManeuver	o00000	(Lorg/lwjgl/util/vector/Vector2f;ILcom/fs/starfarer/api/fleet/FleetGoal;)Lorg/lwjgl/util/vector/Vector2f;
+invokestatic	Method	com/fs/starfarer/combat/ai/movement/maneuvers/RetreatManeuver	o00000	(Lorg/lwjgl/util/vector/Vector2f;ILcom/fs/starfarer/api/fleet/FleetGoal;)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	[c1]	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	[c1]	requestReplacement	(Lcom/fs/starfarer/combat/ai/L$Oo;)V
+invokevirtual	Method	[c1]	requestReplacement	(Lcom/fs/starfarer/combat/ai/L$Oo;)V
+invokevirtual	Method	[c2157]	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	[c2157]	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	[c2157]	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatEngine	reportFighterWingDestroyed	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/CombatEngine	reportFighterWingDestroyed	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager	getDeployedFleetMember	(Lcom/fs/starfarer/combat/ai/L;)Lcom/fs/starfarer/combat/CombatFleetManager$O0;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager	getDeployedFleetMember	(Lcom/fs/starfarer/combat/ai/L;)Lcom/fs/starfarer/combat/CombatFleetManager$O0;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/CombatFleetManager$O0	getWingIfFighter	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/ai/BasicShipAI	cancelCurrentManeuver	()V
+invokevirtual	Method	com/fs/starfarer/combat/ai/BasicShipAI	forceCircumstanceEvaluation	()V
+invokevirtual	Method	com/fs/starfarer/combat/ai/BasicShipAI	getConfig	()Lcom/fs/starfarer/api/combat/ShipAIConfig;
+invokevirtual	Method	com/fs/starfarer/combat/ai/BasicShipAI	setManeuver	(Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O;F)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/BattleGroupAI	advance	(F)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/BattleGroupAI	getGroupLeader	()Lcom/fs/starfarer/combat/CombatFleetManager$O0;
+invokevirtual	Method	com/fs/starfarer/combat/ai/BattleGroupAI	notifyNewOrderGivenToBattleGroup	(Lcom/fs/starfarer/combat/P;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/BattleGroupAI	reset	()V
+invokevirtual	Method	com/fs/starfarer/combat/ai/BattleGroupAI	reset	()V
+invokevirtual	Method	com/fs/starfarer/combat/ai/BattleGroupAI	reset	()V
+invokevirtual	Method	com/fs/starfarer/combat/ai/FighterAI	cancelCurrentManeuver	()V
+invokevirtual	Method	com/fs/starfarer/combat/ai/FighterAI	setDoNotFireDelay	(F)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/FighterAI	setManeuver	(Lcom/fs/starfarer/combat/ai/movement/maneuvers/oO0O;F)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/FighterWingFormation	getFormationOffset	(Lorg/lwjgl/util/vector/Vector2f;FFFI)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/FighterWingFormation	getFormationOffset	(Lorg/lwjgl/util/vector/Vector2f;FFFI)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/FighterWingFormation	getFormationOffset	(Lorg/lwjgl/util/vector/Vector2f;FFFI)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/GuidedProximityFuseAI	explode	()Lcom/fs/starfarer/combat/entities/DamagingExplosion;
+invokevirtual	Method	com/fs/starfarer/combat/ai/GuidedProximityFuseAI	explode	()Lcom/fs/starfarer/combat/entities/DamagingExplosion;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	addMember	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	addMember	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	addMember	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	addMember	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	addMember	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	addMember	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	addMember	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	addMember	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	advance	(F)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	cancelOrderAndFollowLeader	()V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	cancelOrderAndFollowLeader	()V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getDesiredLocationFor	(Lcom/fs/starfarer/combat/entities/Ship;Z)Lorg/lwjgl/util/vector/Vector2f;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLaunchCR	()F
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLaunchCR	()F
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getLeader	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getMembers	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getRange	()F
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getRange	()F
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getReturning	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getReturning	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getReturning	()Ljava/util/List;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSampleFighter	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSource	[u134]
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSource	[u134]
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSource	[u2381]
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSource	[u2381]
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSourceShip	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSourceShip	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSourceShip	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSourceShip	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSourceShip	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	()Lcom/fs/starfarer/loading/specs/FighterWingSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getSpec	[u216]
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getVariant	()Lcom/fs/starfarer/loading/specs/HullVariantSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getVariant	()Lcom/fs/starfarer/loading/specs/HullVariantSpec;
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	getWingOwner	()I
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	isDestroyed	()Z
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	isDestroyed	()Z
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	isRetreated	()Z
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	isReturning	(Lcom/fs/starfarer/api/combat/ShipAPI;)Z
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	isReturning	(Lcom/fs/starfarer/api/combat/ShipAPI;)Z
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	isReturning	(Lcom/fs/starfarer/api/combat/ShipAPI;)Z
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setDfm	(Lcom/fs/starfarer/combat/CombatFleetManager$O0;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setLeader	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setLeader	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setLeader	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setLeader	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setLeader	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setLeader	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setLeader	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setRetreated	(Z)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setSource	[u27]
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setWingOwner	(I)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	setWingOwner	(I)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/L	updateMembers	()V
+invokevirtual	Method	com/fs/starfarer/combat/ai/N$O0	Ô00000'	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/N$O0	Ô00000'	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/ai/OmniShieldControlAI	advance	(F)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/attack/AttackAIModule	ÕO0000'	()Lcom/fs/starfarer/api/combat/ShipwideAIFlags;
+invokevirtual	Method	com/fs/starfarer/combat/ai/collisions/CollisionAnalysisModule	null	()Z
+invokevirtual	Method	com/fs/starfarer/combat/ai/collisions/CollisionAnalysisModule	o00000	(Lcom/fs/starfarer/combat/entities/Ship;Z)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/collisions/CollisionAnalysisModule	o00000	(Lcom/fs/starfarer/combat/entities/terrain/Asteroid;Z)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/collisions/CollisionAnalysisModule	o00000	(Z)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/movement/maneuvers/TransferCommandAI	setTo	(Lcom/fs/starfarer/combat/entities/Ship;)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/new	new	(FF)F
+invokevirtual	Method	com/fs/starfarer/combat/ai/new	o00000	(F)V
+invokevirtual	Method	com/fs/starfarer/combat/ai/new	o00000	(FF)F
+invokevirtual	Method	com/fs/starfarer/combat/ai/system/drones/DroneAI	getMothership	()Lcom/fs/starfarer/combat/entities/Ship;
+invokevirtual	Method	com/fs/starfarer/combat/entities/BallisticProjectile	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/BaseEntity	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Missile	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Missile	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Missile	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Missile	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Missile	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Missile	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Missile	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Missile	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Missile	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Missile	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Missile	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/MovingRay	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/PlasmaShot	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setAI	(Lcom/fs/starfarer/combat/ai/AI;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setWing	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setWing	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setWing	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setWing	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setWing	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setWing	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setWing	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setWing	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setWing	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/Ship	setWing	(Lcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/combat/entities/o0oO	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C	getWing	()Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/combat/entities/terrain/Planet	getAI	()Lcom/fs/starfarer/combat/ai/AI;
+invokevirtual	Method	com/fs/starfarer/tutorial/E	class	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+invokevirtual	Method	com/fs/starfarer/ui/super/B	o00000	(FFFLcom/fs/starfarer/combat/ai/L;)V
+invokevirtual	Method	com/fs/starfarer/ui/super/B	o00000	(FFFLcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;Z)V
+ldc_w	Class	com/fs/starfarer/combat/ai/AI
+ldc_w	Class	com/fs/starfarer/combat/ai/FighterWingFormation
+ldc_w	Class	com/fs/starfarer/combat/ai/L
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BasicShipAI
+new	com/fs/starfarer/combat/ai/BattleGroupAI
+new	com/fs/starfarer/combat/ai/FighterAI
+new	com/fs/starfarer/combat/ai/FighterAI
+new	com/fs/starfarer/combat/ai/FighterAI
+new	com/fs/starfarer/combat/ai/FighterAI
+new	com/fs/starfarer/combat/ai/FighterAI
+new	com/fs/starfarer/combat/ai/FighterAI
+new	com/fs/starfarer/combat/ai/FighterWingFormation
+new	com/fs/starfarer/combat/ai/GuidedProximityFuseAI
+new	com/fs/starfarer/combat/ai/L
+new	com/fs/starfarer/combat/ai/L
+new	com/fs/starfarer/combat/ai/L
+new	com/fs/starfarer/combat/ai/L
+new	com/fs/starfarer/combat/ai/L
+new	com/fs/starfarer/combat/ai/L
+new	com/fs/starfarer/combat/ai/L$Oo
+new	com/fs/starfarer/combat/ai/L$Oo
+new	com/fs/starfarer/combat/ai/OmniShieldControlAI
+new	com/fs/starfarer/combat/ai/P
+new	com/fs/starfarer/combat/ai/ProximityFuseAI
+new	com/fs/starfarer/combat/ai/ProximityFuseAI
+new	com/fs/starfarer/combat/ai/ProximityFuseAI
+new	com/fs/starfarer/combat/ai/ProximityFuseAI
+new	com/fs/starfarer/combat/ai/ProximityFuseAI
+new	com/fs/starfarer/combat/ai/admiral/AdmiralAI
+new	com/fs/starfarer/combat/ai/admiral/AdmiralAI
+new	com/fs/starfarer/combat/ai/admiral/AdmiralAI
+new	com/fs/starfarer/combat/ai/admiral/AdmiralAI
+new	com/fs/starfarer/combat/ai/admiral/AdmiralAI
+new	com/fs/starfarer/combat/ai/collisions/CollisionAnalysisModule
+new	com/fs/starfarer/combat/ai/missile/CircleTargetAI
+new	com/fs/starfarer/combat/ai/missile/DefaultBombAI
+new	com/fs/starfarer/combat/ai/missile/ErraticMissileAI
+new	com/fs/starfarer/combat/ai/missile/FlareAI
+new	com/fs/starfarer/combat/ai/missile/FlareJammerAI
+new	com/fs/starfarer/combat/ai/missile/HeatseekerAI
+new	com/fs/starfarer/combat/ai/missile/MirvAI
+new	com/fs/starfarer/combat/ai/missile/MissileAI
+new	com/fs/starfarer/combat/ai/missile/MissileTwoStageSecondUnguidedAI
+new	com/fs/starfarer/combat/ai/missile/RocketAI
+new	com/fs/starfarer/combat/ai/missile/SeekerFlareAI
+new	com/fs/starfarer/combat/ai/movement/maneuvers/OO0O
+new	com/fs/starfarer/combat/ai/movement/maneuvers/OO0O
+new	com/fs/starfarer/combat/ai/movement/maneuvers/TransferCommandAI
+new	com/fs/starfarer/combat/ai/new
+new	com/fs/starfarer/combat/ai/system/A
+new	com/fs/starfarer/combat/ai/system/E
+new	com/fs/starfarer/combat/ai/system/F
+new	com/fs/starfarer/combat/ai/system/H
+new	com/fs/starfarer/combat/ai/system/H
+new	com/fs/starfarer/combat/ai/system/K
+new	com/fs/starfarer/combat/ai/system/N
+new	com/fs/starfarer/combat/ai/system/O0oO
+new	com/fs/starfarer/combat/ai/system/OO0O
+new	com/fs/starfarer/combat/ai/system/Objectsuper
+new	com/fs/starfarer/combat/ai/system/OoOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+new	com/fs/starfarer/combat/ai/system/OoOo
+new	com/fs/starfarer/combat/ai/system/P
+new	com/fs/starfarer/combat/ai/system/R
+new	com/fs/starfarer/combat/ai/system/String
+new	com/fs/starfarer/combat/ai/system/V
+new	com/fs/starfarer/combat/ai/system/W
+new	com/fs/starfarer/combat/ai/system/Y
+new	com/fs/starfarer/combat/ai/system/a
+new	com/fs/starfarer/combat/ai/system/c
+new	com/fs/starfarer/combat/ai/system/d
+new	com/fs/starfarer/combat/ai/system/drones/DroneAI
+new	com/fs/starfarer/combat/ai/system/int
+new	com/fs/starfarer/combat/ai/system/interface
+new	com/fs/starfarer/combat/ai/system/nullsuper
+new	com/fs/starfarer/combat/ai/system/o0oo
+new	com/fs/starfarer/combat/ai/system/oOOoOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+new	com/fs/starfarer/combat/ai/system/oo0O
+new	com/fs/starfarer/combat/ai/system/ooOO
+new	com/fs/starfarer/combat/ai/system/oooo
+new	com/fs/starfarer/combat/ai/system/returnsuper
+new	com/fs/starfarer/combat/ai/system/void
+private	String.super'	Lcom/fs/starfarer/combat/ai/L;
+private	armorEvaluator	Lcom/fs/starfarer/combat/ai/new;
+private	final	öoÕo00'	Lcom/fs/starfarer/combat/ai/L;
+private	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+private	formation	Lcom/fs/starfarer/combat/ai/FighterWingFormation;
+private	o00000	:	(FFFLcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+private	o00000	:	(FFFLcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;)V
+private	o00000	Lcom/fs/starfarer/combat/ai/BattleGroupAI;
+private	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+private	playerShipShieldAI	Lcom/fs/starfarer/combat/ai/OmniShieldControlAI;
+private	prevAI	Lcom/fs/starfarer/combat/ai/AI;
+private	public.super'	Lcom/fs/starfarer/combat/ai/L;
+private	super'	:	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+private	super'	:	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+private	wing	Lcom/fs/starfarer/combat/ai/L;
+private	Ó00000'	:	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+private	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+private	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+private	Õ00000'	Lcom/fs/starfarer/combat/ai/AI;
+private	ÕÒ0O00'	Lcom/fs/starfarer/combat/ai/Orderable;
+private	öÒ0000'	Lcom/fs/starfarer/combat/ai/Orderable;
+private	øöØ000'	Lcom/fs/starfarer/combat/ai/L;
+protected	ai	Lcom/fs/starfarer/combat/ai/AI;
+public	<init>	:	(Lcom/fs/starfarer/campaign/fleet/FleetMember;Lcom/fs/starfarer/combat/ai/L;)V
+public	<init>	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	<init>	:	(Lcom/fs/starfarer/combat/ai/L;F)V
+public	<init>	:	(Lcom/fs/starfarer/combat/ai/L;Lcom/fs/starfarer/combat/B/U;)V
+public	abstract	fighterWingDestroyed	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	abstract	getAI	:	()Lcom/fs/starfarer/combat/ai/AI;
+public	abstract	setAI	:	(Lcom/fs/starfarer/combat/ai/AI;)V
+public	class	:	(Ljava/lang/String;IFF)Lcom/fs/starfarer/combat/ai/L;
+public	fighterWingDestroyed	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	fighterWingDestroyed	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	fighterWingDestroyed	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	fighterWingDestroyed	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	fighterWingDestroyed	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	fighterWingDestroyed	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	fighterWingDestroyed	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	fighterWingDestroyed	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	getAI	:	()Lcom/fs/starfarer/combat/ai/AI;
+public	getAI	:	()Lcom/fs/starfarer/combat/ai/AI;
+public	getAI	:	()Lcom/fs/starfarer/combat/ai/AI;
+public	getArmorEvaluator	:	()Lcom/fs/starfarer/combat/ai/new;
+public	getCurrWing	:	()Lcom/fs/starfarer/combat/ai/L;
+public	getDeployedFleetMember	:	(Lcom/fs/starfarer/combat/ai/L;)Lcom/fs/starfarer/combat/CombatFleetManager$O0;
+public	getOrderable	:	()Lcom/fs/starfarer/combat/ai/Orderable;
+public	getWing	:	()Lcom/fs/starfarer/combat/ai/L;
+public	getWing	:	()Lcom/fs/starfarer/combat/ai/L;
+public	getWingIfFighter	:	()Lcom/fs/starfarer/combat/ai/L;
+public	isWingInPlay	:	(Lcom/fs/starfarer/combat/ai/L;)Z
+public	o00000	:	(FFFLcom/fs/starfarer/combat/ai/L;)V
+public	o00000	:	(FFFLcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/combat/ai/L;Z)V
+public	o00000	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	reportFighterWingDestroyed	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	requestReplacement	:	(Lcom/fs/starfarer/combat/ai/L$Oo;)V
+public	setAI	:	(Lcom/fs/starfarer/combat/ai/AI;)V
+public	setAI	:	(Lcom/fs/starfarer/combat/ai/AI;)V
+public	setAI	:	(Lcom/fs/starfarer/combat/ai/AI;)V
+public	setWing	:	(Lcom/fs/starfarer/combat/ai/L;)V
+public	super'	:	(Lcom/fs/starfarer/combat/ai/L;)Z
+putfield	Field	[c1]	formation	Lcom/fs/starfarer/combat/ai/FighterWingFormation;
+putfield	Field	[c1]	public.super'	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	[c1]	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+putfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+putfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+putfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+putfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+putfield	Field	[c1]	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+putfield	Field	com/fs/starfarer/E/B/o0OO$o	öoÕo00'	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	com/fs/starfarer/E/ooOO/B	String.super'	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	com/fs/starfarer/combat/B/J	øöØ000'	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	com/fs/starfarer/combat/B/_	for.while$do'	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	com/fs/starfarer/combat/B/ooOO	oÓ0000'	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	com/fs/starfarer/combat/CombatFleetManager$O0	wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	com/fs/starfarer/combat/CombatState	playerShipShieldAI	Lcom/fs/starfarer/combat/ai/OmniShieldControlAI;
+putfield	Field	com/fs/starfarer/combat/CombatState	playerShipShieldAI	Lcom/fs/starfarer/combat/ai/OmniShieldControlAI;
+putfield	Field	com/fs/starfarer/combat/CombatState	playerShipShieldAI	Lcom/fs/starfarer/combat/ai/OmniShieldControlAI;
+putfield	Field	com/fs/starfarer/combat/CombatState	playerShipShieldAI	Lcom/fs/starfarer/combat/ai/OmniShieldControlAI;
+putfield	Field	com/fs/starfarer/combat/CombatState	prevAI	Lcom/fs/starfarer/combat/ai/AI;
+putfield	Field	com/fs/starfarer/combat/CombatState	prevAI	Lcom/fs/starfarer/combat/ai/AI;
+putfield	Field	com/fs/starfarer/combat/CombatState	prevAI	Lcom/fs/starfarer/combat/ai/AI;
+putfield	Field	com/fs/starfarer/combat/Q	o00000	Lcom/fs/starfarer/combat/ai/BattleGroupAI;
+putfield	Field	com/fs/starfarer/combat/ai/L$Oo	super'	Z
+putfield	Field	com/fs/starfarer/combat/ai/L$Oo	super'	Z
+putfield	Field	com/fs/starfarer/combat/ai/L$Oo	super'	Z
+putfield	Field	com/fs/starfarer/combat/ai/L$Oo	Ò00000'	Z
+putfield	Field	com/fs/starfarer/combat/entities/BaseEntity	ai	Lcom/fs/starfarer/combat/ai/AI;
+putfield	Field	com/fs/starfarer/combat/entities/Ship	armorEvaluator	Lcom/fs/starfarer/combat/ai/new;
+putfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	com/fs/starfarer/combat/entities/Ship	wing	Lcom/fs/starfarer/combat/ai/L;
+putfield	Field	com/fs/starfarer/combat/entities/o0oO	Õ00000'	Lcom/fs/starfarer/combat/ai/AI;
+putfield	Field	com/fs/starfarer/combat/entities/o0oO	Õ00000'	Lcom/fs/starfarer/combat/ai/AI;
+putfield	Field	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/C	ÔÖ0000'	Lcom/fs/starfarer/combat/ai/L$Oo;
+putfield	Field	com/fs/starfarer/combat/entities/ship/oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/oOOO	ÔÔ0000'	Lcom/fs/starfarer/combat/ai/L;
+wingIfFighter	Lcom/fs/starfarer/combat/ai/L;
