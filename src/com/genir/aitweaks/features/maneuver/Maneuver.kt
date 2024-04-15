@@ -65,8 +65,9 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
 
         ventIfNeeded()
 
-        debugPlugin["backoff"] = if (isBackingOff) "is backing off"
-        else ""
+        debugPlugin["backoff"] = if (isBackingOff) "is backing off" else ""
+        debugPlugin["assignment"] = if (shouldMoveToAssignment()) "move to assignment" else ""
+
 
         ship.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, range)
         ship.aiFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, target)
@@ -94,13 +95,17 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         // Attack target is stored in a flag, so it carries over between Maneuver instances.
         var currentTarget: ShipAPI? = ship.getAITFlag(FlagID.ATTACK_TARGET)
 
-        val maxRange = range + target.collisionRadius
-        if (currentTarget == null || !currentTarget.isValidTarget || isOutOfRange(currentTarget.location, maxRange)) {
-            currentTarget = findNewTarget() ?: target
+        val currentTargetIsValid = when {
+            currentTarget == null -> false
+            !currentTarget.isValidTarget -> false
+            isOutOfRange(currentTarget.location, range + currentTarget.collisionRadius) -> false
+            else -> true
         }
 
+        if (!currentTargetIsValid) currentTarget = findNewTarget() ?: target
+
         ship.setAITFlag(FlagID.ATTACK_TARGET, currentTarget)
-        attackTarget = currentTarget
+        attackTarget = currentTarget!!
     }
 
     /** Decide if ships needs to back off due to high flux level */
@@ -138,7 +143,7 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
 
     private fun setFacing() {
         // Average aim offset to avoid ship wobbling.
-        val offset = averageOffset.update(aimOffset())
+        val offset = averageOffset.update(calculateAimOffset())
         val aimPoint = attackTarget.location + offset
 
         desiredFacing = engineController.facing(ship, aimPoint, dt)
@@ -146,12 +151,15 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     }
 
     private fun setHeading() {
-        val threat = threatDirection(ship.location)
+        val threat = calculateThreatDirection(ship.location)
 
         val (p, v) = if (isBackingOff) {
             // Move opposite to threat direction.
             val backoffLocation = ship.location - threat.resize(1000f)
             Pair(backoffLocation, Vector2f())
+        } else if (shouldMoveToAssignment()) {
+            val assignment = ship.assignment!!.target
+            Pair(assignment.location, assignment.velocity)
         } else {
             // Orbit target at max weapon range, while rotating away from threat.
             val strafeLocation = target.location - threat.resize(range)
@@ -163,6 +171,11 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         drawEngineLines(ship)
 
         desiredHeading = engineController.heading(ship, p, v, dt)
+    }
+
+    private fun shouldMoveToAssignment(): Boolean {
+        val target = ship.assignment?.target ?: return false
+        return (target.location - ship.location).length() > range
     }
 
     private fun isOutOfRange(target: ShipAPI, range: Float) = isOutOfRange(target.location, range)
@@ -201,7 +214,7 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     }
 
     /** Aim hardpoint weapons with entire ship, if possible. */
-    private fun aimOffset(): Vector2f {
+    private fun calculateAimOffset(): Vector2f {
         // Assume autofire weapons are tracking this.attackTarget.
         val weapons = ship.allWeapons.filter { it.slot.isHardpoint }
         val interceptPoints = weapons.mapNotNull { it.autofireAI?.intercept }
@@ -214,7 +227,7 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         return aimPoint - attackTarget.location
     }
 
-    private fun threatDirection(location: Vector2f): Vector2f {
+    private fun calculateThreatDirection(location: Vector2f): Vector2f {
         val radius = max(threatEvalRadius, this.range)
         val ships = shipsInRadius(location, radius)
         val threats = ships.filter { it.owner != ship.owner && it.isValidTarget && it.isShip }
