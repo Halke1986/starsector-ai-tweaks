@@ -33,7 +33,9 @@ const val backoffLowerThreshold = 0.2f
 const val shieldDownVentTime = 2.0f
 const val shieldFlickerThreshold = 0.5f
 
-class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
+const val arrivedAtLocationRadius = 2000f
+
+class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLocation: Vector2f?) {
     private val engineController = EngineController()
     private val shipAI = ship.ai as AssemblyShipAI
 
@@ -46,13 +48,13 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     private var averageOffset = RollingAverage(aimOffsetSamples)
     private var shieldDownTime = 0f
 
-    private var attackTarget: ShipAPI = target
+    private var attackTarget: ShipAPI? = targetShip
     private var isBackingOff: Boolean = false
 
     fun advance(dt: Float) {
         this.dt = dt
 
-        if (target.isExpired || !target.isAlive) {
+        if (shouldEndManeuver()) {
             shipAI.cancelCurrentManeuver()
         }
 
@@ -66,11 +68,9 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
         ventIfNeeded()
 
         debugPlugin["backoff"] = if (isBackingOff) "is backing off" else ""
-        debugPlugin["assignment"] = if (shouldMoveToAssignment()) "move to assignment" else ""
-
 
         ship.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, range)
-        ship.aiFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, target)
+        ship.aiFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, targetShip)
 
         // Facing is controlled in advance() instead of doManeuver()
         // because doManeuver() is not called when ShipAI decides
@@ -89,6 +89,20 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
 
     fun doManeuver() = setHeading()
 
+    private fun shouldEndManeuver(): Boolean {
+        // Target ship was destroyed.
+        if (targetShip != null && (targetShip.isExpired || !targetShip.isAlive)) {
+            return true
+        }
+
+        // Arrived at location.
+        if (targetLocation != null && (ship.location - targetLocation).length() <= arrivedAtLocationRadius) {
+            return true
+        }
+
+        return false
+    }
+
     /** Select which enemy ship to attack. This may be different
      * from the maneuver target provided by the ShipAI. */
     private fun updateAttackTarget() {
@@ -102,10 +116,10 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
             else -> true
         }
 
-        if (!currentTargetIsValid) currentTarget = findNewTarget() ?: target
+        if (!currentTargetIsValid) currentTarget = findNewTarget() ?: targetShip
 
         ship.setAITFlag(FlagID.ATTACK_TARGET, currentTarget)
-        attackTarget = currentTarget!!
+        attackTarget = currentTarget
     }
 
     /** Decide if ships needs to back off due to high flux level */
@@ -142,9 +156,23 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     }
 
     private fun setFacing() {
-        // Average aim offset to avoid ship wobbling.
-        val offset = averageOffset.update(calculateAimOffset())
-        val aimPoint = attackTarget.location + offset
+        val aimPoint = when {
+            attackTarget != null -> {
+                // Average aim offset to avoid ship wobbling.
+                val offset = averageOffset.update(calculateAimOffset(attackTarget!!))
+                attackTarget!!.location + offset
+            }
+
+            targetLocation != null -> {
+                // Move to location, if no attack target.
+                targetLocation
+            }
+
+            else -> {
+                // Nothing to do.
+                return
+            }
+        }
 
         desiredFacing = engineController.facing(ship, aimPoint, dt)
         ship.setAITFlag(FlagID.AIM_POINT, aimPoint)
@@ -153,29 +181,36 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     private fun setHeading() {
         val threat = calculateThreatDirection(ship.location)
 
-        val (p, v) = if (isBackingOff) {
-            // Move opposite to threat direction.
-            val backoffLocation = ship.location - threat.resize(1000f)
-            Pair(backoffLocation, Vector2f())
-        } else if (shouldMoveToAssignment()) {
-            val assignment = ship.assignment!!.target
-            Pair(assignment.location, assignment.velocity)
-        } else {
-            // Orbit target at max weapon range, while rotating away from threat.
-            val strafeLocation = target.location - threat.resize(range)
-            Pair(strafeLocation, attackTarget.velocity)
+        val (p, v) = when {
+            isBackingOff -> {
+                // Move opposite to threat direction.
+                val backoffLocation = ship.location - threat.resize(1000f)
+                Pair(backoffLocation, Vector2f())
+            }
+
+            targetLocation != null -> {
+                // Move directly to ordered location.
+                Pair(targetLocation, Vector2f())
+            }
+
+            targetShip != null -> {
+                // Orbit target at max weapon range, while rotating away from threat.
+                val strafeLocation = targetShip.location - threat.resize(range)
+                Pair(strafeLocation, attackTarget?.velocity ?: targetShip.velocity)
+            }
+
+            else -> {
+                // Nothing to do, just coast.
+                return
+            }
         }
+
 
 //        debugVertices.add(Line(ship.location, p, Color.YELLOW))
         debugVertices.add(Line(ship.location, ship.location + unitVector(desiredHeading) * 300f, Color.GREEN))
         drawEngineLines(ship)
 
         desiredHeading = engineController.heading(ship, p, v, dt)
-    }
-
-    private fun shouldMoveToAssignment(): Boolean {
-        val target = ship.assignment?.target ?: return false
-        return (target.location - ship.location).length() > range
     }
 
     private fun isOutOfRange(target: ShipAPI, range: Float) = isOutOfRange(target.location, range)
@@ -214,7 +249,7 @@ class Maneuver(val ship: ShipAPI, val target: ShipAPI) {
     }
 
     /** Aim hardpoint weapons with entire ship, if possible. */
-    private fun calculateAimOffset(): Vector2f {
+    private fun calculateAimOffset(attackTarget: ShipAPI): Vector2f {
         // Assume autofire weapons are tracking this.attackTarget.
         val weapons = ship.allWeapons.filter { it.slot.isHardpoint }
         val interceptPoints = weapons.mapNotNull { it.autofireAI?.intercept }

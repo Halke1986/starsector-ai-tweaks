@@ -1,26 +1,36 @@
-asm_root="./src_asm/com.genir.aitweaks.asm.combat.ai"
+## COPY SOURCE
+
+asm_root="./src_asm"
 
 vanilla_path="com/fs/starfarer/combat/ai"
 asm_path="com/genir/aitweaks/asm/combat/ai"
 aitweaks_path="com/genir/aitweaks/features/maneuver"
 
-find $asm_root -type f -exec sed -i "s^$vanilla_path/BasicShipAI^$asm_path/AssemblyShipAI^g" {} + # BasicShipAI
-find $asm_root -type f -exec sed -i "s^$vanilla_path/I^$asm_path/OrderResponseModule^g" {} + # OrderResponseModule
+rm -rf   $asm_root
 
-# OverrideEngineAI
+mkdir -p $asm_root/$asm_path
+
+cp ./disassembly/$vanilla_path/'BasicShipAI.j'   $asm_root/$asm_path/'AssemblyShipAI.j'
+cp ./disassembly/$vanilla_path/'BasicShipAI$1.j' $asm_root/$asm_path/'AssemblyShipAI$1.j'
+cp ./disassembly/$vanilla_path/'BasicShipAI$o.j' $asm_root/$asm_path/'AssemblyShipAI$o.j'
+
+cp ./disassembly/$vanilla_path/'I.j'   $asm_root/$asm_path/'OrderResponseModule.j'
+cp ./disassembly/$vanilla_path/'I$o.j' $asm_root/$asm_path/'OrderResponseModule$o.j'
+
+## REPLACE CALLS
+
+# Update AI paths
+find $asm_root -type f -exec sed -i "s^$vanilla_path/BasicShipAI^$asm_path/AssemblyShipAI^g" {} +
+find $asm_root -type f -exec sed -i "s^$vanilla_path/I^$asm_path/OrderResponseModule^g" {} +
+
+# Override Engine Controller
 find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/BasicEngineAI^$aitweaks_path/OverrideEngineAI^g" {} +
 
-# StrafeTargetManeuverV2
-#find $asm_root -type f -exec sed -i "s^new $vanilla_path/movement/maneuvers/StrafeTargetManeuverV2^new $aitweaks_path/ManeuverV^g" {} +
-#find $asm_root -type f -exec sed -i "s^Utf8 $vanilla_path/movement/maneuvers/StrafeTargetManeuverV2^Utf8 $aitweaks_path/ManeuverV^g" {} +
-#find $asm_root -type f -exec sed -i "s^invokespecial Method $vanilla_path/movement/maneuvers/StrafeTargetManeuverV2^invokespecial Method $aitweaks_path/ManeuverV^g" {} +
+# Override Maneuvers
+find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/StrafeTargetManeuverV2^$aitweaks_path/V^g" {} +
+find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/B^$aitweaks_path/B^g" {} +
+find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/U^$aitweaks_path/U^g" {} +
 
-# Strafe B
-find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/StrafeTargetManeuverV2/B^$aitweaks_path/ManeuverV^g" {} +
-find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/B^$aitweaks_path/ManeuverB^g" {} +
-
+## ASSEMBLE
 
 python ../../../Krakatau/assemble.py -out ./jars/AITweaks_asm.jar -r $asm_root
-
-
-
