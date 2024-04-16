@@ -58,7 +58,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        val ship = Global.getCombatEngine().ships.firstOrNull { it.hullSpec.hullId == "nova" } ?: return
+        val ship = Global.getCombatEngine().ships.firstOrNull() ?: return
 
 //        debugPlugin[0] = ship.maneuverTarget
 //        debugPlugin[1] = targetTracker[ship]

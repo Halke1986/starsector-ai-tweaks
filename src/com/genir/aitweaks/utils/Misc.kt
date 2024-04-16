@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.IntervalUtil
+import org.json.JSONObject
 import org.lazywizard.lazylib.FastTrig
 import org.lazywizard.lazylib.MathUtils.getShortestRotation
 import org.lazywizard.lazylib.VectorUtils
@@ -98,5 +99,17 @@ class RollingAverage(private val historySize: Int) {
     fun clear() {
         history.clear()
         sum = Vector2f()
+    }
+}
+
+inline fun <reified T : Enum<T>> loadEnum(json: JSONObject, fieldName: String): T? {
+    val value: String = json.optString(fieldName)
+    if (value == "")
+        return null
+
+    return try {
+        enumValueOf<T>(value)
+    } catch (_: IllegalArgumentException) {
+        null
     }
 }

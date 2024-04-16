@@ -12,9 +12,11 @@ import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.debug.drawEngineLines
 import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.ShipSystemAiType.MANEUVERING_JETS
 import com.genir.aitweaks.utils.ai.AITFlags
 import com.genir.aitweaks.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
+import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -27,7 +29,7 @@ import kotlin.math.max
 const val threatEvalRadius = 2500f
 const val aimOffsetSamples = 45
 
-const val backoffUpperThreshold = 0.8f
+const val backoffUpperThreshold = 0.75f
 const val backoffLowerThreshold = 0.2f
 
 const val shieldDownVentTime = 2.0f
@@ -46,13 +48,14 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
     private var dt: Float = 0f
     private var range: Float = 0f
     private var averageOffset = RollingAverage(aimOffsetSamples)
-    private var shieldDownTime = 0f
+    private var idleTime = 0f
 
     private var attackTarget: ShipAPI? = targetShip
     private var isBackingOff: Boolean = false
 
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
+    private val systemAIType = ship.system?.specAPI?.AIType
 
     fun advance(dt: Float) {
         this.dt = dt
@@ -66,9 +69,10 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
         range = range(weapons)
         updateAttackTarget()
         updateBackoffStatus()
-        updateShieldDownTime(dt)
+        updateIdleTime(dt)
 
         ventIfNeeded()
+        runIfNeeded()
 
         debugPlugin["backoff"] = if (isBackingOff) "is backing off" else ""
 
@@ -112,14 +116,16 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
         // Attack target is stored in a flag, so it carries over between Maneuver instances.
         var currentTarget: ShipAPI? = ship.AITFlags.attackTarget
 
-        val currentTargetIsValid = when {
-            currentTarget == null -> false
-            !currentTarget.isValidTarget -> false
-            isOutOfRange(currentTarget.location, range + currentTarget.collisionRadius) -> false
-            else -> true
+        val updateTarget = when {
+            currentTarget == null -> true
+            !currentTarget.isValidTarget -> true
+            // Do not interrupt bursts.
+            primaryWeapons().firstOrNull { it.isInBurst } != null -> false
+            isOutOfRange(currentTarget.location, range + currentTarget.collisionRadius) -> true
+            else -> false
         }
 
-        if (!currentTargetIsValid) currentTarget = findNewTarget() ?: targetShip
+        if (updateTarget) currentTarget = findNewTarget() ?: targetShip
 
         ship.AITFlags.attackTarget = currentTarget
         attackTarget = currentTarget
@@ -139,10 +145,12 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
         }
     }
 
-    private fun updateShieldDownTime(dt: Float) {
+    private fun updateIdleTime(dt: Float) {
         val shieldIsUp = ship.shield?.isOn == true && shieldUptime(ship.shield) > shieldFlickerThreshold
-        shieldDownTime = if (shieldIsUp) 0f
-        else shieldDownTime + dt
+        val isFiring = ship.allWeapons.firstOrNull { it.isFiring } != null
+
+        idleTime = if (shieldIsUp || isFiring) 0f
+        else idleTime + dt
     }
 
     /** Force vent when the ship is backing off,
@@ -150,12 +158,19 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
     private fun ventIfNeeded() {
         when {
             !isBackingOff -> return
-            shieldDownTime < shieldDownVentTime -> return
+            idleTime < shieldDownVentTime -> return
             ship.fluxTracker.isVenting -> return
             ship.allWeapons.firstOrNull { it.autofireAI?.shouldFire() == true } != null -> return
         }
 
         ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
+    }
+
+    /** Use maneuvering jets to back off if possible. */
+    private fun runIfNeeded() {
+        if (isBackingOff && systemAIType == MANEUVERING_JETS && ship.canUseSystemThisFrame()) {
+            ship.giveCommand(ShipCommand.USE_SYSTEM, null, 0)
+        }
     }
 
     private fun setFacing() {
