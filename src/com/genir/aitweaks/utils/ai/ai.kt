@@ -18,6 +18,8 @@ val ShipAPI.AIPersonality: String
     get() = (this.ai as? ShipAIPlugin)?.config?.personalityOverride ?: (this as Ship).personality
 
 fun newVanillaAI(ship: ShipAPI, config: ShipAIConfig = ShipAIConfig()): ShipAIPlugin {
-    return if (!ship.isFrigate) AssemblyShipAI(ship as Ship, config)
-    else BasicShipAI(ship as Ship, config)
+//    if (!ship.isFrigate)
+        return AssemblyShipAI(ship as Ship, config)
+
+    return BasicShipAI(ship as Ship, config)
 }

@@ -4,13 +4,16 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.utils.extensions.strafeAcceleration
-import org.lazywizard.lazylib.MathUtils
+import org.lazywizard.lazylib.MathUtils.getShortestRotation
 import org.lazywizard.lazylib.ext.*
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sqrt
 import kotlin.random.Random
+
+const val noMovementExpected = Float.MAX_VALUE
+const val targetReachedThreshold = 2f
 
 class EngineController {
     /** Set ship heading towards 'target' location. Appropriate target leading
@@ -20,21 +23,26 @@ class EngineController {
     fun heading(ship: ShipAPI, target: Vector2f, targetVelocity: Vector2f, dt: Float): Float {
         val tr = target - ship.location
         val trl = tr.length()
-        if (trl < 2f && targetVelocity.isZeroVector()) {
+
+        // Stop if reached stationary target.
+        if (trl < targetReachedThreshold && targetVelocity.isZeroVector()) {
             if (!ship.velocity.isZeroVector()) ship.move(DECELERATE)
-            return 0f
+            return noMovementExpected
         }
 
-        // Clamp target velocity.
+        // Clamp target velocity so that the component towards
+        // the ship is ignored. Without this, the ship would
+        // slow down to match target velocity when still far
+        // from the target.
         val a = Rotation(90f - tr.getFacing())
         val vp = a.rotate(targetVelocity)
         val vc = a.reverse(Vector2f(vp.x, max(vp.y, 0f)))
 
-        // Transform input into ships frame of reference.
+        // Transform input into ship frame of reference.
         // Account for ship angular velocity, as linear
         // acceleration is applied by the game engine after
         // rotation. Change unit of time from second to
-        // animation frame (* dt).
+        // animation frame duration (* dt).
         val w = ship.angularVelocity * dt
         val r = Rotation(90f - ship.facing - w)
         val d = r.rotate(tr)
@@ -67,27 +75,40 @@ class EngineController {
         if (shouldAccelerate(+d.x, +vr.x, f[3], al, al)) ship.move(STRAFE_RIGHT)
 
         // If close to target, return target heading as expected heading.
-        // Else, return expected heading.
+        // Else, return actual expected heading.
         return if (trl < 10f) targetVelocity.getFacing()
         else return r.reverse(vExpected).getFacing()
     }
 
-    /** Set ship facing towards 'target' location.
+    /** Set ship facing towards 'target' location. If ship is already facing
+     * 'target' location, it will match the angular component of 'targetVelocity'.
      * Returns the calculated facing angle. */
-    fun facing(ship: ShipAPI, target: Vector2f, dt: Float): Float {
-        if ((target - ship.location).length() < 1f) return 0f
-        val expectedFacing = (target - ship.location).getFacing()
+    fun facing(ship: ShipAPI, target: Vector2f, targetVelocity: Vector2f, dt: Float, facingOffset: Float = 0f): Float {
+        val tr = target - ship.location
+        if (tr.length() < targetReachedThreshold) return noMovementExpected
 
-        val r = MathUtils.getShortestRotation(ship.facing, expectedFacing)
+        // Calculate parameters of the rotation
+        // needed to match the expected facing.
+        val expectedFacing = tr.getFacing() + facingOffset
+        val r = getShortestRotation(ship.facing, expectedFacing)
         val a = ship.turnAcceleration * dt * dt
         val w = ship.angularVelocity * dt
 
-        if (shouldAccelerate(+r, +w, 1f, a, a)) ship.move(TURN_LEFT)
-        if (shouldAccelerate(-r, -w, 1f, a, a)) ship.move(TURN_RIGHT)
+        // Calculate target relative angular velocity.
+        // Required to calculate correct braking distance.
+        val tr2 = tr + (targetVelocity - ship.velocity) * dt
+        val f2 = tr2.getFacing() + facingOffset
+        val wt = getShortestRotation(expectedFacing, f2)
+        val wr = w - wt
+
+        if (shouldAccelerate(+r, +wr, 1f, a, a)) ship.move(TURN_LEFT)
+        if (shouldAccelerate(-r, -wr, 1f, a, a)) ship.move(TURN_RIGHT)
 
         return expectedFacing
     }
 
+    /** Decide if the ship should accelerate in the given
+     * direction to reach its target without overshooting. */
     private fun shouldAccelerate(d: Float, v: Float, f: Float, ap: Float, an: Float) = when {
         d < 0 && v < 0 && vMax(-d, -v, ap) < -v -> true // decelerate to avoid overshooting target
         d < 0 || f == 0f -> false
@@ -97,7 +118,7 @@ class EngineController {
         else -> false
     }
 
-    // Maximum velocity in given direction to not overshoot target.
+    /** Maximum velocity in given direction to not overshoot target. */
     private fun vMax(d: Float, v: Float, a: Float): Float {
         val s = d - v  // location in next frame
         val t = sqrt(2f * s / a)

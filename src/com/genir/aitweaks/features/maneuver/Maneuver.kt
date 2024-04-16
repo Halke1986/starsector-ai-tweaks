@@ -10,12 +10,11 @@ import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
 import com.genir.aitweaks.debug.Line
 import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.debug.debugVertices
-import com.genir.aitweaks.debug.drawEngineLines
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ShipSystemAiType.MANEUVERING_JETS
 import com.genir.aitweaks.utils.ai.AITFlags
 import com.genir.aitweaks.utils.extensions.*
-import org.lazywizard.lazylib.MathUtils
+import org.lazywizard.lazylib.MathUtils.getShortestRotation
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
@@ -47,7 +46,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
 
     private var dt: Float = 0f
     private var range: Float = 0f
-    private var averageOffset = RollingAverage(aimOffsetSamples)
+    private var averageOffset = RollingAverageFloat(aimOffsetSamples)
     private var idleTime = 0f
 
     private var attackTarget: ShipAPI? = targetShip
@@ -166,7 +165,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
         ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
     }
 
-    /** Use maneuvering jets to back off if possible. */
+    /** Use maneuvering jets to back off, if possible. */
     private fun runIfNeeded() {
         if (isBackingOff && systemAIType == MANEUVERING_JETS && ship.canUseSystemThisFrame()) {
             ship.giveCommand(ShipCommand.USE_SYSTEM, null, 0)
@@ -174,16 +173,19 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
     }
 
     private fun setFacing() {
-        val aimPoint = when {
+        val (aimPoint, v, offset) = when {
             attackTarget != null -> {
                 // Average aim offset to avoid ship wobbling.
                 val offset = averageOffset.update(calculateAimOffset(attackTarget!!))
-                attackTarget!!.location + offset
+
+//                debugPlugin["offset"] = offset
+
+                Triple(attackTarget!!.location, attackTarget!!.velocity, offset)
             }
 
             targetLocation != null -> {
                 // Move to location, if no attack target.
-                targetLocation
+                Triple(targetLocation, Vector2f(), 0f)
             }
 
             else -> {
@@ -192,8 +194,13 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
             }
         }
 
-        desiredFacing = engineController.facing(ship, aimPoint, dt)
+//        debugVertices.add(Line(ship.location, aimPoint, Color.BLUE))
+//        debugVertices.add(Line(ship.location, ship.location + unitVector(ship.facing) * (ship.location - aimPoint).length(), Color.YELLOW))
+
+        desiredFacing = engineController.facing(ship, aimPoint, v, dt, offset)
         ship.AITFlags.aimPoint = aimPoint
+
+        debugVertices.add(Line(ship.location, ship.location + unitVector(desiredFacing) * (ship.location - aimPoint).length(), Color.YELLOW))
     }
 
     private fun setHeading() {
@@ -213,7 +220,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
 
             targetShip != null -> {
                 val angleToTarget = (targetShip.location - ship.location).getFacing()
-                val angleFromTargetToThreat = MathUtils.getShortestRotation(threat.getFacing(), angleToTarget)
+                val angleFromTargetToThreat = getShortestRotation(threat.getFacing(), angleToTarget)
                 val offset = if (angleFromTargetToThreat > 1f) threat
                 else strafeRotation.rotate(threat)
 
@@ -229,10 +236,11 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
             }
         }
 
-
 //        debugVertices.add(Line(ship.location, p, Color.YELLOW))
-        debugVertices.add(Line(ship.location, ship.location + unitVector(desiredHeading) * 300f, Color.GREEN))
-        drawEngineLines(ship)
+//        debugVertices.add(Line(ship.location, ship.location + unitVector(desiredHeading) * 300f, Color.GREEN))
+//        drawEngineLines(ship)
+
+//        drawWeaponLines(ship)
 
         desiredHeading = engineController.heading(ship, p, v, dt)
     }
@@ -273,17 +281,28 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
     }
 
     /** Aim hardpoint weapons with entire ship, if possible. */
-    private fun calculateAimOffset(attackTarget: ShipAPI): Vector2f {
-        // Assume autofire weapons are tracking this.attackTarget.
-        val weapons = ship.allWeapons.filter { it.slot.isHardpoint }
-        val interceptPoints = weapons.mapNotNull { it.autofireAI?.intercept }
+    private fun calculateAimOffset(attackTarget: ShipAPI): Float {
+        // Find intercept points of all hardpoints attacking the current target.
+        val hardpoints = ship.allWeapons.filter { it.slot.isHardpoint && !it.isPD }.mapNotNull { it.autofireAI }
+        val aimedHardpoints = hardpoints.filter { it.targetShip != null && it.targetShip == attackTarget }
+        val interceptPoints = aimedHardpoints.mapNotNull { it.intercept }
 
-        if (interceptPoints.isEmpty()) return Vector2f()
+        debugVertices.addAll(aimedHardpoints.map { Line(it.weapon.location, it.intercept ?: it.weapon.location, if (it.weapon.isPD) Color.BLUE else Color.GREEN) })
 
+        if (interceptPoints.isEmpty()) return 0f
+
+        // Average the intercept points. This may cause poor aim if different hardpoints
+        // have weapons with significantly different projectile velocities.
         val interceptSum = interceptPoints.fold(Vector2f()) { sum, intercept -> sum + intercept }
         val aimPoint = interceptSum / interceptPoints.size.toFloat()
 
-        return aimPoint - attackTarget.location
+//        debugVertices.add(Line(ship.location, aimPoint, Color.BLUE))
+//        debugVertices.add(Line(ship.location, attackTarget.location, Color.YELLOW))
+//        debugVertices.add(Line(ship.location, ship.location + unitVector(ship.facing) * (ship.location - aimPoint).length(), Color.YELLOW))
+
+//        debugPlugin["off1"] = getShortestRotation((attackTarget.location - ship.location).getFacing(), (aimPoint - ship.location).getFacing())
+
+        return getShortestRotation((attackTarget.location - ship.location).getFacing(), (aimPoint - ship.location).getFacing())
     }
 
     private fun calculateThreatDirection(location: Vector2f): Vector2f {

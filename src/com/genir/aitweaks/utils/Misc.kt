@@ -81,7 +81,7 @@ class Rotation(angle: Float) {
 
 fun defaultAIInterval() = IntervalUtil(0.25f, 0.50f)
 
-class RollingAverage(private val historySize: Int) {
+class RollingAverageVector(private val historySize: Int) {
     private var history: MutableList<Vector2f> = mutableListOf()
     private var sum: Vector2f = Vector2f()
 
@@ -99,6 +99,27 @@ class RollingAverage(private val historySize: Int) {
     fun clear() {
         history.clear()
         sum = Vector2f()
+    }
+}
+
+class RollingAverageFloat(private val historySize: Int) {
+    private var history: MutableList<Float> = mutableListOf()
+    private var sum = 0f
+
+    fun update(v: Float): Float {
+        history.add(v)
+        sum += v
+        if (history.size > historySize) {
+            sum -= history.first()
+            history.removeFirst()
+        }
+
+        return sum / history.size.toFloat()
+    }
+
+    fun clear() {
+        history.clear()
+        sum = 0f
     }
 }
 
