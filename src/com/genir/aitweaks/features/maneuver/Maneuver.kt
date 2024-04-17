@@ -11,12 +11,11 @@ import com.genir.aitweaks.debug.Line
 import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.ShipSystemAiType.BURN_DRIVE
 import com.genir.aitweaks.utils.ShipSystemAiType.MANEUVERING_JETS
 import com.genir.aitweaks.utils.ai.AITFlags
 import com.genir.aitweaks.utils.extensions.*
-import org.lazywizard.lazylib.MathUtils.getShortestRotation
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -76,7 +75,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
         updateIdleTime(dt)
 
         ventIfNeeded()
-        runIfNeeded()
+        manageMobilitySystems()
 
         debugPlugin["backoff"] = if (isBackingOff) "is backing off" else ""
 
@@ -170,10 +169,28 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
         ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
     }
 
-    /** Use maneuvering jets to back off, if possible. */
-    private fun runIfNeeded() {
-        if (isBackingOff && systemAIType == MANEUVERING_JETS && ship.canUseSystemThisFrame()) {
-            ship.giveCommand(ShipCommand.USE_SYSTEM, null, 0)
+    private fun manageMobilitySystems() {
+        when (systemAIType) {
+            MANEUVERING_JETS -> {
+                // Use MANEUVERING_JETS to back off, if possible. Vanilla AI
+                // does this already, but is not determined enough.
+                if (isBackingOff && ship.canUseSystemThisFrame()) {
+                    ship.giveCommand(ShipCommand.USE_SYSTEM, null, 0)
+                }
+            }
+
+            BURN_DRIVE -> {
+                // Prevent vanilla AI from jumping closer to target with
+                // BURN_DRIVE, if the target is already within weapons range.
+                if (attackTarget != null) {
+                    val range = range + attackTarget!!.collisionRadius * 0.5f
+                    if (!isOutOfRange(attackTarget!!.location, range)) {
+                        ship.blockCommandForOneFrame(ShipCommand.USE_SYSTEM)
+                    }
+                }
+            }
+
+            else -> Unit
         }
     }
 
@@ -196,9 +213,12 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
 
                     else -> {
                         // Average aim offset to avoid ship wobbling.
-                        val offset = averageOffset.update(calculateAimOffset(attackTarget!!))
-//                        debugPlugin["offset"] = offset
-                        Triple(target.location, target.velocity, offset)
+                        val aimPointThisFrame = calculateOffsetAimPoint(target)
+                        val aimOffsetThisFrame = getShortestRotation(target.location, ship.location, aimPointThisFrame)
+                        val aimOffset = averageOffset.update(aimOffsetThisFrame)
+                        val aimPoint = target.location.rotatedAroundPivot(Rotation(aimOffset), ship.location)
+
+                        Triple(aimPoint, target.velocity, 0f)
                     }
                 }
             }
@@ -208,13 +228,9 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
                 Triple(targetLocation, Vector2f(), 0f)
             }
 
-            else -> {
-                // Nothing to do.
-                return
-            }
+            // Nothing to do.
+            else -> return
         }
-
-//        debugVertices.add(Line(ship.location, aimPoint, Color.BLUE))
 
         desiredFacing = engineController.facing(ship, aimPoint, v, offset)
     }
@@ -241,19 +257,11 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
                 // Orbit target at max weapon range. Rotate away from threat,
                 // or just strafe randomly if no threat.
                 val strafeLocation = targetShip.location - offset.resized(range)
-
-                debugPlugin["angleFromTargetToThreat"] = angleFromTargetToThreat
-
-                debugVertices.add(Line(ship.location, strafeLocation, Color.YELLOW))
-                debugVertices.add(Line(ship.location, ship.location + threatVector, Color.RED))
-
                 Pair(strafeLocation, attackTarget?.velocity ?: targetShip.velocity)
             }
 
-            else -> {
-                // Nothing to do, let the ship coast.
-                return
-            }
+            // Nothing to do, let the ship coast.
+            else -> return
         }
 
         desiredHeading = engineController.heading(ship, p, v)
@@ -291,20 +299,22 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
     }
 
     /** Aim hardpoint weapons with entire ship, if possible. */
-    private fun calculateAimOffset(attackTarget: ShipAPI): Float {
+    private fun calculateOffsetAimPoint(attackTarget: ShipAPI): Vector2f {
         // Find intercept points of all hardpoints attacking the current target.
         val hardpoints = ship.allWeapons.filter { it.slot.isHardpoint }.mapNotNull { it.autofireAI }
         val aimedHardpoints = hardpoints.filter { it.targetShip != null && it.targetShip == attackTarget }
         val interceptPoints = aimedHardpoints.mapNotNull { it.intercept }
 
-        if (interceptPoints.isEmpty()) return 0f
+        if (interceptPoints.isEmpty()) return attackTarget.location
 
         // Average the intercept points. This may cause poor aim if different hardpoints
         // have weapons with significantly different projectile velocities.
         val interceptSum = interceptPoints.fold(Vector2f()) { sum, intercept -> sum + intercept }
         val aimPoint = interceptSum / interceptPoints.size.toFloat()
 
-        return getShortestRotation((attackTarget.location - ship.location).getFacing(), (aimPoint - ship.location).getFacing())
+        debugVertices.add(Line(ship.location, aimPoint, Color.RED))
+
+        return aimPoint
     }
 
     private fun calculateThreatDirection(location: Vector2f): Vector2f {
