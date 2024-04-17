@@ -1,3 +1,5 @@
+Version 1.6.3
+
 - Fixed null pointer exception in autofire logic. Reported by @Ganegrei.
 
 Version 1.6.2
