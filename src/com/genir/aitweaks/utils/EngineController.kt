@@ -1,5 +1,6 @@
 package com.genir.aitweaks.utils
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
@@ -20,7 +21,7 @@ class EngineController {
      * is added to calculated heading to account for 'targetVelocity'. If ship
      * is already at 'target' location, it will match 'targetVelocity'.
      * Returns the calculated heading angle. */
-    fun heading(ship: ShipAPI, target: Vector2f, targetVelocity: Vector2f, dt: Float): Float {
+    fun heading(ship: ShipAPI, target: Vector2f, targetVelocity: Vector2f): Float {
         val tr = target - ship.location
         val trl = tr.length()
 
@@ -43,6 +44,7 @@ class EngineController {
         // acceleration is applied by the game engine after
         // rotation. Change unit of time from second to
         // animation frame duration (* dt).
+        val dt = Global.getCombatEngine().elapsedInLastFrame
         val w = ship.angularVelocity * dt
         val r = Rotation(90f - ship.facing - w)
         val d = r.rotate(tr)
@@ -83,12 +85,13 @@ class EngineController {
     /** Set ship facing towards 'target' location. If ship is already facing
      * 'target' location, it will match the angular component of 'targetVelocity'.
      * Returns the calculated facing angle. */
-    fun facing(ship: ShipAPI, target: Vector2f, targetVelocity: Vector2f, dt: Float, facingOffset: Float = 0f): Float {
+    fun facing(ship: ShipAPI, target: Vector2f, targetVelocity: Vector2f, facingOffset: Float = 0f): Float {
         val tr = target - ship.location
         if (tr.length() < targetReachedThreshold) return noMovementExpected
 
         // Calculate parameters of the rotation
         // needed to match the expected facing.
+        val dt = Global.getCombatEngine().elapsedInLastFrame
         val expectedFacing = tr.getFacing() + facingOffset
         val r = getShortestRotation(ship.facing, expectedFacing)
         val a = ship.turnAcceleration * dt * dt

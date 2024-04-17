@@ -65,7 +65,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //        debugPlugin[1] = targetTracker[ship]
 
 
-        debugPlugin[0] = (ship.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
+//        debugPlugin[0] = (ship.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
 //        debugPlugin["avoiding collision"] = if ((ship.ai as AssemblyShipAI).flockingAI.String()) "avoiding collision" else ""
 
 

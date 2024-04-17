@@ -41,7 +41,6 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
     var desiredHeading: Float = ship.facing
     var desiredFacing: Float = ship.facing
 
-    private var dt: Float = 0f
     private var range: Float = 0f
     private var averageOffset = RollingAverageFloat(aimOffsetSamples)
     private var idleTime = 0f
@@ -56,8 +55,6 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
     private var threatVector = calculateThreatDirection(ship.location)
 
     fun advance(dt: Float) {
-        this.dt = dt
-
         if (shouldEndManeuver()) {
             shipAI.cancelCurrentManeuver()
         }
@@ -207,7 +204,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
             }
         }
 
-        desiredFacing = engineController.facing(ship, aimPoint, v, dt, offset)
+        desiredFacing = engineController.facing(ship, aimPoint, v, offset)
         ship.AITFlags.aimPoint = aimPoint
     }
 
@@ -242,7 +239,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
             }
         }
 
-        desiredHeading = engineController.heading(ship, p, v, dt)
+        desiredHeading = engineController.heading(ship, p, v)
     }
 
     private fun isOutOfRange(target: ShipAPI, range: Float) = isOutOfRange(target.location, range)
