@@ -49,7 +49,7 @@ val WeaponAPI.timeToAttack: Float
         val spec = this.spec as? ProjectileWeaponSpecAPI ?: return 0f
 
         return when {
-            this.isInBurst -> 0f
+            this.trueIsInBurst -> 0f
             this.cooldownRemaining != 0f -> this.cooldownRemaining + spec.chargeTime
             else -> spec.chargeTime * (1f - this.chargeLevel)
         }
@@ -57,3 +57,6 @@ val WeaponAPI.timeToAttack: Float
 
 val WeaponAPI.autofireAI: AutofireAI?
     get() = this.ship.getWeaponGroupFor(this)?.getAutofirePlugin(this) as? AutofireAI
+
+val WeaponAPI.trueIsInBurst: Boolean
+    get() = this.isInBurst || (this.isBurstBeam && this.isFiring)

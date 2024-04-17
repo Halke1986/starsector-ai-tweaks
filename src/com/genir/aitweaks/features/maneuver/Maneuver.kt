@@ -7,9 +7,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.MISSILE
 import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
-import com.genir.aitweaks.debug.Line
 import com.genir.aitweaks.debug.debugPlugin
-import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ShipSystemAiType.MANEUVERING_JETS
 import com.genir.aitweaks.utils.ai.AITFlags
@@ -21,7 +19,6 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ext.resize
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -55,6 +52,8 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
     private val systemAIType = ship.system?.specAPI?.AIType
+
+    private var threatVector = calculateThreatDirection(ship.location)
 
     fun advance(dt: Float) {
         this.dt = dt
@@ -119,7 +118,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
             currentTarget == null -> true
             !currentTarget.isValidTarget -> true
             // Do not interrupt bursts.
-            primaryWeapons().firstOrNull { it.isInBurst } != null -> false
+            primaryWeapons().firstOrNull { it.trueIsInBurst } != null -> false
             isOutOfRange(currentTarget.location, range + currentTarget.collisionRadius) -> true
             else -> false
         }
@@ -175,12 +174,26 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
     private fun setFacing() {
         val (aimPoint, v, offset) = when {
             attackTarget != null -> {
-                // Average aim offset to avoid ship wobbling.
-                val offset = averageOffset.update(calculateAimOffset(attackTarget!!))
+                val target = attackTarget!!
+                val farOutOfRange = isOutOfRange(target.location, range + target.collisionRadius + 1000f)
 
-//                debugPlugin["offset"] = offset
+                when {
+                    farOutOfRange && isBackingOff -> {
+                        // Face threat direction when backing off.
+                        Triple(ship.location + threatVector, Vector2f(), 0f)
+                    }
 
-                Triple(attackTarget!!.location, attackTarget!!.velocity, offset)
+                    farOutOfRange -> {
+                        // Face heading direction when chasing target.
+                        Triple(ship.location + unitVector(desiredHeading) * 1000f, Vector2f(), 0f)
+                    }
+
+                    else -> {
+                        // Average aim offset to avoid ship wobbling.
+                        val offset = averageOffset.update(calculateAimOffset(attackTarget!!))
+                        Triple(target.location, target.velocity, offset)
+                    }
+                }
             }
 
             targetLocation != null -> {
@@ -194,22 +207,15 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
             }
         }
 
-//        debugVertices.add(Line(ship.location, aimPoint, Color.BLUE))
-//        debugVertices.add(Line(ship.location, ship.location + unitVector(ship.facing) * (ship.location - aimPoint).length(), Color.YELLOW))
-
         desiredFacing = engineController.facing(ship, aimPoint, v, dt, offset)
         ship.AITFlags.aimPoint = aimPoint
-
-        debugVertices.add(Line(ship.location, ship.location + unitVector(desiredFacing) * (ship.location - aimPoint).length(), Color.YELLOW))
     }
 
     private fun setHeading() {
-        val threat = calculateThreatDirection(ship.location)
-
         val (p, v) = when {
             isBackingOff -> {
                 // Move opposite to threat direction.
-                val backoffLocation = ship.location - threat.resize(1000f)
+                val backoffLocation = ship.location - threatVector.resize(1000f)
                 Pair(backoffLocation, Vector2f())
             }
 
@@ -220,9 +226,9 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
 
             targetShip != null -> {
                 val angleToTarget = (targetShip.location - ship.location).getFacing()
-                val angleFromTargetToThreat = getShortestRotation(threat.getFacing(), angleToTarget)
-                val offset = if (angleFromTargetToThreat > 1f) threat
-                else strafeRotation.rotate(threat)
+                val angleFromTargetToThreat = getShortestRotation(threatVector.getFacing(), angleToTarget)
+                val offset = if (angleFromTargetToThreat > 1f) threatVector
+                else strafeRotation.rotate(threatVector)
 
                 // Orbit target at max weapon range. Rotate away from threat,
                 // or just strafe randomly if no threat.
@@ -231,16 +237,10 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
             }
 
             else -> {
-                // Nothing to do, just coast.
+                // Nothing to do, let the ship coast.
                 return
             }
         }
-
-//        debugVertices.add(Line(ship.location, p, Color.YELLOW))
-//        debugVertices.add(Line(ship.location, ship.location + unitVector(desiredHeading) * 300f, Color.GREEN))
-//        drawEngineLines(ship)
-
-//        drawWeaponLines(ship)
 
         desiredHeading = engineController.heading(ship, p, v, dt)
     }
@@ -276,18 +276,12 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
         return weapons.maxOfOrNull { -it.range - it.slot.location.x }?.let { -it } ?: 0f
     }
 
-    private fun dps(weapons: List<WeaponAPI>): Float {
-        return weapons.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
-    }
-
     /** Aim hardpoint weapons with entire ship, if possible. */
     private fun calculateAimOffset(attackTarget: ShipAPI): Float {
         // Find intercept points of all hardpoints attacking the current target.
-        val hardpoints = ship.allWeapons.filter { it.slot.isHardpoint && !it.isPD }.mapNotNull { it.autofireAI }
+        val hardpoints = ship.allWeapons.filter { it.slot.isHardpoint }.mapNotNull { it.autofireAI }
         val aimedHardpoints = hardpoints.filter { it.targetShip != null && it.targetShip == attackTarget }
         val interceptPoints = aimedHardpoints.mapNotNull { it.intercept }
-
-        debugVertices.addAll(aimedHardpoints.map { Line(it.weapon.location, it.intercept ?: it.weapon.location, if (it.weapon.isPD) Color.BLUE else Color.GREEN) })
 
         if (interceptPoints.isEmpty()) return 0f
 
@@ -295,12 +289,6 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
         // have weapons with significantly different projectile velocities.
         val interceptSum = interceptPoints.fold(Vector2f()) { sum, intercept -> sum + intercept }
         val aimPoint = interceptSum / interceptPoints.size.toFloat()
-
-//        debugVertices.add(Line(ship.location, aimPoint, Color.BLUE))
-//        debugVertices.add(Line(ship.location, attackTarget.location, Color.YELLOW))
-//        debugVertices.add(Line(ship.location, ship.location + unitVector(ship.facing) * (ship.location - aimPoint).length(), Color.YELLOW))
-
-//        debugPlugin["off1"] = getShortestRotation((attackTarget.location - ship.location).getFacing(), (aimPoint - ship.location).getFacing())
 
         return getShortestRotation((attackTarget.location - ship.location).getFacing(), (aimPoint - ship.location).getFacing())
     }
@@ -323,11 +311,4 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
         val r = radius * 2f
         return shipGrid().getCheckIterator(location, r, r).asSequence().filterIsInstance<ShipAPI>()
     }
-
-//    private fun isJunkInLineOfFire(): ShipAPI? {
-//        val weaponAIs = primaryWeapons().mapNotNull { it.autofireAI }
-//        val aimedAtJunk = weaponAIs.firstOrNull { it.shouldHoldFire == HoldFire.AVOID_FF_JUNK } ?: return null
-//
-//        return aimedAtJunk.predictedHit?.target as? ShipAPI
-//    }
 }
