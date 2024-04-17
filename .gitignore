@@ -10,3 +10,5 @@ out/
 *.zip
 deploy.sh
 campaign.xml
+disassembly
+src_asm
