@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.absoluteArcFacing
+import com.genir.aitweaks.utils.extensions.rotated
 import com.genir.aitweaks.utils.extensions.totalRange
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -116,8 +117,8 @@ fun willHitBounds(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
     // Rotate weapon coordinates into target frame of reference.
     // That way the target bounds don't need to be transformed.
     val r = Rotation(-target.facing)
-    val q1 = r.rotate(pv.first)
-    val vr = r.rotate(pv.second)
+    val q1 = pv.first.rotated(r)
+    val vr = pv.second.rotated(r)
     val q2 = q1 + vr
 
     return bounds.origSegments.fold(null, fun(closest: Float?, segment): Float? {

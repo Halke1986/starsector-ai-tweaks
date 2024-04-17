@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
-import com.genir.aitweaks.utils.ai.hasAIType
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ui.LazyFont
@@ -59,16 +58,23 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        val ship = Global.getCombatEngine().ships.firstOrNull { it.hasAIType<AssemblyShipAI>() } ?: return
+        val ships = Global.getCombatEngine().ships
 
-//        debugPlugin[0] = ship.maneuverTarget
-//        debugPlugin[1] = targetTracker[ship]
+//        ships.forEach { ship ->
+//            ship.AITFlags.maneuverTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.BLUE)) }
+//            ship.AITFlags.attackTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
+//
+//            if (ship.hasAIType<AssemblyShipAI>()) {
+//                debugVertices.add(Line(ship.location, ship.location + Vector2f(ship.velocity).resized(400f), Color.RED))
+////                debugVertices.add(Line(ship.location, ship.location + ship.ai as AssemblyShipAI)  Vector2f(ship.velocity).resized(400f), Color.RED))
+//                debugPlugin["speed"] = ship.velocity.length()
+//            }
+//        }
 
+        val ship = ships.firstOrNull { it.owner == 0 } ?: return
 
-//        debugPlugin[0] = (ship.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
+        debugPlugin[0] = (ship.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
 //        debugPlugin["avoiding collision"] = if ((ship.ai as AssemblyShipAI).flockingAI.String()) "avoiding collision" else ""
-
-
     }
 
     private fun speedupAsteroids() {

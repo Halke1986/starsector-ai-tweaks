@@ -8,10 +8,11 @@ import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.deploymentPoints
 import com.genir.aitweaks.utils.extensions.isShip
+import com.genir.aitweaks.utils.extensions.resized
+import com.genir.aitweaks.utils.extensions.rotated
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
-import org.lazywizard.lazylib.ext.resize
 import org.lwjgl.util.vector.Vector2f
 
 /** LidarShipAI replaces vanilla AI only when the lidar array is active. */
@@ -34,7 +35,7 @@ class LidarShipAI(private val ship: ShipAPI, private val target: ShipAPI, privat
                 gradient < -30f -> angle -= 5f
             }
 
-            offset = unitVector(angle).resize(range * 0.92f)
+            offset = unitVector(angle).resized(range * 0.92f)
         }
 
         val con = EngineController()
@@ -70,7 +71,7 @@ fun dangerGradientInDirection(ship: ShipAPI, facing: Float): Float {
 
     val r = Rotation(90f - facing)
     return threats.fold(0f) { sum, enemy ->
-        val pos = r.rotate((enemy as ShipAPI).location - ship.location);
+        val pos = ((enemy as ShipAPI).location.rotated(r) - ship.location);
         val dp = enemy.deploymentPoints
         sum + (dp * dp * pos.length() * pos.y) / 1e6f;
     }

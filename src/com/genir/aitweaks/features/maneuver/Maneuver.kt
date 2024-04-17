@@ -7,7 +7,9 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.MISSILE
 import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
+import com.genir.aitweaks.debug.Line
 import com.genir.aitweaks.debug.debugPlugin
+import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ShipSystemAiType.MANEUVERING_JETS
 import com.genir.aitweaks.utils.ai.AITFlags
@@ -17,8 +19,8 @@ import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
-import org.lazywizard.lazylib.ext.resize
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -33,6 +35,7 @@ const val shieldFlickerThreshold = 0.5f
 
 const val arrivedAtLocationRadius = 2000f
 
+@Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLocation: Vector2f?) {
     private val engineController = EngineController()
     private val shipAI = ship.ai as AssemblyShipAI
@@ -41,12 +44,12 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
     var desiredHeading: Float = ship.facing
     var desiredFacing: Float = ship.facing
 
+    var attackTarget: ShipAPI? = targetShip
+    var isBackingOff: Boolean = false
+
     private var range: Float = 0f
     private var averageOffset = RollingAverageFloat(aimOffsetSamples)
     private var idleTime = 0f
-
-    private var attackTarget: ShipAPI? = targetShip
-    private var isBackingOff: Boolean = false
 
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
@@ -55,13 +58,19 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
     private var threatVector = calculateThreatDirection(ship.location)
 
     fun advance(dt: Float) {
+        ship.AITFlags.maneuverAI = this
+
         if (shouldEndManeuver()) {
             shipAI.cancelCurrentManeuver()
+            ship.AITFlags.maneuverAI = null
         }
 
         // Update state.
         val weapons = primaryWeapons()
         range = range(weapons)
+
+        threatVector = calculateThreatDirection(ship.location)
+
         updateAttackTarget()
         updateBackoffStatus()
         updateIdleTime(dt)
@@ -188,6 +197,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
                     else -> {
                         // Average aim offset to avoid ship wobbling.
                         val offset = averageOffset.update(calculateAimOffset(attackTarget!!))
+//                        debugPlugin["offset"] = offset
                         Triple(target.location, target.velocity, offset)
                     }
                 }
@@ -204,15 +214,16 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
             }
         }
 
+//        debugVertices.add(Line(ship.location, aimPoint, Color.BLUE))
+
         desiredFacing = engineController.facing(ship, aimPoint, v, offset)
-        ship.AITFlags.aimPoint = aimPoint
     }
 
     private fun setHeading() {
         val (p, v) = when {
             isBackingOff -> {
                 // Move opposite to threat direction.
-                val backoffLocation = ship.location - threatVector.resize(1000f)
+                val backoffLocation = ship.location - threatVector.resized(1000f)
                 Pair(backoffLocation, Vector2f())
             }
 
@@ -222,14 +233,20 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
             }
 
             targetShip != null -> {
-                val angleToTarget = (targetShip.location - ship.location).getFacing()
-                val angleFromTargetToThreat = getShortestRotation(threatVector.getFacing(), angleToTarget)
+                // TODO will need syncing when interval tracking is introduced.
+                val angleFromTargetToThreat = abs(getShortestRotation(targetShip.location - ship.location, threatVector))
                 val offset = if (angleFromTargetToThreat > 1f) threatVector
-                else strafeRotation.rotate(threatVector)
+                else threatVector.rotated(strafeRotation)
 
                 // Orbit target at max weapon range. Rotate away from threat,
                 // or just strafe randomly if no threat.
-                val strafeLocation = targetShip.location - offset.resize(range)
+                val strafeLocation = targetShip.location - offset.resized(range)
+
+                debugPlugin["angleFromTargetToThreat"] = angleFromTargetToThreat
+
+                debugVertices.add(Line(ship.location, strafeLocation, Color.YELLOW))
+                debugVertices.add(Line(ship.location, ship.location + threatVector, Color.RED))
+
                 Pair(strafeLocation, attackTarget?.velocity ?: targetShip.velocity)
             }
 
@@ -297,7 +314,7 @@ class Maneuver(val ship: ShipAPI, val targetShip: ShipAPI?, private val targetLo
 
         val threatSum = threats.fold(Vector2f()) { sum, it ->
             val dp = it.deploymentPoints
-            val dir = (it.location - ship.location).resize(1f)
+            val dir = (it.location - ship.location).resized(1f)
             sum + dir * dp * dp
         }
 

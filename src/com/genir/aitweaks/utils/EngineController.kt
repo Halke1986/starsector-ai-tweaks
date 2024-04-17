@@ -4,9 +4,15 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
+import com.genir.aitweaks.utils.extensions.resized
+import com.genir.aitweaks.utils.extensions.rotated
+import com.genir.aitweaks.utils.extensions.rotatedReverse
 import com.genir.aitweaks.utils.extensions.strafeAcceleration
 import org.lazywizard.lazylib.MathUtils.getShortestRotation
-import org.lazywizard.lazylib.ext.*
+import org.lazywizard.lazylib.ext.getFacing
+import org.lazywizard.lazylib.ext.isZeroVector
+import org.lazywizard.lazylib.ext.minus
+import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.max
@@ -36,8 +42,8 @@ class EngineController {
         // slow down to match target velocity when still far
         // from the target.
         val a = Rotation(90f - tr.getFacing())
-        val vp = a.rotate(targetVelocity)
-        val vc = a.reverse(Vector2f(vp.x, max(vp.y, 0f)))
+        val vp = targetVelocity.rotated(a)
+        val vc = Vector2f(vp.x, max(vp.y, 0f)).rotatedReverse(a)
 
         // Transform input into ship frame of reference.
         // Account for ship angular velocity, as linear
@@ -47,14 +53,14 @@ class EngineController {
         val dt = Global.getCombatEngine().elapsedInLastFrame
         val w = ship.angularVelocity * dt
         val r = Rotation(90f - ship.facing - w)
-        val d = r.rotate(tr)
-        val v = r.rotate(ship.velocity) * dt
-        val vt = r.rotate(vc) * dt
+        val d = tr.rotated(r)
+        val v = ship.velocity.rotated(r) * dt
+        val vt = vc.rotated(r) * dt
         val vr = v - vt
 
         // Calculate expected velocity change.
         val vMax = ship.maxSpeed * dt
-        val vExpected = (Vector2f(d).resize(vMax) + vt).resize(vMax)
+        val vExpected = (Vector2f(d).resized(vMax) + vt).resized(vMax)
         val dv = vExpected - v
 
         val af = ship.acceleration * dt * dt
