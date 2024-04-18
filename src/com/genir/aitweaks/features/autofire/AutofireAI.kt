@@ -5,7 +5,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.utils.*
-import com.genir.aitweaks.utils.ai.AITFlags
 import com.genir.aitweaks.utils.attack.*
 import com.genir.aitweaks.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
@@ -182,7 +181,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing)))
             return intercept
 
-        val aimPoint: Vector2f = weapon.ship.AITFlags.aimPoint ?: target!!.location
+        val aimPoint: Vector2f = weapon.ship.AITStash.maneuverAI?.aimPoint ?: target!!.location
         val tgtLocation = aimPoint - weapon.ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
         val angleToTarget = MathUtils.getShortestRotation(tgtFacing, weapon.ship.facing)

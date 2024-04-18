@@ -4,9 +4,12 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
+import com.genir.aitweaks.utils.AITStash
+import com.genir.aitweaks.utils.extensions.resized
 import com.genir.aitweaks.utils.times
+import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.VectorUtils
+import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -60,21 +63,24 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private fun debug(dt: Float) {
         val ships = Global.getCombatEngine().ships
 
-//        ships.forEach { ship ->
-//            ship.AITFlags.maneuverTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.BLUE)) }
-//            ship.AITFlags.attackTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
-//
-//            if (ship.hasAIType<AssemblyShipAI>()) {
-//                debugVertices.add(Line(ship.location, ship.location + Vector2f(ship.velocity).resized(400f), Color.RED))
-////                debugVertices.add(Line(ship.location, ship.location + ship.ai as AssemblyShipAI)  Vector2f(ship.velocity).resized(400f), Color.RED))
-//                debugPlugin["speed"] = ship.velocity.length()
-//            }
-//        }
+        val maneuvers = ships.mapNotNull { it.AITStash.maneuverAI }
 
-        val ship = ships.firstOrNull { it.owner == 0 } ?: return
+        maneuvers.forEach { m ->
+            val ship = m.ship
+            m.maneuverTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.BLUE)) }
+            m.attackTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
 
-        debugPlugin[0] = (ship.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
+            debugVertices.add(Line(ship.location, ship.location + Vector2f(ship.velocity).resized(400f), Color.GREEN))
+            debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.YELLOW))
+//                debugVertices.add(Line(ship.location, ship.location + ship.ai as AssemblyShipAI)  Vector2f(ship.velocity).resized(400f), Color.RED))
+            debugPlugin["speed"] = ship.velocity.length()
+        }
+
+//        val ship = ships.firstOrNull { it.owner == 0 } ?: return
+
+//        debugPlugin[0] = (ship.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
 //        debugPlugin["avoiding collision"] = if ((ship.ai as AssemblyShipAI).flockingAI.String()) "avoiding collision" else ""
+
     }
 
     private fun speedupAsteroids() {

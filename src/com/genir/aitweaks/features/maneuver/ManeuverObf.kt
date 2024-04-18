@@ -24,7 +24,7 @@ open class ManeuverObfBase(ship: Ship, target: Ship?, location: Vector2f?) : oO0
 
     override fun o00000(p0: Float) = maneuver.advance(p0)
 
-    override fun o00000(): B = maneuver.targetShip as Ship
+    override fun o00000(): B = maneuver.maneuverTarget as Ship
 
     override fun Õ00000(): Boolean = maneuver.isDirectControl
 
