@@ -62,19 +62,23 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         logs.clear()
     }
 
+    var c: Controller2? = null
+
     private fun debug(dt: Float) {
-//        val ship = Global.getCombatEngine().playerShip ?: return
-//
-//        val position = Vector2f(
-//            Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()),
-//            Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()),
-//        )
-//
-//        val c = Controller2(ship)
-//        c.heading(position, dt)
-//
-//        drawEngineLines(ship)
-        makeDroneFormation(dt)
+        val ship = Global.getCombatEngine().playerShip ?: return
+
+        val position = Vector2f(
+            Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()),
+            Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()),
+        )
+
+        if (c?.ship != ship) {
+            c = Controller2(ship)
+        }
+        c!!.heading(position)
+
+        drawEngineLines(ship)
+//        makeDroneFormation(dt)
     }
 
     private var controllers: MutableMap<ShipAPI, Controller2> = mutableMapOf()
@@ -94,12 +98,12 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
             drone.shipAI = null
 
-//            val offset = Rotation(angle * i + ship.facing).rotate(Vector2f(0f, 230f))
-            val offset = Rotation(angle * i).rotate(Vector2f(0f, 230f))
+            val offset = Rotation(angle * i + ship.facing).rotate(Vector2f(0f, 300f))
+//            val offset = Rotation(angle * i).rotate(Vector2f(0f, 230f))
 
 //            debugVertices.add(Line(ship.location, ship.location + offset, Color.YELLOW))
 
-            controllers[drone]!!.heading(ship.location + offset, ship.velocity, dt)
+            controllers[drone]!!.heading(ship.location + offset)
 //            controllers[drone]!!.facing(ship.location + offset * 2f)
         }
 
