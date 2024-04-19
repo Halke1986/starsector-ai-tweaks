@@ -32,7 +32,7 @@ const val arrivedAtLocationRadius = 2000f
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targetLocation: Vector2f?) {
-    private val engineController = EngineController()
+    private val engineController = EngineController(ship)
     private val shipAI = ship.ai as AssemblyShipAI
 
     val isDirectControl: Boolean = true
@@ -198,7 +198,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
     private fun setFacing() {
         this.aimPoint = null
 
-        val (aimPoint, aimPointVelocity) = when {
+        val aimPoint: Vector2f = when {
             attackTarget != null -> {
                 val target = attackTarget!!
                 val farOutOfRange = isOutOfRange(target.location, range + target.collisionRadius + 1000f)
@@ -206,12 +206,12 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
                 when {
                     farOutOfRange && isBackingOff -> {
                         // Face threat direction when backing off.
-                        Pair(ship.location + threatVector, Vector2f())
+                        ship.location + threatVector
                     }
 
                     farOutOfRange -> {
                         // Face heading direction when chasing target.
-                        Pair(ship.location + unitVector(desiredHeading) * 1000f, Vector2f())
+                        ship.location + unitVector(desiredHeading) * 1000f
                     }
 
                     else -> {
@@ -219,16 +219,15 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
                         val aimPointThisFrame = calculateOffsetAimPoint(target)
                         val aimOffsetThisFrame = getShortestRotation(target.location, ship.location, aimPointThisFrame)
                         val aimOffset = averageOffset.update(aimOffsetThisFrame)
-                        val aimPoint = target.location.rotatedAroundPivot(Rotation(aimOffset), ship.location)
 
-                        Pair(aimPoint, target.velocity)
+                        target.location.rotatedAroundPivot(Rotation(aimOffset), ship.location)
                     }
                 }
             }
 
             targetLocation != null -> {
                 // Move to location, if no attack target.
-                Pair(targetLocation, Vector2f())
+                targetLocation
             }
 
             // Nothing to do.
@@ -236,20 +235,19 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         }
 
         this.aimPoint = aimPoint
-        desiredFacing = engineController.facing(ship, aimPoint, aimPointVelocity)
+        desiredFacing = engineController.facing(aimPoint)
     }
 
     private fun setHeading() {
-        val (p, v) = when {
+        val p: Vector2f = when {
             isBackingOff -> {
                 // Move opposite to threat direction.
-                val backoffLocation = ship.location - threatVector.resized(1000f)
-                Pair(backoffLocation, Vector2f())
+                ship.location - threatVector.resized(1000f)
             }
 
             targetLocation != null -> {
                 // Move directly to ordered location.
-                Pair(targetLocation, Vector2f())
+                targetLocation
             }
 
             maneuverTarget != null -> {
@@ -260,15 +258,14 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
 
                 // Orbit target at max weapon range. Rotate away from threat,
                 // or just strafe randomly if no threat.
-                val strafeLocation = maneuverTarget.location - offset.resized(range)
-                Pair(strafeLocation, attackTarget?.velocity ?: maneuverTarget.velocity)
+                maneuverTarget.location - offset.resized(range)
             }
 
             // Nothing to do, let the ship coast.
             else -> return
         }
 
-        desiredHeading = engineController.heading(ship, p, v)
+        desiredHeading = engineController.heading(p)
     }
 
     private fun isOutOfRange(target: ShipAPI, range: Float) = isOutOfRange(target.location, range)

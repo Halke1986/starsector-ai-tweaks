@@ -48,6 +48,13 @@ class RenderLines : BaseCombatLayeredRenderingPlugin() {
         ).forEach {
             debugVertices.add(Line(ship.location, ship.location + r.rotate(it * ship.collisionRadius * 1.2f), Color.BLUE))
         }
+
+        listOfNotNull(
+            if (engine.isTurningLeft) Vector2f(-0.75f, 0.20f) else null,
+            if (engine.isTurningRight) Vector2f(0.75f, 0.20f) else null,
+        ).forEach {
+            debugVertices.add(Line(ship.location, ship.location + r.rotate(it * ship.collisionRadius * 1.2f), Color.CYAN))
+        }
     }
 
     private fun drawWeaponLines(ship: ShipAPI) {
