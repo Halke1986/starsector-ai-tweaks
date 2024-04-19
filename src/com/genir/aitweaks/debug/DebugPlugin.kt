@@ -7,8 +7,11 @@ import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.CombatFleetManager.O0
 import com.fs.starfarer.combat.tasks.CombatTaskManager
+import com.genir.aitweaks.utils.Controller2
+import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
+import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -60,16 +63,47 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-//        Global.getCombatEngine().ships.filter { it.owner == 0 && it.isFighter}.forEach { drawWeaponLines(it) }
-//        Global.getCombatEngine().getFleetManager(0).admiralAI = null
-
-//        debugPlugin.clear()
+//        val ship = Global.getCombatEngine().playerShip ?: return
 //
-//        Global.getCombatEngine().ships.filter {
-//            it.owner == 0 && it.hasDirectOrder
-//        }.forEach {
-//            debugPlugin[it] = it
-//        }
+//        val position = Vector2f(
+//            Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()),
+//            Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()),
+//        )
+//
+//        val c = Controller2(ship)
+//        c.heading(position, dt)
+//
+//        drawEngineLines(ship)
+        makeDroneFormation(dt)
+    }
+
+    private var controllers: MutableMap<ShipAPI, Controller2> = mutableMapOf()
+
+    private fun makeDroneFormation(dt: Float) {
+        val ship = Global.getCombatEngine().playerShip ?: return
+        val drones = Global.getCombatEngine().ships.filter { it.isFighter }
+
+        val angle = 360f / drones.size
+
+        for (i in drones.indices) {
+            val drone = drones[i]
+
+            if (!controllers.containsKey(drone)) {
+                controllers[drone] = Controller2(drone)
+            }
+
+            drone.shipAI = null
+
+//            val offset = Rotation(angle * i + ship.facing).rotate(Vector2f(0f, 230f))
+            val offset = Rotation(angle * i).rotate(Vector2f(0f, 230f))
+
+//            debugVertices.add(Line(ship.location, ship.location + offset, Color.YELLOW))
+
+            controllers[drone]!!.heading(ship.location + offset, ship.velocity, dt)
+//            controllers[drone]!!.facing(ship.location + offset * 2f)
+        }
+
+        drones.forEach { it.shipAI = null }
     }
 
     private fun speedupAsteroids() {

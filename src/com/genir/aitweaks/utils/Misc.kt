@@ -10,22 +10,9 @@ import org.lazywizard.lazylib.MathUtils.getShortestRotation
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.PI
 import kotlin.math.abs
-
-/**
- *  Find the distance between point (0,0)
- *  and point p traveling with velocity v.
- *
- *  Returns null if v points away from (0,0).
- */
-fun distanceToOrigin(p: Vector2f, v: Vector2f): Float? {
-    val t = -(p.x * v.x + p.y * v.y) / (v.x * v.x + v.y * v.y)
-    return if (t >= 0) (p + v * t).length()
-    else null
-}
 
 // TODO remove and use ballistics implementation
 fun willHitShield(weapon: WeaponAPI, target: ShipAPI?) = when {

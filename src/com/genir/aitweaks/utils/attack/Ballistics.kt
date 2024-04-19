@@ -12,7 +12,6 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
 
 /**
  * All functions in this file take into account target velocity
@@ -185,16 +184,6 @@ private fun solve(pv: Pair<Vector2f, Vector2f>, r: Float, w: Float, cosA: Float)
         t1 >= 0 && t2 >= 0 -> min(t1, t2)
         t1 <= 0 != t2 <= 0 -> max(t1, t2)
         else -> null
-    }
-}
-
-/** Solve quadratic equation [ax^2 + bx + c = 0] for x. */
-private fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
-    val d = b * b - 4f * a * c
-    return when {
-        d < 0 -> null
-        a == 0f -> (2 * c / -b).let { Pair(it, it) }
-        else -> sqrt(d).let { Pair((-b + it) / (2 * a), (-b - it) / (2 * a)) }
     }
 }
 
