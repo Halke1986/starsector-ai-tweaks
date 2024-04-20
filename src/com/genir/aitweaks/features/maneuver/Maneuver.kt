@@ -32,7 +32,7 @@ const val arrivedAtLocationRadius = 2000f
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targetLocation: Vector2f?) {
-    private val engineController = EngineController(ship)
+    private val engineController = ship.AITStash.engineController
     private val shipAI = ship.ai as AssemblyShipAI
 
     val isDirectControl: Boolean = true
