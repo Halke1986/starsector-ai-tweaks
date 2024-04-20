@@ -4,6 +4,7 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
+import com.genir.aitweaks.features.autofire.HoldFire.*
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.attack.*
 import com.genir.aitweaks.utils.extensions.*
@@ -34,9 +35,11 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     private var aimLocation: Vector2f? = null
 
-    // Fields accessed by Assembly Ship AI
+    private var isForcedOff = false
+
+    // Fields accessed by AssemblyShipAI
     var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons
-    var shouldHoldFire: HoldFire? = HoldFire.NO_TARGET
+    var shouldHoldFire: HoldFire? = NO_TARGET
     var predictedHit: Hit? = null
 
     private val debugIdx = autofireAICount++
@@ -75,12 +78,18 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (shouldFireInterval.intervalElapsed()) {
             shouldHoldFire = calculateShouldFire(selectTargetInterval.elapsed)
         }
+
+        // Override the calculated decision.
+        if (isForcedOff) {
+            isForcedOff = false
+            shouldHoldFire = FORCE_OFF
+        }
     }
 
     override fun shouldFire(): Boolean = shouldHoldFire == null
 
     override fun forceOff() {
-        shouldHoldFire = HoldFire.FORCE_OFF
+        isForcedOff = true
     }
 
     override fun getTarget(): Vector2f? = aimLocation
@@ -100,8 +109,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private fun calculateShouldFire(timeDelta: Float): HoldFire? {
         this.predictedHit = null
 
-        if (target == null) return HoldFire.NO_TARGET
-        if (aimLocation == null) return HoldFire.NO_HIT_EXPECTED
+        if (target == null) return NO_TARGET
+        if (aimLocation == null) return NO_HIT_EXPECTED
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
@@ -109,7 +118,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         onTargetTime += timeDelta
         if (expectedHit == null) {
             onTargetTime = 0f
-            return HoldFire.NO_HIT_EXPECTED
+            return NO_HIT_EXPECTED
         }
 
         // Hold fire for a period of time after initially acquiring
@@ -118,7 +127,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (!weapon.isPD && onTargetTime < min(2f, weapon.firingCycle.duration)) {
             val angleToTarget = VectorUtils.getFacing(aimLocation!! - weapon.location)
             val inaccuracy = abs(MathUtils.getShortestRotation(weapon.currAngle, angleToTarget))
-            if (inaccuracy > 1f) return HoldFire.STABILIZE_ON_TARGET
+            if (inaccuracy > 1f) return STABILIZE_ON_TARGET
         }
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
@@ -134,8 +143,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         when {
-            hit.shieldHit && hit.range > weapon.range -> return HoldFire.OUT_OF_RANGE
-            !hit.shieldHit && hit.range > weapon.totalRange -> return HoldFire.OUT_OF_RANGE
+            hit.shieldHit && hit.range > weapon.range -> return OUT_OF_RANGE
+            !hit.shieldHit && hit.range > weapon.totalRange -> return OUT_OF_RANGE
         }
 
         return AttackRules(weapon, hit, currentParams()).shouldHoldFire

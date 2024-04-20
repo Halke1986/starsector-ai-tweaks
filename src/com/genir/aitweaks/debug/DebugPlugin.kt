@@ -8,7 +8,6 @@ import com.genir.aitweaks.utils.AITStash
 import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.extensions.resized
 import com.genir.aitweaks.utils.times
-import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ui.LazyFont
@@ -68,11 +67,14 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
         maneuvers.forEach { m ->
             val ship = m.ship
-            m.maneuverTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.BLUE)) }
-            m.attackTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
+//            m.maneuverTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.BLUE)) }
+//            m.attackTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
+
+            ship.shipTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
 
             debugVertices.add(Line(ship.location, ship.location + Vector2f(ship.velocity).resized(400f), Color.GREEN))
-            debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.YELLOW))
+//            debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.YELLOW))
+
 //                debugVertices.add(Line(ship.location, ship.location + ship.ai as AssemblyShipAI)  Vector2f(ship.velocity).resized(400f), Color.RED))
 //            debugPlugin["speed"] = ship.velocity.length()
 //            debugPlugin["heading"] = m.desiredHeading

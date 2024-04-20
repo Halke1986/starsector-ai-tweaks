@@ -11,48 +11,48 @@ import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
 val ShipAPI.isModule: Boolean
-    get() = this.stationSlot != null
+    get() = stationSlot != null
 
 val ShipAPI.rootModule: ShipAPI
-    get() = if (this.isModule) this.parentStation else this
+    get() = if (isModule) parentStation else this
 
 val ShipAPI.isHullDamageable: Boolean
-    get() = this.mutableStats.hullDamageTakenMult.getModifiedValue() > 0f
+    get() = mutableStats.hullDamageTakenMult.getModifiedValue() > 0f
 
 private val ShipAPI.taskManager: CombatTaskManagerAPI
-    get() = Global.getCombatEngine().getFleetManager(this.owner).getTaskManager(this.isAlly)
+    get() = Global.getCombatEngine().getFleetManager(owner).getTaskManager(isAlly)
 
 val ShipAPI.assignment: CombatFleetManagerAPI.AssignmentInfo?
-    get() = this.taskManager.getAssignmentFor(this)
+    get() = taskManager.getAssignmentFor(this)
 
 val ShipAPI.hasEscortAssignment: Boolean
-    get() = this.assignment?.type.let { it == LIGHT_ESCORT || it == MEDIUM_ESCORT || it == HEAVY_ESCORT }
+    get() = assignment?.type.let { it == LIGHT_ESCORT || it == MEDIUM_ESCORT || it == HEAVY_ESCORT }
 
 val ShipAPI.deployedFleetMember: DeployedFleetMemberAPI?
-    get() = Global.getCombatEngine().getFleetManager(this.owner).getDeployedFleetMember(this)
+    get() = Global.getCombatEngine().getFleetManager(owner).getDeployedFleetMember(this)
 
 val ShipAPI.maneuverTarget: ShipAPI?
-    get() = this.aiFlags.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET) as? ShipAPI
+    get() = aiFlags.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET) as? ShipAPI
 
 val ShipAPI.trueShipTarget: ShipAPI?
     get() {
-        val root = this.rootModule
+        val root = rootModule
         val engine = Global.getCombatEngine()
         val aiControl = root != engine.playerShip || !engine.isUIAutopilotOn
-        return if (aiControl) this.AITStash.attackTarget ?: root.maneuverTarget
+        return if (aiControl) AITStash.attackTarget ?: root.maneuverTarget
         else root.shipTarget
     }
 
 val ShipAPI.isAutomated: Boolean
-    get() = this.variant.hasHullMod(HullMods.AUTOMATED)
+    get() = variant.hasHullMod(HullMods.AUTOMATED)
 
 val ShipAPI.deploymentPoints: Float
-    get() = this.fleetMember?.unmodifiedDeploymentPointsCost ?: 0f
+    get() = fleetMember?.unmodifiedDeploymentPointsCost ?: 0f
 
 val ShipAPI.maxFiringRange: Float
-    get() = this.allWeapons.maxOfOrNull { it.range } ?: 0f
+    get() = allWeapons.maxOfOrNull { it.range } ?: 0f
 
 /** Angle between ship facing and direction from ship to point p. */
 fun ShipAPI.angleFromFacing(p: Vector2f): Float {
-    return MathUtils.getShortestRotation((p - this.location).getFacing(), this.facing)
+    return MathUtils.getShortestRotation((p - location).getFacing(), facing)
 }

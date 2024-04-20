@@ -23,7 +23,8 @@ const val threatEvalRadius = 2500f
 const val aimOffsetSamples = 45
 
 const val backoffUpperThreshold = 0.75f
-const val backoffLowerThreshold = 0.2f
+const val backoffLowerThreshold = 0.33f
+const val holdFireThreshold = 0.9f
 
 const val shieldDownVentTime = 2.0f
 const val shieldFlickerThreshold = 0.5f
@@ -72,12 +73,8 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         updateIdleTime(dt)
 
         ventIfNeeded()
+        holdFireIfOverfluxed()
         manageMobilitySystems()
-
-        debugPlugin["backoff"] = if (isBackingOff) "is backing off" else ""
-
-        ship.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, range)
-        ship.aiFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
 
         // Facing is controlled in advance() instead of doManeuver()
         // because doManeuver() is not called when ShipAI decides
@@ -96,6 +93,11 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
                 debugPlugin["collision"] = "avoiding collision"
             }
         }
+
+        debugPlugin["backoff"] = if (isBackingOff) "is backing off" else ""
+
+        ship.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, range)
+        ship.aiFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
     }
 
     fun doManeuver() = setHeading()
@@ -132,6 +134,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         if (updateTarget) currentTarget = findNewTarget() ?: maneuverTarget
 
         ship.AITStash.attackTarget = currentTarget
+        ship.shipTarget = currentTarget
         attackTarget = currentTarget
     }
 
@@ -141,7 +144,8 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         isBackingOff = ship.aiFlags.hasFlag(BACKING_OFF)
         val fluxLevel = ship.fluxTracker.fluxLevel
 
-        if ((isBackingOff && fluxLevel > backoffLowerThreshold) || fluxLevel > backoffUpperThreshold) {
+//        if ((isBackingOff && fluxLevel > backoffLowerThreshold) || fluxLevel > backoffUpperThreshold) {
+        if ((isBackingOff && fluxLevel > 0f) || fluxLevel > backoffUpperThreshold) {
             ship.aiFlags.setFlag(BACKING_OFF)
         } else if (isBackingOff) {
             ship.aiFlags.unsetFlag(BACKING_OFF)
@@ -157,17 +161,32 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         else idleTime + dt
     }
 
+    private fun holdFireIfOverfluxed() {
+        val tracker = ship.fluxTracker
+
+        debugPlugin["hold fire"] = ""
+
+        if (tracker.fluxLevel < holdFireThreshold) return
+
+        debugPlugin["hold fire"] = "hold fire"
+
+        ship.allWeapons.filter { !it.isPD && it.fluxCostToFire != 0f }.mapNotNull { it.autofirePlugin }.forEach { it.forceOff() }
+    }
+
     /** Force vent when the ship is backing off,
      * not shooting and with shields down. */
     private fun ventIfNeeded() {
-        when {
-            !isBackingOff -> return
-            idleTime < shieldDownVentTime -> return
-            ship.fluxTracker.isVenting -> return
-            ship.allWeapons.firstOrNull { it.autofireAI?.shouldFire() == true } != null -> return
+        val shouldVent = when {
+            !isBackingOff -> false
+            ship.fluxTracker.isVenting -> false
+            ship.fluxLevel < backoffLowerThreshold -> true
+            idleTime < shieldDownVentTime -> false
+            ship.allWeapons.firstOrNull { it.autofireAI?.shouldFire() == true } != null -> false
+            else -> true
         }
 
-        ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
+        if (shouldVent)
+            ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
     }
 
     private fun manageMobilitySystems() {
