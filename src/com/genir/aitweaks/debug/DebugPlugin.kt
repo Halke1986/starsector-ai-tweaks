@@ -4,14 +4,15 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.utils.AITStash
 import com.genir.aitweaks.utils.Rotation
+import com.genir.aitweaks.utils.extensions.resized
 import com.genir.aitweaks.utils.times
+import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
-import org.magiclib.subsystems.drones.PIDController
-import org.magiclib.subsystems.drones.SpinningCircleFormation
 import java.awt.Color
 import java.util.*
 
@@ -60,62 +61,27 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         logs.clear()
     }
 
-
-//    private fun debug(dt: Float) {
-//        val ship = Global.getCombatEngine().playerShip ?: return
-//
-//        val position = Vector2f(
-//            Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()),
-//            Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()),
-//        )
-//
-//        if (c?.ship != ship) {
-//            c = EngineController(ship)
-//        }
-//
-//        c!!.heading(position)
-//        c!!.facing(position)
-//
-//        drawEngineLines(ship)
-////        makeDroneFormation(dt)
-//    }
-
-    val formation = SpinningCircleFormation()
-
     private fun debug(dt: Float) {
-//        val ships = Global.getCombatEngine().ships
-//
-//        val maneuvers = ships.mapNotNull { it.AITStash.maneuverAI }
-//
-//        maneuvers.forEach { m ->
-//            val ship = m.ship
-////            m.maneuverTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.BLUE)) }
-////            m.attackTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
-//
-////            debugVertices.add(Line(ship.location, ship.location + Vector2f(ship.velocity).resized(400f), Color.GREEN))
-//            debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.YELLOW))
-////                debugVertices.add(Line(ship.location, ship.location + ship.ai as AssemblyShipAI)  Vector2f(ship.velocity).resized(400f), Color.RED))
-////            debugPlugin["speed"] = ship.velocity.length()
-////            debugPlugin["heading"] = m.desiredHeading
-//        }
-//
-//        val ship = ships.firstOrNull { it.owner == 0 } ?: return
-//
-////        debugPlugin[0] = (ship.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
-//        debugPlugin["avoiding collision"] = if ((ship.ai as? AssemblyShipAI)?.flockingAI?.String() == true) "avoiding collision" else ""
+        val ships = Global.getCombatEngine().ships
 
-        makeDroneFormation(dt)
-//        val ship = Global.getCombatEngine().playerShip ?: return
-//        val drones = Global.getCombatEngine().ships.filter { it.isFighter }
-//
-//        for (i in drones.indices) {
-//            val drone = drones[i]
-//
-//            drone.shipAI = null
-//        }
-//
-//        if (drones.isNotEmpty())
-//            formation.advance(ship, drones.associateWith { PIDController(10f, 3f, 1f, 1f) }, dt)
+        val maneuvers = ships.mapNotNull { it.AITStash.maneuverAI }
+
+        maneuvers.forEach { m ->
+            val ship = m.ship
+            m.maneuverTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.BLUE)) }
+            m.attackTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
+
+            debugVertices.add(Line(ship.location, ship.location + Vector2f(ship.velocity).resized(400f), Color.GREEN))
+            debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.YELLOW))
+//                debugVertices.add(Line(ship.location, ship.location + ship.ai as AssemblyShipAI)  Vector2f(ship.velocity).resized(400f), Color.RED))
+//            debugPlugin["speed"] = ship.velocity.length()
+//            debugPlugin["heading"] = m.desiredHeading
+        }
+
+//        val ship = ships.firstOrNull { it.owner == 0 } ?: return
+
+//        debugPlugin[0] = (ship.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
+//        debugPlugin["avoiding collision"] = if ((ship.ai as? AssemblyShipAI)?.flockingAI?.String() == true) "avoiding collision" else ""
     }
 
     private fun makeDroneFormation(dt: Float) {
@@ -123,7 +89,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         val drones = Global.getCombatEngine().ships.filter { it.isFighter }
 
         val angle = 360f / drones.size
-        val c = PIDController(10f, 3f, 1f, 1f)
 
         for (i in drones.indices) {
             val drone = drones[i]
@@ -131,17 +96,12 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             drone.shipAI = null
 
             val offset = Rotation(angle * i + ship.facing).rotate(Vector2f(0f, 300f))
-//            val offset = Rotation(angle * i).rotate(Vector2f(0f, 230f))
 
 //            debugVertices.add(Line(ship.location, ship.location + offset, Color.YELLOW))
 
-//            val c = drone.AITStash.engineController
-//            c.heading(ship.location + offset)
-//            c.facing(ship.location + offset * 2f)
-
-//            c.rotate(-angle * i, drone)
-            c.move(ship.location + offset, drone)
-            debugVertices.add(Line(ship.location, ship.location + offset, Color.YELLOW))
+            val c = drone.AITStash.engineController
+            c.heading(ship.location + offset)
+            c.facing(ship.location + offset * 2f)
         }
 
         drones.forEach { it.shipAI = null }
