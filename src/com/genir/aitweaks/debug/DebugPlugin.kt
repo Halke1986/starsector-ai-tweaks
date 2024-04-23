@@ -62,25 +62,35 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        val ships = Global.getCombatEngine().ships
+        val ship = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 && it.AITStash.maneuverAI != null }
+            ?: return
 
-        val maneuvers = ships.mapNotNull { it.AITStash.maneuverAI }
+        val m = ship.AITStash.maneuverAI!!
+        debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.GREEN))
 
-        maneuvers.forEach { m ->
-            val ship = m.ship
+
+        val weapons = ship.allWeapons
+
+        for (i in weapons.indices) {
+            debugPlugin[i] = "${weapons[i].id} ${weapons[i].derivedStats.dps}"
+        }
+
+//        val maneuvers = ships.mapNotNull { it.AITStash.maneuverAI }
+
+//        maneuvers.forEach { m ->
+//            val ship = m.ship
 //            m.maneuverTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.BLUE)) }
 //            m.attackTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
 
 //            ship.shipTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
 
 //            debugVertices.add(Line(ship.location, ship.location + Vector2f(ship.velocity).resized(400f), Color.GREEN))
-            debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.GREEN))
 //            drawEngineLines(ship)
 
 //                debugVertices.add(Line(ship.location, ship.location + ship.ai as AssemblyShipAI)  Vector2f(ship.velocity).resized(400f), Color.RED))
 //            debugPlugin["speed"] = ship.velocity.length()
 //            debugPlugin["heading"] = m.desiredHeading
-        }
+//        }
 
 //        val ship = ships.firstOrNull { it.owner == 0 } ?: return
 //        debugPlugin[0] = (ship.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName

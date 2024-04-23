@@ -120,6 +120,8 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         // Attack target is stored in a flag, so it carries over between Maneuver instances.
         var currentTarget: ShipAPI? = ship.AITStash.attackTarget
 
+        FindTarget(ship, range).target
+
         val updateTarget = when {
             currentTarget == null -> true
             !currentTarget.isValidTarget -> true
@@ -129,7 +131,10 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             else -> false
         }
 
-        if (updateTarget) currentTarget = findNewTarget() ?: maneuverTarget
+        if (updateTarget) {
+            val finder = FindTarget(ship, range)
+            currentTarget = finder.target ?: maneuverTarget
+        }
 
         ship.AITStash.attackTarget = currentTarget
         ship.shipTarget = currentTarget
@@ -322,21 +327,26 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         // Ship is far from border, no avoidance required.
         if (d == 0f) return heading
 
-        // The closer the ship is to map edge, the stronger
-        // the heading transformation.
-        val avoidForce = (d / borderNoGoZone).coerceAtMost(1f)
+        // Translate to frame of reference, where up
+        // corresponds to direction towards border.
         val r = Rotation(90f - c.getFacing())
         val hr = (heading - ship.location).rotated(r)
+
+        // Ship attempts to move away from the border on its own.
+        if (hr.y < 0) return heading
+
+        // The closer the ship is to map edge, the stronger
+        // the heading transformation away from the border.
+        val avoidForce = (d / borderNoGoZone).coerceAtMost(1f)
         val allowedHeading = when {
             hr.x >= 0f -> Vector2f(hr.length(), 0f)
             else -> Vector2f(-hr.length(), 0f)
         }
-
         val censoredHeading = (allowedHeading * avoidForce + hr * (1f - avoidForce)).rotatedReverse(r) * 0.5f
 
         debugVertices.add(Line(ship.location, ship.location + hr.rotatedReverse(r) * (1f - avoidForce), Color.YELLOW))
         debugVertices.add(Line(ship.location, ship.location + allowedHeading.rotatedReverse(r) * avoidForce, Color.BLUE))
-        debugVertices.add(Line(ship.location, ship.location + censoredHeading.rotatedReverse(r), Color.CYAN))
+        debugVertices.add(Line(ship.location, ship.location + censoredHeading, Color.CYAN))
 
         return censoredHeading + ship.location
     }
@@ -345,14 +355,6 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
 
     private fun isOutOfRange(p: Vector2f, range: Float): Boolean {
         return (p - ship.location).lengthSquared() > range * range
-    }
-
-    private fun findNewTarget(): ShipAPI? {
-        val radius = range * 2f
-        val ships = shipGrid().getCheckIterator(ship.location, radius, radius).asSequence().filterIsInstance<ShipAPI>()
-        val threats = ships.filter { it.owner != ship.owner && it.isValidTarget && it.isShip && !isOutOfRange(it, range) }
-
-        return threats.maxByOrNull { -abs(ship.angleFromFacing(it.location)) }
     }
 
     private fun primaryWeapons(): List<WeaponAPI> {
