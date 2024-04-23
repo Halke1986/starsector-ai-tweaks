@@ -8,6 +8,7 @@ import com.genir.aitweaks.utils.AITStash
 import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.extensions.resized
 import com.genir.aitweaks.utils.times
+import com.genir.aitweaks.utils.unitVector
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ui.LazyFont
@@ -70,10 +71,11 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //            m.maneuverTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.BLUE)) }
 //            m.attackTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
 
-            ship.shipTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
+//            ship.shipTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
 
-            debugVertices.add(Line(ship.location, ship.location + Vector2f(ship.velocity).resized(400f), Color.GREEN))
-//            debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.YELLOW))
+//            debugVertices.add(Line(ship.location, ship.location + Vector2f(ship.velocity).resized(400f), Color.GREEN))
+            debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.GREEN))
+//            drawEngineLines(ship)
 
 //                debugVertices.add(Line(ship.location, ship.location + ship.ai as AssemblyShipAI)  Vector2f(ship.velocity).resized(400f), Color.RED))
 //            debugPlugin["speed"] = ship.velocity.length()
@@ -81,8 +83,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
 
 //        val ship = ships.firstOrNull { it.owner == 0 } ?: return
-
 //        debugPlugin[0] = (ship.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
+
 //        debugPlugin["avoiding collision"] = if ((ship.ai as? AssemblyShipAI)?.flockingAI?.String() == true) "avoiding collision" else ""
     }
 

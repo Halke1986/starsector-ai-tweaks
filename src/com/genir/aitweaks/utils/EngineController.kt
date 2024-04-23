@@ -10,17 +10,6 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 import kotlin.random.Random
 
-/**
- * Ship engine controller.
- *
- * Can be used to set ship heading and facing towards selected target.
- * The controller attempts not only to move the ship to the selected
- * target, but also match the target speed. This results in the ship
- * being able to follow moving targets with very little lag.
- *
- * Same instance of controller should be used each frame, otherwise
- * the target speed matching will not work.
- */
 class EngineController(val ship: ShipAPI) {
     private var prevTargetLocation: Vector2f? = null
     private var prevTargetFacing: Float? = null
@@ -28,10 +17,17 @@ class EngineController(val ship: ShipAPI) {
     private val noMovementExpected = Float.MAX_VALUE
 
     /** Set ship heading towards 'target' location. Appropriate target leading
-     * is calculated based on estimated target velocity. If ship
-     * is already at 'target' location, it will match the target velocity.
-     * Returns the expected heading angle. */
-    fun heading(target: Vector2f): Float {
+     * is calculated based on estimated target velocity. If ship is already at
+     * 'target' location, it will match the target velocity. Returns the
+     * expected heading angle. */
+    fun heading(target: Vector2f?): Float {
+        // Stop if no target is provided. This is the only reliable
+        // method of stopping using the engine controller.
+        if (target == null) {
+            if (!ship.velocity.isZeroVector()) ship.move(DECELERATE)
+            return noMovementExpected
+        }
+
         // Change unit of time from second to
         // animation frame duration (* dt).
         val dt = Global.getCombatEngine().elapsedInLastFrame

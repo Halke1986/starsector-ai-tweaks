@@ -1,19 +1,13 @@
 package com.genir.aitweaks.features.maneuver
 
-import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.movement.BasicEngineAI
 import com.fs.starfarer.combat.ai.movement.EngineAI
 import com.fs.starfarer.combat.entities.Ship
 
 class OverrideEngineAI(val ship: Ship) : EngineAI {
     private var vanillaAI = BasicEngineAI(ship)
-    var aiIsAvoidingCollision = false
 
-    override fun advance(dt: Float) {
-        if (!ship.aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)) {
-            vanillaAI.advance(dt)
-        }
-    }
+    override fun advance(dt: Float) = Unit
 
     override fun render() = vanillaAI.render()
 
@@ -28,7 +22,6 @@ class OverrideEngineAI(val ship: Ship) : EngineAI {
     override fun setDesiredFacing(p0: Float) = vanillaAI.setDesiredFacing(p0)
 
     override fun setAvoidingCollision(p0: Boolean) {
-        aiIsAvoidingCollision = p0
         vanillaAI.isAvoidingCollision = p0
     }
 }
