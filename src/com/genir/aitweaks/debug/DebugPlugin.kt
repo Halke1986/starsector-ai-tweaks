@@ -2,6 +2,7 @@ package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
+import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.utils.AITStash
@@ -9,12 +10,16 @@ import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.extensions.resized
 import com.genir.aitweaks.utils.times
 import com.genir.aitweaks.utils.unitVector
+import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
+import org.lazywizard.lazylib.ext.getFacing
+import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
+import kotlin.math.abs
 
 const val ID = "com.genir.aitweaks.debug.DebugPlugin"
 
@@ -71,9 +76,9 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
         val weapons = ship.allWeapons
 
-        for (i in weapons.indices) {
-            debugPlugin[i] = "${weapons[i].id} ${weapons[i].derivedStats.dps}"
-        }
+//        for (i in weapons.indices) {
+//            debugPlugin[i] = "${weapons[i].id} ${weapons[i].derivedStats.dps}"
+//        }
 
 //        val maneuvers = ships.mapNotNull { it.AITStash.maneuverAI }
 
@@ -130,3 +135,4 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
     }
 }
+
