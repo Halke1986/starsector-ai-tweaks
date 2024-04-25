@@ -4,6 +4,10 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.utils.extensions.frontFacing
 import com.genir.aitweaks.utils.extensions.isPD
+import org.lazywizard.lazylib.MathUtils
+import org.lazywizard.lazylib.ext.getFacing
+import org.lazywizard.lazylib.ext.minus
+import org.lwjgl.util.vector.Vector2f
 
 /** Weapon range from the center of the ship. */
 val WeaponAPI.trueRange: Float
@@ -67,4 +71,9 @@ fun ShipAPI.dpsFractionAtRange(range: Float): Float {
 
 fun ShipAPI.dpsAtRange(range: Float): Float {
     return primaryWeapons.filter { it.trueRange >= range }.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
+}
+
+fun ShipAPI.shortestRotationToTarget(target: Vector2f): Float {
+    val facingToTarget = (target - location).getFacing()
+    return MathUtils.getShortestRotation(facing, facingToTarget)
 }

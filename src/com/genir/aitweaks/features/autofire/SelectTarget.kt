@@ -48,9 +48,11 @@ class SelectTarget(
     private fun selectFighter(): CombatEntityAPI? = selectEntity<ShipAPI>(shipGrid()) { it.isFighter }
 
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
-        // Use ship target as a priority. When ship is on escort assignment, the priority target needs to be estimated.
+        // Use ship target as a priority. When ship is on escort assignment
+        // or flamed out, the priority target needs to be estimated instead.
         val priorityTarget = when {
             shipTarget == null && weapon.frontFacing && weapon.ship.hasEscortAssignment -> estimateShipTarget(weapon)
+            weapon.frontFacing && weapon.ship.engineController.isFlamedOut -> estimateShipTarget(weapon)
             shipTarget?.isValidTarget == true && shipTarget.owner != weapon.ship.owner -> shipTarget
             else -> null
         }

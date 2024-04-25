@@ -41,6 +41,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
         weapon.conserveAmmo -> HoldFire.AVOID_PHASED
         weapon.isPD -> fire
         weapon.isBeam -> fire
+        hit.target.fluxLevel > 0.9f -> fire
 
         else -> HoldFire.AVOID_PHASED
     }
