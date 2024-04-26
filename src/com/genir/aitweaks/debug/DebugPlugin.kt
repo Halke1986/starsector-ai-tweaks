@@ -2,24 +2,20 @@ package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
 import com.genir.aitweaks.utils.AITStash
 import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.extensions.resized
 import com.genir.aitweaks.utils.times
 import com.genir.aitweaks.utils.unitVector
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
-import org.lazywizard.lazylib.ext.getFacing
-import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
-import kotlin.math.abs
 
 const val ID = "com.genir.aitweaks.debug.DebugPlugin"
 
@@ -58,7 +54,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         super.renderInUICoords(viewport)
 
         for ((i, v) in logs.entries.withIndex()) {
-            v.value.draw(500f, 500f + (logs.count() / 2 - i) * 16f)
+            v.value.draw(500f, 100f + (logs.count() / 2 - i) * 16f)
         }
     }
 
@@ -97,8 +93,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //            debugPlugin["heading"] = m.desiredHeading
 //        }
 
-//        val ship = ships.firstOrNull { it.owner == 0 } ?: return
-//        debugPlugin[0] = (ship.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
+        val aiShip = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
+        debugPlugin[0] = (aiShip.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
 
 //        debugPlugin["avoiding collision"] = if ((ship.ai as? AssemblyShipAI)?.flockingAI?.String() == true) "avoiding collision" else ""
     }

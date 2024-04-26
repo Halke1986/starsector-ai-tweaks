@@ -41,7 +41,8 @@ const val shieldFlickerThreshold = 0.5f
 // Map movement calculation
 const val arrivedAtLocationRadius = 2000f
 const val borderCornerRadius = 4000f
-const val borderNoGoZone = 2000f
+const val borderNoGoZone = 2500f
+const val borderHardNoGoZone = 1250f
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targetLocation: Vector2f?) {
@@ -133,10 +134,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             // Finish helpless target.
             currentTarget.fluxTracker.isOverloadedOrVenting -> false
 
-            // Drop target when it's out of range.
-            ship.effectiveRange(effectiveDpsThreshold) < engagementRange(currentTarget) -> true
-
-            else -> false
+            else -> true
         }
 
         val updatedTarget = if (updateTarget) targetFinder.target ?: maneuverTarget
@@ -150,27 +148,26 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
     /** Decide if ships needs to back off due to high flux level */
     // TODO shieldless ships
     private fun updateBackoffStatus() {
-        isBackingOff = ship.aiFlags.hasFlag(BACKING_OFF)
+        val backingOffFlag = ship.aiFlags.hasFlag(BACKING_OFF)
         val fluxLevel = ship.fluxTracker.fluxLevel
 
-        when {
+        isBackingOff = when {
+            Global.getCombatEngine().isEnemyInFullRetreat -> false
+
             // Start backing off.
-            fluxLevel > backoffUpperThreshold -> {
-                ship.aiFlags.setFlag(BACKING_OFF)
-                isBackingOff = true
-            }
+            fluxLevel > backoffUpperThreshold -> true
 
             // Stop backing off.
-            isBackingOff && fluxLevel <= 0.01f -> {
-                ship.aiFlags.unsetFlag(BACKING_OFF)
-                isBackingOff = false
-            }
+            backingOffFlag && fluxLevel <= 0.01f -> false
 
             // Continue backing off.
-            isBackingOff -> {
-                ship.aiFlags.setFlag(BACKING_OFF)
-            }
+            else -> backingOffFlag
         }
+
+        if (isBackingOff)
+            ship.aiFlags.setFlag(BACKING_OFF)
+        else if (backingOffFlag)
+            ship.aiFlags.unsetFlag(BACKING_OFF)
     }
 
     private fun updateIdleTime(dt: Float) {
@@ -297,7 +294,6 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
                 val offset = if (angleFromTargetToThreat > 1f) threatVector
                 else threatVector.rotated(strafeRotation)
 
-//                maneuverTarget.location - offset.resized(ship.effectiveRange(effectiveDpsThreshold))
                 maneuverTarget.location - offset.resized(ship.minRange)
             }
 
@@ -328,6 +324,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         c.y = if (l.y > 0) (l.y - mapH + borderZone).coerceAtLeast(0f)
         else (l.y + mapH - borderZone).coerceAtMost(0f)
 
+        // Distance into the border zone.
         val d = (c.length() - borderCornerRadius).coerceAtLeast(0f)
 
         // Ship is far from border, no avoidance required.
@@ -343,7 +340,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
 
         // The closer the ship is to map edge, the stronger
         // the heading transformation away from the border.
-        val avoidForce = (d / borderNoGoZone).coerceAtMost(1f)
+        val avoidForce = (d / (borderNoGoZone - borderHardNoGoZone)).coerceAtMost(1f)
         val allowedHeading = when {
             hr.x >= 0f -> Vector2f(hr.length(), 0f)
             else -> Vector2f(-hr.length(), 0f)
@@ -401,33 +398,10 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         val target: ShipAPI?
             get() {
                 val opportunities = findTargetOpportunities().toList()
-
-                debugPlugin.clear()
-                opportunities.sortedWith { o1, o2 -> (evaluateTarget(o1) - evaluateTarget(o2)).sign.toInt() }.forEachIndexed { idx, it ->
-//                    if (targetAngleCategory(it) == 0) {
-//                        debugVertices.add(Line(ship.location, it.location, Color.YELLOW))
-//                    }
-
-//                    debugPlugin[it] = "${evaluateTarget(it)} ${it.hullSpec.hullId}"
-                    debugPlugin[idx] = "${evaluateTarget(it)} ${it.hullSpec.hullId}"
-//                    debugPlugin[it] = "${ship.dpsAtRange(engagementRange(ship, it))} ${it.hullSpec.hullId}"
-                }
-
-//            opportunities.filter { targetAngleCategory(it) == 4 }.forEach {
-//                debugVertices.add(Line(ship.location, it.location, Color.BLUE))
-//            }
-
-//                val selectedTarget = opportunities.maxWithOrNull(TargetComparator())
-                val selectedTarget = opportunities.minWithOrNull { o1, o2 -> (evaluateTarget(o1) - evaluateTarget(o2)).sign.toInt() }
-
-                if (selectedTarget != null) {
-                    debugVertices.add(Line(ship.location, selectedTarget.location, Color.YELLOW))
-                }
-
-                return selectedTarget
-//                return opportunities.minWithOrNull(TargetComparator())
+                return opportunities.minWithOrNull { o1, o2 -> (evaluateTarget(o1) - evaluateTarget(o2)).sign.toInt() }
             }
 
+        /** Evaluate if target is worth attacking. The lower the score, the better the target. */
         private fun evaluateTarget(target: ShipAPI): Float {
             // Prioritize targets closer to ship facing.
             val angle = ship.shortestRotationToTarget(target.location) * PI.toFloat() / 180.0f
@@ -444,135 +418,28 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             val fluxFactor = if (target.phaseCloak?.specAPI?.isPhaseCloak == true) 1.5f else 0.5f
             val evalFlux = fluxLeft * fluxFactor
 
-            return evalAngle + evalDist + evalFlux
+            // Avoid attacking bricks.
+            val evalDamper = if (target.system?.id == "damper" && !ship.isFrigate) 2f else 0f
+            val evalShunt = if (target.variant.hasHullMod("fluxshunt")) 4f else 0f
+
+            return evalAngle + evalDist + evalFlux + evalDamper + evalShunt
         }
 
-
-//        fun killTime(ship: ShipAPI, target: ShipAPI): Float {
-//            // Time to face the target.
-//            val facingToTarget = (target.location - ship.location).getFacing()
-//            val angle = abs(MathUtils.getShortestRotation(ship.facing, facingToTarget))
-//            val timeToFace = (angle / ship.maxTurnRate) * 2f
-//
-//            // Time to kill hull.
-//            val dps = ship.dpsAtRange(engagementRange(ship, target))
-//            val hullHP = target.hullLevel * target.hullSpec.hitpoints
-//            val armorHP = target.hullLevel * hullHP
-//            val damperFactor = if (target.system?.id == "damper") 4f else 1f
-//            val timeToKillHull = (hullHP + armorHP) * damperFactor / dps
-//
-//            // Time to kill shield.
-//            val fluxLeft = (1f - target.fluxLevel) * target.maxFlux
-//            val shieldHP = if (target.shield != null) fluxLeft else 0f
-//            val shuntFactor = if (target.variant.hasHullMod("fluxshunt")) 5f else 1f
-//            val timeToKillShield = shieldHP * shuntFactor / dps
-//
-//            // Time to kill phase.
-//            val timeToKillPhase = if (target.hullSpec.isPhase) fluxLeft / target.hullSpec.shieldSpec.upkeepCost
-//            else 0f
-//
-//            return timeToFace + timeToKillHull + timeToKillShield + timeToKillPhase
-//        }
-
-//        fun hullSizeFactor(ship: ShipAPI): Float = when (ship.hullSize) {
-//            FRIGATE -> 2f
-//            DESTROYER -> 1.5f
-//            CRUISER -> 1f
-//            CAPITAL_SHIP -> 0.5f
-//            else -> 1f
-//        }
-
-//        inner class TargetComparator : Comparator<ShipAPI> {
-//            override fun compare(a: ShipAPI, b: ShipAPI): Int {
-////                val evalA = hullSizeFactor(a) * killTime(ship, a)
-////                val evalB = hullSizeFactor(b) * killTime(ship, b)
-////
-////                return (evalA - evalB).sign.toInt()
-//
-//
-//                val aAngle = targetAngleCategory(a)
-//                val bAngle = targetAngleCategory(b)
-//
-//                // Choose target based on its evaluation.
-//                val aEval = evaluateTarget(a) + aAngle
-//                val bEval = evaluateTarget(b) + bAngle
-//                if (aEval != bEval) return (aEval - bEval).sign
-//
-//                // Choose target closest to ship facing, by category.
-//                if (aAngle != bAngle) return (aAngle - bAngle).sign
-//
-//                // Choose target closest to ship.
-//                val aDist = (a.location - ship.location).lengthSquared()
-//                val bDist = (b.location - ship.location).lengthSquared()
-//                return sign(bDist - aDist).toInt()
-//            }
-//        }
-
-        /** Find all potential enemy targets in or close to ships weapon range. */
+        /** Find all potential enemy targets in or close to ship weapon range. */
         private fun findTargetOpportunities(): Sequence<ShipAPI> {
-            val radius = (ship.maxRange + 500f) * 2f
-            val allShips = shipGrid().getCheckIterator(ship.location, radius, radius).asSequence().filterIsInstance<ShipAPI>()
+            val rangeEnvelope = 500f
+            val allShips = shipsInRadius(ship.location, ship.maxRange + rangeEnvelope)
             val opportunities = allShips.filter {
                 when {
                     it.owner == ship.owner -> false
                     !it.isValidTarget -> false
                     !it.isShip -> false
-                    engagementRange(it) > ship.maxRange + 500f -> false
+                    engagementRange(it) > ship.maxRange + rangeEnvelope -> false
                     else -> true
                 }
             }
 
             return opportunities
         }
-
-//        private fun evaluateTarget(t: ShipAPI): Int {
-//            var eval = 0
-//
-//            // Bonus to close targets.
-//            val distance = engagementRange(t)
-//            when {
-//                distance <= ship.maxRange * 0.33f -> eval += 2
-//                distance <= ship.maxRange * 0.66f -> eval += 1
-//            }
-//
-////            if (t.isFrigate) eval--
-//
-//            // Avoid hunting low flux phase ships.
-//            if (t.phaseCloak?.specAPI?.isPhaseCloak == true) {
-//                when {
-////                    t.fluxLevel < 0.25f -> eval -= 2
-//                    t.fluxLevel < 0.50f -> eval -= 1
-////                    t.fluxLevel > 0.75f -> eval += 1
-//                }
-//            }
-//
-//            // Prioritize ships in the main threat direction.
-////            val angleToThreat = getShortestRotation(t.location - ship.location, threatVector)
-////            if (abs(angleToThreat) > 90f) {
-////                eval -= 1
-////            }
-//
-////            // Prioritize ships high on flux.
-////            if (t.fluxLevel > 0.75f) {
-////                eval++
-////            }
-////
-////            // Finish damaged ships.
-////            if (t.hullLevel < 0.4f) {
-////                eval++
-////            }
-//
-//            return eval
-//        }
-
-//        private fun targetAngleCategory(target: ShipAPI): Int {
-//            val facingToTarget = (target.location - ship.location).getFacing()
-//            val angle = abs(MathUtils.getShortestRotation(ship.facing, facingToTarget))
-//
-//            val categoryNumber = 4
-//            val categoryAngle = categoryNumber * angle / 180f
-//
-//            return -categoryAngle.toInt()
-//        }
     }
 }

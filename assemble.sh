@@ -27,9 +27,10 @@ find $asm_root -type f -exec sed -i "s^$vanilla_path/I^$asm_path/OrderResponseMo
 find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/BasicEngineAI^$aitweaks_path/OverrideEngineAI^g" {} +
 
 # Override Maneuvers
-find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/StrafeTargetManeuverV2^$aitweaks_path/V^g" {} +
-find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/B^$aitweaks_path/B^g" {} +
-find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/U^$aitweaks_path/U^g" {} +
+find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/StrafeTargetManeuverV2^$aitweaks_path/Strafe^g" {} +
+find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/void^$aitweaks_path/Intercept^g" {} +
+find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/B^$aitweaks_path/Approach^g" {} +
+find $asm_root -type f -exec sed -i "s^$vanilla_path/movement/maneuvers/U^$aitweaks_path/Move^g" {} +
 
 ## ASSEMBLE
 
