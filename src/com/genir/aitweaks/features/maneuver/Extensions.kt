@@ -34,7 +34,8 @@ val ShipAPI.minRange: Float
 val ShipAPI.maxRange: Float
     get() = primaryWeapons.maxOfOrNull { it.trueRange } ?: 0f
 
-/** Range at which the ship can deliver `dpsFraction` of its primary weapons DPS. */
+/** Range at which the ship can deliver at least
+ * `dpsFraction` of its primary weapons DPS. */
 fun ShipAPI.effectiveRange(dpsFraction: Float): Float {
     val weapons = primaryWeapons
     val dps = weapons.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
@@ -42,11 +43,10 @@ fun ShipAPI.effectiveRange(dpsFraction: Float): Float {
     if (dps == 0f)
         return 0f
 
-    var dpsInRange = 0f
+    var dpsInRange = dps
     weapons.sortedWith(compareBy { it.trueRange }).forEach { weapon ->
-        if (dpsInRange / dps < dpsFraction) {
-            dpsInRange += weapon.derivedStats.dps
-        } else {
+        dpsInRange -= weapon.derivedStats.dps
+        if (dpsInRange / dps <= dpsFraction) {
             return weapon.trueRange
         }
     }

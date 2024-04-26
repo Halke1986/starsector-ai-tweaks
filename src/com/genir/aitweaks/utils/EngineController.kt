@@ -21,6 +21,10 @@ class EngineController(val ship: ShipAPI) {
      * 'target' location, it will match the target velocity. Returns the
      * expected heading angle. */
     fun heading(target: Vector2f?): Float {
+        // Store previous target location.
+        val prevTargetLocation = this.prevTargetLocation ?: target
+        if (!Global.getCombatEngine().isPaused) this.prevTargetLocation = target
+
         // Stop if no target is provided. This is the only reliable
         // method of stopping using the engine controller.
         if (target == null) {
@@ -47,7 +51,6 @@ class EngineController(val ship: ShipAPI) {
 
         // Estimate target velocity.
         val vt = r.rotate(target - (prevTargetLocation ?: target))
-        if (!Global.getCombatEngine().isPaused) prevTargetLocation = target
 
         // Stop if reached stationary target. Distance threshold for
         // stopping is the distance the ship covers in one frame after
@@ -127,10 +130,12 @@ class EngineController(val ship: ShipAPI) {
 
     /** Set ship facing towards 'target' location.
      * Returns the expected facing angle. */
-    fun facing(target: Vector2f): Float {
-        val tr = target - ship.location
-        if (tr.length() < ship.collisionRadius / 2f)
-            return prevTargetFacing ?: noMovementExpected
+    fun facing(target: Vector2f?): Float {
+        val tr = target?.let { it - ship.location }
+        if (tr == null || tr.length() < ship.collisionRadius / 2f) {
+            prevTargetFacing = null
+            return ship.facing
+        }
 
         return facing(tr.getFacing())
     }

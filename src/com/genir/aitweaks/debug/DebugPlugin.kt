@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
+import com.genir.aitweaks.features.maneuver.maxRange
 import com.genir.aitweaks.utils.AITStash
 import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.extensions.resized
@@ -67,36 +68,18 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             ?: return
 
         val m = ship.AITStash.maneuverAI!!
+
         debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.GREEN))
+        debugPlugin["isBackingOff"] = if (m.isBackingOff) "is backing off" else ""
+        debugPlugin["isHoldingFire"] = if (m.isHoldingFire) "hold fire" else ""
+        debugPlugin["isAvoidingBorder"] = if (m.isAvoidingBorder) "avoid border" else ""
 
-
-        val weapons = ship.allWeapons
-
-//        for (i in weapons.indices) {
-//            debugPlugin[i] = "${weapons[i].id} ${weapons[i].derivedStats.dps}"
-//        }
-
-//        val maneuvers = ships.mapNotNull { it.AITStash.maneuverAI }
-
-//        maneuvers.forEach { m ->
-//            val ship = m.ship
-//            m.maneuverTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.BLUE)) }
-//            m.attackTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
-
-//            ship.shipTarget?.let { debugVertices.add(Line(ship.location, it.location, Color.RED)) }
-
-//            debugVertices.add(Line(ship.location, ship.location + Vector2f(ship.velocity).resized(400f), Color.GREEN))
-//            drawEngineLines(ship)
-
-//                debugVertices.add(Line(ship.location, ship.location + ship.ai as AssemblyShipAI)  Vector2f(ship.velocity).resized(400f), Color.RED))
-//            debugPlugin["speed"] = ship.velocity.length()
-//            debugPlugin["heading"] = m.desiredHeading
-//        }
+//        debugPlugin["1"] = "100 ${ship.maxRange}"
+//        debugPlugin["66"] = "66  ${m.range66}"
+//        debugPlugin["33"] = "33  ${m.range33}"
 
         val aiShip = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
         debugPlugin[0] = (aiShip.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
-
-//        debugPlugin["avoiding collision"] = if ((ship.ai as? AssemblyShipAI)?.flockingAI?.String() == true) "avoiding collision" else ""
     }
 
     private fun makeDroneFormation(dt: Float) {
