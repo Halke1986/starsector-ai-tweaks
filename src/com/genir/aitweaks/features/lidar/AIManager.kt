@@ -5,8 +5,8 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.utils.ai.hasAIType
-import com.genir.aitweaks.utils.ai.hasVanillaAI
+import com.genir.aitweaks.features.maneuver.hasAIType
+import com.genir.aitweaks.features.maneuver.hasBasicShipAI
 import com.genir.aitweaks.utils.extensions.isValidTarget
 
 const val lidarConfigID = "aitweaks_lidar_config"
@@ -22,18 +22,22 @@ class AIManager : BaseEveryFrameCombatPlugin() {
             val config = ship.customData[lidarConfigID] as? LidarConfig
             val target = config?.target
 
-            if (ship.hasVanillaAI) {
-                if (ship.system.isOn && target?.isValidTarget == true) {
-                    // Deploy lidar ship AI
-                    ship.setCustomData(lidarAIStashID, ship.shipAI)
-                    ship.shipAI = LidarShipAI(ship, target, config.range)
+            when {
+                ship.hasBasicShipAI -> {
+                    if (ship.system.isOn && target?.isValidTarget == true) {
+                        // Deploy lidar ship AI
+                        ship.setCustomData(lidarAIStashID, ship.shipAI)
+                        ship.shipAI = LidarShipAI(ship, target, config.range)
+                    }
                 }
-            } else if (ship.hasAIType<LidarShipAI>()) {
-                if (!ship.system.isOn || target?.isValidTarget != true) {
-                    // Redeploy vanilla AI
-                    ship.shipAI = ship.customData[lidarAIStashID] as? ShipAIPlugin ?: return
-                    ship.removeCustomData(lidarAIStashID)
-                    ship.removeCustomData(lidarConfigID)
+
+                ship.hasAIType(LidarShipAI::class.java) -> {
+                    if (!ship.system.isOn || target?.isValidTarget != true) {
+                        // Redeploy vanilla AI
+                        ship.shipAI = ship.customData[lidarAIStashID] as? ShipAIPlugin ?: return
+                        ship.removeCustomData(lidarAIStashID)
+                        ship.removeCustomData(lidarConfigID)
+                    }
                 }
             }
         }

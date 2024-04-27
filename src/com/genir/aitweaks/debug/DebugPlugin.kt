@@ -62,10 +62,12 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        val ship = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 && it.AITStash.maneuverAI != null }
+        val ship = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 }
             ?: return
 
-        val m = ship.AITStash.maneuverAI!!
+        debugPlugin["ai name"] = ship.ai?.javaClass?.canonicalName
+
+        val m = ship.AITStash.maneuverAI ?: return
 
         debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.GREEN))
         debugPlugin["isBackingOff"] = if (m.isBackingOff) "is backing off" else ""

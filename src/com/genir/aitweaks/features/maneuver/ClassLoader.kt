@@ -11,10 +11,23 @@ class AIClassLoader : ClassLoader() {
         "com.genir.aitweaks.asm.combat.ai.OrderResponseModule\$o" to `orderResponseModule$o`,
     )
 
-    override fun loadClass(name: String): Class<*> {
-        if (raws.containsKey(name)) return findClass(name)
+    private var cache: MutableMap<String, Class<*>> = mutableMapOf()
 
-        return this.javaClass.classLoader.loadClass(name)
+    override fun loadClass(name: String): Class<*> {
+        return when {
+            // Load class from cache.
+            cache.containsKey(name) -> cache[name]!!
+
+            // Load class from raw bytes and store in cache.
+            raws.containsKey(name) -> {
+                val c = findClass(name)
+                cache[name] = c
+                c
+            }
+
+            // Delegate loading to vanilla class loader.
+            else -> this.javaClass.classLoader.loadClass(name)
+        }
     }
 
     override fun findClass(name: String): Class<*> {
