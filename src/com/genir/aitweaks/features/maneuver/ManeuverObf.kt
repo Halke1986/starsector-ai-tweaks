@@ -18,8 +18,6 @@ class Strafe : ManeuverObfBase {
 
 class Approach(ship: Ship, target: Ship, var3: Float, flockingAI: oOOO, shipAI: oO0O.o) : ManeuverObfBase(ship, target, null)
 
-class Intercept(ship: Ship, target: B, flockingAI: oOOO, shipAI: oO0O.o) : ManeuverObfBase(ship, target as? Ship, null)
-
 class Move(ship: Ship, location: Vector2f, shipAI: oO0O.o) : ManeuverObfBase(ship, null, location)
 
 open class ManeuverObfBase(ship: Ship, target: Ship?, location: Vector2f?) : oO0O {

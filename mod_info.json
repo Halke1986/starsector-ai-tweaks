@@ -7,8 +7,7 @@
   "description": "A mod providing various ship AI improvements.",
   "gameVersion": "0.97a-RC6",
   "jars": [
-    "jars/AITweaks.jar",
-    "jars/AITweaks_asm.jar"
+    "jars/AITweaks.jar"
   ],
   "modPlugin": "com.genir.aitweaks.AITweaksBaseModPlugin",
   "dependencies": [

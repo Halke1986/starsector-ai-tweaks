@@ -4,8 +4,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
-import com.genir.aitweaks.features.maneuver.maxRange
 import com.genir.aitweaks.utils.AITStash
 import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.extensions.resized
@@ -78,8 +76,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //        debugPlugin["66"] = "66  ${m.range66}"
 //        debugPlugin["33"] = "33  ${m.range33}"
 
-        val aiShip = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
-        debugPlugin[0] = (aiShip.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
+//        val aiShip = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
+//        debugPlugin[0] = (aiShip.ai as? AssemblyShipAI)?.currentManeuver?.javaClass?.canonicalName
     }
 
     private fun makeDroneFormation(dt: Float) {

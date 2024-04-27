@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
-import com.genir.aitweaks.asm.combat.ai.AssemblyShipAI
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ShipSystemAiType.BURN_DRIVE
 import com.genir.aitweaks.utils.ShipSystemAiType.MANEUVERING_JETS
@@ -45,7 +44,6 @@ const val borderHardNoGoZone = 1250f
 class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targetLocation: Vector2f?) {
     private val engineController = ship.AITStash.engineController
     private val systemAIType = ship.system?.specAPI?.AIType
-    private val shipAI = ship.ai as AssemblyShipAI
     private val targetFinder = TargetFinder()
 
     // Make strafe rotation direction random, but consistent for a given ship.
@@ -68,7 +66,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         ship.AITStash.maneuverAI = this
 
         if (shouldEndManeuver()) {
-            shipAI.cancelCurrentManeuver()
+            ship.shipAI.cancelCurrentManeuver()
             ship.AITStash.maneuverAI = null
         }
 

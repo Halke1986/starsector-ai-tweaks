@@ -4,9 +4,9 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.features.maneuver.newVanillaAI
 import com.genir.aitweaks.utils.ai.AIPersonality
 import com.genir.aitweaks.utils.ai.hasVanillaAI
-import com.genir.aitweaks.utils.ai.newVanillaAI
 import com.genir.aitweaks.utils.extensions.isAutomated
 import lunalib.lunaSettings.LunaSettings
 
