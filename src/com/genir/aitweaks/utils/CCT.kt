@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.math.min
 
-
 class CCT(transforms: List<Transform>) {
     private val transforms: List<Transform> = if (transforms.javaClass == STATIC_ARRAY_LIST_TYPE) transforms else ArrayList(transforms)
 
@@ -22,21 +21,16 @@ class CCT(transforms: List<Transform>) {
 
             while (i < cpCount) {
                 when (data[currentOffset]) {
-
                     CONSTANT_Utf8 -> {
                         val len = readUnsignedShort(data, currentOffset + 1)
                         entrySize = 3 + len
                         val fromIdx = currentOffset + 3
                         val toIdx = fromIdx + len
 
-//                        println(data.slice(fromIdx until toIdx).toByteArray().toString(Charsets.UTF_8))
-
                         for (transform in transforms) {
-
-
                             val match = indexOf(data, transform.fromBytes, fromIdx, toIdx)
                             if (match != -1) {
-                                var newBytes = if (match == 0 && len == transform.fromBytes.size) {
+                                val newBytes = if (match == 0 && len == transform.fromBytes.size) {
                                     transform.toBytes
                                 } else {
                                     String(data, fromIdx, len, StandardCharsets.UTF_8).replace(transform.from, transform.to).toByteArray(StandardCharsets.UTF_8)
@@ -47,13 +41,6 @@ class CCT(transforms: List<Transform>) {
                                 out.add(((newLen shr 8) and 0xFF).toByte())
                                 out.add((newLen and 0xFF).toByte())
                                 out.addAll(newBytes.toTypedArray())
-
-                                println(currentOffset.toString() + " " + out.size)
-
-//                                out.write(data, lastIdx, currentOffset + 1 - lastIdx)
-//                                out.write((newLen shr 8) and 0xFF)
-//                                out.write(newLen and 0xFF)
-//                                out.write(newBytes)
                                 lastIdx = toIdx
                                 break
                             }

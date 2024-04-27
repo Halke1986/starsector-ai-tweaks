@@ -6,14 +6,6 @@ private const val vanillaPath = "com/fs/starfarer"
 private const val asmPath = "com/genir/aitweaks"
 
 class AIClassLoader : ClassLoader() {
-//    private val raws: Map<String, String> = mapOf(
-//        "com.genir.aitweaks.asm.combat.ai.AssemblyShipAI" to assemblyShipAI,
-//        "com.genir.aitweaks.asm.combat.ai.AssemblyShipAI\$o" to `assemblyShipAI$o`,
-//        "com.genir.aitweaks.asm.combat.ai.AssemblyShipAI\$1" to `assemblyShipAI$1`,
-//        "com.genir.aitweaks.asm.combat.ai.OrderResponseModule" to orderResponseModule,
-//        "com.genir.aitweaks.asm.combat.ai.OrderResponseModule\$o" to `orderResponseModule$o`,
-//    )
-
     private val sources: Map<String, String> = mapOf(
         "com.genir.aitweaks.asm.combat.ai.AssemblyShipAI" to "com.fs.starfarer.combat.ai.BasicShipAI",
         "com.genir.aitweaks.asm.combat.ai.AssemblyShipAI\$o" to "com.fs.starfarer.combat.ai.BasicShipAI\$o",
@@ -55,8 +47,4 @@ class AIClassLoader : ClassLoader() {
         val classData = transformer.apply(vanillaClassData)
         return defineClass(name, classData, 0, classData.size);
     }
-}
-
-fun String.decodeHex(): ByteArray {
-    return filter { !it.isWhitespace() }.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
 }
