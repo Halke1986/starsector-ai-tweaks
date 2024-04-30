@@ -42,7 +42,7 @@ const val borderHardNoGoZone = borderNoGoZone / 2f
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targetLocation: Vector2f?) {
-    private val engineController = ship.AITStash.engineController
+    private val engineController = EngineController(ship)
     private val systemAIType = ship.system?.specAPI?.AIType
     private val targetFinder = TargetFinder()
 
@@ -51,9 +51,10 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
 
     var desiredHeading: Float = ship.facing
     var desiredFacing: Float = ship.facing
-    var attackTarget: ShipAPI? = maneuverTarget
     var headingPoint: Vector2f? = null
     var aimPoint: Vector2f? = null
+
+    var attackTarget: ShipAPI? = maneuverTarget
     var isBackingOff: Boolean = false
     var isHoldingFire: Boolean = false
     var isAvoidingBorder: Boolean = false
@@ -222,7 +223,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
     }
 
     private fun setFacing() {
-        val aimPoint: Vector2f? = when {
+        val (aimPoint, velocity) = when {
             // Face the attack target.
             attackTarget != null -> {
                 val target = attackTarget!!
@@ -232,25 +233,25 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
                 val aimOffsetThisFrame = getShortestRotation(target.location, ship.location, aimPointThisFrame)
                 val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
 
-                target.location.rotatedAroundPivot(Rotation(aimOffset), ship.location)
+                Pair(target.location.rotatedAroundPivot(Rotation(aimOffset), ship.location), target.velocity)
             }
 
             // Face threat direction when backing off and no target.
             isBackingOff && !threatVector.isZeroVector() -> {
-                ship.location + threatVector
+                Pair(ship.location + threatVector, Vector2f())
             }
 
             // Move to location, if no attack target.
             targetLocation != null -> {
-                targetLocation
+                Pair(targetLocation, Vector2f())
             }
 
-            // Nothing to do.
-            else -> null
+            // Nothing to do. Stop rotation.
+            else -> Pair(ship.location, Vector2f())
         }
 
         this.aimPoint = aimPoint
-        desiredFacing = engineController.facing(aimPoint)
+        desiredFacing = engineController.facing(aimPoint, velocity)
     }
 
     private fun setHeading(dt: Float) {
@@ -295,7 +296,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
     /** Make the ship avoid map border. The ship will attempt to move
      * inside a rectangle with rounded corners placed `borderNoGoZone`
      * units from map border.*/
-     // TODO allow chase
+    // TODO allow chase
     private fun avoidBorder(heading: Vector2f): Vector2f {
         isAvoidingBorder = false
 

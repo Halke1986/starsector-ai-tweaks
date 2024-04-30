@@ -22,8 +22,6 @@ class ShipStash(ship: ShipAPI) {
             field = value; maneuverAIT = frameTracker
         }
 
-    var engineController: EngineController = EngineController(ship)
-
     private var attackTargetT = 0f
     private var maneuverAIT = 0f
 }

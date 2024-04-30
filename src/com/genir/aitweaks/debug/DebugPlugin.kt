@@ -2,12 +2,14 @@ package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
+import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.features.maneuver.ShipAIPluginExtended
-import com.genir.aitweaks.utils.AITStash
-import com.genir.aitweaks.utils.times
+import com.genir.aitweaks.utils.*
 import org.lazywizard.lazylib.VectorUtils
+import org.lazywizard.lazylib.ext.minus
+import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -29,7 +31,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         else logs["$index"] = font!!.createText("$value", baseColor = Color.ORANGE)
     }
 
-    override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
+    override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         if (font == null) {
             font = LazyFont.loadFont("graphics/fonts/insignia15LTaa.fnt")
             debugPlugin = this
@@ -44,6 +46,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
 //        debug(amount)
 //        speedupAsteroids()
+        makeDroneFormation(dt)
     }
 
     override fun renderInUICoords(viewport: ViewportAPI?) {
@@ -89,28 +92,38 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         debugPlugin["maneuver"] = (ship.ai as? ShipAIPluginExtended)?.getCurrentManeuver()?.javaClass?.canonicalName
     }
 
-//    private fun makeDroneFormation(dt: Float) {
-//        val ship = Global.getCombatEngine().playerShip ?: return
-//        val drones = Global.getCombatEngine().ships.filter { it.isFighter }
-//
-//        val angle = 360f / drones.size
-//
-//        for (i in drones.indices) {
-//            val drone = drones[i]
-//
-//            drone.shipAI = null
-//
-//            val offset = Rotation(angle * i + ship.facing).rotate(Vector2f(0f, 300f))
-//
-////            debugVertices.add(Line(ship.location, ship.location + offset, Color.YELLOW))
-//
-//            val c = drone.AITStash.engineController
-//            c.heading(ship.location + offset)
-//            c.facing(ship.location + offset * 2f)
-//        }
-//
-//        drones.forEach { it.shipAI = null }
-//    }
+    private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()
+
+    private fun makeDroneFormation(dt: Float) {
+        val ship = Global.getCombatEngine().playerShip ?: return
+        val drones = Global.getCombatEngine().ships.filter { it.isFighter }
+
+        val angle = 360f / drones.size
+
+        for (i in drones.indices) {
+            val drone = drones[i]
+
+            drone.shipAI = null
+
+            val offset = Rotation(angle * i + ship.facing).rotate(Vector2f(0f, 300f))
+            val position = ship.location + offset
+            val facing = ship.location + offset * 2f
+
+            val prev = history[drone] ?: Pair(Vector2f(), Vector2f())
+
+//            debugVertices.add(Line(ship.location, ship.location + offset, Color.YELLOW))
+
+            val c = EngineController(drone)
+            c.heading(position, (position - prev.first) / dt)
+            c.facing(facing, (facing - prev.second) / dt)
+
+            history[drone] = Pair(position, facing)
+
+            drawEngineLines(drone)
+        }
+
+        drones.forEach { it.shipAI = null }
+    }
 
     private fun speedupAsteroids() {
         val asteroids = Global.getCombatEngine().asteroids

@@ -11,8 +11,6 @@ import kotlin.math.*
 import kotlin.random.Random
 
 class EngineController(val ship: ShipAPI) {
-    private var prevTargetFacing: Float? = null
-
     private val noMovementExpected = Float.MAX_VALUE
 
     /** Set ship heading towards 'target' location. Appropriate target
@@ -88,15 +86,28 @@ class EngineController(val ship: ShipAPI) {
         return r.reverse(ve).getFacing()
     }
 
-    /** Set ship facing. Returns the expected facing angle. */
-    fun facing(f: Float): Float {
+    /** Set ship facing towards 'target' location. Returns the expected facing angle. */
+    fun facing(target: Vector2f, targetVelocity: Vector2f): Float {
+//         Ship reached target. Stop rotating.
+//        if ((target - ship.location).length() < ship.collisionRadius / 2f) {
+//            return ship.facing
+//        }
+
+        // Change unit of time from second to
+        // animation frame duration (* dt).
         val dt = Global.getCombatEngine().elapsedInLastFrame
         val a = ship.turnAcceleration * dt * dt
         val w = ship.angularVelocity * dt
+        val vt = targetVelocity * dt
 
-        // Estimate the speed of facing change.
-        val df = f - (prevTargetFacing ?: f)
-        if (!Global.getCombatEngine().isPaused) prevTargetFacing = f
+        // Calculate facing and facing change.
+        val reachedTarget = (target - ship.location).length() < ship.collisionRadius / 2f
+        val (f, df) = if (reachedTarget) Pair(ship.facing, 0f)
+        else {
+            val f = (target - ship.location).getFacing()
+            val df = (target + vt - ship.location).getFacing() - f
+            Pair(f, df)
+        }
 
         // Angular distance between expected
         // facing and ship facing the next frame.
@@ -112,18 +123,6 @@ class EngineController(val ship: ShipAPI) {
         if (shouldAccelerate(-r, -dw / a, 0f)) ship.move(TURN_RIGHT)
 
         return f
-    }
-
-    /** Set ship facing towards 'target' location.
-     * Returns the expected facing angle. */
-    fun facing(target: Vector2f?): Float {
-        val tr = target?.let { it - ship.location }
-        if (tr == null || tr.length() < ship.collisionRadius / 2f) {
-            prevTargetFacing = null
-            return ship.facing
-        }
-
-        return facing(tr.getFacing())
     }
 
     /** Maximum velocity in given direction to not overshoot target. */

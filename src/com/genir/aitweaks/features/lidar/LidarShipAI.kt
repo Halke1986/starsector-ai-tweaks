@@ -20,7 +20,6 @@ class LidarShipAI(private val ship: ShipAPI, private val target: ShipAPI, privat
     private val flags = ship.aiFlags
     private var advanceInterval = defaultAIInterval()
     private var offset = ship.location - target.location
-    private val engineController = EngineController(ship)
 
     override fun advance(dt: Float) {
         advanceInterval.advance(dt)
@@ -39,8 +38,9 @@ class LidarShipAI(private val ship: ShipAPI, private val target: ShipAPI, privat
             offset = unitVector(angle).resized(range * 0.92f)
         }
 
-        engineController.facing(getAimPoint())
-        engineController.heading(target.location + offset, target.velocity)
+        val c = EngineController(ship)
+        c.facing(getAimPoint(), target.velocity)
+        c.heading(target.location + offset, target.velocity)
     }
 
     /** Get average aim point of lidar weapons. */
