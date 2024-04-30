@@ -40,7 +40,7 @@ class LidarShipAI(private val ship: ShipAPI, private val target: ShipAPI, privat
         }
 
         engineController.facing(getAimPoint())
-        engineController.heading(target.location + offset)
+        engineController.heading(target.location + offset, target.velocity)
     }
 
     /** Get average aim point of lidar weapons. */

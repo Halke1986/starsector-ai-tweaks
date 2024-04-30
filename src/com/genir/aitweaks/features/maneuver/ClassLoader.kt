@@ -17,6 +17,9 @@ class AIClassLoader : ClassLoader() {
     private val transformer = CCT(listOf(
         CCT.newTransform("$vanillaPath/combat/ai/BasicShipAI", "$asmPath/asm/combat/ai/AssemblyShipAI"),
         CCT.newTransform("$vanillaPath/combat/ai/I", "$asmPath/asm/combat/ai/OrderResponseModule"),
+
+        CCT.newTransform("$vanillaPath/api/combat/ShipAIPlugin", "$asmPath/features/maneuver/ShipAIPluginExtended"),
+
         CCT.newTransform("$vanillaPath/combat/ai/movement/BasicEngineAI", "$asmPath/features/maneuver/OverrideEngineAI"),
         CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/StrafeTargetManeuverV2", "$asmPath/features/maneuver/Strafe"),
         CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/B", "$asmPath/features/maneuver/Approach"),

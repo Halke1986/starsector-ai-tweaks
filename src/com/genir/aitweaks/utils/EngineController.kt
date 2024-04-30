@@ -11,31 +11,19 @@ import kotlin.math.*
 import kotlin.random.Random
 
 class EngineController(val ship: ShipAPI) {
-    private var prevTargetLocation: Vector2f? = null
     private var prevTargetFacing: Float? = null
 
     private val noMovementExpected = Float.MAX_VALUE
 
-    /** Set ship heading towards 'target' location. Appropriate target leading
-     * is calculated based on estimated target velocity. If ship is already at
-     * 'target' location, it will match the target velocity. Returns the
+    /** Set ship heading towards 'target' location. Appropriate target
+     * leading is calculated based on 'targetVelocity'. If ship is already
+     * at 'target' location, it will match the target velocity. Returns the
      * expected heading angle. */
-    fun heading(target: Vector2f?): Float {
-        // Store previous target location.
-        val prevTargetLocation = this.prevTargetLocation ?: target
-        if (!Global.getCombatEngine().isPaused) this.prevTargetLocation = target
-
-        // Stop if no target is provided. This is the only reliable
-        // method of stopping using the engine controller.
-        if (target == null) {
-            if (!ship.velocity.isZeroVector()) ship.move(DECELERATE)
-            return noMovementExpected
-        }
-
+    fun heading(target: Vector2f, targetVelocity: Vector2f): Float {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val dt = Global.getCombatEngine().elapsedInLastFrame
-        val vMax = ship.maxSpeed * dt
+        val vMax = max(ship.maxSpeed, ship.velocity.length()) * dt
         val af = ship.acceleration * dt * dt
         val ab = ship.deceleration * dt * dt
         val al = ship.strafeAcceleration * dt * dt
@@ -48,9 +36,7 @@ class EngineController(val ship: ShipAPI) {
         val r = Rotation(90f - ship.facing - w)
         val l = r.rotate(target - ship.location)
         val v = r.rotate(ship.velocity) * dt
-
-        // Estimate target velocity.
-        val vt = r.rotate(target - (prevTargetLocation ?: target))
+        val vt = r.rotate(targetVelocity) * dt
 
         // Stop if reached stationary target. Distance threshold for
         // stopping is the distance the ship covers in one frame after

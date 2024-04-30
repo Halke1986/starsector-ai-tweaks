@@ -6,54 +6,64 @@ import com.genir.aitweaks.utils.ClassConstantTransformer.Transform
 import com.genir.aitweaks.utils.ClassConstantTransformer.newTransform
 import org.junit.jupiter.api.Test
 
+interface I {
+    fun f(): Any
+}
+
+class C : I {
+    override fun f(): Float = 1f
+}
+
 class CustomClassLoader {
     @Test
     fun testLoadClass() {
-        val cl = this.javaClass.classLoader
 
-        val vanillaPath = "com/fs/starfarer"
-        val asmPath = "com/genir/aitweaks"
+        (C() as I).f()
 
-        val transformer1 = ClassConstantTransformer(listOf<Transform>(
-            newTransform("$vanillaPath/combat/ai/BasicShipAI", "$asmPath/asm/combat/ai/AssemblyShipAI"),
-            newTransform("$vanillaPath/combat/ai/I", "$asmPath/asm/combat/ai/OrderResponseModule"),
-
-            newTransform("$vanillaPath/combat/ai/movement/BasicEngineAI", "$asmPath/features/maneuver/OverrideEngineAI"),
-            newTransform("$vanillaPath/combat/ai/movement/maneuvers/StrafeTargetManeuverV2", "$asmPath/features/maneuver/Strafe"),
-            newTransform("$vanillaPath/combat/ai/movement/maneuvers/B", "$asmPath/features/maneuver/Approach"),
-            newTransform("$vanillaPath/combat/ai/movement/maneuvers/U", "$asmPath/features/maneuver/Move"),
-        ))
-
-        val transformer2 = CCT(listOf(
-            CCT.newTransform("$vanillaPath/combat/ai/BasicShipAI", "$asmPath/asm/combat/ai/AssemblyShipAI"),
-            CCT.newTransform("$vanillaPath/combat/ai/I", "$asmPath/asm/combat/ai/OrderResponseModule"),
-
-            CCT.newTransform("$vanillaPath/combat/ai/movement/BasicEngineAI", "$asmPath/features/maneuver/OverrideEngineAI"),
-            CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/StrafeTargetManeuverV2", "$asmPath/features/maneuver/Strafe"),
-            CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/B", "$asmPath/features/maneuver/Approach"),
-            CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/U", "$asmPath/features/maneuver/Move"),
-        ))
-
-        val stream = cl.getResourceAsStream("com/fs/starfarer/combat/ai/BasicShipAI.class")!!
-
-        var size = 0
-        var buffer = ByteArray(1024)
-        while (stream.available() > 0) {
-            size += stream.read(buffer, size, buffer.size - size)
-            if (size == buffer.size) {
-                buffer += ByteArray(buffer.size)
-            }
-        }
-
-
-        val vanillaClassData = buffer.sliceArray(IntRange(0, size - 1))
-
-        val c1 = transformer1.apply(vanillaClassData)
-        val c2 = transformer2.apply(vanillaClassData)
-
-        println(c1.size)
-        println(c2.size)
-
+//        val cl = this.javaClass.classLoader
+//
+//        val vanillaPath = "com/fs/starfarer"
+//        val asmPath = "com/genir/aitweaks"
+//
+//        val transformer1 = ClassConstantTransformer(listOf<Transform>(
+//            newTransform("$vanillaPath/combat/ai/BasicShipAI", "$asmPath/asm/combat/ai/AssemblyShipAI"),
+//            newTransform("$vanillaPath/combat/ai/I", "$asmPath/asm/combat/ai/OrderResponseModule"),
+//
+//            newTransform("$vanillaPath/combat/ai/movement/BasicEngineAI", "$asmPath/features/maneuver/OverrideEngineAI"),
+//            newTransform("$vanillaPath/combat/ai/movement/maneuvers/StrafeTargetManeuverV2", "$asmPath/features/maneuver/Strafe"),
+//            newTransform("$vanillaPath/combat/ai/movement/maneuvers/B", "$asmPath/features/maneuver/Approach"),
+//            newTransform("$vanillaPath/combat/ai/movement/maneuvers/U", "$asmPath/features/maneuver/Move"),
+//        ))
+//
+//        val transformer2 = CCT(listOf(
+//            CCT.newTransform("$vanillaPath/combat/ai/BasicShipAI", "$asmPath/asm/combat/ai/AssemblyShipAI"),
+//            CCT.newTransform("$vanillaPath/combat/ai/I", "$asmPath/asm/combat/ai/OrderResponseModule"),
+//
+//            CCT.newTransform("$vanillaPath/combat/ai/movement/BasicEngineAI", "$asmPath/features/maneuver/OverrideEngineAI"),
+//            CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/StrafeTargetManeuverV2", "$asmPath/features/maneuver/Strafe"),
+//            CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/B", "$asmPath/features/maneuver/Approach"),
+//            CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/U", "$asmPath/features/maneuver/Move"),
+//        ))
+//
+//        val stream = cl.getResourceAsStream("com/fs/starfarer/combat/ai/BasicShipAI.class")!!
+//
+//        var size = 0
+//        var buffer = ByteArray(1024)
+//        while (stream.available() > 0) {
+//            size += stream.read(buffer, size, buffer.size - size)
+//            if (size == buffer.size) {
+//                buffer += ByteArray(buffer.size)
+//            }
+//        }
+//
+//
+//        val vanillaClassData = buffer.sliceArray(IntRange(0, size - 1))
+//
+//        val c1 = transformer1.apply(vanillaClassData)
+//        val c2 = transformer2.apply(vanillaClassData)
+//
+//        println(c1.size)
+//        println(c2.size)
 
 
 //        stream.readBytes()

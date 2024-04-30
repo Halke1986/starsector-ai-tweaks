@@ -67,7 +67,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     private fun avoidShields(): HoldFire? = when {
         !hit.target.isShip -> fire
         hit.shieldHit && weapon.conserveAmmo -> HoldFire.AVOID_SHIELDS
-        hit.shieldHit && shieldUptime(hit.target.shield) > 0.8f -> HoldFire.AVOID_SHIELDS
+        hit.shieldHit && shieldUptime(hit.target.shield) > 1.2f -> HoldFire.AVOID_SHIELDS
         else -> fire
     }
 
