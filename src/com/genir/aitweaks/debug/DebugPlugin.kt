@@ -44,9 +44,9 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             engine.customData[ID] = true
         }
 
-//        debug(amount)
+        debug(dt)
 //        speedupAsteroids()
-        makeDroneFormation(dt)
+//        makeDroneFormation(dt)
     }
 
     override fun renderInUICoords(viewport: ViewportAPI?) {
@@ -72,10 +72,11 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //        debugVertices.add(Line(ship.location + ship.velocity * 5f, ship.location, Color.GREEN))
 //        debugVertices.add(Line(ship.location + ship.velocity * 5f, ship.location + ship.velocity * 5f + (m.attackTarget?.velocity
 //            ?: Vector2f()) * 5f, Color.RED))
-        debugVertices.add(Line(ship.location, m.headingPoint ?: ship.location, Color.YELLOW))
-        debugVertices.add(Line(ship.location, m.attackTarget?.location ?: ship.location, Color.RED))
-        debugVertices.add(Line(ship.location, m.maneuverTarget?.location ?: ship.location, Color.BLUE))
-//        drawEngineLines(ship)
+
+//        debugVertices.add(Line(ship.location, m.headingPoint ?: ship.location, Color.YELLOW))
+//        debugVertices.add(Line(ship.location, m.attackTarget?.location ?: ship.location, Color.RED))
+//        debugVertices.add(Line(ship.location, m.maneuverTarget?.location ?: ship.location, Color.BLUE))
+        drawEngineLines(ship)
 
 //        debugPlugin["speed"] = "speed ${ship.velocity.length()}"
 //        debugPlugin["dist"] = "dist  ${(ship.location - (m.travelPoint ?: ship.location)).length()}"
@@ -119,7 +120,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
             history[drone] = Pair(position, facing)
 
-            drawEngineLines(drone)
+//            drawEngineLines(drone)
         }
 
         drones.forEach { it.shipAI = null }
@@ -132,6 +133,21 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             a.mass = 0f
             a.velocity.set(VectorUtils.getDirectionalVector(Vector2f(), a.velocity) * 1200f)
         }
+    }
+
+    private fun followMouse() {
+        val ship = Global.getCombatEngine().playerShip ?: return
+
+        val position = Vector2f(
+            Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()),
+            Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()),
+        )
+
+        val c = EngineController(ship)
+        c.heading(position, Vector2f())
+        c.facing(position, Vector2f())
+
+        drawEngineLines(ship)
     }
 }
 

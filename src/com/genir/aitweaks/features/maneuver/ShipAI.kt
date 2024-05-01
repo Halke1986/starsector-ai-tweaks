@@ -19,10 +19,6 @@ fun shouldHaveAssemblyAI(ship: ShipAPI): Boolean {
 }
 
 fun newAssemblyAI(ship: ShipAPI, config: ShipAIConfig = ShipAIConfig()): ShipAIPlugin {
-//    if (!ship.isShip) {
-//        return BasicShipAI(ship as Ship, config)
-//    }
-
     val klas = loader.loadClass("com.genir.aitweaks.asm.combat.ai.AssemblyShipAI")
     val type = MethodType.methodType(Void.TYPE, Ship::class.java, ShipAIConfig::class.java)
 

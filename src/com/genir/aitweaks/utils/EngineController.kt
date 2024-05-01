@@ -88,24 +88,19 @@ class EngineController(val ship: ShipAPI) {
 
     /** Set ship facing towards 'target' location. Returns the expected facing angle. */
     fun facing(target: Vector2f, targetVelocity: Vector2f): Float {
-//         Ship reached target. Stop rotating.
-//        if ((target - ship.location).length() < ship.collisionRadius / 2f) {
-//            return ship.facing
-//        }
-
         // Change unit of time from second to
         // animation frame duration (* dt).
         val dt = Global.getCombatEngine().elapsedInLastFrame
         val a = ship.turnAcceleration * dt * dt
         val w = ship.angularVelocity * dt
-        val vt = targetVelocity * dt
+        val vr = (targetVelocity - ship.velocity) * dt
 
         // Calculate facing and facing change.
         val reachedTarget = (target - ship.location).length() < ship.collisionRadius / 2f
         val (f, df) = if (reachedTarget) Pair(ship.facing, 0f)
         else {
             val f = (target - ship.location).getFacing()
-            val df = (target + vt - ship.location).getFacing() - f
+            val df = (target + vr - ship.location).getFacing() - f
             Pair(f, df)
         }
 

@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
+import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.LARGE
 import com.genir.aitweaks.utils.attack.BallisticParams
 import com.genir.aitweaks.utils.attack.Hit
 import com.genir.aitweaks.utils.attack.firingCycle
@@ -74,6 +75,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     /** Ensure projectile will not hit exposed hull. */
     private fun avoidExposedHull(): HoldFire? = when {
         !hit.target.isShip -> fire
+        weapon.size == LARGE && (hit.target as ShipAPI).isFrigate -> fire
         weapon.ship.system?.let { it.specAPI.id == "lidararray" && it.isOn } == true -> fire
         // weapon.hasAmmoToSpare -> fire
         !hit.shieldHit -> HoldFire.AVOID_EXPOSED_HULL
