@@ -1,7 +1,7 @@
 package com.genir.aitweaks.utils
 
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.features.maneuver.Maneuver
+import com.genir.aitweaks.features.shipai.Maneuver
 
 private const val stashKey = "aitweaks_ship_stash"
 

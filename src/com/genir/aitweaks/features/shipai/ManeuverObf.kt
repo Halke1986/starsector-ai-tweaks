@@ -1,6 +1,6 @@
 @file:Suppress("UNUSED_PARAMETER")
 
-package com.genir.aitweaks.features.maneuver
+package com.genir.aitweaks.features.shipai
 
 import com.fs.starfarer.combat.ai.movement.maneuvers.oO0O
 import com.fs.starfarer.combat.ai.movement.oOOO

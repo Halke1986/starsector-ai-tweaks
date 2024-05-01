@@ -1,4 +1,4 @@
-package com.genir.aitweaks.features.maneuver
+package com.genir.aitweaks.features.shipai
 
 import com.genir.aitweaks.utils.CCT
 
@@ -18,12 +18,12 @@ class AIClassLoader : ClassLoader() {
         CCT.newTransform("$vanillaPath/combat/ai/BasicShipAI", "$asmPath/asm/combat/ai/AssemblyShipAI"),
         CCT.newTransform("$vanillaPath/combat/ai/I", "$asmPath/asm/combat/ai/OrderResponseModule"),
 
-        CCT.newTransform("$vanillaPath/api/combat/ShipAIPlugin", "$asmPath/features/maneuver/ShipAIPluginExtended"),
+        CCT.newTransform("$vanillaPath/api/combat/ShipAIPlugin", "$asmPath/features/shipai/ShipAIPluginExtended"),
 
-        CCT.newTransform("$vanillaPath/combat/ai/movement/BasicEngineAI", "$asmPath/features/maneuver/OverrideEngineAI"),
-        CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/StrafeTargetManeuverV2", "$asmPath/features/maneuver/Strafe"),
-        CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/B", "$asmPath/features/maneuver/Approach"),
-        CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/U", "$asmPath/features/maneuver/Move"),
+        CCT.newTransform("$vanillaPath/combat/ai/movement/BasicEngineAI", "$asmPath/features/shipai/OverrideEngineAI"),
+        CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/StrafeTargetManeuverV2", "$asmPath/features/shipai/Strafe"),
+        CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/B", "$asmPath/features/shipai/Approach"),
+        CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/U", "$asmPath/features/shipai/Move"),
     ))
 
     private var cache: MutableMap<String, Class<*>> = mutableMapOf()

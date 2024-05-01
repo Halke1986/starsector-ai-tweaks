@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.features.maneuver.ShipAIPluginExtended
+import com.genir.aitweaks.features.shipai.ShipAIPluginExtended
 import com.genir.aitweaks.utils.*
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus

@@ -1,4 +1,4 @@
-package com.genir.aitweaks.features.maneuver
+package com.genir.aitweaks.features.shipai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI

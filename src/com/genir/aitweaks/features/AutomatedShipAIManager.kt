@@ -4,10 +4,10 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
-import com.genir.aitweaks.features.maneuver.assemblyShipAIClass
-import com.genir.aitweaks.features.maneuver.hasAIType
-import com.genir.aitweaks.features.maneuver.newAssemblyAI
-import com.genir.aitweaks.features.maneuver.shouldHaveAssemblyAI
+import com.genir.aitweaks.features.shipai.assemblyShipAIClass
+import com.genir.aitweaks.features.shipai.hasAIType
+import com.genir.aitweaks.features.shipai.newAssemblyAI
+import com.genir.aitweaks.features.shipai.shouldHaveAssemblyAI
 import com.genir.aitweaks.utils.extensions.isAutomated
 import lunalib.lunaSettings.LunaSettings
 

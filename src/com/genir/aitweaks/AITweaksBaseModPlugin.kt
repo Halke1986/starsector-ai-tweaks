@@ -9,8 +9,8 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.MISSILE
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.genir.aitweaks.features.autofire.AutofireAI
-import com.genir.aitweaks.features.maneuver.newAssemblyAI
-import com.genir.aitweaks.features.maneuver.shouldHaveAssemblyAI
+import com.genir.aitweaks.features.shipai.newAssemblyAI
+import com.genir.aitweaks.features.shipai.shouldHaveAssemblyAI
 
 val autofireBlacklist = setOf(
     "fragbomb", // Stinger-class Proximity Mine is classified as a ballistic weapon, but works more like missile.

@@ -1,4 +1,4 @@
-package com.genir.aitweaks.features.maneuver
+package com.genir.aitweaks.features.shipai
 
 import com.fs.starfarer.combat.ai.movement.BasicEngineAI
 import com.fs.starfarer.combat.ai.movement.EngineAI
