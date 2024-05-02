@@ -27,6 +27,8 @@ class CCT(transforms: List<Transform>) {
                         val fromIdx = currentOffset + 3
                         val toIdx = fromIdx + len
 
+                        // println(data.slice(fromIdx..toIdx).toByteArray().decodeToString())
+
                         for (transform in transforms) {
                             val match = indexOf(data, transform.fromBytes, fromIdx, toIdx)
                             if (match != -1) {

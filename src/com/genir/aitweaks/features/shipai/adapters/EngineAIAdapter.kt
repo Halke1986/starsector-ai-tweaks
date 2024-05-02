@@ -1,10 +1,10 @@
-package com.genir.aitweaks.features.shipai
+package com.genir.aitweaks.features.shipai.adapters
 
 import com.fs.starfarer.combat.ai.movement.BasicEngineAI
 import com.fs.starfarer.combat.ai.movement.EngineAI
 import com.fs.starfarer.combat.entities.Ship
 
-class OverrideEngineAI(val ship: Ship) : EngineAI {
+class EngineAIAdapter(val ship: Ship) : EngineAI {
     private var vanillaAI = BasicEngineAI(ship)
 
     override fun advance(dt: Float) = Unit

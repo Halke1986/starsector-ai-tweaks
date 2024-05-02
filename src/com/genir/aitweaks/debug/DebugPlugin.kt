@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.features.shipai.ShipAIPluginExtended
 import com.genir.aitweaks.utils.*
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -88,9 +87,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //        debugPlugin["1"] = "100 ${ship.maxRange}"
 //        debugPlugin["66"] = "66  ${m.range66}"
 //        debugPlugin["33"] = "33  ${m.range33}"
-
-
-        debugPlugin["maneuver"] = (ship.ai as? ShipAIPluginExtended)?.getCurrentManeuver()?.javaClass?.canonicalName
     }
 
     private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()

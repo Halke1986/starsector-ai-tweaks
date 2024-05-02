@@ -19,7 +19,7 @@ fun shouldHaveAssemblyAI(ship: ShipAPI): Boolean {
 }
 
 fun newAssemblyAI(ship: ShipAPI, config: ShipAIConfig = ShipAIConfig()): ShipAIPlugin {
-    val klas = loader.loadClass("com.genir.aitweaks.asm.combat.ai.AssemblyShipAI")
+    val klas = loader.loadClass("com.genir.aitweaks.asm.shipai.AssemblyShipAI")
     val type = MethodType.methodType(Void.TYPE, Ship::class.java, ShipAIConfig::class.java)
 
     val ctor = MethodHandles.lookup().findConstructor(klas, type)
@@ -27,7 +27,9 @@ fun newAssemblyAI(ship: ShipAPI, config: ShipAIConfig = ShipAIConfig()): ShipAIP
     return ctor.invoke(ship as Ship, config) as ShipAIPlugin
 }
 
-fun assemblyShipAIClass() = loader.loadClass("com.genir.aitweaks.asm.combat.ai.AssemblyShipAI")
+fun assemblyShipAIClass() = loader.loadClass("com.genir.aitweaks.asm.shipai.AssemblyShipAI")
+
+fun aiPluginAdapterClass() = loader.loadClass("com.genir.aitweaks.asm.shipai.AIPluginAdapter")
 
 val ShipAPI.hasBasicShipAI: Boolean
     get() = when {
