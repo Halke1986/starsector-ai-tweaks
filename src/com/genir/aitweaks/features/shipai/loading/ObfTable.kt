@@ -50,7 +50,7 @@ class ObfTable {
                 return null
             }
 
-            override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+            override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor {
                 return object : MethodVisitor(Opcodes.ASM4) {
                     override fun visitTypeInsn(opcode: Int, type: String?) {
                         if (type?.startsWith("com/fs/starfarer/combat/ai/movement/maneuvers/") == true) {

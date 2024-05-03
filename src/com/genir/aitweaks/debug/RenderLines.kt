@@ -85,10 +85,10 @@ class RenderLines : BaseCombatLayeredRenderingPlugin() {
 
         debugVertices.forEach {
             Misc.setColor(it.color)
-            GL11.glBegin(GL11.GL_LINE_STRIP);
-            GL11.glVertex2f(it.a.x, it.a.y);
-            GL11.glVertex2f(it.b.x, it.b.y);
-            GL11.glEnd();
+            GL11.glBegin(GL11.GL_LINE_STRIP)
+            GL11.glVertex2f(it.a.x, it.a.y)
+            GL11.glVertex2f(it.b.x, it.b.y)
+            GL11.glEnd()
         }
 
         GL11.glPopAttrib()

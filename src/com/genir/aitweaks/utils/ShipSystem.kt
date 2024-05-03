@@ -1,7 +1,6 @@
 package com.genir.aitweaks.utils
 
-class ShipSystem {
-}
+class ShipSystem
 
 enum class ShipSystemAiType {
     FLARE,

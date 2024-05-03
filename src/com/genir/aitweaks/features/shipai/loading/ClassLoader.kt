@@ -87,6 +87,6 @@ class AIClassLoader : ClassLoader() {
         // Do two transform passes to replace multiple types contained in the same constant.
         val classBuffer = CCT.readClassBuffer(this.javaClass.classLoader, source + innerName)
         val classData = transformer.apply(transformer.apply(classBuffer))
-        return defineClass(name, classData, 0, classData.size);
+        return defineClass(name, classData, 0, classData.size)
     }
 }

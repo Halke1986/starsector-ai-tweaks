@@ -71,8 +71,8 @@ fun dangerGradientInDirection(ship: ShipAPI, facing: Float): Float {
 
     val r = Rotation(90f - facing)
     return threats.fold(0f) { sum, enemy ->
-        val pos = ((enemy as ShipAPI).location.rotated(r) - ship.location);
+        val pos = ((enemy as ShipAPI).location.rotated(r) - ship.location)
         val dp = enemy.deploymentPoints
-        sum + (dp * dp * pos.length() * pos.y) / 1e6f;
+        sum + (dp * dp * pos.length() * pos.y) / 1e6f
     }
 }
