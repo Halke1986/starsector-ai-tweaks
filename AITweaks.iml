@@ -30,5 +30,6 @@
     </orderEntry>
     <orderEntry type="library" name="LunaLib" level="project" />
     <orderEntry type="library" name="AITweaks_asm" level="project" />
+    <orderEntry type="library" name="asm-4.0-sources" level="project" />
   </component>
 </module>

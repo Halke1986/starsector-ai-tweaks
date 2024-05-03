@@ -29,8 +29,6 @@ fun newAssemblyAI(ship: ShipAPI, config: ShipAIConfig = ShipAIConfig()): ShipAIP
 
 fun assemblyShipAIClass() = loader.loadClass("com.genir.aitweaks.asm.shipai.AssemblyShipAI")
 
-fun aiPluginAdapterClass() = loader.loadClass("com.genir.aitweaks.asm.shipai.AIPluginAdapter")
-
 val ShipAPI.hasBasicShipAI: Boolean
     get() = when {
         ai is BasicShipAI -> true

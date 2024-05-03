@@ -97,12 +97,8 @@ class EngineController(val ship: ShipAPI) {
 
         // Calculate facing and facing change.
         val reachedTarget = (target - ship.location).length() < ship.collisionRadius / 2f
-        val (f, df) = if (reachedTarget) Pair(ship.facing, 0f)
-        else {
-            val f = (target - ship.location).getFacing()
-            val df = (target + vr - ship.location).getFacing() - f
-            Pair(f, df)
-        }
+        val f = if (reachedTarget) ship.facing else (target - ship.location).getFacing()
+        val df = if (reachedTarget) 0f else (target + vr - ship.location).getFacing() - f
 
         // Angular distance between expected
         // facing and ship facing the next frame.

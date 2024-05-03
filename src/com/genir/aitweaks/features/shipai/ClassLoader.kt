@@ -1,17 +1,15 @@
 package com.genir.aitweaks.features.shipai
 
+import com.genir.aitweaks.features.shipai.loading.ObfTable
 import com.genir.aitweaks.utils.CCT
-
-private const val vanillaPath = "com/fs/starfarer"
-private const val aitPath = "com/genir/aitweaks"
+import com.genir.aitweaks.utils.log
 
 class AIClassLoader : ClassLoader() {
+    private val obf = ObfTable()
+
     private val vanillaSources: Map<String, String> = mapOf(
         "com.genir.aitweaks.asm.shipai.AssemblyShipAI" to "com.fs.starfarer.combat.ai.BasicShipAI",
-        "com.genir.aitweaks.asm.shipai.AssemblyShipAI\$o" to "com.fs.starfarer.combat.ai.BasicShipAI\$o",
-        "com.genir.aitweaks.asm.shipai.AssemblyShipAI\$1" to "com.fs.starfarer.combat.ai.BasicShipAI\$1",
-        "com.genir.aitweaks.asm.shipai.OrderResponseModule" to "com.fs.starfarer.combat.ai.I",
-        "com.genir.aitweaks.asm.shipai.OrderResponseModule\$o" to "com.fs.starfarer.combat.ai.I\$o"
+        "com.genir.aitweaks.asm.shipai.OrderResponseModule" to "com.fs.starfarer.combat.ai.${obf.orderResponseModule}",
     )
 
     private val adapterSources: Map<String, String> = mapOf(
@@ -23,29 +21,28 @@ class AIClassLoader : ClassLoader() {
 
     private val vanillaTransformer = CCT(listOf(
         // Rename vanilla classes.
-        CCT.newTransform("$vanillaPath/combat/ai/BasicShipAI", "$aitPath/asm/shipai/AssemblyShipAI"),
-        CCT.newTransform("$vanillaPath/combat/ai/I", "$aitPath/asm/shipai/OrderResponseModule"),
-
-        CCT.newTransform("$vanillaPath/combat/ai/movement/BasicEngineAI", "$aitPath/features/shipai/adapters/EngineAIAdapter"),
+        CCT.newTransform("com/fs/starfarer/combat/ai/BasicShipAI", "com/genir/aitweaks/asm/shipai/AssemblyShipAI"),
+        CCT.newTransform("com/fs/starfarer/combat/ai/${obf.orderResponseModule}", "com/genir/aitweaks/asm/shipai/OrderResponseModule"),
 
         // Replace vanilla maneuvers.
-        CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/StrafeTargetManeuverV2", "$aitPath/asm/shipai/Strafe"),
-        CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/B", "$aitPath/asm/shipai/Approach"),
-        CCT.newTransform("$vanillaPath/combat/ai/movement/maneuvers/U", "$aitPath/asm/shipai/Move"),
+        CCT.newTransform("com/fs/starfarer/combat/ai/movement/BasicEngineAI", "com/genir/aitweaks/features/shipai/adapters/EngineAIAdapter"),
+        CCT.newTransform("com/fs/starfarer/combat/ai/movement/maneuvers/StrafeTargetManeuverV2", "com/genir/aitweaks/asm/shipai/Strafe"),
+        CCT.newTransform("com/fs/starfarer/combat/ai/movement/maneuvers/B", "com/genir/aitweaks/asm/shipai/Approach"),
+        CCT.newTransform("com/fs/starfarer/combat/ai/movement/maneuvers/U", "com/genir/aitweaks/asm/shipai/Move"),
     ))
 
     private val adapterTransformer = CCT(listOf(
         // Rename aitweaks classes.
-        CCT.newTransform("$aitPath/features/shipai/adapters/Strafe", "$aitPath/asm/shipai/Strafe"),
-        CCT.newTransform("$aitPath/features/shipai/adapters/Approach", "$aitPath/asm/shipai/Approach"),
-        CCT.newTransform("$aitPath/features/shipai/adapters/Move", "$aitPath/asm/shipai/Move"),
-        CCT.newTransform("$aitPath/features/shipai/adapters/ManeuverAdapter", "$aitPath/asm/shipai/ManeuverAdapter"),
+        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/Strafe", "com/genir/aitweaks/asm/shipai/Strafe"),
+        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/Approach", "com/genir/aitweaks/asm/shipai/Approach"),
+        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/Move", "com/genir/aitweaks/asm/shipai/Move"),
+        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/ManeuverAdapter", "com/genir/aitweaks/asm/shipai/ManeuverAdapter"),
 
         // Replace stub types.
-        CCT.newTransform("$aitPath/features/shipai/adapters/ManeuverInterface", "$vanillaPath/combat/ai/movement/maneuvers/oO0O"),
-        CCT.newTransform("$aitPath/features/shipai/adapters/FlockingAI", "$vanillaPath/combat/ai/movement/oOOO"),
-        CCT.newTransform("$aitPath/features/shipai/adapters/ShipAI", "$vanillaPath/combat/ai/movement/maneuvers/oO0O\$o"),
-        CCT.newTransform("$vanillaPath/api/combat/CombatEntityAPI", "$vanillaPath/combat/o0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/B"),
+        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/ManeuverInterface", "com/fs/starfarer/combat/ai/movement/maneuvers/oO0O"),
+        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/FlockingAI", "com/fs/starfarer/combat/ai/movement/oOOO"),
+        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/ShipAI", "com/fs/starfarer/combat/ai/movement/maneuvers/oO0O\$o"),
+        CCT.newTransform("com/fs/starfarer/api/combat/CombatEntityAPI", "com/fs/starfarer/combat/o0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/B"),
 
         // Replace method names.
         CCT.newTransform("advanceObf", "o00000"),
@@ -60,12 +57,14 @@ class AIClassLoader : ClassLoader() {
     private var cache: MutableMap<String, Class<*>> = mutableMapOf()
 
     override fun loadClass(name: String): Class<*> {
+        val outerName = name.split("$").first()
+
         return when {
             // Load class from cache.
             cache.containsKey(name) -> cache[name]!!
 
             // Load class from raw bytes and store in cache.
-            vanillaSources.containsKey(name) || adapterSources.containsKey(name) -> {
+            vanillaSources.containsKey(outerName) || adapterSources.containsKey(outerName) -> {
                 val c = findClass(name)
                 cache[name] = c
                 c
@@ -77,14 +76,20 @@ class AIClassLoader : ClassLoader() {
     }
 
     override fun findClass(name: String): Class<*> {
-        val (source, transformer) = if (vanillaSources.containsKey(name)) {
-            Pair(vanillaSources[name]!!, vanillaTransformer)
+        val elems = name.split("$")
+        val outerName = elems.first()
+        val innerName = if (elems.size > 1) "$${elems[1]}" else ""
+
+        val (source, transformer) = if (vanillaSources.containsKey(outerName)) {
+            Pair(vanillaSources[outerName]!!, vanillaTransformer)
         } else {
-            Pair(adapterSources[name]!!, adapterTransformer)
+            Pair(adapterSources[outerName]!!, adapterTransformer)
         }
 
+        log(source + innerName)
+
         // Do two transform passes to replace multiple types contained in the same constant.
-        val classBuffer = CCT.readClassBuffer(this.javaClass.classLoader, source)
+        val classBuffer = CCT.readClassBuffer(this.javaClass.classLoader, source + innerName)
         val classData = transformer.apply(transformer.apply(classBuffer))
         return defineClass(name, classData, 0, classData.size);
     }
