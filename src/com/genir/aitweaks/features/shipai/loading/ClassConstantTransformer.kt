@@ -1,4 +1,4 @@
-package com.genir.aitweaks.utils
+package com.genir.aitweaks.features.shipai.loading
 
 import java.io.IOException
 import java.lang.instrument.IllegalClassFormatException
@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.math.min
 
-class CCT(transforms: List<Transform>) {
+class ClassConstantTransformer(transforms: List<Transform>) {
     private val transforms: List<Transform> = if (transforms.javaClass == STATIC_ARRAY_LIST_TYPE) transforms else ArrayList(transforms)
 
     @Throws(IllegalClassFormatException::class)
@@ -26,8 +26,6 @@ class CCT(transforms: List<Transform>) {
                         entrySize = 3 + len
                         val fromIdx = currentOffset + 3
                         val toIdx = fromIdx + len
-
-                        // println(data.slice(fromIdx..toIdx).toByteArray().decodeToString())
 
                         for (transform in transforms) {
                             val match = indexOf(data, transform.fromBytes, fromIdx, toIdx)

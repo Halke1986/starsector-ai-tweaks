@@ -1,8 +1,6 @@
-package com.genir.aitweaks.features.shipai
+package com.genir.aitweaks.features.shipai.loading
 
-import com.genir.aitweaks.features.shipai.loading.ObfTable
-import com.genir.aitweaks.utils.CCT
-import com.genir.aitweaks.utils.log
+import com.genir.aitweaks.features.shipai.loading.ClassConstantTransformer as CCT
 
 class AIClassLoader : ClassLoader() {
     private val obf = ObfTable()
@@ -27,8 +25,8 @@ class AIClassLoader : ClassLoader() {
         // Replace vanilla maneuvers.
         CCT.newTransform("com/fs/starfarer/combat/ai/movement/BasicEngineAI", "com/genir/aitweaks/features/shipai/adapters/EngineAIAdapter"),
         CCT.newTransform("com/fs/starfarer/combat/ai/movement/maneuvers/StrafeTargetManeuverV2", "com/genir/aitweaks/asm/shipai/Strafe"),
-        CCT.newTransform("com/fs/starfarer/combat/ai/movement/maneuvers/B", "com/genir/aitweaks/asm/shipai/Approach"),
-        CCT.newTransform("com/fs/starfarer/combat/ai/movement/maneuvers/U", "com/genir/aitweaks/asm/shipai/Move"),
+        CCT.newTransform("com/fs/starfarer/combat/ai/movement/maneuvers/${obf.approach}", "com/genir/aitweaks/asm/shipai/Approach"),
+        CCT.newTransform("com/fs/starfarer/combat/ai/movement/maneuvers/${obf.move}", "com/genir/aitweaks/asm/shipai/Move"),
     ))
 
     private val adapterTransformer = CCT(listOf(
@@ -39,19 +37,19 @@ class AIClassLoader : ClassLoader() {
         CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/ManeuverAdapter", "com/genir/aitweaks/asm/shipai/ManeuverAdapter"),
 
         // Replace stub types.
-        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/ManeuverInterface", "com/fs/starfarer/combat/ai/movement/maneuvers/oO0O"),
-        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/FlockingAI", "com/fs/starfarer/combat/ai/movement/oOOO"),
-        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/ShipAI", "com/fs/starfarer/combat/ai/movement/maneuvers/oO0O\$o"),
-        CCT.newTransform("com/fs/starfarer/api/combat/CombatEntityAPI", "com/fs/starfarer/combat/o0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/B"),
+        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/ManeuverInterface", "com/fs/starfarer/combat/ai/movement/maneuvers/${obf.maneuver}"),
+        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/FlockingAI", "com/fs/starfarer/combat/ai/movement/${obf.flockingAI}"),
+        CCT.newTransform("com/genir/aitweaks/features/shipai/adapters/ShipAI", "com/fs/starfarer/combat/ai/movement/maneuvers/${obf.shipAI}"),
+        CCT.newTransform("com/fs/starfarer/api/combat/CombatEntityAPI", "com/fs/starfarer/combat/${obf.combatEntityPackage}/${obf.combatEntity}"),
 
         // Replace method names.
-        CCT.newTransform("advanceObf", "o00000"),
-        CCT.newTransform("getTargetObf", "o00000"),
-        CCT.newTransform("isDirectControlObf", "Õ00000"),
-        CCT.newTransform("doManeuverObf", "Object"),
-        CCT.newTransform("getDesiredHeadingObf", "Ô00000"),
-        CCT.newTransform("getDesiredFacingObf", "Ò00000"),
-        CCT.newTransform("getDesiredStrafeHeadingObf", "Object"),
+        CCT.newTransform("advanceObf", obf.advance),
+        CCT.newTransform("getTargetObf", obf.getTarget),
+        CCT.newTransform("isDirectControlObf", obf.isDirectControl),
+        CCT.newTransform("doManeuverObf", obf.doManeuver),
+        CCT.newTransform("getDesiredHeadingObf", obf.getDesiredHeading),
+        CCT.newTransform("getDesiredFacingObf", obf.getDesiredFacing),
+        CCT.newTransform("getDesiredStrafeHeadingObf", obf.getDesiredStrafeHeading),
     ))
 
     private var cache: MutableMap<String, Class<*>> = mutableMapOf()
@@ -85,8 +83,6 @@ class AIClassLoader : ClassLoader() {
         } else {
             Pair(adapterSources[outerName]!!, adapterTransformer)
         }
-
-        log(source + innerName)
 
         // Do two transform passes to replace multiple types contained in the same constant.
         val classBuffer = CCT.readClassBuffer(this.javaClass.classLoader, source + innerName)

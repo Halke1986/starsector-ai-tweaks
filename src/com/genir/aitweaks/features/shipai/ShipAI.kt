@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.features.shipai.loading.AIClassLoader
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 
