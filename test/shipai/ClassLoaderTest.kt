@@ -1,7 +1,9 @@
 package shipai
 
+import com.genir.aitweaks.features.shipai.loading.AIClassLoader
 import com.genir.aitweaks.features.shipai.loading.ObfTable
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
 class CustomClassLoader {
@@ -26,5 +28,13 @@ class CustomClassLoader {
         assertEquals(obf.getDesiredHeading, "Ô00000")
         assertEquals(obf.getDesiredFacing, "Ò00000")
         assertEquals(obf.getDesiredStrafeHeading, "Object")
+    }
+
+    @Test
+    fun testClassLoader() {
+        val cl = AIClassLoader()
+
+        assertNotNull(cl.loadClass("com.genir.aitweaks.asm.shipai.AssemblyShipAI"))
+        assertNotNull(cl.loadClass("com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2"))
     }
 }

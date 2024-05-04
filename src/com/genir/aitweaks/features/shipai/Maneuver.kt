@@ -27,7 +27,7 @@ const val effectiveDpsThreshold = 0.80f
 
 // Flux management
 const val backoffUpperThreshold = 0.75f
-const val backoffLowerThreshold = backoffUpperThreshold / 2f // will force vent
+const val backoffLowerThreshold = backoffUpperThreshold * 0.6f // will force vent
 const val holdFireThreshold = 0.9f
 
 // Idle time calculation
@@ -411,11 +411,11 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             val evalShunt = if (target.variant.hasHullMod("fluxshunt")) 4f else 0f
 
             // Assign lower priority to frigates.
-            // val evalType = if (target.isFrigate) 0.5f else 0f
+            val evalType = if (target.isFrigate) 0.5f else 0f
 
             // TODO avoid wrecks
 
-            return evalAngle + evalDist + evalFlux + evalDamper + evalShunt
+            return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType
         }
 
         /** Find all potential enemy targets in or close to ship weapon range. */
