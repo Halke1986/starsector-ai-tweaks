@@ -398,7 +398,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
 
             // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
             val dist = engagementRange(target)
-            val distWeight = if (dist > effectiveRange) 2f else 1f
+            val distWeight = 1f / ship.dpsFractionAtRange(dist)
             val evalDist = (dist / ship.maxRange) * distWeight
 
             // Prioritize targets high on flux. Avoid hunting low flux phase ships.
