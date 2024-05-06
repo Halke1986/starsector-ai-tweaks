@@ -5,16 +5,20 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
+import com.genir.aitweaks.debug.Line
+import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ShipSystemAiType.BURN_DRIVE
 import com.genir.aitweaks.utils.ShipSystemAiType.MANEUVERING_JETS
 import com.genir.aitweaks.utils.extensions.*
+import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
@@ -168,9 +172,9 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
 
     private fun updateIdleTime(dt: Float) {
         val shieldIsUp = ship.shield?.isOn == true && shieldUptime(ship.shield) > shieldFlickerThreshold
-        val isFiring = ship.allWeapons.firstOrNull { it.isFiring } != null
+        val pdIsFiring = ship.allWeapons.firstOrNull { it.isPD && it.isFiring } != null
 
-        idleTime = if (shieldIsUp || isFiring) 0f
+        idleTime = if (shieldIsUp || pdIsFiring) 0f
         else idleTime + dt
     }
 
@@ -267,15 +271,29 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
                 Pair(targetLocation, Vector2f())
             }
 
-            // Orbit target at effective weapon range. Rotate away from threat,
-            // or just strafe randomly if no threat.
+            // Orbit target at effective weapon range.
+            // Rotate away from threat if there are multiple enemy ships around.
+            // Chase the target if there are no other enemy ships around.
+            // Strafe target randomly if in range and no other threat.
             maneuverTarget != null -> {
                 // TODO will need syncing when interval tracking is introduced.
-                val angleFromTargetToThreat = abs(getShortestRotation(maneuverTarget.location - ship.location, threatVector))
-                val offset = if (angleFromTargetToThreat > 1f) threatVector
-                else threatVector.rotated(strafeRotation)
+                val vectorToTarget = maneuverTarget.location - ship.location
+                val vectorToThreat = if (!threatVector.isZeroVector()) threatVector else vectorToTarget
+                val angleFromTargetToThreat = abs(getShortestRotation(vectorToTarget, vectorToThreat))
 
-                val headingPoint = maneuverTarget.location - offset.resized(ship.minRange)
+                // Strafe the target randomly, when it's the only threat.
+                val shouldStrafe = when {
+                    isAvoidingBorder -> false
+                    angleFromTargetToThreat > 1f -> false
+                    maneuverTarget != attackTarget -> false
+                    vectorToTarget.length() > ship.minRange -> false
+                    else -> true
+                }
+
+                val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
+                else vectorToThreat
+
+                val headingPoint = maneuverTarget.location - attackPositionOffset.resized(ship.minRange)
                 val velocity = (headingPoint - (this.headingPoint ?: headingPoint)) / dt
                 Pair(headingPoint, velocity)
             }
@@ -285,7 +303,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         }
 
         // Avoid border. When in border zone, do not attempt to lead
-        // target, as it may lead to intrusion into border zone.
+        // target, as it may lead to deeper intrusion into the border zone.
         val censoredHeadingPoint = avoidBorder(headingPoint)
         val censoredVelocity = if (censoredHeadingPoint == headingPoint) velocity else Vector2f()
 
@@ -296,50 +314,59 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
     /** Make the ship avoid map border. The ship will attempt to move
      * inside a rectangle with rounded corners placed `borderNoGoZone`
      * units from map border.*/
-    // TODO allow chase
-    private fun avoidBorder(heading: Vector2f): Vector2f {
+    private fun avoidBorder(headingPoint: Vector2f): Vector2f {
         isAvoidingBorder = false
 
         val mapH = Global.getCombatEngine().mapHeight / 2f
         val mapW = Global.getCombatEngine().mapWidth / 2f
         val borderZone = borderNoGoZone + borderCornerRadius
 
+        // Translate ship coordinates so that the ship appears to be
+        // always near a map corner. That way we can use a circle
+        // calculations to approximate a rectangle with rounded corners.
         val l = ship.location
-
-        // Translate ship coordinates so that it appears to be always
-        // near a map corner. That way we can use a circle calculations
-        // to approximate a rectangle with rounded corners.
-        val c = Vector2f()
-        c.x = if (l.x > 0) (l.x - mapW + borderZone).coerceAtLeast(0f)
+        val dirToBorder = Vector2f()
+        dirToBorder.x = if (l.x > 0) (l.x - mapW + borderZone).coerceAtLeast(0f)
         else (l.x + mapW - borderZone).coerceAtMost(0f)
-        c.y = if (l.y > 0) (l.y - mapH + borderZone).coerceAtLeast(0f)
+        dirToBorder.y = if (l.y > 0) (l.y - mapH + borderZone).coerceAtLeast(0f)
         else (l.y + mapH - borderZone).coerceAtMost(0f)
 
         // Distance into the border zone.
-        val d = (c.length() - borderCornerRadius).coerceAtLeast(0f)
+        val d = (dirToBorder.length() - borderCornerRadius).coerceAtLeast(0f)
 
         // Ship is far from border, no avoidance required.
-        if (d == 0f) return heading
+        if (d == 0f)
+            return headingPoint
 
-        // Translate to frame of reference, where up
-        // corresponds to direction towards border.
-        val r = Rotation(90f - c.getFacing())
-        val hr = (heading - ship.location).rotated(r)
+        val borderFacing = dirToBorder.getFacing()
+        val travelFacing = (headingPoint - ship.location).getFacing()
+        val intrusionAngle = MathUtils.getShortestRotation(borderFacing, travelFacing)
 
         // Ship attempts to move away from the border on its own.
-        if (hr.y < 0) return heading
+        if (abs(intrusionAngle) > 90f)
+            return headingPoint
+
+        // Allow chasing targets into the border zone.
+        val attackAngle = attackTarget?.let { (it.location - ship.location).getFacing() - borderFacing }
+        val absAllowedAngle = if (attackAngle?.sign == intrusionAngle.sign) min(90f, abs(attackAngle))
+        else 90f
+
+        if (abs(intrusionAngle) + 1f >= absAllowedAngle)
+            return headingPoint
 
         // The closer the ship is to map edge, the stronger
         // the heading transformation away from the border.
-        val avoidForce = (d / (borderNoGoZone - borderHardNoGoZone)).coerceAtMost(1f)
-        val allowedHeading = when {
-            hr.x >= 0f -> Vector2f(hr.length(), 0f)
-            else -> Vector2f(-hr.length(), 0f)
-        }
+        val avoidForce = (d / (borderNoGoZone - borderHardNoGoZone))
+        val correctionSign = if (intrusionAngle.sign > 0) 1f else -1f
+        val correctionAngle = (absAllowedAngle - abs(intrusionAngle)) * correctionSign * avoidForce
+
+        val allowedHeadingVec = unitVector(borderFacing).resized((headingPoint - ship.location).length()).rotated(Rotation(90f * correctionSign))
+        debugVertices.add(Line(ship.location, ship.location + allowedHeadingVec, Color.BLUE))
+        debugVertices.add(Line(ship.location, headingPoint.rotatedAroundPivot(Rotation(correctionAngle), ship.location), Color.RED))
+        debugVertices.add(Line(ship.location, headingPoint, Color.YELLOW))
 
         isAvoidingBorder = true
-        val censoredHeading = (allowedHeading * avoidForce + hr * (1f - avoidForce)).rotatedReverse(r) * 0.5f
-        return censoredHeading + ship.location
+        return headingPoint.rotatedAroundPivot(Rotation(correctionAngle), ship.location)
     }
 
     private fun engagementRange(target: ShipAPI): Float {
@@ -403,7 +430,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
 
             // Prioritize targets high on flux. Avoid hunting low flux phase ships.
             val fluxLeft = (1f - target.fluxLevel)
-            val fluxFactor = if (target.phaseCloak?.specAPI?.isPhaseCloak == true) 1.5f else 0.5f
+            val fluxFactor = if (target.phaseCloak?.specAPI?.isPhaseCloak == true) 2f else 0.5f
             val evalFlux = fluxLeft * fluxFactor
 
             // Avoid attacking bricks.

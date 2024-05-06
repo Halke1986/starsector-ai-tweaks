@@ -3,6 +3,7 @@ package com.genir.aitweaks.debug
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.utils.*
@@ -63,7 +64,14 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private fun debug(dt: Float) {
         val ship = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
 
-//        debugPlugin["ai name"] = ship.ai?.javaClass?.canonicalName
+//        ship.blockCommandForOneFrame(ShipCommand.TURN_LEFT)
+//        ship.blockCommandForOneFrame(ShipCommand.TURN_RIGHT)
+        ship.blockCommandForOneFrame(ShipCommand.SELECT_GROUP)
+
+//        debugPlugin["s"] = "s ${(ship as Ship).selectedGroup}"
+//        debugPlugin["w"] = ship.weaponGroupsCopy.count { !it.isAutofiring }
+
+//        debugPlugin["ai name"] = ship.AITStash.maneuverAI?.javaClass?.canonicalName
 
         val m = ship.AITStash.maneuverAI ?: return
 
