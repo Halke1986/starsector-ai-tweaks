@@ -68,9 +68,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //        ship.blockCommandForOneFrame(ShipCommand.TURN_RIGHT)
         ship.blockCommandForOneFrame(ShipCommand.SELECT_GROUP)
 
-//        debugPlugin["s"] = "s ${(ship as Ship).selectedGroup}"
-//        debugPlugin["w"] = ship.weaponGroupsCopy.count { !it.isAutofiring }
-
 //        debugPlugin["ai name"] = ship.AITStash.maneuverAI?.javaClass?.canonicalName
 
         val m = ship.AITStash.maneuverAI ?: return
@@ -81,7 +78,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //            ?: Vector2f()) * 5f, Color.RED))
 
 //        debugVertices.add(Line(ship.location, m.headingPoint ?: ship.location, Color.YELLOW))
-//        debugVertices.add(Line(ship.location, m.attackTarget?.location ?: ship.location, Color.RED))
+//        debugVertices.add(Line(ship.location, m.attackTarget?.location ?: ship.location, Color.YELLOW))
 //        debugVertices.add(Line(ship.location, m.maneuverTarget?.location ?: ship.location, Color.BLUE))
         drawEngineLines(ship)
 
@@ -91,10 +88,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         debugPlugin["isBackingOff"] = if (m.isBackingOff) "is backing off" else null
         debugPlugin["isHoldingFire"] = if (m.isHoldingFire) "hold fire" else null
         debugPlugin["isAvoidingBorder"] = if (m.isAvoidingBorder) "avoid border" else null
-
-//        debugPlugin["1"] = "100 ${ship.maxRange}"
-//        debugPlugin["66"] = "66  ${m.range66}"
-//        debugPlugin["33"] = "33  ${m.range33}"
     }
 
     private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()

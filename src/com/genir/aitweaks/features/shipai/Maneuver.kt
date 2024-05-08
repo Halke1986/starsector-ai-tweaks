@@ -5,8 +5,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
-import com.genir.aitweaks.debug.Line
-import com.genir.aitweaks.debug.debugVertices
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ShipSystemAiType.BURN_DRIVE
 import com.genir.aitweaks.utils.ShipSystemAiType.MANEUVERING_JETS
@@ -18,7 +16,6 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
@@ -43,6 +40,8 @@ const val arrivedAtLocationRadius = 2000f
 const val borderCornerRadius = 4000f
 const val borderNoGoZone = 3000f
 const val borderHardNoGoZone = borderNoGoZone / 2f
+
+// TODO retreat order during chase battle freezes the ship
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targetLocation: Vector2f?) {
@@ -122,14 +121,12 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         // Attack target is stored in a flag, so it carries over between Maneuver instances.
         val currentTarget: ShipAPI? = ship.AITStash.attackTarget
 
-        targetFinder.target
-
         val updateTarget = when {
             currentTarget == null -> true
             !currentTarget.isValidTarget -> true
 
             // Do not interrupt bursts.
-            ship.primaryWeapons.firstOrNull { it.trueIsInBurst } != null -> false
+            ship.primaryWeapons.firstOrNull { it.trueIsInBurst && it.autofireAI?.targetShip == attackTarget } != null -> false
 
             // Finish helpless target.
             currentTarget.fluxTracker.isOverloadedOrVenting -> false
@@ -261,9 +258,10 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
     private fun setHeading(dt: Float) {
         val (headingPoint, velocity) = when {
             // Move opposite to threat direction when backing off.
-            // If there's no threat, the ship will coast with const velocity.
+            // If there's no threat, the ship will continue to coast.
             isBackingOff -> {
-                Pair(ship.location - threatVector.resized(1000f), Vector2f())
+                if (threatVector.isZeroVector()) Pair(ship.location, ship.velocity.resized(ship.maxSpeed))
+                else Pair(ship.location - threatVector.resized(1000f), Vector2f())
             }
 
             // Move directly to ordered location.
@@ -360,11 +358,6 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         val correctionSign = if (intrusionAngle.sign > 0) 1f else -1f
         val correctionAngle = (absAllowedAngle - abs(intrusionAngle)) * correctionSign * avoidForce
 
-        val allowedHeadingVec = unitVector(borderFacing).resized((headingPoint - ship.location).length()).rotated(Rotation(90f * correctionSign))
-        debugVertices.add(Line(ship.location, ship.location + allowedHeadingVec, Color.BLUE))
-        debugVertices.add(Line(ship.location, headingPoint.rotatedAroundPivot(Rotation(correctionAngle), ship.location), Color.RED))
-        debugVertices.add(Line(ship.location, headingPoint, Color.YELLOW))
-
         isAvoidingBorder = true
         return headingPoint.rotatedAroundPivot(Rotation(correctionAngle), ship.location)
     }
@@ -390,6 +383,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         return aimPoint
     }
 
+    // TODO ensure stations are counted
     private fun calculateThreatDirection(location: Vector2f): Vector2f {
         val radius = min(threatEvalRadius, ship.maxRange)
         val ships = shipsInRadius(location, radius)

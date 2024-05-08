@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
+import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.utils.attack.FiringCycle
@@ -64,3 +65,6 @@ val WeaponAPI.autofireAI: AutofireAI?
 
 val WeaponAPI.trueIsInBurst: Boolean
     get() = isInBurst || (isBurstBeam && isFiring)
+
+val WeaponAPI.group: WeaponGroupAPI
+    get() = this.ship.getWeaponGroupFor(this)
