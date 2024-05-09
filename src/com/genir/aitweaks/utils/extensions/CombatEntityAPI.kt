@@ -10,3 +10,6 @@ val CombatEntityAPI.isShip: Boolean
 val CombatEntityAPI.isValidTarget: Boolean
     get() = if (this is ShipAPI) isAlive && isHullDamageable && !isExpired
     else !isExpired
+
+val CombatEntityAPI.isSupportFighter: Boolean
+    get() = (this is ShipAPI) && wing?.spec?.isSupport == true

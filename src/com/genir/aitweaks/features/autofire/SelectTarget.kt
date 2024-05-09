@@ -22,15 +22,18 @@ class SelectTarget(
     val target: CombatEntityAPI? = when {
         Global.getCurrentState() == GameState.TITLE && titleScreenFireIsOn() -> selectAsteroid()
 
+        // Obligatory PD
         weapon.hasAIHint(PD_ONLY) && weapon.hasAIHint(ANTI_FTR) -> selectFighter() ?: selectMissile()
         weapon.hasAIHint(PD_ONLY) -> selectMissile() ?: selectFighter()
 
+        // PD
         weapon.hasAIHint(PD) && weapon.hasAIHint(ANTI_FTR) -> selectFighter() ?: selectMissile() ?: selectShip()
         weapon.hasAIHint(PD) -> selectFighter() ?: selectMissile() ?: selectShip()
 
+        // Main weapons
         weapon.hasAIHint(ANTI_FTR) -> selectShip(alsoTargetFighters)
         weapon.hasAIHint(STRIKE) -> selectShip()
-        else -> selectShip() ?: selectFighter()
+        else -> selectShip() ?: selectFighter()?.let { if (!it.isSupportFighter) it else null }
     }
 
     private fun titleScreenFireIsOn() = LunaSettings.getBoolean("aitweaks", "aitweaks_title_screen_fire") == true

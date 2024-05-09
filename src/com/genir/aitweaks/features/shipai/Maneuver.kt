@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
+import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ShipSystemAiType.BURN_DRIVE
 import com.genir.aitweaks.utils.ShipSystemAiType.MANEUVERING_JETS
@@ -16,10 +17,7 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.min
-import kotlin.math.sign
+import kotlin.math.*
 
 const val threatEvalRadius = 2500f
 const val aimOffsetSamples = 45
@@ -58,14 +56,17 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
     var aimPoint: Vector2f? = null
 
     var attackTarget: ShipAPI? = maneuverTarget
+    var effectiveRange: Float = 0f
+
     var isBackingOff: Boolean = false
     var isHoldingFire: Boolean = false
     var isAvoidingBorder: Boolean = false
-    var effectiveRange: Float = 0f
+    var is1v1: Boolean = false
 
     private var averageAimOffset = RollingAverageFloat(aimOffsetSamples)
     private var idleTime = 0f
-    private var threatVector = calculateThreatDirection(ship.location)
+    private var threats: List<ShipAPI> = listOf()
+    private var threatVector = Vector2f()
 
     fun advance(dt: Float) {
         ship.AITStash.maneuverAI = this
@@ -75,13 +76,16 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             ship.AITStash.maneuverAI = null
         }
 
+        debugPlugin["idle"] = if (idleTime != 0f) idleTime else null
+
         // Update state.
-        threatVector = calculateThreatDirection(ship.location)
+        updateThreats()
         effectiveRange = ship.effectiveRange(effectiveDpsThreshold)
 
-        updateAttackTarget()
-        updateBackoffStatus()
         updateIdleTime(dt)
+        updateBackoffStatus()
+        updateAttackTarget()
+        update1v1Status()
 
         ventIfNeeded()
         holdFireIfOverfluxed()
@@ -161,10 +165,8 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             else -> backingOffFlag
         }
 
-        if (isBackingOff)
-            ship.aiFlags.setFlag(BACKING_OFF)
-        else if (backingOffFlag)
-            ship.aiFlags.unsetFlag(BACKING_OFF)
+        if (isBackingOff) ship.aiFlags.setFlag(BACKING_OFF)
+        else if (backingOffFlag) ship.aiFlags.unsetFlag(BACKING_OFF)
     }
 
     private fun updateIdleTime(dt: Float) {
@@ -173,6 +175,19 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
 
         idleTime = if (shieldIsUp || pdIsFiring) 0f
         else idleTime + dt
+    }
+
+    /** Is ship engaged in 1v1 duel with the target. */
+    private fun update1v1Status() {
+        is1v1 = when {
+            isAvoidingBorder -> false
+            isBackingOff -> false
+            attackTarget == null -> false
+            attackTarget != maneuverTarget -> false
+            attackTarget!!.isFrigate != ship.isFrigate -> false
+            threats.size > 1 -> false
+            else -> true
+        }
     }
 
     private fun holdFireIfOverfluxed() {
@@ -201,12 +216,22 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
 
     private fun manageMobilitySystems() {
         when (systemAIType) {
-            // Use MANEUVERING_JETS to back off, if possible. Vanilla AI
-            // does this already, but is not determined enough.
+
             MANEUVERING_JETS -> {
-                if (isBackingOff && ship.canUseSystemThisFrame()) {
-                    ship.giveCommand(ShipCommand.USE_SYSTEM, null, 0)
+                val shouldUse = when {
+                    !ship.canUseSystemThisFrame() -> false
+
+                    // Use MANEUVERING_JETS to back off. Vanilla AI does
+                    // this already, but is not determined enough.
+                    isBackingOff -> true
+
+                    // Use MANEUVERING_JETS to chase target during 1v1 duel.
+                    is1v1 && engagementRange(attackTarget!!) > effectiveRange -> true
+
+                    else -> false
                 }
+
+                if (shouldUse) ship.giveCommand(ShipCommand.USE_SYSTEM, null, 0)
             }
 
             // Prevent vanilla AI from jumping closer to target with
@@ -277,17 +302,9 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
                 // TODO will need syncing when interval tracking is introduced.
                 val vectorToTarget = maneuverTarget.location - ship.location
                 val vectorToThreat = if (!threatVector.isZeroVector()) threatVector else vectorToTarget
-                val angleFromTargetToThreat = abs(getShortestRotation(vectorToTarget, vectorToThreat))
 
                 // Strafe the target randomly, when it's the only threat.
-                val shouldStrafe = when {
-                    isAvoidingBorder -> false
-                    angleFromTargetToThreat > 1f -> false
-                    maneuverTarget != attackTarget -> false
-                    vectorToTarget.length() > ship.minRange -> false
-                    else -> true
-                }
-
+                val shouldStrafe = is1v1 && engagementRange(maneuverTarget) <= effectiveRange
                 val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
                 else vectorToThreat
 
@@ -333,24 +350,21 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
         val d = (dirToBorder.length() - borderCornerRadius).coerceAtLeast(0f)
 
         // Ship is far from border, no avoidance required.
-        if (d == 0f)
-            return headingPoint
+        if (d == 0f) return headingPoint
 
         val borderFacing = dirToBorder.getFacing()
         val travelFacing = (headingPoint - ship.location).getFacing()
         val intrusionAngle = MathUtils.getShortestRotation(borderFacing, travelFacing)
 
         // Ship attempts to move away from the border on its own.
-        if (abs(intrusionAngle) > 90f)
-            return headingPoint
+        if (abs(intrusionAngle) > 90f) return headingPoint
 
         // Allow chasing targets into the border zone.
         val attackAngle = attackTarget?.let { (it.location - ship.location).getFacing() - borderFacing }
         val absAllowedAngle = if (attackAngle?.sign == intrusionAngle.sign) min(90f, abs(attackAngle))
         else 90f
 
-        if (abs(intrusionAngle) + 1f >= absAllowedAngle)
-            return headingPoint
+        if (abs(intrusionAngle) + 1f >= absAllowedAngle) return headingPoint
 
         // The closer the ship is to map edge, the stronger
         // the heading transformation away from the border.
@@ -384,29 +398,24 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
     }
 
     // TODO ensure stations are counted
-    private fun calculateThreatDirection(location: Vector2f): Vector2f {
-        val radius = min(threatEvalRadius, ship.maxRange)
-        val ships = shipsInRadius(location, radius)
-        val threats = ships.filter { it.owner != ship.owner && it.isValidTarget && it.isShip }
+    private fun updateThreats() {
+        val rangeEnvelope = 500f
+        val r = 2f * max(threatEvalRadius, ship.maxRange + rangeEnvelope)
+        val allShips = shipGrid().getCheckIterator(ship.location, r, r).asSequence().filterIsInstance<ShipAPI>()
 
-        val threatSum = threats.fold(Vector2f()) { sum, it ->
+        threats = allShips.filter { it.owner != ship.owner && it.isValidTarget && it.isShip }.toList()
+
+        threatVector = threats.fold(Vector2f()) { sum, it ->
             val dp = it.deploymentPoints
             val dir = (it.location - ship.location).resized(1f)
             sum + dir * dp * dp
         }
-
-        return threatSum
-    }
-
-    private fun shipsInRadius(location: Vector2f, radius: Float): Sequence<ShipAPI> {
-        val r = radius * 2f
-        return shipGrid().getCheckIterator(location, r, r).asSequence().filterIsInstance<ShipAPI>()
     }
 
     inner class TargetFinder {
         val target: ShipAPI?
             get() {
-                val opportunities = findTargetOpportunities().toList()
+                val opportunities = threats.filter { engagementRange(it) < ship.maxRange }
                 return opportunities.minWithOrNull { o1, o2 -> (evaluateTarget(o1) - evaluateTarget(o2)).sign.toInt() }
             }
 
@@ -437,23 +446,6 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             // TODO avoid wrecks
 
             return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType
-        }
-
-        /** Find all potential enemy targets in or close to ship weapon range. */
-        private fun findTargetOpportunities(): Sequence<ShipAPI> {
-            val rangeEnvelope = 500f
-            val allShips = shipsInRadius(ship.location, ship.maxRange + rangeEnvelope)
-            val opportunities = allShips.filter {
-                when {
-                    it.owner == ship.owner -> false
-                    !it.isValidTarget -> false
-                    !it.isShip -> false
-                    engagementRange(it) > ship.maxRange -> false
-                    else -> true
-                }
-            }
-
-            return opportunities
         }
     }
 }

@@ -63,6 +63,12 @@ class RenderLines : BaseCombatLayeredRenderingPlugin() {
     }
 
     override fun render(layer: CombatEngineLayers?, viewport: ViewportAPI?) {
+        if (!renderDebug) {
+            shipsToDrawEngineLines.clear()
+            shipsToDrawWeaponLines.clear()
+            return
+        }
+
         drawDebugWeaponLines()
 
         shipsToDrawEngineLines.forEach { drawEngineLines(it) }

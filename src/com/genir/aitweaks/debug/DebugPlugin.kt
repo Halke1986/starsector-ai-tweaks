@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.fs.starfarer.combat.ai.movement.maneuvers.oO0O
 import com.genir.aitweaks.utils.*
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -13,8 +14,11 @@ import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
+import java.lang.invoke.MethodHandles
+import java.lang.invoke.MethodType
 import java.util.*
 
+const val renderDebug = false
 const val ID = "com.genir.aitweaks.debug.DebugPlugin"
 
 var debugPlugin: DebugPlugin = DebugPlugin()
@@ -25,7 +29,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var logs: MutableMap<String, LazyFont.DrawableString> = TreeMap()
 
     operator fun set(index: Any, value: Any?) {
-        if (font == null) return
+        if (font == null || !renderDebug) return
 
         if (value == null) logs.remove("$index")
         else logs["$index"] = font!!.createText("$value", baseColor = Color.ORANGE)
@@ -45,13 +49,9 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
 
         debug(dt)
-//        speedupAsteroids()
-//        makeDroneFormation(dt)
     }
 
     override fun renderInUICoords(viewport: ViewportAPI?) {
-        super.renderInUICoords(viewport)
-
         for ((i, v) in logs.entries.withIndex()) {
             v.value.draw(500f, 100f + (logs.count() / 2 - i) * 16f)
         }
@@ -62,15 +62,21 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        val ship = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
+        clear()
 
-//        ship.blockCommandForOneFrame(ShipCommand.TURN_LEFT)
-//        ship.blockCommandForOneFrame(ShipCommand.TURN_RIGHT)
+        val ship = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
+        if (ship.ai == null) return
+
+        val lookup = MethodHandles.lookup()
+        val methodType = MethodType.methodType(oO0O::class.java)
+        val handle = lookup.findVirtual(ship.ai::class.java, "getCurrentManeuver", methodType)
+
+        debugPlugin["class"] = handle.invoke(ship.ai)?.javaClass?.canonicalName
         ship.blockCommandForOneFrame(ShipCommand.SELECT_GROUP)
 
-//        debugPlugin["ai name"] = ship.AITStash.maneuverAI?.javaClass?.canonicalName
-
-        val m = ship.AITStash.maneuverAI ?: return
+        ship.allWeapons.firstOrNull { it.id == "multineedler" }?.let {
+            debugPlugin["needler"] = it.ammo
+        }
 
 //        debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.GREEN))
 //        debugVertices.add(Line(ship.location + ship.velocity * 5f, ship.location, Color.GREEN))
@@ -82,12 +88,11 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //        debugVertices.add(Line(ship.location, m.maneuverTarget?.location ?: ship.location, Color.BLUE))
         drawEngineLines(ship)
 
-//        debugPlugin["speed"] = "speed ${ship.velocity.length()}"
-//        debugPlugin["dist"] = "dist  ${(ship.location - (m.travelPoint ?: ship.location)).length()}"
-
+        val m = ship.AITStash.maneuverAI ?: return
         debugPlugin["isBackingOff"] = if (m.isBackingOff) "is backing off" else null
         debugPlugin["isHoldingFire"] = if (m.isHoldingFire) "hold fire" else null
         debugPlugin["isAvoidingBorder"] = if (m.isAvoidingBorder) "avoid border" else null
+        debugPlugin["1v1"] = if (m.is1v1) "1v1" else null
     }
 
     private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()
