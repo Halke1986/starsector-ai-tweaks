@@ -1,24 +1,20 @@
 package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipCommand
-import com.fs.starfarer.api.combat.ViewportAPI
+import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.combat.ai.movement.maneuvers.oO0O
-import com.genir.aitweaks.utils.*
+import com.genir.aitweaks.utils.EngineController
+import com.genir.aitweaks.utils.Rotation
+import com.genir.aitweaks.utils.div
+import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lazywizard.lazylib.ui.LazyFont
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-import java.lang.invoke.MethodHandles
-import java.lang.invoke.MethodType
 import java.util.*
 
-const val renderDebug = false
 const val ID = "com.genir.aitweaks.debug.DebugPlugin"
 
 var debugPlugin: DebugPlugin = DebugPlugin()
@@ -29,7 +25,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var logs: MutableMap<String, LazyFont.DrawableString> = TreeMap()
 
     operator fun set(index: Any, value: Any?) {
-        if (font == null || !renderDebug) return
+        if (font == null) return
 
         if (value == null) logs.remove("$index")
         else logs["$index"] = font!!.createText("$value", baseColor = Color.ORANGE)
@@ -62,37 +58,31 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        clear()
+//        clear()
 
         val ship = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
         if (ship.ai == null) return
 
-        val lookup = MethodHandles.lookup()
-        val methodType = MethodType.methodType(oO0O::class.java)
-        val handle = lookup.findVirtual(ship.ai::class.java, "getCurrentManeuver", methodType)
-
-        debugPlugin["class"] = handle.invoke(ship.ai)?.javaClass?.canonicalName
         ship.blockCommandForOneFrame(ShipCommand.SELECT_GROUP)
+        ship.allWeapons.filter { it.id.contains("needler") }.forEach { it.spec.aiHints.add(WeaponAPI.AIHints.STRIKE) }
 
-        ship.allWeapons.firstOrNull { it.id == "multineedler" }?.let {
-            debugPlugin["needler"] = it.ammo
-        }
-
-//        debugVertices.add(Line(ship.location, ship.location + unitVector(m.desiredHeading).resized(400f), Color.GREEN))
-//        debugVertices.add(Line(ship.location + ship.velocity * 5f, ship.location, Color.GREEN))
-//        debugVertices.add(Line(ship.location + ship.velocity * 5f, ship.location + ship.velocity * 5f + (m.attackTarget?.velocity
-//            ?: Vector2f()) * 5f, Color.RED))
-
-//        debugVertices.add(Line(ship.location, m.headingPoint ?: ship.location, Color.YELLOW))
-//        debugVertices.add(Line(ship.location, m.attackTarget?.location ?: ship.location, Color.YELLOW))
-//        debugVertices.add(Line(ship.location, m.maneuverTarget?.location ?: ship.location, Color.BLUE))
-        drawEngineLines(ship)
-
-        val m = ship.AITStash.maneuverAI ?: return
-        debugPlugin["isBackingOff"] = if (m.isBackingOff) "is backing off" else null
-        debugPlugin["isHoldingFire"] = if (m.isHoldingFire) "hold fire" else null
-        debugPlugin["isAvoidingBorder"] = if (m.isAvoidingBorder) "avoid border" else null
-        debugPlugin["1v1"] = if (m.is1v1) "1v1" else null
+//        val lookup = MethodHandles.lookup()
+//        val methodType = MethodType.methodType(oO0O::class.java)
+//        val handle = lookup.findVirtual(ship.ai::class.java, "getCurrentManeuver", methodType)
+//        debugPlugin["class"] = handle.invoke(ship.ai)?.javaClass?.canonicalName
+//
+//
+//        ship.allWeapons.firstOrNull { it.id == "multineedler" }?.let {
+//            debugPlugin["needler"] = it.ammo
+//        }
+//
+//        drawEngineLines(ship)
+//
+//        val m = ship.AITStash.maneuverAI ?: return
+//        debugPlugin["isBackingOff"] = if (m.isBackingOff) "is backing off" else null
+//        debugPlugin["isHoldingFire"] = if (m.isHoldingFire) "hold fire" else null
+//        debugPlugin["isAvoidingBorder"] = if (m.isAvoidingBorder) "avoid border" else null
+//        debugPlugin["1v1"] = if (m.is1v1) "1v1" else null
     }
 
     private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()

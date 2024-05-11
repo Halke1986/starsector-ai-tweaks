@@ -18,6 +18,10 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
 
+fun debugVertex(a: Vector2f, b: Vector2f, color: Color) {
+    debugVertices.add(Line(a, b, color))
+}
+
 var debugVertices = mutableListOf<Line>()
 
 class Line(val a: Vector2f, val b: Vector2f, val color: Color)
@@ -63,12 +67,6 @@ class RenderLines : BaseCombatLayeredRenderingPlugin() {
     }
 
     override fun render(layer: CombatEngineLayers?, viewport: ViewportAPI?) {
-        if (!renderDebug) {
-            shipsToDrawEngineLines.clear()
-            shipsToDrawWeaponLines.clear()
-            return
-        }
-
         drawDebugWeaponLines()
 
         shipsToDrawEngineLines.forEach { drawEngineLines(it) }

@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
-import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.ShipSystemAiType.BURN_DRIVE
 import com.genir.aitweaks.utils.ShipSystemAiType.MANEUVERING_JETS
@@ -76,8 +75,6 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             ship.AITStash.maneuverAI = null
         }
 
-        debugPlugin["idle"] = if (idleTime != 0f) idleTime else null
-
         // Update state.
         updateThreats()
         effectiveRange = ship.effectiveRange(effectiveDpsThreshold)
@@ -130,7 +127,10 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             !currentTarget.isValidTarget -> true
 
             // Do not interrupt bursts.
-            ship.primaryWeapons.firstOrNull { it.trueIsInBurst && it.autofireAI?.targetShip == attackTarget } != null -> false
+            ship.primaryWeapons.find { it.trueIsInBurst && it.autofireAI?.targetShip == attackTarget } != null -> false
+
+            // Target is out of range.
+            engagementRange(currentTarget) < ship.maxRange -> true
 
             // Finish helpless target.
             currentTarget.fluxTracker.isOverloadedOrVenting -> false
