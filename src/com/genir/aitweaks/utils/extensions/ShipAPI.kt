@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
+import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.utils.AITStash
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
@@ -55,4 +56,13 @@ val ShipAPI.maxFiringRange: Float
 /** Angle between ship facing and direction from ship to point p. */
 fun ShipAPI.angleFromFacing(p: Vector2f): Float {
     return MathUtils.getShortestRotation((p - location).getFacing(), facing)
+}
+
+fun ShipAPI.hasAIType(c: Class<*>?): Boolean {
+    return when {
+        c == null -> false
+        c.isInstance(ai) -> true
+        c.isInstance((ai as? Ship.ShipAIWrapper)?.ai) -> true
+        else -> false
+    }
 }

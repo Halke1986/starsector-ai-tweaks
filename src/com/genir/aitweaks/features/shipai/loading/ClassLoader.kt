@@ -6,7 +6,7 @@ class AIClassLoader : ClassLoader() {
     private val obf = ObfTable()
 
     private val vanillaSources: Map<String, String> = mapOf(
-        "com.genir.aitweaks.asm.shipai.AssemblyShipAI" to "com.fs.starfarer.combat.ai.BasicShipAI",
+        "com.genir.aitweaks.asm.shipai.CustomShipAI" to "com.fs.starfarer.combat.ai.BasicShipAI",
         "com.genir.aitweaks.asm.shipai.OrderResponseModule" to "com.fs.starfarer.combat.ai.${obf.orderResponseModule}",
     )
 
@@ -19,7 +19,7 @@ class AIClassLoader : ClassLoader() {
 
     private val vanillaTransformer = CCT(listOf(
         // Rename vanilla classes.
-        CCT.newTransform("com/fs/starfarer/combat/ai/BasicShipAI", "com/genir/aitweaks/asm/shipai/AssemblyShipAI"),
+        CCT.newTransform("com/fs/starfarer/combat/ai/BasicShipAI", "com/genir/aitweaks/asm/shipai/CustomShipAI"),
         CCT.newTransform("com/fs/starfarer/combat/ai/${obf.orderResponseModule}", "com/genir/aitweaks/asm/shipai/OrderResponseModule"),
 
         // Replace vanilla maneuvers.
@@ -53,6 +53,12 @@ class AIClassLoader : ClassLoader() {
     ))
 
     private var cache: MutableMap<String, Class<*>> = mutableMapOf()
+
+    /** Test class loading. Used to verify if the loader doesn't crash.*/
+    fun test() {
+        vanillaSources.forEach { loadClass(it.key) }
+        adapterSources.forEach { loadClass(it.key) }
+    }
 
     override fun loadClass(name: String): Class<*> {
         val outerName = name.split("$").first()

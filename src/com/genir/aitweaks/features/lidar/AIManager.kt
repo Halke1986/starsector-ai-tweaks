@@ -5,8 +5,8 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.features.shipai.hasAIType
 import com.genir.aitweaks.features.shipai.hasBasicShipAI
+import com.genir.aitweaks.utils.extensions.hasAIType
 import com.genir.aitweaks.utils.extensions.isValidTarget
 
 const val lidarConfigID = "aitweaks_lidar_config"

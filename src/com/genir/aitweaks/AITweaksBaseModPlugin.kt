@@ -9,11 +9,10 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.MISSILE
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.genir.aitweaks.features.autofire.AutofireAI
-import com.genir.aitweaks.features.shipai.newAssemblyAI
-import com.genir.aitweaks.features.shipai.shouldHaveAssemblyAI
+import com.genir.aitweaks.features.shipai.customAIManager
 
 val autofireBlacklist = setOf(
-    "fragbomb", // Stinger-class Proximity Mine is classified as a ballistic weapon, but works more like missile.
+    "fragbomb", // Stinger-class Proximity Mine is classified as a ballistic weapon, but works more like a missile.
 )
 
 class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
@@ -25,9 +24,16 @@ class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
     }
 
     override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin> {
-        val ai = if (shouldHaveAssemblyAI(ship)) newAssemblyAI(ship)
-        else null
+        return PluginPick(customAIManager.getCustomAI(ship), PickPriority.MOD_GENERAL)
+    }
 
-        return PluginPick(ai, PickPriority.MOD_GENERAL)
+    override fun onNewGame() {
+        // Test custom AI class loader. Better to crash on game start,
+        // instead of when player has made progress.
+        customAIManager.getCustomAIClass()
+    }
+
+    override fun onGameLoad(newGame: Boolean) {
+        customAIManager.getCustomAIClass()
     }
 }

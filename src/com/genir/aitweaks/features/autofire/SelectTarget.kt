@@ -36,7 +36,7 @@ class SelectTarget(
         else -> selectShip() ?: selectFighter()?.let { if (!it.isSupportFighter) it else null }
     }
 
-    private fun titleScreenFireIsOn() = LunaSettings.getBoolean("aitweaks", "aitweaks_title_screen_fire") == true
+    private fun titleScreenFireIsOn() = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_title_screen_fire") == true
 
     /** Target asteroid selection. Selects asteroid only when the weapon and asteroid
      * are both in viewport. Otherwise, it looks weird on the title screen. */
