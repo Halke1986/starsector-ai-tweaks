@@ -45,6 +45,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
 
         debug(dt)
+//        followMouse()
+//        makeDroneFormation(dt)
     }
 
     override fun renderInUICoords(viewport: ViewportAPI?) {
@@ -76,7 +78,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //            debugPlugin["needler"] = it.ammo
 //        }
 //
-//        drawEngineLines(ship)
+        drawEngineLines(ship)
 //
 //        val m = ship.AITStash.maneuverAI ?: return
 //        debugPlugin["isBackingOff"] = if (m.isBackingOff) "is backing off" else null
@@ -112,7 +114,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
             history[drone] = Pair(position, facing)
 
-//            drawEngineLines(drone)
+            drawEngineLines(drone)
         }
 
         drones.forEach { it.shipAI = null }

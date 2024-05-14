@@ -21,15 +21,14 @@ class EngineController(val ship: ShipAPI) {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val dt = Global.getCombatEngine().elapsedInLastFrame
-        val vMax = max(ship.maxSpeed, ship.velocity.length()) * dt
+        val vMax = max(ship.maxSpeed, ship.velocity.length()) * dt * 1.01f
         val af = ship.acceleration * dt * dt
         val ab = ship.deceleration * dt * dt
         val al = ship.strafeAcceleration * dt * dt
 
-        // Transform input into ship frame of reference.
-        // Account for ship angular velocity, as linear
-        // acceleration is applied by the game engine after
-        // rotation.
+        // Transform input into ship frame of reference. Account for
+        // ship angular velocity, as linear acceleration is applied
+        // by the game engine after rotation.
         val w = ship.angularVelocity * dt
         val r = Rotation(90f - ship.facing - w)
         val l = r.rotate(target - ship.location)
@@ -50,33 +49,26 @@ class EngineController(val ship: ShipAPI) {
         // the current changes will take effect.
         val d = l - v + vt
 
-        // Velocity towards target,
-        // in target frame of reference.
-        val vtt = Vector2f(d).resize(vMax) - vt
+        // Maximum velocity towards target for both axis of movement.
+        // Any higher velocity would lead to overshooting target location.
+        val vmx = if (d.x > 0) vMax(d.x, al) else -vMax(-d.x, al)
+        val vmy = if (d.y > 0) vMax(d.y, ab) else -vMax(-d.y, af)
 
-        // Velocity towards target, limited to
-        // not overshoot the target location.
-        val vtm = Vector2f()
-        vtm.x = if (vtt.x > 0) min(vtt.x, vMax(d.x, al))
-        else -min(-vtt.x, vMax(-d.x, al))
-        vtm.y = if (vtt.y > 0) min(vtt.y, vMax(d.y, ab))
-        else -min(-vtt.y, vMax(-d.y, af))
+        // Expected velocity directly towards target location.
+        val vtt = if (vmx == 0f || vmy == 0f) Vector2f(vmx, vmy)
+        else d * min(vmx / d.x, vmy / d.y)
 
-        // Expected velocity change, in ship frame of reference.
-        val ve = (vtm + vt).clampLength(vMax)
+        // Expected velocity change.
+        val ve = (vtt + vt).clampLength(vMax)
         val dv = ve - v
 
-        // Calculate proportional thrust required
-        // to achieve the expected velocity change.
-        var ff = +dv.y / af
+        // Proportional thrust required to achieve
+        // the expected velocity change.
+        val ff = +dv.y / af
         val fb = -dv.y / ab
         val fl = -dv.x / al
         val fr = +dv.x / al
         val fMax = max(max(ff, fb), max(fl, fr))
-
-        // Apply forward trust continuously if heading almost
-        // straight towards target, for visual effect.
-        if (d.y > 20f * abs(d.x) && fb < 0.5f) ff = max(1f, fMax)
 
         if (shouldAccelerate(+d.y, ff, fMax)) ship.move(ACCELERATE)
         if (shouldAccelerate(-d.y, fb, fMax)) ship.move(ACCELERATE_BACKWARDS)
