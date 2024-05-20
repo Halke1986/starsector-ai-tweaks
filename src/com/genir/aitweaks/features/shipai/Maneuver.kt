@@ -441,7 +441,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             val evalShunt = if (target.variant.hasHullMod("fluxshunt")) 4f else 0f
 
             // Assign lower priority to frigates.
-            val evalType = if (target.isFrigate) 0.5f else 0f
+            val evalType = if (target.isFrigate) 1f else 0f
 
             // TODO avoid wrecks
 

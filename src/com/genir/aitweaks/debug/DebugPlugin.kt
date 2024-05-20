@@ -45,6 +45,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
 
         debug(dt)
+//        followPlayerShip()
 //        followMouse()
 //        makeDroneFormation(dt)
     }
@@ -62,6 +63,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private fun debug(dt: Float) {
 //        clear()
 
+//        debugPlugin["enemy dp"] = Global.getCombatEngine().ships.filter { it.owner == 1 }.sumOf { it.deploymentPoints.toDouble() }.toInt()
+
         val ship = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
         if (ship.ai == null) return
 
@@ -78,7 +81,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 //            debugPlugin["needler"] = it.ammo
 //        }
 //
-        drawEngineLines(ship)
+//        drawEngineLines(ship)
 //
 //        val m = ship.AITStash.maneuverAI ?: return
 //        debugPlugin["isBackingOff"] = if (m.isBackingOff) "is backing off" else null
@@ -140,6 +143,19 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         val c = EngineController(ship)
         c.heading(position, Vector2f())
         c.facing(position, Vector2f())
+
+        drawEngineLines(ship)
+    }
+
+    private fun followPlayerShip() {
+        val target = Global.getCombatEngine().playerShip ?: return
+        val ship = Global.getCombatEngine().ships.firstOrNull { it != target } ?: return
+
+        ship.shipAI = null
+
+        val c = EngineController(ship)
+        c.heading(target.location + Vector2f(250f, 250f), target.velocity)
+        c.facing(target.location, target.velocity)
 
         drawEngineLines(ship)
     }

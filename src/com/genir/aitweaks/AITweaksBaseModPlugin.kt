@@ -27,13 +27,15 @@ class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
         return PluginPick(customAIManager.getCustomAI(ship), PickPriority.MOD_GENERAL)
     }
 
+    /** Test custom AI class loader. Better to crash on game start,
+     * instead of when player has made progress. */
     override fun onNewGame() {
-        // Test custom AI class loader. Better to crash on game start,
-        // instead of when player has made progress.
+        super.onNewGame()
         customAIManager.getCustomAIClass()
     }
 
     override fun onGameLoad(newGame: Boolean) {
+        super.onGameLoad(newGame)
         customAIManager.getCustomAIClass()
     }
 }
