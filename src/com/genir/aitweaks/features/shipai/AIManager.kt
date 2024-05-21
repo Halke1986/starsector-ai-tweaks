@@ -51,11 +51,17 @@ class AIManager {
     }
 
     private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
+        val ships = Global.getCombatEngine().ships
+        val isCryosleeper = ships.count { it.owner == 1 } == 1 && ships.count { it.owner == 1 && it.hullSpec.hullId == "guardian" } == 1
+
         return when {
             Global.getCurrentState() != GameState.COMBAT -> false
             getCustomAIClass() == null -> false
-            ship.owner != 0 -> false
             ship.hullSpec.hullId != "guardian" -> false
+
+            ship.owner == 1 && isCryosleeper -> true
+            ship.owner == 0 && ship.name == "VSS Neutrino Drag" -> true
+
             else -> true
         }
     }

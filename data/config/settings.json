@@ -5,7 +5,8 @@
     "com.genir.aitweaks.utils.FrameTracker": "com.genir.aitweaks.utils.FrameTracker",
     "com.genir.aitweaks.features.AutoOmniShields": "com.genir.aitweaks.features.AutoOmniShields",
     "com.genir.aitweaks.features.AutomatedShipAIManager": "com.genir.aitweaks.features.AutomatedShipAIManager",
+    "com.genir.aitweaks.features.FleetCohesion": "com.genir.aitweaks.features.FleetCohesion",
     "com.genir.aitweaks.features.lidar.AIManager": "com.genir.aitweaks.features.lidar.AIManager",
-    "com.genir.aitweaks.features.FleetCohesion": "com.genir.aitweaks.features.FleetCohesion"
+    "com.genir.aitweaks.features.shipai.Guardian": "com.genir.aitweaks.features.shipai.Guardian"
   }
 }

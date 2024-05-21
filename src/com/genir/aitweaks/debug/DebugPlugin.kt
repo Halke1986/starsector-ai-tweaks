@@ -1,11 +1,15 @@
 package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.features.shipai.customAIManager
 import com.genir.aitweaks.utils.EngineController
 import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.div
+import com.genir.aitweaks.utils.extensions.hasAIType
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -44,7 +48,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
             engine.customData[ID] = true
         }
 
-        debug(dt)
+//        debug(dt)
 //        followPlayerShip()
 //        followMouse()
 //        makeDroneFormation(dt)
@@ -61,15 +65,12 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-//        clear()
+        Global.getCombatEngine().ships.filter { it.hasAIType(customAIManager.getCustomAIClass()) }.forEach {
+            drawEngineLines(it)
+        }
 
-//        debugPlugin["enemy dp"] = Global.getCombatEngine().ships.filter { it.owner == 1 }.sumOf { it.deploymentPoints.toDouble() }.toInt()
-
-        val ship = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
-        if (ship.ai == null) return
-
-        ship.blockCommandForOneFrame(ShipCommand.SELECT_GROUP)
-        ship.allWeapons.filter { it.id.contains("needler") }.forEach { it.spec.aiHints.add(WeaponAPI.AIHints.STRIKE) }
+//        val ship = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
+//        if (ship.ai == null) return
 
 //        val lookup = MethodHandles.lookup()
 //        val methodType = MethodType.methodType(oO0O::class.java)
