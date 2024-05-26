@@ -127,7 +127,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             !currentTarget.isValidTarget -> true
 
             // Do not interrupt bursts.
-            ship.primaryWeapons.find { it.trueIsInBurst && it.autofireAI?.targetShip == attackTarget } != null -> false
+            ship.primaryWeapons.find { it.isInFiringSequence && it.autofireAI?.targetShip == attackTarget } != null -> false
 
             // Target is out of range.
             engagementRange(currentTarget) < ship.maxRange -> true
@@ -147,7 +147,6 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
     }
 
     /** Decide if ships needs to back off due to high flux level */
-    // TODO shieldless ships
     private fun updateBackoffStatus() {
         val backingOffFlag = ship.aiFlags.hasFlag(BACKING_OFF)
         val fluxLevel = ship.fluxTracker.fluxLevel
@@ -377,7 +376,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
     }
 
     private fun engagementRange(target: ShipAPI): Float {
-        return (target.location - ship.location).length() - target.collisionRadius
+        return (target.location - ship.location).length()
     }
 
     /** Aim hardpoint weapons with entire ship, if possible. */
@@ -441,7 +440,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, private val targ
             val evalShunt = if (target.variant.hasHullMod("fluxshunt")) 4f else 0f
 
             // Assign lower priority to frigates.
-            val evalType = if (target.isFrigate) 1f else 0f
+            val evalType = if (target.isFrigate && !target.isModule) 1f else 0f
 
             // TODO avoid wrecks
 

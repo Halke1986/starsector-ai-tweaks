@@ -5,11 +5,9 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.features.shipai.customAIManager
 import com.genir.aitweaks.utils.EngineController
 import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.div
-import com.genir.aitweaks.utils.extensions.hasAIType
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -65,12 +63,16 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        Global.getCombatEngine().ships.filter { it.hasAIType(customAIManager.getCustomAIClass()) }.forEach {
-            drawEngineLines(it)
-        }
-
-//        val ship = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 } ?: return
-//        if (ship.ai == null) return
+//        val ships = Global.getCombatEngine().ships.filter { it.hasAIType(customAIManager.getCustomAIClass()) }
+//
+//        ships.forEach {
+//            val m = it.AITStash.maneuverAI
+//            debugVertex(it.location, m?.headingPoint ?: it.location, Color.YELLOW)
+//
+//            it.allWeapons.filter { weapon -> !weapon.isPD }.mapNotNull { weapon -> weapon.autofireAI }.forEachIndexed { idx, aai ->
+//                debugPlugin[idx] = aai.shouldHoldFire
+//            }
+//        }
 
 //        val lookup = MethodHandles.lookup()
 //        val methodType = MethodType.methodType(oO0O::class.java)

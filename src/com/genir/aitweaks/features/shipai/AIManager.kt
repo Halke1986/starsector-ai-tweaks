@@ -61,8 +61,9 @@ class AIManager {
 
             ship.owner == 1 && isCryosleeper -> true
             ship.owner == 0 && ship.name == "VSS Neutrino Drag" -> true
+//            ship.owner == 0 -> true
 
-            else -> true
+            else -> false
         }
     }
 }

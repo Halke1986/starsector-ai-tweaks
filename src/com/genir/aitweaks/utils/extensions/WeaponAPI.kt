@@ -48,7 +48,7 @@ val WeaponAPI.timeToAttack: Float
         val spec = spec as? ProjectileWeaponSpecAPI ?: return 0f
 
         return when {
-            trueIsInBurst -> 0f
+            isInBurst || (isBurstBeam && isFiring) -> 0f
             cooldownRemaining != 0f -> cooldownRemaining + spec.chargeTime
             else -> spec.chargeTime * (1f - chargeLevel)
         }
@@ -60,8 +60,27 @@ val WeaponAPI.autofirePlugin: AutofireAIPlugin?
 val WeaponAPI.autofireAI: AutofireAI?
     get() = autofirePlugin as? AutofireAI
 
-val WeaponAPI.trueIsInBurst: Boolean
-    get() = isInBurst || (isBurstBeam && isFiring)
+val WeaponAPI.isBurstWeapon: Boolean
+    get() = when {
+        // Burst beams, excluding "continuous" burst beams like IR Autolance.
+        isBeam && spec.burstDuration > 0f && cooldown > 0f -> true
+
+        // Projectile weapons with bursts of more than one projectile.
+        spec is ProjectileWeaponSpecAPI -> (spec as ProjectileWeaponSpecAPI).burstSize > 1
+
+        else -> false
+    }
+
+/** Weapon is assumed to be in a firing sequence if it will
+ * emit projectile or beam even after trigger is let go. */
+val WeaponAPI.isInFiringSequence: Boolean
+    get() = when {
+        isBeam && !isBurstBeam -> false
+        chargeLevel > 0f && chargeLevel < 1f && cooldownRemaining == 0f -> true // warmup
+        chargeLevel == 1f && isBurstWeapon -> true // burst
+        else -> false
+    }
+
 
 val WeaponAPI.group: WeaponGroupAPI
     get() = this.ship.getWeaponGroupFor(this)
