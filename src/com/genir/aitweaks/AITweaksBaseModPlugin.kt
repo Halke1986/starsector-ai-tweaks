@@ -1,5 +1,6 @@
 package com.genir.aitweaks
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.PluginPick
 import com.fs.starfarer.api.campaign.CampaignPlugin.PickPriority
 import com.fs.starfarer.api.combat.AutofireAIPlugin
@@ -8,6 +9,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.MISSILE
 import com.fs.starfarer.api.fleet.FleetMemberAPI
+import com.genir.aitweaks.features.CryosleeperEncounter
 import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.features.shipai.customAIManager
 
@@ -27,15 +29,27 @@ class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
         return PluginPick(customAIManager.getCustomAI(ship), PickPriority.MOD_GENERAL)
     }
 
-    /** Test custom AI class loader. Better to crash on game start,
-     * instead of when player has made progress. */
     override fun onNewGame() {
         super.onNewGame()
-        customAIManager.getCustomAIClass()
+        onGameStart()
     }
 
     override fun onGameLoad(newGame: Boolean) {
         super.onGameLoad(newGame)
-        customAIManager.getCustomAIClass()
+        onGameStart()
+    }
+
+    private fun onGameStart() {
+        // Test custom AI class loader. Better to crash on game start,
+        // instead of when player has made progress.
+        customAIManager.test()
+
+        // Register Cryosleeper encounter plugin.
+        val plugins = Global.getSector().genericPlugins
+        if (!plugins.hasPlugin(CryosleeperEncounter::class.java)) {
+            plugins.addPlugin(CryosleeperEncounter(), true)
+        }
     }
 }
+
+

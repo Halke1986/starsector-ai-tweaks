@@ -20,7 +20,7 @@ class Guardian : BaseEveryFrameCombatPlugin() {
         // Stay on first weapon group.
         guardiansWithCustomAI.forEach { it.blockCommandForOneFrame(ShipCommand.SELECT_GROUP) }
 
-        // Custom ship AI can't follow orders very well. TODO remove.
+        // Custom ship AI can't follow orders very well. TODO remove when order following is implemented.
         val isCryosleeper = ships.count { it.owner == 1 } == 1 && guardiansWithCustomAI.count { it.owner == 1 } == 1
         if (isCryosleeper)
             Global.getCombatEngine().getFleetManager(1).admiralAI = null

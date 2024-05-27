@@ -39,6 +39,9 @@ class AIManager {
         return loader!!.loadClass("com.genir.aitweaks.asm.shipai.CustomShipAI")
     }
 
+    /** Test the AI build process by attempting to load custom AI Java class. */
+    fun test() = getCustomAIClass()
+
     /** Get CustomShipAI. Returns null if custom AI is disabled or not applicable to given ship. */
     fun getCustomAI(ship: ShipAPI, config: ShipAIConfig = ShipAIConfig()): ShipAIPlugin? {
         if (!shouldHaveCustomAI(ship))
@@ -50,6 +53,7 @@ class AIManager {
         return ctor.invoke(ship as Ship, config) as ShipAIPlugin
     }
 
+    /** Currently, custom AI is enabled only for Guardian in Cryosleeper encounter. */
     private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
         val ships = Global.getCombatEngine().ships
         val isCryosleeper = ships.count { it.owner == 1 } == 1 && ships.count { it.owner == 1 && it.hullSpec.hullId == "guardian" } == 1
@@ -61,7 +65,6 @@ class AIManager {
 
             ship.owner == 1 && isCryosleeper -> true
             ship.owner == 0 && ship.name == "VSS Neutrino Drag" -> true
-//            ship.owner == 0 -> true
 
             else -> false
         }

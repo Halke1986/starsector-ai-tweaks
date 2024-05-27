@@ -1,3 +1,8 @@
+- Added custom ship AI. Currently, enabled only for Guardian in cryosleeper encounter.
+- Custom ship AI requires adding -Xverify:none argument to Starsector vmparams file. Alternatively, the AI can be disabled in LunaLib settings.
+- Guardian in cryosleeper encounter has a better build.
+- Various minor tweaks to weapon AI.
+
 Version 1.6.3
 
 - Fixed null pointer exception in autofire logic. Reported by @Ganegrei.
