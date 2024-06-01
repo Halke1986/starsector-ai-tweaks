@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.features.shipai.loading.Loader
+import com.genir.aitweaks.features.shipai.loading.Builder
 import lunalib.lunaSettings.LunaSettings
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
@@ -23,7 +23,7 @@ class CustomAIManager {
                 return null
             }
 
-            return Loader.loadCustomShipAI()
+            return Builder.getCustomShipAI()
         }
 
         /** Get CustomShipAI. Returns null if custom AI is disabled or not applicable to given ship. */

@@ -1,74 +1,45 @@
 package com.genir.aitweaks.features.shipai.loading
 
-class Builder(private val scriptLoader: ClassLoader, private val obf: Deobfuscator.Symbols) {
-    fun buildClasses(): Map<String, ByteArray> {
-        return buildVanillaClasses() + buildAdapterClasses()
-    }
+import com.fs.starfarer.api.Global
+import java.lang.invoke.MethodHandles
+import java.lang.invoke.MethodType
+import java.net.URLClassLoader
 
-    private fun buildVanillaClasses(): Map<String, ByteArray> {
-        val inner = obf.basicShipAIInnerClasses
-        val vanillaSources: Map<String, String> = mapOf(
-            "com.genir.aitweaks.asm.shipai.CustomShipAI" to "com.fs.starfarer.combat.ai.BasicShipAI",
-            "com.genir.aitweaks.asm.shipai.CustomShipAI$${inner[0]}" to "com.fs.starfarer.combat.ai.BasicShipAI$${inner[0]}",
-            "com.genir.aitweaks.asm.shipai.CustomShipAI$${inner[1]}" to "com.fs.starfarer.combat.ai.BasicShipAI$${inner[1]}",
-            "com.genir.aitweaks.asm.shipai.OrderResponseModule" to "com.fs.starfarer.combat.ai.${obf.orderResponseModule}",
-            "com.genir.aitweaks.asm.shipai.OrderResponseModule$${obf.orderResponseModuleInner}" to "com.fs.starfarer.combat.ai.${obf.orderResponseModule}$${obf.orderResponseModuleInner}",
-        )
+private var customShipAIClass: Class<*>? = null
 
-        val vanillaTransformer = Transformer(listOf(
-            // Rename vanilla classes.
-            Transformer.newTransform("com/fs/starfarer/combat/ai/BasicShipAI", "com/genir/aitweaks/asm/shipai/CustomShipAI"),
-            Transformer.newTransform("com/fs/starfarer/combat/ai/${obf.orderResponseModule}", "com/genir/aitweaks/asm/shipai/OrderResponseModule"),
+class Builder {
+    companion object {
+        fun getCustomShipAI(): Class<*> {
+            customShipAIClass?.let { return it }
 
-            // Replace vanilla maneuvers.
-            Transformer.newTransform("com/fs/starfarer/combat/ai/movement/BasicEngineAI", "com/genir/aitweaks/asm/shipai/EngineAIAdapter"),
-            Transformer.newTransform("com/fs/starfarer/combat/ai/movement/maneuvers/StrafeTargetManeuverV2", "com/genir/aitweaks/asm/shipai/Strafe"),
-            Transformer.newTransform("com/fs/starfarer/combat/ai/movement/maneuvers/${obf.approachManeuver}", "com/genir/aitweaks/asm/shipai/Approach"),
-            Transformer.newTransform("com/fs/starfarer/combat/ai/movement/maneuvers/${obf.moveManeuver}", "com/genir/aitweaks/asm/shipai/Move"),
-        ))
+            // Compile custom AI classes.
+            val scriptURLLoader = Global.getSettings().scriptClassLoader.parent
+            val obf = Deobfuscator(scriptURLLoader).getDeobfuscatedSymbols()
+            val classes = Compiler(scriptURLLoader, obf).compileClasses()
 
-        return vanillaSources.mapValues { build(it.value, vanillaTransformer) }
-    }
+            try {
+                // First, try a custom class loader. Should work when -noverify
+                // option is defined in vmparams or when obfuscator didn't generate
+                // illegal method names.
+                val customLoader = Loader(scriptURLLoader, classes)
 
-    private fun buildAdapterClasses(): Map<String, ByteArray> {
-        val adapterSources: Map<String, String> = mapOf(
-            "com.genir.aitweaks.asm.shipai.Strafe" to "com.genir.aitweaks.features.shipai.adapters.Strafe",
-            "com.genir.aitweaks.asm.shipai.Approach" to "com.genir.aitweaks.features.shipai.adapters.Approach",
-            "com.genir.aitweaks.asm.shipai.Move" to "com.genir.aitweaks.features.shipai.adapters.Move",
-            "com.genir.aitweaks.asm.shipai.ManeuverAdapter" to "com.genir.aitweaks.features.shipai.adapters.ManeuverAdapter",
-            "com.genir.aitweaks.asm.shipai.EngineAIAdapter" to "com.genir.aitweaks.features.shipai.adapters.EngineAIAdapter",
-        )
+                classes.forEach { customLoader.loadClass(it.key) } // Test
+                customShipAIClass = customLoader.loadClass("com.genir.aitweaks.asm.shipai.CustomShipAI")
+            } catch (e: Throwable) {
+                // Inject the classes into system class loader. That way methods with
+                // illegal names can be loaded. Injector class contains reflect calls,
+                // so it cannot be loaded with the default script loader.
+                val unlockedLoader = URLClassLoader((scriptURLLoader as URLClassLoader).urLs)
+                val injectorClass = unlockedLoader.loadClass("com.genir.aitweaks.features.shipai.loading.Injector")
+                val injectClassesType = MethodType.methodType(Void.TYPE, ClassLoader::class.java, Map::class.java)
+                val injectClasses = MethodHandles.lookup().findVirtual(injectorClass, "injectClasses", injectClassesType)
+                injectClasses.invoke(injectorClass.newInstance(), scriptURLLoader, classes)
 
-        val adapterTransformer = Transformer(listOf(
-            // Rename aitweaks classes.
-            Transformer.newTransform("com/genir/aitweaks/features/shipai/adapters/Strafe", "com/genir/aitweaks/asm/shipai/Strafe"),
-            Transformer.newTransform("com/genir/aitweaks/features/shipai/adapters/Approach", "com/genir/aitweaks/asm/shipai/Approach"),
-            Transformer.newTransform("com/genir/aitweaks/features/shipai/adapters/Move", "com/genir/aitweaks/asm/shipai/Move"),
-            Transformer.newTransform("com/genir/aitweaks/features/shipai/adapters/ManeuverAdapter", "com/genir/aitweaks/asm/shipai/ManeuverAdapter"),
-            Transformer.newTransform("com/genir/aitweaks/features/shipai/adapters/EngineAIAdapter", "com/genir/aitweaks/asm/shipai/EngineAIAdapter"),
+                classes.forEach { scriptURLLoader.loadClass(it.key) } // Test
+                customShipAIClass = scriptURLLoader.loadClass("com.genir.aitweaks.asm.shipai.CustomShipAI")
+            }
 
-            // Replace stub types.
-            Transformer.newTransform("com/genir/aitweaks/features/shipai/adapters/ManeuverInterface", "com/fs/starfarer/combat/ai/movement/maneuvers/${obf.maneuverInterface}"),
-            Transformer.newTransform("com/genir/aitweaks/features/shipai/adapters/FlockingAI", "com/fs/starfarer/combat/ai/movement/${obf.flockingAIModule}"),
-            Transformer.newTransform("com/genir/aitweaks/features/shipai/adapters/ShipAI", "com/fs/starfarer/combat/ai/movement/maneuvers/${obf.shipAIInterface}"),
-            Transformer.newTransform("com/fs/starfarer/api/combat/CombatEntityAPI", "com/fs/starfarer/combat/${obf.combatEntityPackage}/${obf.combatEntityInterface}"),
-
-            // Replace method names.
-            Transformer.newTransform("advanceObf", obf.advance),
-            Transformer.newTransform("getTargetObf", obf.getTarget),
-            Transformer.newTransform("isDirectControlObf", obf.isDirectControl),
-            Transformer.newTransform("doManeuverObf", obf.doManeuver),
-            Transformer.newTransform("getDesiredHeadingObf", obf.getDesiredHeading),
-            Transformer.newTransform("getDesiredFacingObf", obf.getDesiredFacing),
-            Transformer.newTransform("getDesiredStrafeHeadingObf", obf.getDesiredStrafeHeading),
-        ))
-
-        return adapterSources.mapValues { build(it.value, adapterTransformer) }
-    }
-
-    private fun build(sourceName: String, transformer: Transformer): ByteArray {
-        // Do two transform passes to replace multiple types contained in the same constant.
-        val classBuffer = Transformer.readClassBuffer(scriptLoader, sourceName)
-        return transformer.apply(transformer.apply(classBuffer))
+            return customShipAIClass!!
+        }
     }
 }

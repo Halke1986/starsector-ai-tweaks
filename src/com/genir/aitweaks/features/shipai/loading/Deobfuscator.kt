@@ -5,7 +5,7 @@ import org.objectweb.asm.*
 /**
  * Deobfuscator analyzes vanilla classes and identifies obfuscated
  * names of packages, methods and fields that will to be replaced
- * when building AI Tweaks ship AI.
+ * when compiling AI Tweaks ship AI.
  */
 class Deobfuscator(private val scriptLoader: ClassLoader) {
     class Symbols {
