@@ -1,3 +1,5 @@
+Version 1.7.1
+
 - Custom ship AI no longer requires -Xverify:none argument.
 
 Version 1.7.0
