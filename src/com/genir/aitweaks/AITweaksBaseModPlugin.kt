@@ -12,6 +12,7 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.genir.aitweaks.features.CryosleeperEncounter
 import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.features.shipai.customAIManager
+import com.genir.aitweaks.features.shipai.loading.Loader
 
 val autofireBlacklist = setOf(
     "fragbomb", // Stinger-class Proximity Mine is classified as a ballistic weapon, but works more like a missile.
@@ -34,6 +35,7 @@ class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
         onGameStart()
     }
 
+    // TODO can this be removed?
     override fun onGameLoad(newGame: Boolean) {
         super.onGameLoad(newGame)
         onGameStart()
@@ -49,6 +51,23 @@ class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
         if (!plugins.hasPlugin(CryosleeperEncounter::class.java)) {
             plugins.addPlugin(CryosleeperEncounter(), true)
         }
+    }
+
+    override fun onApplicationLoad() {
+        customAIManager.test()
+
+//        val cl = URLClassLoader((this::class.java.classLoader as URLClassLoader).urLs)
+//        cl.loadClass("com.genir.aitweaks.Injector").newInstance()
+
+//        (ClassLoader.getSystemClassLoader() as URLClassLoader).urLs.forEach {
+//            log(it)
+//        }
+
+//        throw Exception("done")
+
+//        Printer();
+//
+//        InjectorLoader().loadClass();
     }
 }
 

@@ -1,25 +1,67 @@
 package com.genir.aitweaks.features.shipai.adapters;
 
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.combat.entities.Ship;
-import com.genir.aitweaks.features.shipai.Maneuver;
 import org.lwjgl.util.vector.Vector2f;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+/**
+ * ManeuverAdapter wraps AI Tweaks Maneuver in vanilla Maneuver interface with
+ * obfuscated method names. ManeuverAdapter class is built at runtime and injected
+ * into system class loader. The system class loader has no access to AI Tweaks
+ * Maneuver, so the AI Tweaks Maneuver needs to be loaded with ScriptClassLoader
+ * and accessed through reflection.
+ */
 public class ManeuverAdapter implements ManeuverInterface {
-    protected Maneuver maneuver;
+    private final Object maneuver;
+
+    private final MethodHandle advance;
+    private final MethodHandle getTarget;
+    private final MethodHandle doManeuver;
+    private final MethodHandle getDesiredHeading;
+    private final MethodHandle getDesiredFacing;
 
     ManeuverAdapter(Ship ship, Ship target, Vector2f location) {
-        maneuver = new Maneuver(ship, target, location);
+        try {
+            // Load Maneuver class.
+            ClassLoader scriptLoader = Global.getSettings().getScriptClassLoader();
+            Class<?> m = scriptLoader.loadClass("com.genir.aitweaks.features.shipai.Maneuver");
+
+            // Construct Maneuver object.
+            MethodHandle ctor = MethodHandles.lookup().findConstructor(m, MethodType.methodType(void.class, ShipAPI.class, ShipAPI.class, Vector2f.class));
+            maneuver = ctor.invoke(ship, target, location);
+
+            advance = MethodHandles.lookup().findVirtual(m, "advance", MethodType.methodType(void.class, float.class));
+            getTarget = MethodHandles.lookup().findVirtual(m, "getManeuverTarget", MethodType.methodType(ShipAPI.class));
+            doManeuver = MethodHandles.lookup().findVirtual(m, "doManeuver", MethodType.methodType(void.class));
+            getDesiredHeading = MethodHandles.lookup().findVirtual(m, "getDesiredHeading", MethodType.methodType(float.class));
+            getDesiredFacing = MethodHandles.lookup().findVirtual(m, "getDesiredFacing", MethodType.methodType(float.class));
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void advanceObf(float p0) {
-        maneuver.advance(p0);
+        try {
+            advance.invoke(maneuver, p0);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public CombatEntityAPI getTargetObf() {
-        return maneuver.getManeuverTarget();
+        try {
+            return (CombatEntityAPI) getTarget.invoke(maneuver);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -29,16 +71,28 @@ public class ManeuverAdapter implements ManeuverInterface {
 
     @Override
     public void doManeuverObf() {
-        maneuver.doManeuver();
+        try {
+            doManeuver.invoke(maneuver);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public float getDesiredHeadingObf() {
-        return maneuver.getDesiredHeading();
+        try {
+            return (float) getDesiredHeading.invoke(maneuver);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public float getDesiredFacingObf() {
-        return maneuver.getDesiredFacing();
+        try {
+            return (float) getDesiredFacing.invoke(maneuver);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 }

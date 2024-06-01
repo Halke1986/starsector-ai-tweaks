@@ -1,25 +1,26 @@
 package shipai
 
-import com.genir.aitweaks.features.shipai.loading.AIClassLoader
-import com.genir.aitweaks.features.shipai.loading.ObfTable
+import com.genir.aitweaks.features.shipai.loading.Deobfuscator
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
 class CustomClassLoader {
     @Test
     fun testObfTable() {
         // Values for Starsector 0.97a-RC11 Windows
-        val obf = ObfTable()
+        val obf = Deobfuscator(this.javaClass.classLoader).getDeobfuscatedSymbols()
 
-        assertEquals(obf.orderResponseModule, "I")
-        assertEquals(obf.flockingAI, "oOOO")
-        assertEquals(obf.maneuver, "oO0O")
-        assertEquals(obf.shipAI, "oO0O\$o")
-        assertEquals(obf.combatEntity, "B")
         assertEquals(obf.combatEntityPackage, "o0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-        assertEquals(obf.approach, "B")
-        assertEquals(obf.move, "U")
+
+        assertEquals(obf.basicShipAIInnerClasses, listOf("1", "o"))
+        assertEquals(obf.orderResponseModule, "I")
+        assertEquals(obf.orderResponseModuleInner, "o")
+        assertEquals(obf.flockingAIModule, "oOOO")
+        assertEquals(obf.maneuverInterface, "oO0O")
+        assertEquals(obf.shipAIInterface, "oO0O\$o")
+        assertEquals(obf.combatEntityInterface, "B")
+        assertEquals(obf.approachManeuver, "B")
+        assertEquals(obf.moveManeuver, "U")
 
         assertEquals(obf.advance, "o00000")
         assertEquals(obf.getTarget, "o00000")
@@ -28,13 +29,5 @@ class CustomClassLoader {
         assertEquals(obf.getDesiredHeading, "Ô00000")
         assertEquals(obf.getDesiredFacing, "Ò00000")
         assertEquals(obf.getDesiredStrafeHeading, "Object")
-    }
-
-    @Test
-    fun testClassLoader() {
-        val cl = AIClassLoader()
-
-        assertNotNull(cl.loadClass("com.genir.aitweaks.asm.shipai.AssemblyShipAI"))
-        assertNotNull(cl.loadClass("com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2"))
     }
 }

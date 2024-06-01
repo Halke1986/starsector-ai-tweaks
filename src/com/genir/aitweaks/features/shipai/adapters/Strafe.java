@@ -12,6 +12,6 @@ public class Strafe extends ManeuverAdapter {
     }
 
     float getDesiredStrafeHeadingObf(boolean p0) {
-        return maneuver.getDesiredHeading();
+        return super.getDesiredHeadingObf();
     }
 }

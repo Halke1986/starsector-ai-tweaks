@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 import kotlin.math.min
 
-class ClassConstantTransformer(transforms: List<Transform>) {
+class Transformer(transforms: List<Transform>) {
     private val transforms: List<Transform> = if (transforms.javaClass == STATIC_ARRAY_LIST_TYPE) transforms else ArrayList(transforms)
 
     @Throws(IllegalClassFormatException::class)
@@ -82,10 +82,10 @@ class ClassConstantTransformer(transforms: List<Transform>) {
             return "Transform{from='$from', to='$to'}"
         }
 
-        override fun equals(o: Any?): Boolean {
-            if (this === o) return true
-            if (o == null || javaClass != o.javaClass) return false
-            val transform = o as Transform
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || javaClass != other.javaClass) return false
+            val transform = other as Transform
             return from == transform.from && to == transform.to
         }
 

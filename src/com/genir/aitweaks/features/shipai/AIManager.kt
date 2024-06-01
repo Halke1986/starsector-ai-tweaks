@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.features.shipai.loading.AIClassLoader
+import com.genir.aitweaks.features.shipai.loading.Loader
 import lunalib.lunaSettings.LunaSettings
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
@@ -15,28 +15,19 @@ import java.lang.invoke.MethodType
 val customAIManager: AIManager = AIManager()
 
 class AIManager {
-    private var loader: ClassLoader? = null
+    private var customAIClass: Class<*>? = null
 
     /** Get CustomShipAI class. Returns null if custom AI is disabled. */
     fun getCustomAIClass(): Class<*>? {
         if (LunaSettings.getBoolean("aitweaks", "aitweaks_enable_custom_ship_ai") != true) {
-            loader = null
             return null
         }
 
-        if (loader == null) {
-            try {
-                val newLoader = AIClassLoader()
-                newLoader.test()
-                this.loader = newLoader
-            } catch (e: ClassFormatError) {
-                val message = "Running AI Tweaks with custom ship AI enabled requires adding -Xverify:none argument to Starsector vmparams file. " +
-                    "Alternatively, you can disable custom ship AI in AI Tweaks LunaLib Settings."
-                throw Exception(message)
-            }
+        if (customAIClass == null) {
+            customAIClass = Loader().loadCustomShipAI()
         }
 
-        return loader!!.loadClass("com.genir.aitweaks.asm.shipai.CustomShipAI")
+        return customAIClass
     }
 
     /** Test the AI build process by attempting to load custom AI Java class. */
@@ -44,8 +35,7 @@ class AIManager {
 
     /** Get CustomShipAI. Returns null if custom AI is disabled or not applicable to given ship. */
     fun getCustomAI(ship: ShipAPI, config: ShipAIConfig = ShipAIConfig()): ShipAIPlugin? {
-        if (!shouldHaveCustomAI(ship))
-            return null
+        if (!shouldHaveCustomAI(ship)) return null
 
         val klass = getCustomAIClass() ?: return null
         val type = MethodType.methodType(Void.TYPE, Ship::class.java, ShipAIConfig::class.java)

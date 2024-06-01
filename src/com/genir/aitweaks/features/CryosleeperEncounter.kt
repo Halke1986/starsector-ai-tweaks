@@ -44,10 +44,6 @@ class CryosleeperEncounter : SalvageGenFromSeed.SalvageDefenderModificationPlugi
         captain.stats.setSkillLevel(Skills.SYSTEMS_EXPERTISE, 2f)
         captain.stats.setSkillLevel(Skills.ORDNANCE_EXPERTISE, 2f)
 
-        captain.stats.skillsCopy.filter { it.level != 0f }.forEach {
-            log("f ${it.skill.name} ${it.level}")
-        }
-
         // so it's not the standard alpha core portrait but an older-looking one
         captain.portraitSprite = fleet.faction.createRandomPerson().portraitSprite
         fleet.commander = captain
