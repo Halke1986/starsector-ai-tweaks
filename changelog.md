@@ -1,3 +1,5 @@
+- Custom ship AI no longer requires -Xverify:none argument.
+
 Version 1.7.0
 
 - Added custom ship AI. Currently, enabled only for Guardian in cryosleeper encounter.

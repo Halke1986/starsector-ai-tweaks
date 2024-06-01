@@ -8,7 +8,6 @@ import com.fs.starfarer.api.impl.campaign.ids.Skills
 import com.fs.starfarer.api.impl.campaign.procgen.themes.RemnantOfficerGeneratorPlugin
 import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.SalvageGenFromSeed
 import com.fs.starfarer.api.util.Misc
-import com.genir.aitweaks.utils.log
 import java.util.*
 
 class CryosleeperEncounter : SalvageGenFromSeed.SalvageDefenderModificationPlugin {

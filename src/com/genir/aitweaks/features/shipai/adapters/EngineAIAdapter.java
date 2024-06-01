@@ -5,7 +5,7 @@ import com.fs.starfarer.combat.ai.movement.EngineAI;
 import com.fs.starfarer.combat.entities.Ship;
 
 public class EngineAIAdapter implements EngineAI {
-    private BasicEngineAI vanillaAI;
+    private final BasicEngineAI vanillaAI;
 
     EngineAIAdapter(Ship ship) {
         vanillaAI = new BasicEngineAI(ship);
