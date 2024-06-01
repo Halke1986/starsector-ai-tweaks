@@ -12,7 +12,7 @@ import com.genir.aitweaks.utils.extensions.isPD
 class Guardian : BaseEveryFrameCombatPlugin() {
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
         val ships = Global.getCombatEngine().ships
-        val guardiansWithCustomAI = ships.filter { it.hullSpec.hullId == "guardian" && it.hasAIType(customAIManager.getCustomAIClass()) }
+        val guardiansWithCustomAI = ships.filter { it.hullSpec.hullId == "guardian" && it.hasAIType(CustomAIManager.getCustomAIClass()) }
 
         // Prevent non-PD turrets from attacking fighters.
         guardiansWithCustomAI.flatMap { it.allWeapons }.filter { it.slot.isTurret && !it.isPD }.forEach { it.spec.aiHints.add(WeaponAPI.AIHints.STRIKE) }

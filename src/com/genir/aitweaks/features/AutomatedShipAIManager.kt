@@ -4,7 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
-import com.genir.aitweaks.features.shipai.customAIManager
+import com.genir.aitweaks.features.shipai.CustomAIManager
 import com.genir.aitweaks.utils.extensions.hasAIType
 import com.genir.aitweaks.utils.extensions.isAutomated
 import lunalib.lunaSettings.LunaSettings
@@ -33,7 +33,7 @@ class AutomatedShipAIManager : BaseEveryFrameCombatPlugin() {
         // with high priority.
         automatedShips.forEach { ship ->
             if (ship.hasAIType(BasicShipAI::class.java))
-                customAIManager.getCustomAI(ship)?.let { ship.shipAI = it }
+                CustomAIManager.getAI(ship)?.let { ship.shipAI = it }
         }
 
         // Replace only vanilla AI with incorrect personality
@@ -50,7 +50,7 @@ class AutomatedShipAIManager : BaseEveryFrameCombatPlugin() {
 
                 // AssemblyShipAI needs captain personality change,
                 // because it ignores configured personality override.
-                ship.hasAIType(customAIManager.getCustomAIClass()) -> {
+                ship.hasAIType(CustomAIManager.getCustomAIClass()) -> {
                     ship.captain.setPersonality(expectedPersonality)
                 }
             }
