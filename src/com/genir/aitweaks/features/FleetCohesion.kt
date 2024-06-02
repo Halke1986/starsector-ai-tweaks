@@ -2,6 +2,7 @@ package com.genir.aitweaks.features
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.AssignmentTargetAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.CombatAssignmentType
 import com.fs.starfarer.api.combat.CombatAssignmentType.AVOID
@@ -27,15 +28,16 @@ class FleetCohesion : BaseEveryFrameCombatPlugin() {
             !isOn -> return
         }
 
-        if (impl == null)
-            impl = FleetCohesionImpl()
+        if (impl == null) impl = FleetCohesionImpl()
 
         impl!!.advance(dt)
     }
 }
 
 private class FleetCohesionImpl {
-    private val knownAssignments: MutableSet<AssignmentKey> = mutableSetOf()
+    private val cohesionAssignments: MutableSet<AssignmentKey> = mutableSetOf()
+    private val cohesionWaypoints: MutableSet<AssignmentTargetAPI> = mutableSetOf()
+
     private val advanceInterval = IntervalUtil(0.75f, 1f)
     private var validGroups: List<Set<ShipAPI>> = listOf()
     private var taskManager: CombatTaskManager = Global.getCombatEngine().getFleetManager(0).getTaskManager(false) as CombatTaskManager
@@ -47,7 +49,9 @@ private class FleetCohesionImpl {
         val engine = Global.getCombatEngine()
         if (engine.isPaused) return
 
+        // Cleanup of previous iteration assignments and waypoints.
         clearAssignments()
+        clearWaypoints()
 
         when {
             taskManager.isInFullRetreat -> return
@@ -89,9 +93,6 @@ private class FleetCohesionImpl {
         // Assign targets.
         val channelWasOpen = taskManager.isCommChannelOpen
         ships.forEach { manageAssignments(it, primaryTargets) }
-
-        // Cleanup.
-        taskManager.clearEmptyWaypoints()
         if (!channelWasOpen && taskManager.isCommChannelOpen) taskManager.closeCommChannel()
     }
 
@@ -110,13 +111,13 @@ private class FleetCohesionImpl {
         if (validGroups.any { it.contains(target) } && closeToEnemy(ship, target)) return
 
         // Ship has wrong target. Find the closest valid target in the main enemy battle group.
-        val closestTarget = primaryTargets.minByOrNull { (it.location - ship.location).lengthSquared() }
-            ?: return
+        val closestTarget = primaryTargets.minByOrNull { (it.location - ship.location).lengthSquared() } ?: return
 
         // Create waypoint on the target ship. Make sure it follow the target even on the map edge.
         val fleetManager = Global.getCombatEngine().getFleetManager(ship.owner)
         val waypoint = fleetManager.createWaypoint(Vector2f(), true)
         waypoint.location.set(closestTarget.location)
+        cohesionWaypoints.add(waypoint)
 
         // Assign target to ship.
         val doNotRefundCP = taskManager.isCommChannelOpen
@@ -125,20 +126,34 @@ private class FleetCohesionImpl {
 
         if (ship.assignment != null) {
             val key = AssignmentKey(ship, ship.assignment!!.target.location, ship.assignment!!.type)
-            knownAssignments.add(key)
+            cohesionAssignments.add(key)
         }
     }
 
     private fun clearAssignments() {
-        knownAssignments.forEach {
-            val ship = it.ship
-            if (!ship.isExpired && ship.isAlive && ship.assignment != null) {
-                if (it == AssignmentKey(ship, ship.assignment!!.target?.location, ship.assignment!!.type))
-                    taskManager.removeAssignment(ship.assignment)
+        // Assignments given be fleet cohesion AI may have
+        // already expired. Remove only the non-expired ones.
+        cohesionAssignments.forEach { assignment ->
+            val ship = assignment.ship
+            when {
+                ship.isExpired -> Unit
+                !ship.isAlive -> Unit
+                ship.assignment == null -> Unit
+                assignment != AssignmentKey(ship, ship.assignment!!.target?.location, ship.assignment!!.type) -> Unit
+
+                else -> taskManager.removeAssignment(ship.assignment)
             }
         }
 
-        knownAssignments.clear()
+        cohesionAssignments.clear()
+    }
+
+    private fun clearWaypoints() {
+        cohesionWaypoints.forEach {
+            Global.getCombatEngine().removeObject(it)
+        }
+
+        cohesionWaypoints.clear()
     }
 
     // Divide fleet into separate battle groups.

@@ -1,3 +1,5 @@
+- Fixed compatibility with Starsector 0.96. All features should work correctly. mod_info.json gameVersion needs to be downgraded manually. 
+
 Version 1.7.1
 
 - Custom ship AI no longer requires -Xverify:none argument.
