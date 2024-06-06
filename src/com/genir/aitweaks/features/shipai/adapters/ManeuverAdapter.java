@@ -30,7 +30,7 @@ public class ManeuverAdapter implements ManeuverInterface {
         try {
             // Load Maneuver class.
             ClassLoader scriptLoader = Global.getSettings().getScriptClassLoader();
-            Class<?> m = scriptLoader.loadClass("com.genir.aitweaks.features.shipai.Maneuver");
+            Class<?> m = scriptLoader.loadClass("com.genir.aitweaks.features.shipai.ai.Maneuver");
 
             // Construct Maneuver object.
             MethodHandle ctor = MethodHandles.lookup().findConstructor(m, MethodType.methodType(void.class, ShipAPI.class, ShipAPI.class, Vector2f.class));

@@ -44,10 +44,9 @@ class CustomAIManager {
             return when {
                 Global.getCurrentState() != GameState.COMBAT -> false
                 getCustomAIClass() == null -> false
-                ship.hullSpec.hullId != "guardian" -> false
 
                 ship.owner == 1 && isCryosleeper -> true
-                ship.owner == 0 && ship.name == "VSS Neutrino Drag" -> true
+                ship.owner == 0 && ship.isCruiser -> true
 
                 else -> false
             }
