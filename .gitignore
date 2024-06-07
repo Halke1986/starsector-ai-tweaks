@@ -1,7 +1,6 @@
 ### IntelliJ IDEA ###
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+jars/aitweaks.jar
 
 .idea/workspace.xml
 .idea/uiDesigner.xml
@@ -9,6 +8,3 @@ out/
 
 *.zip
 deploy.sh
-campaign.xml
-disassembly
-src_asm
