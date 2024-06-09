@@ -4,6 +4,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
+import com.genir.aitweaks.utils.extensions.rotated
+import com.genir.aitweaks.utils.extensions.rotatedReverse
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.*
 import org.lwjgl.util.vector.Vector2f
@@ -17,7 +19,7 @@ class EngineController(val ship: ShipAPI) {
      * leading is calculated based on 'targetVelocity'. If ship is already
      * at 'target' location, it will match the target velocity. Returns the
      * expected heading angle. */
-    fun heading(target: Vector2f, targetVelocity: Vector2f): Float {
+    fun heading(target: Vector2f, targetVelocity: Vector2f, clampV: ((Vector2f) -> Vector2f)? = null): Float {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val dt = Global.getCombatEngine().elapsedInLastFrame
@@ -60,7 +62,8 @@ class EngineController(val ship: ShipAPI) {
 
         // Expected velocity change.
         val ve = (vtt + vt).clampLength(vMax)
-        val dv = ve - v
+        val vec = clampV?.let { it(ve.rotatedReverse(r)).rotated(r) } ?: ve
+        val dv = vec - v
 
         // Proportional thrust required to achieve
         // the expected velocity change.
@@ -75,7 +78,7 @@ class EngineController(val ship: ShipAPI) {
         if (shouldAccelerate(-d.x, fl, fMax)) ship.move(STRAFE_LEFT)
         if (shouldAccelerate(+d.x, fr, fMax)) ship.move(STRAFE_RIGHT)
 
-        return r.reverse(ve).getFacing()
+        return r.reverse(vec).getFacing()
     }
 
     /** Set ship facing towards 'target' location. Returns the expected facing angle. */
@@ -109,7 +112,7 @@ class EngineController(val ship: ShipAPI) {
     }
 
     /** Maximum velocity in given direction to not overshoot target. */
-    private fun vMax(d: Float, a: Float): Float {
+    fun vMax(d: Float, a: Float): Float {
         val (q, _) = quad(0.5f, 0.5f, -d / a) ?: return 0f
         return floor(q) * a
     }

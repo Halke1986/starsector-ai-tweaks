@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.utils.AITStash
+import com.genir.aitweaks.utils.aitStash
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
@@ -40,7 +40,7 @@ val ShipAPI.trueShipTarget: ShipAPI?
         val root = rootModule
         val engine = Global.getCombatEngine()
         val aiControl = root != engine.playerShip || !engine.isUIAutopilotOn
-        return if (aiControl) AITStash.attackTarget ?: root.maneuverTarget
+        return if (aiControl) aitStash.attackTarget ?: root.maneuverTarget
         else root.shipTarget
     }
 

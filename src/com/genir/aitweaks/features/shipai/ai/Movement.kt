@@ -14,6 +14,7 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 
@@ -23,7 +24,7 @@ class Movement(private val ai: Maneuver) {
 
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
-    private var averageAimOffset = RollingAverageFloat(aimOffsetSamples)
+    private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
 
     fun advance(dt: Float) {
         setFacing()
@@ -105,7 +106,7 @@ class Movement(private val ai: Maneuver) {
         val censoredVelocity = if (censoredHeadingPoint == headingPoint) velocity else Vector2f()
 
         ai.headingPoint = censoredHeadingPoint
-        ai.desiredHeading = engineController.heading(censoredHeadingPoint, censoredVelocity)
+        ai.desiredHeading = engineController.heading(censoredHeadingPoint, censoredVelocity) { v -> avoidCollisions(v) }
     }
 
     /** Make the ship avoid map border. The ship will attempt to move
@@ -116,7 +117,7 @@ class Movement(private val ai: Maneuver) {
 
         val mapH = Global.getCombatEngine().mapHeight / 2f
         val mapW = Global.getCombatEngine().mapWidth / 2f
-        val borderZone = borderNoGoZone + borderCornerRadius
+        val borderZone = Preset.borderNoGoZone + Preset.borderCornerRadius
 
         // Translate ship coordinates so that the ship appears to be
         // always near a map corner. That way we can use a circle
@@ -129,7 +130,7 @@ class Movement(private val ai: Maneuver) {
         else (l.y + mapH - borderZone).coerceAtMost(0f)
 
         // Distance into the border zone.
-        val d = (dirToBorder.length() - borderCornerRadius).coerceAtLeast(0f)
+        val d = (dirToBorder.length() - Preset.borderCornerRadius).coerceAtLeast(0f)
 
         // Ship is far from border, no avoidance required.
         if (d == 0f) return headingPoint
@@ -150,7 +151,7 @@ class Movement(private val ai: Maneuver) {
 
         // The closer the ship is to map edge, the stronger
         // the heading transformation away from the border.
-        val avoidForce = (d / (borderNoGoZone - borderHardNoGoZone))
+        val avoidForce = (d / (Preset.borderNoGoZone - Preset.borderHardNoGoZone))
         val correctionSign = if (intrusionAngle.sign > 0) 1f else -1f
         val correctionAngle = (absAllowedAngle - abs(intrusionAngle)) * correctionSign * avoidForce
 
@@ -173,5 +174,47 @@ class Movement(private val ai: Maneuver) {
         val aimPoint = interceptSum / interceptPoints.size.toFloat()
 
         return aimPoint
+    }
+
+    private fun avoidCollisions(expectedVelocity: Vector2f): Vector2f {
+        val ships = Global.getCombatEngine().ships.filter {
+            when {
+                it == ship -> false
+                it.owner != ship.owner -> false
+                it.isFighter -> false
+                else -> true
+            }
+        }
+
+        return ships.fold(expectedVelocity) { v, obstacle -> avoidCollision(v, obstacle) }
+    }
+
+    /** Reduce expected velocity to avoid colliding with an obstacle. */
+    private fun avoidCollision(expectedVelocity: Vector2f, obstacle: ShipAPI): Vector2f {
+        // Change time unit from second to animation frame duration.
+        val dt = Global.getCombatEngine().elapsedInLastFrame
+
+        val p = obstacle.location - ship.location
+        val vShip = vectorProjection(expectedVelocity, p)
+        val vObstacle = vectorProjection(obstacle.velocity * dt, p)
+        val vCollision = vShip - vObstacle
+
+        // Distance between ship and obstacle is increasing.
+        if (dotProduct(p, vCollision) < 0f) return expectedVelocity
+
+        val distance = p.length() - (ship.collisionRadius + obstacle.collisionRadius + Preset.collisionBuffer)
+
+        // Already colliding.
+        if (distance <= 0f) return expectedVelocity - vShip
+
+        val vMax = engineController.vMax(distance, ship.deceleration * dt * dt)
+        val overSpeed = vCollision.length() - vMax
+
+        // No need to break yet.
+        if (overSpeed <= 0f) return expectedVelocity
+
+        val speed = vShip.length()
+        val speedExpected = max(0f, speed - overSpeed)
+        return expectedVelocity - vShip * (speedExpected / speed)  //.resized(overSpeed.coerceAtMost(vShip.length()))
     }
 }

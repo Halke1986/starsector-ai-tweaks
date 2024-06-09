@@ -26,7 +26,7 @@ class ShipStash(ship: ShipAPI) {
     private var maneuverAIT = 0f
 }
 
-val ShipAPI.AITStash: ShipStash
+val ShipAPI.aitStash: ShipStash
     get() {
         if (!this.customData.containsKey(stashKey))
             this.setCustomData(stashKey, ShipStash(this))
