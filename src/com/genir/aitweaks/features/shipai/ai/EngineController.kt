@@ -1,11 +1,14 @@
-package com.genir.aitweaks.utils
+package com.genir.aitweaks.features.shipai.ai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
+import com.genir.aitweaks.utils.Rotation
 import com.genir.aitweaks.utils.extensions.rotated
 import com.genir.aitweaks.utils.extensions.rotatedReverse
+import com.genir.aitweaks.utils.quad
+import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.*
 import org.lwjgl.util.vector.Vector2f
