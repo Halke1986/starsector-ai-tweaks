@@ -2,7 +2,6 @@ package com.genir.aitweaks.features.shipai.ai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.debug.debugPlugin
 import com.genir.aitweaks.debug.debugVertex
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.*
@@ -176,14 +175,8 @@ class Movement(private val ai: Maneuver) {
         return aimPoint
     }
 
-    class CollisionAvoidance {
-        var left = Vector2f()
-        var right = Vector2f()
-        var back = Vector2f()
-    }
-
     private fun avoidCollisions(expectedVelocity: Vector2f): Vector2f {
-        val ships = Global.getCombatEngine().ships.filter {
+        val obstacles = Global.getCombatEngine().ships.filter {
             when {
                 it == ship -> false
                 it.owner != ship.owner -> false
@@ -192,62 +185,102 @@ class Movement(private val ai: Maneuver) {
             }
         }
 
-        val avoidance = CollisionAvoidance()
-        var avoidInLine = Vector2f()
-        val dt = Global.getCombatEngine().elapsedInLastFrame
+        val r = Rotation(90f - expectedVelocity.getFacing())
+        val expectedRotated = expectedVelocity.rotated(r)
 
-//        debugVertex(ship.location, ship.location + accelerationTracker[ship], YELLOW)
+        var avoidBack = 0f
+        var avoidBackOnly = 0f
+        var avoidLeft = 0f
+        var avoidRight = 0f
 
-        ships.forEach { obstacle ->
-            val avoidVector = avoidCollision(expectedVelocity, obstacle) ?: return@forEach
+        obstacles.forEach { obstacle ->
+            val avoidVector = avoidCollision(expectedVelocity, obstacle)?.rotated(r) ?: return@forEach
 
-            val astern = expectedVelocity * -(avoidVector.length() / vectorProjection(expectedVelocity, avoidVector).length())
+            // Avoid vector in case only braking is possible, not moving to the side.
+            val currentAvoidBackOnly = expectedRotated.y * (avoidVector.y / vectorProjection(expectedRotated, avoidVector).y)
 
-            if (astern.length() > avoidInLine.length()) {
-                avoidInLine = astern
-            }
-
-//            debugVertex(ship.location, ship.location - avoidVector / dt, Color.YELLOW)
-
-            val back = vectorProjection(avoidVector, expectedVelocity)
-            val perpendicular = avoidVector - back
-
-            val a = back
-            val b = perpendicular
-            val s3 = a.x * b.y - a.y * b.x
-
-            if (s3 > 0) {
-                if (perpendicular.length() > avoidance.right.length()) {
-                    avoidance.right = perpendicular
-                }
-            } else {
-                if (perpendicular.length() > avoidance.left.length()) {
-                    avoidance.left = perpendicular
-                }
-            }
-
-            if (back.length() > avoidance.back.length()) {
-                avoidance.back = back
-            }
+            avoidBackOnly = min(currentAvoidBackOnly, avoidBackOnly)
+            avoidBack = min(avoidVector.y, avoidBack)
+            avoidLeft = min(avoidVector.x, avoidLeft)
+            avoidRight = max(avoidVector.x, avoidRight)
         }
 
-        if (!avoidance.left.isZeroVector() && !avoidance.right.isZeroVector()) {
-            if (avoidInLine.length() > avoidance.back.length()) {
-                avoidance.back = avoidInLine
-            }
+        // Left and right avoidance conflict. Avoid obstacle only by braking.
+        if (avoidLeft != 0f && avoidRight != 0f) {
+            avoidBack = min(avoidBackOnly, avoidBack)
+            avoidLeft = 0f
+            avoidRight = 0f
         }
 
-//        debugVertex(ship.location, ship.location + avoidance.back / dt, Color.RED)
-//        debugVertex(ship.location, ship.location + avoidance.left / dt, Color.RED)
-//        debugVertex(ship.location, ship.location + avoidance.right / dt, Color.RED)
-//
-        val perpendicular = if (!avoidance.left.isZeroVector() && !avoidance.right.isZeroVector()) Vector2f()
-        else avoidance.left + avoidance.right
-
-        return expectedVelocity + avoidance.back + perpendicular
-
-//        return ships.fold(expectedVelocity) { v, obstacle -> avoidCollision(v, obstacle) }
+        return expectedVelocity + Vector2f(avoidRight + avoidLeft, avoidBack).rotatedReverse(r)
     }
+
+//    class CollisionAvoidance {
+//        var left = Vector2f()
+//        var right = Vector2f()
+//        var back = Vector2f()
+//    }
+//
+//    private fun avoidCollisions(expectedVelocity: Vector2f): Vector2f {
+//            val ships = Global.getCombatEngine().ships.filter {
+//                when {
+//                    it == ship -> false
+//                    it.owner != ship.owner -> false
+//                    it.isFighter -> false
+//                    else -> true
+//                }
+//            }
+//
+//            val avoidance = CollisionAvoidance()
+//            var avoidInLine = Vector2f()
+//            val dt = Global.getCombatEngine().elapsedInLastFrame
+//
+//    //        debugVertex(ship.location, ship.location + accelerationTracker[ship], YELLOW)
+//
+//            ships.forEach { obstacle ->
+//                val avoidVector = avoidCollision(expectedVelocity, obstacle) ?: return@forEach
+//
+//                val astern = expectedVelocity * -(avoidVector.length() / vectorProjection(expectedVelocity, avoidVector).length())
+//
+//                if (astern.length() > avoidInLine.length()) {
+//                    avoidInLine = astern
+//                }
+//
+//    //            debugVertex(ship.location, ship.location - avoidVector / dt, Color.YELLOW)
+//
+//                val back = vectorProjection(avoidVector, expectedVelocity)
+//                val perpendicular = avoidVector - back
+//
+//                val a = back
+//                val b = perpendicular
+//                val s3 = a.x * b.y - a.y * b.x
+//
+//                if (s3 > 0) {
+//                    if (perpendicular.length() > avoidance.right.length()) {
+//                        avoidance.right = perpendicular
+//                    }
+//                } else {
+//                    if (perpendicular.length() > avoidance.left.length()) {
+//                        avoidance.left = perpendicular
+//                    }
+//                }
+//
+//                if (back.length() > avoidance.back.length()) {
+//                    avoidance.back = back
+//                }
+//            }
+//
+//            if (!avoidance.left.isZeroVector() && !avoidance.right.isZeroVector()) {
+//                if (avoidInLine.length() > avoidance.back.length()) {
+//                    avoidance.back = avoidInLine
+//                }
+//            }
+//
+//            val perpendicular = if (!avoidance.left.isZeroVector() && !avoidance.right.isZeroVector()) Vector2f()
+//            else avoidance.left + avoidance.right
+//
+//            return expectedVelocity + avoidance.back + perpendicular
+//        }
 
     private fun avoidCollision(expectedVelocity: Vector2f, obstacle: ShipAPI): Vector2f? {
         val p = obstacle.location - ship.location
@@ -256,18 +289,16 @@ class Movement(private val ai: Maneuver) {
         // Too far to consider collision risk.
         if (distance > 2000f) return null
 
+        // Transform time unit from second to frame of animation.
         val dt = Global.getCombatEngine().elapsedInLastFrame
+
+        // Rotate to align with direction to obstacle.
         val r = Rotation(90f - p.getFacing())
 
+        // Calculate velocity components towards obstacle.
         val vShip = expectedVelocity.rotated(r).y
         val vObstacle = obstacle.velocity.rotated(r).y * dt
         val vCollision = vShip - vObstacle
-
-//        if (ship != Global.getCombatEngine().playerShip) {
-//            debugPlugin["dist"] = "dist $distance"
-//            debugPlugin["vShip"] = "vShip ${vShip / dt}"
-//            debugPlugin["vObstacle"] = "vObstacle ${vObstacle / dt}"
-//        }
 
         // Distance between ship and obstacle is increasing.
         if (vCollision < 0f) return null
@@ -277,7 +308,8 @@ class Movement(private val ai: Maneuver) {
 
         // Already colliding. Full stop.
         if (distance <= 0f) {
-            debugVertex(ship.location, ship.location - Vector2f(0f, vShip).rotatedReverse(r) / Global.getCombatEngine().elapsedInLastFrame, Color.RED)
+            debugVertex(ship.location, ship.location - (-Vector2f(0f, vShip).rotatedReverse(r)) / dt, Color.YELLOW)
+
             return -Vector2f(0f, vShip).rotatedReverse(r)
         }
 
@@ -285,153 +317,15 @@ class Movement(private val ai: Maneuver) {
         val vMax = engineController.vMax(distance, ship.deceleration * dt * dt + aObstacle) + vObstacle
         val overSpeed = vShip - vMax
 
-        // No need to break yet.
+        // No need to brake yet.
         if (overSpeed <= 0f) return null
 
         val speedExpected = max(0f, vShip - overSpeed)
 
-        debugVertex(ship.location, ship.location - (Vector2f(0f, vShip).rotatedReverse(r) * (1f - (speedExpected / vShip))) / dt, Color.YELLOW)
+        debugVertex(ship.location, ship.location - (-Vector2f(0f, vShip).rotatedReverse(r) * (1f - (speedExpected / vShip))) / dt, Color.YELLOW)
+
         return -Vector2f(0f, vShip).rotatedReverse(r) * (1f - (speedExpected / vShip))
-
-
-//        debugVertex(ship.location, ship.location + vCollision / dt, Color.YELLOW)
-
-//        debugPlugin["dist"] = "dist $distanceDbg"
-//        debugPlugin["vBreak"] = "vBreak ${engineController.vMax(distanceDbg, ship.deceleration * dt * dt) / dt}"
-//        debugPlugin["vObstacle"] = "vObs ${vObstacle.length() / dt}"
-//        debugPlugin["aObstacle"] = "aObs ${aObstacle / (dt * dt)}"
-//        debugPlugin["a"] = "a ${(ship.deceleration * dt * dt - aObstacle) / (dt * dt)}"
-//        debugPlugin["vMax"] = "vMax ${vMax / dt}"
-//        debugPlugin["overSpeed"] = "over ${overSpeed / dt}"
-
-
-//        debugPlugin["vCollision"] = "vCollision ${vCollision.length() / dt}"
-
-
-//        if (ship == Global.getCombatEngine().playerShip) {
-//            debugPlugin["dist"] = "dist $distance"
-//            debugPlugin["p"] = "p $p"
-//            debugPlugin["vShip"] = "vShip $vShip"
-//            debugPlugin["vCollision"] = "vCollision $vCollision"
-//        }
-
-
-//        debugPlugin["brk"] = "brk ${(-vShip * (1f - (speedExpected / speed))).length() / dt}"
-
-//        debugPlugin[Pair(ship, obstacle).toString()] = (1f - (speedExpected / speed))
-
-
     }
-
-    //private fun avoidCollision(expectedVelocity: Vector2f, obstacle: ShipAPI): Vector2f? {
-    //        // Change time unit from second to animation frame duration.
-    //        val dt = Global.getCombatEngine().elapsedInLastFrame
-    //
-    //        val p = obstacle.location - ship.location
-    //        val vShip = vectorProjection(expectedVelocity, p)
-    //        val vObstacle = vectorProjection(obstacle.velocity * dt, p)
-    //        val vCollision = vShip - vObstacle
-    //
-    ////        debugVertex(ship.location, ship.location + vCollision / dt, Color.YELLOW)
-    //
-    ////        debugPlugin["dist"] = "dist $distanceDbg"
-    ////        debugPlugin["vBreak"] = "vBreak ${engineController.vMax(distanceDbg, ship.deceleration * dt * dt) / dt}"
-    ////        debugPlugin["vObstacle"] = "vObs ${vObstacle.length() / dt}"
-    ////        debugPlugin["aObstacle"] = "aObs ${aObstacle / (dt * dt)}"
-    ////        debugPlugin["a"] = "a ${(ship.deceleration * dt * dt - aObstacle) / (dt * dt)}"
-    ////        debugPlugin["vMax"] = "vMax ${vMax / dt}"
-    ////        debugPlugin["overSpeed"] = "over ${overSpeed / dt}"
-    //
-    //        // Distance between ship and obstacle is increasing.
-    //        if (dotProduct(p, vCollision) < 0f) return null
-    //
-    //        // Ship is flying away from the obstacle.
-    //        if (dotProduct(p, vShip) < 0f) return null
-    //
-    //        val distance = p.length() - (ship.collisionRadius + obstacle.collisionRadius + Preset.collisionBuffer)
-    //
-    //
-    ////        debugPlugin["vCollision"] = "vCollision ${vCollision.length() / dt}"
-    //
-    //        // Already colliding.
-    //        if (distance <= 0f) {
-    //            debugVertex(ship.location, ship.location - vShip / dt, Color.RED)
-    //            return -vShip
-    //        }
-    //
-    //        if (ship == Global.getCombatEngine().playerShip) {
-    //            debugPlugin["dist"] = "dist $distance"
-    //            debugPlugin["p"] = "p $p"
-    //            debugPlugin["vShip"] = "vShip $vShip"
-    //            debugPlugin["vCollision"] = "vCollision $vCollision"
-    //        }
-    //
-    //        val aObstacle = vectorProjection(accelerationTracker[obstacle] * dt * dt, p).length()
-    //        val vMax = engineController.vMax(distance, ship.deceleration * dt * dt - aObstacle) + vObstacle.length()
-    //        val overSpeed = vShip.length() - vMax
-    //
-    //
-    //        // No need to break yet.
-    //        if (overSpeed <= 0f) return null
-    //
-    //        val speed = vShip.length()
-    //        val speedExpected = max(0f, speed - overSpeed)
-    //
-    ////        debugPlugin["brk"] = "brk ${(-vShip * (1f - (speedExpected / speed))).length() / dt}"
-    //
-    ////        debugPlugin[Pair(ship, obstacle).toString()] = (1f - (speedExpected / speed))
-    //
-    //        debugVertex(ship.location, ship.location - (vShip * (1f - (speedExpected / speed))) / dt, Color.YELLOW)
-    //        return -vShip * (1f - (speedExpected / speed))
-    //    }
-
-    // private fun avoidCollision(expectedVelocity: Vector2f, obstacle: ShipAPI): Vector2f? {
-    //        // Change time unit from second to animation frame duration.
-    //        val dt = Global.getCombatEngine().elapsedInLastFrame
-    //
-    //        val p = obstacle.location - ship.location
-    //        val vShip = vectorProjection(expectedVelocity, p)
-    //        val vObstacle = vectorProjection(obstacle.velocity * dt, p)
-    //        val vCollision = vShip - vObstacle
-    //
-    ////        debugVertex(ship.location, ship.location + vCollision / dt, Color.YELLOW)
-    //
-    //        // Distance between ship and obstacle is increasing.
-    //        if (dotProduct(p, vCollision) < 0f) return null
-    //
-    //        // Ship is flying away from the obstacle.
-    //        if (dotProduct(p, vShip) < 0f) return null
-    //
-    //        val distance = p.length() - (ship.collisionRadius + obstacle.collisionRadius + Preset.collisionBuffer)
-    //
-    //        debugPlugin["dist"] = "dist $distance"
-    //        debugPlugin["vCollision"] = "vCollision ${vCollision.length() / dt}"
-    //
-    //
-    //        // Already colliding.
-    //        if (distance <= 0f) {
-    ////            debugVertex(ship.location, ship.location - vShip / dt, Color.RED)
-    //            return -vShip
-    //        }
-    //
-    //
-    //        val vMax = engineController.vMax(distance, ship.deceleration * dt * dt)
-    //        val overSpeed = vCollision.length() - vMax
-    //
-    //        debugPlugin["vMax"] = "vMax ${vMax / dt}"
-    //        debugPlugin["overSpeed"] = "over ${overSpeed / dt}"
-    //
-    //        // No need to break yet.
-    //        if (overSpeed <= 0f) return null
-    //
-    //        val speed = vShip.length()
-    //        val speedExpected = max(0f, speed - overSpeed)
-    //
-    ////        debugPlugin[Pair(ship, obstacle).toString()] = (1f - (speedExpected / speed))
-    //
-    ////        debugVertex(ship.location, ship.location - (vShip * (1f - (speedExpected / speed))) / dt, Color.YELLOW)
-    //        return -vShip * (1f - (speedExpected / speed))
-    //    }
 }
 
 
