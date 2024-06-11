@@ -6,11 +6,8 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.Misc
 import com.genir.aitweaks.features.shipai.CustomAIManager
 import com.genir.aitweaks.features.shipai.ai.EngineController
-import com.genir.aitweaks.utils.Rotation
-import com.genir.aitweaks.utils.aitStash
-import com.genir.aitweaks.utils.div
+import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.hasAIType
-import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -59,7 +56,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
     override fun renderInUICoords(viewport: ViewportAPI?) {
         for ((i, v) in logs.entries.withIndex()) {
-            v.value.draw(500f, 100f + (logs.count() / 2 - i) * 16f)
+            v.value.draw(500f, 200f + (logs.count() / 2 - i) * 16f)
         }
     }
 
@@ -70,6 +67,10 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private fun debug(dt: Float) {
         Global.getCombatEngine().asteroids.forEach {
             Global.getCombatEngine().removeEntity(it)
+        }
+
+        Global.getCombatEngine().ships.forEach { ship ->
+//            debugVertex(ship.location, ship.location + accelerationTracker[ship], Color.YELLOW)
         }
 
 

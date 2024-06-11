@@ -4,6 +4,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
 
+// TODO remove
+
 var frameTracker = 0f
 
 class FrameTracker : BaseEveryFrameCombatPlugin() {

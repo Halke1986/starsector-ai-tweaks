@@ -24,6 +24,6 @@ class Preset {
         const val borderHardNoGoZone = borderNoGoZone / 2f
 
         // Collision avoidance
-        const val collisionBuffer = 50f
+        const val collisionBuffer = 30f
     }
 }

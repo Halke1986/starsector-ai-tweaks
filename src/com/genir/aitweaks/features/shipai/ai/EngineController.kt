@@ -26,10 +26,10 @@ class EngineController(val ship: ShipAPI) {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val dt = Global.getCombatEngine().elapsedInLastFrame
-        val vMax = max(ship.maxSpeed, ship.velocity.length()) * dt * 1.01f
         val af = ship.acceleration * dt * dt
         val ab = ship.deceleration * dt * dt
         val al = ship.strafeAcceleration * dt * dt
+        val vMax = max(ship.maxSpeed, ship.velocity.length()) * dt + af
 
         // Transform input into ship frame of reference. Account for
         // ship angular velocity, as linear acceleration is applied
