@@ -215,73 +215,6 @@ class Movement(private val ai: Maneuver) {
         return expectedVelocity + Vector2f(avoidRight + avoidLeft, avoidBack).rotatedReverse(r)
     }
 
-//    class CollisionAvoidance {
-//        var left = Vector2f()
-//        var right = Vector2f()
-//        var back = Vector2f()
-//    }
-//
-//    private fun avoidCollisions(expectedVelocity: Vector2f): Vector2f {
-//            val ships = Global.getCombatEngine().ships.filter {
-//                when {
-//                    it == ship -> false
-//                    it.owner != ship.owner -> false
-//                    it.isFighter -> false
-//                    else -> true
-//                }
-//            }
-//
-//            val avoidance = CollisionAvoidance()
-//            var avoidInLine = Vector2f()
-//            val dt = Global.getCombatEngine().elapsedInLastFrame
-//
-//    //        debugVertex(ship.location, ship.location + accelerationTracker[ship], YELLOW)
-//
-//            ships.forEach { obstacle ->
-//                val avoidVector = avoidCollision(expectedVelocity, obstacle) ?: return@forEach
-//
-//                val astern = expectedVelocity * -(avoidVector.length() / vectorProjection(expectedVelocity, avoidVector).length())
-//
-//                if (astern.length() > avoidInLine.length()) {
-//                    avoidInLine = astern
-//                }
-//
-//    //            debugVertex(ship.location, ship.location - avoidVector / dt, Color.YELLOW)
-//
-//                val back = vectorProjection(avoidVector, expectedVelocity)
-//                val perpendicular = avoidVector - back
-//
-//                val a = back
-//                val b = perpendicular
-//                val s3 = a.x * b.y - a.y * b.x
-//
-//                if (s3 > 0) {
-//                    if (perpendicular.length() > avoidance.right.length()) {
-//                        avoidance.right = perpendicular
-//                    }
-//                } else {
-//                    if (perpendicular.length() > avoidance.left.length()) {
-//                        avoidance.left = perpendicular
-//                    }
-//                }
-//
-//                if (back.length() > avoidance.back.length()) {
-//                    avoidance.back = back
-//                }
-//            }
-//
-//            if (!avoidance.left.isZeroVector() && !avoidance.right.isZeroVector()) {
-//                if (avoidInLine.length() > avoidance.back.length()) {
-//                    avoidance.back = avoidInLine
-//                }
-//            }
-//
-//            val perpendicular = if (!avoidance.left.isZeroVector() && !avoidance.right.isZeroVector()) Vector2f()
-//            else avoidance.left + avoidance.right
-//
-//            return expectedVelocity + avoidance.back + perpendicular
-//        }
-
     private fun avoidCollision(expectedVelocity: Vector2f, obstacle: ShipAPI): Vector2f? {
         val p = obstacle.location - ship.location
         val distance = p.length() - (ship.collisionRadius + obstacle.collisionRadius + Preset.collisionBuffer)
@@ -308,7 +241,7 @@ class Movement(private val ai: Maneuver) {
 
         // Already colliding. Full stop.
         if (distance <= 0f) {
-            debugVertex(ship.location, ship.location - (-Vector2f(0f, vShip).rotatedReverse(r)) / dt, Color.YELLOW)
+            debugVertex(ship.location, ship.location - (-Vector2f(0f, vShip).rotatedReverse(r)) / dt, Color.RED)
 
             return -Vector2f(0f, vShip).rotatedReverse(r)
         }
@@ -322,7 +255,7 @@ class Movement(private val ai: Maneuver) {
 
         val speedExpected = max(0f, vShip - overSpeed)
 
-        debugVertex(ship.location, ship.location - (-Vector2f(0f, vShip).rotatedReverse(r) * (1f - (speedExpected / vShip))) / dt, Color.YELLOW)
+        debugVertex(ship.location, ship.location- (-Vector2f(0f, vShip).rotatedReverse(r) * (1f - (speedExpected / vShip))) / dt, Color.YELLOW)
 
         return -Vector2f(0f, vShip).rotatedReverse(r) * (1f - (speedExpected / vShip))
     }
