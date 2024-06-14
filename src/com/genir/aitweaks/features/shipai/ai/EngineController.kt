@@ -4,7 +4,9 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
+import com.genir.aitweaks.debug.debugVertex
 import com.genir.aitweaks.utils.Rotation
+import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.rotated
 import com.genir.aitweaks.utils.extensions.rotatedReverse
 import com.genir.aitweaks.utils.quad
@@ -12,6 +14,7 @@ import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.*
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -67,6 +70,8 @@ class EngineController(val ship: ShipAPI) {
         val ve = (vtt + vt).clampLength(vMax)
         val vec = clampV?.let { it(ve.rotatedReverse(r)).rotated(r) } ?: ve
         val dv = vec - v
+
+        debugVertex(ship.location, ship.location + vec.rotatedReverse(r) / dt, Color.BLUE)
 
         // Proportional thrust required to achieve
         // the expected velocity change.

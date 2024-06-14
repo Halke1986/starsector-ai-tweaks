@@ -4,6 +4,10 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.sqrt
 
+const val DEGREES_TO_RADIANS: Float = 0.017453292F
+
+const val RADIANS_TO_DEGREES: Float = 57.29578F
+
 /** Solve quadratic equation [ax^2 + bx + c = 0] for x. */
 fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
     val d = b * b - 4f * a * c

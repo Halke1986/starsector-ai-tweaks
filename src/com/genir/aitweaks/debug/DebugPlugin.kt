@@ -65,6 +65,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
+        log("frame")
+
         Global.getCombatEngine().asteroids.forEach {
             Global.getCombatEngine().removeEntity(it)
         }

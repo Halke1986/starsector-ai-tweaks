@@ -4,7 +4,10 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.debug.debugVertex
 import com.genir.aitweaks.utils.*
-import com.genir.aitweaks.utils.extensions.*
+import com.genir.aitweaks.utils.extensions.autofireAI
+import com.genir.aitweaks.utils.extensions.resized
+import com.genir.aitweaks.utils.extensions.rotated
+import com.genir.aitweaks.utils.extensions.rotatedAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
@@ -12,8 +15,8 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
+import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 
@@ -105,7 +108,7 @@ class Movement(private val ai: Maneuver) {
         val censoredVelocity = if (censoredHeadingPoint == headingPoint) velocity else Vector2f()
 
         ai.headingPoint = censoredHeadingPoint
-        ai.desiredHeading = engineController.heading(censoredHeadingPoint, censoredVelocity) { v -> avoidCollisions(v) }
+        ai.desiredHeading = engineController.heading(censoredHeadingPoint, censoredVelocity) { v -> avoidCollisions(dt, v) }
     }
 
     /** Make the ship avoid map border. The ship will attempt to move
@@ -175,7 +178,187 @@ class Movement(private val ai: Maneuver) {
         return aimPoint
     }
 
-    private fun avoidCollisions(expectedVelocity: Vector2f): Vector2f {
+//    private fun avoidCollisions(expectedVelocity: Vector2f): Vector2f {
+//        val obstacles = Global.getCombatEngine().ships.filter {
+//            when {
+//                it == ship -> false
+//                it.owner != ship.owner -> false
+//                it.isFighter -> false
+//                else -> true
+//            }
+//        }
+//
+//        val r = Rotation(90f - expectedVelocity.getFacing())
+//        val expectedRotated = expectedVelocity.rotated(r)
+//
+//        var avoidBack = 0f
+//        var avoidBackOnly = 0f
+//        var avoidLeft = 0f
+//        var avoidRight = 0f
+//
+//        val dt = Global.getCombatEngine().elapsedInLastFrame
+//
+//        obstacles.forEach { obstacle ->
+//
+//            vMaxToObstacle(dt, obstacle)
+//
+//
+//            val avoidVector = avoidCollision(expectedVelocity, obstacle)?.rotated(r) ?: return@forEach
+//
+//            // Avoid vector in case only braking is possible, not moving to the side.
+//            val currentAvoidBackOnly = expectedRotated.y * (avoidVector.y / vectorProjection(expectedRotated, avoidVector).y)
+//
+//            avoidBackOnly = min(currentAvoidBackOnly, avoidBackOnly)
+//            avoidBack = min(avoidVector.y, avoidBack)
+//            avoidLeft = min(avoidVector.x, avoidLeft)
+//            avoidRight = max(avoidVector.x, avoidRight)
+//        }
+//
+//        // Left and right avoidance conflict. Avoid obstacle only by braking.
+//        if (avoidLeft != 0f && avoidRight != 0f) {
+//            avoidBack = min(avoidBackOnly, avoidBack)
+//            avoidLeft = 0f
+//            avoidRight = 0f
+//        }
+//
+//        return expectedVelocity + Vector2f(avoidRight + avoidLeft, avoidBack).rotatedReverse(r)
+//    }
+//
+//    private fun avoidCollision(expectedVelocity: Vector2f, obstacle: ShipAPI): Vector2f? {
+//        val p = obstacle.location - ship.location
+//        val distance = p.length() - (ship.collisionRadius + obstacle.collisionRadius + Preset.collisionBuffer)
+//
+//        // Too far to consider collision risk.
+//        if (distance > 2000f) return null
+//
+//        // Transform time unit from second to frame of animation.
+//        val dt = Global.getCombatEngine().elapsedInLastFrame
+//
+//        // Rotate to align with direction to obstacle.
+//        val r = Rotation(90f - p.getFacing())
+//
+//        // Calculate velocity components towards obstacle.
+//        val vShip = expectedVelocity.rotated(r).y
+//        val vObstacle = obstacle.velocity.rotated(r).y * dt
+//        val vCollision = vShip - vObstacle
+//
+//        // Distance between ship and obstacle is increasing.
+//        if (vCollision < 0f) return null
+//
+//        // Ship is flying away from the obstacle.
+//        if (vShip < 0f) return null
+//
+//        // Already colliding. Full stop.
+//        if (distance <= 0f) {
+////            debugVertex(ship.location, ship.location - (-Vector2f(0f, vShip).rotatedReverse(r)) / dt, Color.RED)
+//
+//            return -Vector2f(0f, vShip).rotatedReverse(r)
+//        }
+//
+//        val aObstacle = accelerationTracker[obstacle].rotated(r).y * dt * dt
+//        val vMax = engineController.vMax(distance, ship.deceleration * dt * dt + aObstacle) + vObstacle
+//        val overSpeed = vShip - vMax
+//
+//        // No need to brake yet.
+//        if (overSpeed <= 0f) return null
+//
+//        val speedExpected = max(0f, vShip - overSpeed)
+//
+////        debugVertex(ship.location, ship.location - (-Vector2f(0f, vShip).rotatedReverse(r) * (1f - (speedExpected / vShip))) / dt, Color.YELLOW)
+//
+//        return -Vector2f(0f, vShip).rotatedReverse(r) * (1f - (speedExpected / vShip))
+//    }
+
+//    data class Limit(val facing: Float, val speed: Float)
+
+//    private fun avoidCollisions(dt: Float, expectedVelocity: Vector2f): Vector2f {
+//        val obstacles = Global.getCombatEngine().ships.filter {
+//            when {
+//                it == ship -> false
+//                it.owner != ship.owner -> false
+//                it.isFighter -> false
+//                else -> true
+//            }
+//        }
+//
+//        if (obstacles.isEmpty()) return expectedVelocity
+//
+//        val expectedSpeed = expectedVelocity.length()
+//        val expectedFacing = expectedVelocity.getFacing()
+//
+//        val limits: MutableList<Limit> = mutableListOf()
+//
+//        var lowestLimit: Limit? = null
+//        var lowestLimitSpeedAhead = Float.MAX_VALUE
+//
+//        obstacles.forEach { obstacle ->
+//            val lim = vMaxToObstacle(dt, obstacle)
+//
+//            if (lim.speed > expectedSpeed) return@forEach
+//
+//            limits.add(lim)
+//
+//            val rDistance = abs(MathUtils.getShortestRotation(expectedFacing, lim.facing)) * DEGREES_TO_RADIANS
+//            if (rDistance >= PI / 2f) return@forEach
+//
+//            val speedAhead = rDistance * rDistance + 1
+//
+//            if (speedAhead < lowestLimitSpeedAhead && speedAhead < expectedSpeed) {
+//                lowestLimit = lim
+//                lowestLimitSpeedAhead = speedAhead
+//            }
+//
+//
+//        }
+//
+//        val lim = lowestLimit ?: return expectedVelocity
+//
+//        val facingOffset = facingOffset(expectedSpeed, lim.speed)
+//
+//
+//        val angleToLimit = MathUtils.getShortestRotation(expectedFacing, lim.facing)
+//        val angleToNewFacing = angleToLimit - facingOffset * angleToLimit.sign
+//        val newFacing = expectedFacing + angleToNewFacing
+//
+//        var newSpeed = expectedSpeed
+//
+//        limits.forEach { l ->
+//            val x = abs(newFacing - l.facing) * DEGREES_TO_RADIANS
+//            val t = (PI / 2f - x).toFloat()
+//
+//            val e1 = l.speed * (1f / t + t / 5f)
+//
+//            if (l.speed < 0.0001f) {
+//                log("${ship.name}  $newFacing ${l.facing} $e1 ${l.speed} $x $t")
+//            }
+//
+//            // Angle between speed limit and heading is more than 90 degrees.
+//            // Speed limit has no effect on velocity.
+//            if (t <= 0f) return@forEach
+//
+//            val e = l.speed * (1f / t + t / 5f)
+//
+//
+//            newSpeed = min(e, newSpeed)
+//        }
+//
+////        return expectedVelocity.rotated(Rotation(angleToNewFacing)).resized(cos(angleToNewFacing * DEGREES_TO_RADIANS))
+//        return expectedVelocity.rotated(Rotation(angleToNewFacing)).resized(newSpeed)
+//    }
+
+    class Limit(val facing: Float, val speed: Float) {
+        fun clampSpeed(expectedFacing: Float, expectedSpeed: Float): Float {
+            val angleFromLimit = abs(MathUtils.getShortestRotation(expectedFacing, facing))
+            if (angleFromLimit > 90f) return expectedSpeed
+
+            val t = (PI / 2f - angleFromLimit * DEGREES_TO_RADIANS).toFloat()
+            val e = speed * (1f / t + t / 5f)
+
+            return min(e, expectedSpeed)
+        }
+    }
+
+    private fun avoidCollisions(dt: Float, expectedVelocity: Vector2f): Vector2f {
         val obstacles = Global.getCombatEngine().ships.filter {
             when {
                 it == ship -> false
@@ -185,79 +368,105 @@ class Movement(private val ai: Maneuver) {
             }
         }
 
-        val r = Rotation(90f - expectedVelocity.getFacing())
-        val expectedRotated = expectedVelocity.rotated(r)
+        if (obstacles.isEmpty()) return expectedVelocity
 
-        var avoidBack = 0f
-        var avoidBackOnly = 0f
-        var avoidLeft = 0f
-        var avoidRight = 0f
+        val expectedSpeed = expectedVelocity.length()
+        val expectedFacing = expectedVelocity.getFacing()
+
+        val limits: MutableList<Limit> = mutableListOf()
+
+        var lowestLimit: Limit? = null
+        var lowestLimitSpeedAhead = Float.MAX_VALUE
 
         obstacles.forEach { obstacle ->
-            val avoidVector = avoidCollision(expectedVelocity, obstacle)?.rotated(r) ?: return@forEach
+            val lim = vMaxToObstacle(dt, obstacle)
 
-            // Avoid vector in case only braking is possible, not moving to the side.
-            val currentAvoidBackOnly = expectedRotated.y * (avoidVector.y / vectorProjection(expectedRotated, avoidVector).y)
+            if (lim.speed > expectedSpeed) return@forEach
 
-            avoidBackOnly = min(currentAvoidBackOnly, avoidBackOnly)
-            avoidBack = min(avoidVector.y, avoidBack)
-            avoidLeft = min(avoidVector.x, avoidLeft)
-            avoidRight = max(avoidVector.x, avoidRight)
+            limits.add(lim)
+
+            val speedAhead = lim.clampSpeed(expectedFacing, expectedSpeed)
+
+//            val rDistance = abs(MathUtils.getShortestRotation(expectedFacing, lim.facing)) * DEGREES_TO_RADIANS
+//            if (rDistance >= PI / 2f) return@forEach
+//
+//             rDistance * rDistance + 1
+
+            if (speedAhead < lowestLimitSpeedAhead && speedAhead < expectedSpeed) {
+                lowestLimit = lim
+                lowestLimitSpeedAhead = speedAhead
+            }
         }
 
-        // Left and right avoidance conflict. Avoid obstacle only by braking.
-        if (avoidLeft != 0f && avoidRight != 0f) {
-            avoidBack = min(avoidBackOnly, avoidBack)
-            avoidLeft = 0f
-            avoidRight = 0f
+
+        val lim = lowestLimit ?: return expectedVelocity
+
+        val facingOffset = facingOffset(expectedSpeed, lim.speed)
+
+
+        val angleToLimit = MathUtils.getShortestRotation(expectedFacing, lim.facing)
+        val angleToNewFacing = angleToLimit - facingOffset * angleToLimit.sign
+        val newFacing = expectedFacing + angleToNewFacing
+
+        var newSpeed = expectedSpeed
+
+        limits.forEach { l ->
+            val x = abs(MathUtils.getShortestRotation(newFacing, l.facing)) * DEGREES_TO_RADIANS
+            val t = (PI / 2f - x).toFloat()
+
+            val e1 = l.speed * (1f / t + t / 5f)
+
+            if (l.speed < 0.0001f) {
+                log("${ship.name}  $newFacing ${l.facing} $e1 ${l.speed} $x $t")
+            }
+
+            // Angle between speed limit and heading is more than 90 degrees.
+            // Speed limit has no effect on velocity.
+            if (t <= 0f) return@forEach
+
+            val e = l.speed * (1f / t + t / 5f)
+
+
+            newSpeed = min(e, newSpeed)
         }
 
-        return expectedVelocity + Vector2f(avoidRight + avoidLeft, avoidBack).rotatedReverse(r)
+//        return expectedVelocity.rotated(Rotation(angleToNewFacing)).resized(cos(angleToNewFacing * DEGREES_TO_RADIANS))
+        return expectedVelocity.rotated(Rotation(angleToNewFacing)).resized(newSpeed)
     }
 
-    private fun avoidCollision(expectedVelocity: Vector2f, obstacle: ShipAPI): Vector2f? {
-        val p = obstacle.location - ship.location
-        val distance = p.length() - (ship.collisionRadius + obstacle.collisionRadius + Preset.collisionBuffer)
+    private fun facingOffset(expected: Float, max: Float): Float {
+        val a = 1f
+        val b = -5f * (expected / max)
+        val c = 5f
 
-        // Too far to consider collision risk.
-        if (distance > 2000f) return null
+        val t = quad(a, b, c)!!.second
+        return abs(t - PI / 2f).toFloat() * RADIANS_TO_DEGREES
+    }
 
-        // Transform time unit from second to frame of animation.
-        val dt = Global.getCombatEngine().elapsedInLastFrame
+    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI): Limit {
+        val fullStop = 0.00001f
 
-        // Rotate to align with direction to obstacle.
-        val r = Rotation(90f - p.getFacing())
+        val direction = obstacle.location - ship.location
+        val dAbs = direction.length()
+        val distance = dAbs - (ship.collisionRadius + obstacle.collisionRadius + Preset.collisionBuffer)
 
-        // Calculate velocity components towards obstacle.
-        val vShip = expectedVelocity.rotated(r).y
-        val vObstacle = obstacle.velocity.rotated(r).y * dt
-        val vCollision = vShip - vObstacle
-
-        // Distance between ship and obstacle is increasing.
-        if (vCollision < 0f) return null
-
-        // Ship is flying away from the obstacle.
-        if (vShip < 0f) return null
-
-        // Already colliding. Full stop.
+        // Already colliding.
         if (distance <= 0f) {
-            debugVertex(ship.location, ship.location - (-Vector2f(0f, vShip).rotatedReverse(r)) / dt, Color.RED)
-
-            return -Vector2f(0f, vShip).rotatedReverse(r)
+            debugVertex(ship.location, ship.location + direction.resized(100f), Color.RED)
+            return Limit(direction.getFacing(), fullStop)
         }
 
-        val aObstacle = accelerationTracker[obstacle].rotated(r).y * dt * dt
-        val vMax = engineController.vMax(distance, ship.deceleration * dt * dt + aObstacle) + vObstacle
-        val overSpeed = vShip - vMax
+        val vObstacle = vectorProjection(obstacle.velocity, direction)
+        val aObstacle = vectorProjection(accelerationTracker[obstacle], direction)
 
-        // No need to brake yet.
-        if (overSpeed <= 0f) return null
+        val vAbs = (vObstacle + direction).length() - dAbs
+        val aAbs = (aObstacle + direction).length() - dAbs
+//        val aAbs = 0f
 
-        val speedExpected = max(0f, vShip - overSpeed)
+        val vMax = engineController.vMax(distance, (ship.deceleration + aAbs) * dt * dt) + vAbs * dt
 
-        debugVertex(ship.location, ship.location- (-Vector2f(0f, vShip).rotatedReverse(r) * (1f - (speedExpected / vShip))) / dt, Color.YELLOW)
-
-        return -Vector2f(0f, vShip).rotatedReverse(r) * (1f - (speedExpected / vShip))
+//        debugVertex(ship.location, ship.location + direction.resized(vMax.coerceAtLeast(0f) / dt), Color.YELLOW)
+        return Limit(direction.getFacing(), vMax.coerceAtLeast(fullStop))
     }
 }
 
