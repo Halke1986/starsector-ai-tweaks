@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.features.autofire.AutofireAI
+import com.genir.aitweaks.features.shipai.ai.EngineController
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.deploymentPoints
 import com.genir.aitweaks.utils.extensions.isShip

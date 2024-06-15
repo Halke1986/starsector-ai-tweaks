@@ -1,18 +1,22 @@
 package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ViewportAPI
+import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.utils.EngineController
+import com.fs.starfarer.api.util.Misc
+import com.genir.aitweaks.features.shipai.CustomAIManager
+import com.genir.aitweaks.features.shipai.ai.EngineController
 import com.genir.aitweaks.utils.Rotation
+import com.genir.aitweaks.utils.aitStash
 import com.genir.aitweaks.utils.div
+import com.genir.aitweaks.utils.extensions.hasAIType
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
+import org.lazywizard.lazylib.opengl.DrawUtils
 import org.lazywizard.lazylib.ui.LazyFont
+import org.lwjgl.opengl.GL11
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
@@ -43,10 +47,11 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         val engine = Global.getCombatEngine()
         if (!engine.customData.containsKey(ID)) {
             engine.addLayeredRenderingPlugin(RenderLines())
+//            engine.addLayeredRenderingPlugin(RendererCollisionRadius())
             engine.customData[ID] = true
         }
 
-//        debug(dt)
+        debug(dt)
 //        followPlayerShip()
 //        followMouse()
 //        makeDroneFormation(dt)
@@ -54,7 +59,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
     override fun renderInUICoords(viewport: ViewportAPI?) {
         for ((i, v) in logs.entries.withIndex()) {
-            v.value.draw(500f, 100f + (logs.count() / 2 - i) * 16f)
+            v.value.draw(500f, 200f + (logs.count() / 2 - i) * 16f)
         }
     }
 
@@ -63,16 +68,29 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-//        val ships = Global.getCombatEngine().ships.filter { it.hasAIType(customAIManager.getCustomAIClass()) }
-//
-//        ships.forEach {
-//            val m = it.AITStash.maneuverAI
-//            debugVertex(it.location, m?.headingPoint ?: it.location, Color.YELLOW)
-//
+//        Global.getCombatEngine().asteroids.forEach {
+//            Global.getCombatEngine().removeEntity(it)
+//        }
+
+        Global.getCombatEngine().ships.forEach { ship ->
+//            debugVertex(ship.location, ship.location + accelerationTracker[ship], Color.YELLOW)
+        }
+
+        val ships = Global.getCombatEngine().ships.filter { it.hasAIType(CustomAIManager.getCustomAIClass()) }
+
+        ships.forEach {
+//            drawEngineLines(it)
+
+            val m = it.aitStash.maneuverAI
+            if (m != null && it != Global.getCombatEngine().playerShip) {
+//                debugPlugin["man"] = it.aitStash.maneuverAI?.let { m -> m::class.java }
+//                debugVertex(it.location, it.location + m.desiredVelocity, Color.YELLOW)
+            }
+
 //            it.allWeapons.filter { weapon -> !weapon.isPD }.mapNotNull { weapon -> weapon.autofireAI }.forEachIndexed { idx, aai ->
 //                debugPlugin[idx] = aai.shouldHoldFire
 //            }
-//        }
+        }
 
 //        val lookup = MethodHandles.lookup()
 //        val methodType = MethodType.methodType(oO0O::class.java)
@@ -161,6 +179,38 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         c.facing(target.location, target.velocity)
 
         drawEngineLines(ship)
+    }
+
+    inner class RendererCollisionRadius : BaseCombatLayeredRenderingPlugin() {
+        override fun render(layer: CombatEngineLayers?, viewport: ViewportAPI?) {
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+
+            GL11.glDisable(GL11.GL_TEXTURE_2D)
+            GL11.glEnable(GL11.GL_BLEND)
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+
+            Misc.setColor(Color.CYAN, 100)
+            GL11.glLineWidth(2f / Global.getCombatEngine().viewport.viewMult)
+
+            Global.getCombatEngine().ships.forEach { ship ->
+
+                DrawUtils.drawArc(
+                    ship.location.x,
+                    ship.location.y,
+                    ship.collisionRadius,
+                    0f,
+                    360f,
+                    64,
+                    false,
+                )
+            }
+
+            GL11.glPopAttrib()
+        }
+
+        override fun getRenderRadius(): Float = 1e6f
+
+        override fun getActiveLayers(): EnumSet<CombatEngineLayers> = EnumSet.of(CombatEngineLayers.JUST_BELOW_WIDGETS)
     }
 }
 

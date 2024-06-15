@@ -5,9 +5,9 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
-import com.genir.aitweaks.utils.AITStash
 import com.genir.aitweaks.utils.ShipSystemAiType.BURN_DRIVE
 import com.genir.aitweaks.utils.ShipSystemAiType.MANEUVERING_JETS
+import com.genir.aitweaks.utils.aitStash
 import com.genir.aitweaks.utils.extensions.*
 import com.genir.aitweaks.utils.shieldUptime
 import com.genir.aitweaks.utils.shipGrid
@@ -46,16 +46,16 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
     internal var threatVector = Vector2f()
 
     fun advance(dt: Float) {
-        ship.AITStash.maneuverAI = this
+        ship.aitStash.maneuverAI = this
 
         if (shouldEndManeuver()) {
             ship.shipAI.cancelCurrentManeuver()
-            ship.AITStash.maneuverAI = null
+            ship.aitStash.maneuverAI = null
         }
 
         // Update state.
         updateThreats()
-        effectiveRange = ship.effectiveRange(effectiveDpsThreshold)
+        effectiveRange = ship.effectiveRange(Preset.effectiveDpsThreshold)
 
         updateIdleTime(dt)
         updateBackoffStatus()
@@ -85,7 +85,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
             }
 
             // Arrived at location.
-            targetLocation != null && (ship.location - targetLocation).length() <= arrivedAtLocationRadius -> {
+            targetLocation != null && (ship.location - targetLocation).length() <= Preset.arrivedAtLocationRadius -> {
                 true
             }
 
@@ -97,7 +97,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
      * from the maneuver target provided by the ShipAI. */
     private fun updateAttackTarget() {
         // Attack target is stored in a flag, so it carries over between Maneuver instances.
-        val currentTarget: ShipAPI? = ship.AITStash.attackTarget
+        val currentTarget: ShipAPI? = ship.aitStash.attackTarget
 
         val updateTarget = when {
             currentTarget == null -> true
@@ -121,7 +121,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
             target ?: maneuverTarget
         } else currentTarget
 
-        ship.AITStash.attackTarget = updatedTarget
+        ship.aitStash.attackTarget = updatedTarget
         ship.shipTarget = updatedTarget
         attackTarget = updatedTarget
     }
@@ -135,7 +135,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
             Global.getCombatEngine().isEnemyInFullRetreat -> false
 
             // Start backing off.
-            fluxLevel > backoffUpperThreshold -> true
+            fluxLevel > Preset.backoffUpperThreshold -> true
 
             // Stop backing off.
             backingOffFlag && fluxLevel <= 0.01f -> false
@@ -149,7 +149,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
     }
 
     private fun updateIdleTime(dt: Float) {
-        val shieldIsUp = ship.shield?.isOn == true && shieldUptime(ship.shield) > shieldFlickerThreshold
+        val shieldIsUp = ship.shield?.isOn == true && shieldUptime(ship.shield) > Preset.shieldFlickerThreshold
         val pdIsFiring = ship.allWeapons.firstOrNull { it.isPD && it.isFiring } != null
 
         idleTime = if (shieldIsUp || pdIsFiring) 0f
@@ -170,7 +170,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
     }
 
     private fun holdFireIfOverfluxed() {
-        isHoldingFire = ship.fluxTracker.fluxLevel > holdFireThreshold
+        isHoldingFire = ship.fluxTracker.fluxLevel > Preset.holdFireThreshold
 
         if (isHoldingFire) {
             ship.allWeapons.filter { !it.isPD && it.fluxCostToFire != 0f }.mapNotNull { it.autofirePlugin }.forEach { it.forceOff() }
@@ -184,8 +184,8 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
             !isBackingOff -> false
             ship.fluxTracker.isVenting -> false
             ship.fluxLevel < 0.01f -> false
-            ship.fluxLevel < backoffLowerThreshold -> true
-            idleTime < shieldDownVentTime -> false
+            ship.fluxLevel < Preset.backoffLowerThreshold -> true
+            idleTime < Preset.shieldDownVentTime -> false
             ship.allWeapons.firstOrNull { it.autofireAI?.shouldFire() == true } != null -> false
             else -> true
         }
@@ -234,7 +234,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
     // TODO ensure stations are counted
     private fun updateThreats() {
         val rangeEnvelope = 500f
-        val r = 2f * max(threatEvalRadius, ship.maxRange + rangeEnvelope)
+        val r = 2f * max(Preset.threatEvalRadius, ship.maxRange + rangeEnvelope)
         val allShips = shipGrid().getCheckIterator(ship.location, r, r).asSequence().filterIsInstance<ShipAPI>()
 
         threats = allShips.filter { it.owner != ship.owner && it.isValidTarget && it.isShip }.toList()

@@ -5,7 +5,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.features.shipai.loading.Builder
 import lunalib.lunaSettings.LunaSettings
@@ -46,17 +45,10 @@ class CustomAIManager {
                 getCustomAIClass() == null -> false
 
                 ship.owner == 1 && isCryosleeper -> true
-//                ship.owner == 0 && ship.isCruiser -> true
+//                ship.owner == 0 && (ship.isCruiser || ship.isCapital || ship.name == "VSS Neutrino Drag") -> true
 
                 else -> false
             }
         }
     }
 }
-
-val ShipAPI.hasBasicShipAI: Boolean
-    get() = when {
-        ai is BasicShipAI -> true
-        CustomAIManager.getCustomAIClass()?.isInstance(ai) == true -> true
-        else -> false
-    }
