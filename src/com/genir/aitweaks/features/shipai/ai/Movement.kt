@@ -2,7 +2,6 @@ package com.genir.aitweaks.features.shipai.ai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.debug.debugVertex
 import com.genir.aitweaks.utils.*
 import com.genir.aitweaks.utils.extensions.autofireAI
 import com.genir.aitweaks.utils.extensions.resized
@@ -14,7 +13,6 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
@@ -210,65 +208,80 @@ class Movement(private val ai: Maneuver) {
         if (lowestLimit.clampSpeed(expectedFacing, expectedSpeed) == expectedSpeed) return expectedVelocity
 
         // Find new heading that circumvents the lowest speed limit.
-        val facingOffset = facingOffset(expectedSpeed, lowestLimit.speed)
+        val facingOffset = lowestLimit.facingOffset(expectedSpeed)
         val angleToLimit = MathUtils.getShortestRotation(expectedFacing, lowestLimit.facing)
         val angleToNewFacing = angleToLimit - facingOffset * angleToLimit.sign
         val newFacing = expectedFacing + angleToNewFacing
+
+        if (angleToNewFacing >= 89f) return Vector2f()
 
         // Clamp new heading to not violate any of the speed limits.
         val newSpeed = limits.fold(expectedSpeed) { clampedSpeed, lim ->
             lim.clampSpeed(newFacing, clampedSpeed)
         }
 
-//        return expectedVelocity.rotated(Rotation(angleToNewFacing)).resized(cos(angleToNewFacing * DEGREES_TO_RADIANS))
         return expectedVelocity.rotated(Rotation(angleToNewFacing)).resized(newSpeed)
     }
 
-    class Limit(val facing: Float, val speed: Float) {
+    /** Limit allows to clamp velocity to not exceed max speed in a given direction.
+     * From right triangle, the equation for max speed is:
+     *
+     * maxSpeed = speedLimit / cos( abs(limitFacing - velocityFacing) )
+     *
+     * To avoid using trigonometric functions, f(x) = 1/cos(x) is approximated as
+     * g(t) = 1/t + t/5 where t = PI/2 - x. */
+    private data class Limit(val facing: Float, val speed: Float) {
         fun clampSpeed(expectedFacing: Float, expectedSpeed: Float): Float {
             val angleFromLimit = abs(MathUtils.getShortestRotation(expectedFacing, facing))
-            if (angleFromLimit > 90f) return expectedSpeed
+            if (angleFromLimit >= 90f) return expectedSpeed
 
             val t = (PI / 2f - angleFromLimit * DEGREES_TO_RADIANS).toFloat()
             val e = speed * (1f / t + t / 5f)
 
             return min(e, expectedSpeed)
         }
-    }
 
-    private fun facingOffset(expected: Float, max: Float): Float {
-        val a = 1f
-        val b = -5f * (expected / max)
-        val c = 5f
+        fun facingOffset(expectedSpeed: Float): Float {
+            val a = 1f
+            val b = -5f * (expectedSpeed / speed)
+            val c = 5f
 
-        val t = quad(a, b, c)!!.second
-        return abs(t - PI / 2f).toFloat() * RADIANS_TO_DEGREES
+            val t = quad(a, b, c)!!.second
+            return abs(t - PI / 2f).toFloat() * RADIANS_TO_DEGREES
+        }
     }
 
     private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI): Limit {
         val fullStop = 0.00001f
 
         val direction = obstacle.location - ship.location
-        val dAbs = direction.length()
-        val distance = dAbs - (ship.collisionRadius + obstacle.collisionRadius + Preset.collisionBuffer)
+        val dirAbs = direction.length()
+        val dirFacing = direction.getFacing()
+        val distance = dirAbs - (ship.collisionRadius + obstacle.collisionRadius + Preset.collisionBuffer)
 
         // Already colliding.
-        if (distance <= 0f) {
-            debugVertex(ship.location, ship.location + direction.resized(100f), Color.RED)
-            return Limit(direction.getFacing(), fullStop)
-        }
+        if (distance <= 0f) return Limit(dirFacing, fullStop)
 
         val vObstacle = vectorProjection(obstacle.velocity, direction)
         val aObstacle = vectorProjection(accelerationTracker[obstacle], direction)
 
-        val vAbs = (vObstacle + direction).length() - dAbs
-        val aAbs = (aObstacle + direction).length() - dAbs
-//        val aAbs = 0f
+        var vAbs = (vObstacle + direction).length() - dirAbs
+        val aAbs = (aObstacle + direction).length() - dirAbs
 
-        val vMax = engineController.vMax(distance, (ship.deceleration + aAbs) * dt * dt) + vAbs * dt
+        // Take obstacle acceleration into account when the obstacle is doing a brake check.
+        // The acceleration is approximated as total velocity loss. Including actual
+        // acceleration (shipAcc + aAbs) in calculations leads to erratic behavior.
+        if (vAbs > 0f && aAbs < 0f) vAbs = 0f
 
-//        debugVertex(ship.location, ship.location + direction.resized(vMax.coerceAtLeast(0f) / dt), Color.YELLOW)
-        return Limit(direction.getFacing(), vMax.coerceAtLeast(fullStop))
+        val angleFromBow = abs(MathUtils.getShortestRotation(ship.facing, dirFacing))
+        val shipAcc = when {
+            angleFromBow < 30f -> ship.deceleration
+            angleFromBow < 150f -> ship.strafeAcceleration
+            else -> ship.acceleration
+        }
+
+        val vMax = engineController.vMax(distance, shipAcc * dt * dt) + vAbs * dt
+        return Limit(dirFacing, vMax.coerceAtLeast(fullStop))
     }
 }
 

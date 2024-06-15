@@ -4,9 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
-import com.genir.aitweaks.debug.debugVertex
 import com.genir.aitweaks.utils.Rotation
-import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.rotated
 import com.genir.aitweaks.utils.extensions.rotatedReverse
 import com.genir.aitweaks.utils.quad
@@ -14,7 +12,6 @@ import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.*
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -24,7 +21,8 @@ class EngineController(val ship: ShipAPI) {
     /** Set ship heading towards 'target' location. Appropriate target
      * leading is calculated based on 'targetVelocity'. If ship is already
      * at 'target' location, it will match the target velocity. Returns the
-     * expected heading angle. */
+     * expected heading angle. clampV is used to modify the calculated
+     * velocity, e.g. for collision avoidance purposes.*/
     fun heading(target: Vector2f, targetVelocity: Vector2f, clampV: ((Vector2f) -> Vector2f)? = null): Float {
         // Change unit of time from second to
         // animation frame duration (* dt).
@@ -71,7 +69,11 @@ class EngineController(val ship: ShipAPI) {
         val vec = clampV?.let { it(ve.rotatedReverse(r)).rotated(r) } ?: ve
         val dv = vec - v
 
-        debugVertex(ship.location, ship.location + vec.rotatedReverse(r) / dt, Color.BLUE)
+        // Stop if expected velocity is smaller than half of minimum delta v.
+        if (vec.length() < af / 2f && !ship.velocity.isZeroVector()) {
+            ship.move(DECELERATE)
+            return noMovementExpected
+        }
 
         // Proportional thrust required to achieve
         // the expected velocity change.
@@ -81,6 +83,7 @@ class EngineController(val ship: ShipAPI) {
         val fr = +dv.x / al
         val fMax = max(max(ff, fb), max(fl, fr))
 
+        // Give commands to achieve the calculated thrust.
         if (shouldAccelerate(+d.y, ff, fMax)) ship.move(ACCELERATE)
         if (shouldAccelerate(-d.y, fb, fMax)) ship.move(ACCELERATE_BACKWARDS)
         if (shouldAccelerate(-d.x, fl, fMax)) ship.move(STRAFE_LEFT)
@@ -135,14 +138,4 @@ class EngineController(val ship: ShipAPI) {
     }
 
     private fun ShipAPI.move(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
-
-    private val ShipAPI.strafeAcceleration: Float
-        get() = this.acceleration * when (this.hullSize) {
-            ShipAPI.HullSize.FIGHTER -> 0.75f
-            ShipAPI.HullSize.FRIGATE -> 1.0f
-            ShipAPI.HullSize.DESTROYER -> 0.75f
-            ShipAPI.HullSize.CRUISER -> 0.5f
-            ShipAPI.HullSize.CAPITAL_SHIP -> 0.25f
-            else -> 1.0f
-        }
 }

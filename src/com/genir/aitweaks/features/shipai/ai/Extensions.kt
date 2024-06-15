@@ -77,3 +77,13 @@ fun ShipAPI.shortestRotationToTarget(target: Vector2f): Float {
     val facingToTarget = (target - location).getFacing()
     return MathUtils.getShortestRotation(facing, facingToTarget)
 }
+
+val ShipAPI.strafeAcceleration: Float
+    get() = this.acceleration * when (this.hullSize) {
+        ShipAPI.HullSize.FIGHTER -> 0.75f
+        ShipAPI.HullSize.FRIGATE -> 1.0f
+        ShipAPI.HullSize.DESTROYER -> 0.75f
+        ShipAPI.HullSize.CRUISER -> 0.5f
+        ShipAPI.HullSize.CAPITAL_SHIP -> 0.25f
+        else -> 1.0f
+    }

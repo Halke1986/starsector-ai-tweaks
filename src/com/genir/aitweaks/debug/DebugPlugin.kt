@@ -65,8 +65,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        log("frame")
-
         Global.getCombatEngine().asteroids.forEach {
             Global.getCombatEngine().removeEntity(it)
         }
@@ -74,7 +72,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         Global.getCombatEngine().ships.forEach { ship ->
 //            debugVertex(ship.location, ship.location + accelerationTracker[ship], Color.YELLOW)
         }
-
 
         val ships = Global.getCombatEngine().ships.filter { it.hasAIType(CustomAIManager.getCustomAIClass()) }
 
