@@ -44,7 +44,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         val engine = Global.getCombatEngine()
         if (!engine.customData.containsKey(ID)) {
             engine.addLayeredRenderingPlugin(RenderLines())
-            engine.addLayeredRenderingPlugin(RendererCollisionRadius())
+//            engine.addLayeredRenderingPlugin(RendererCollisionRadius())
             engine.customData[ID] = true
         }
 
@@ -65,9 +65,9 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        Global.getCombatEngine().asteroids.forEach {
-            Global.getCombatEngine().removeEntity(it)
-        }
+//        Global.getCombatEngine().asteroids.forEach {
+//            Global.getCombatEngine().removeEntity(it)
+//        }
 
         Global.getCombatEngine().ships.forEach { ship ->
 //            debugVertex(ship.location, ship.location + accelerationTracker[ship], Color.YELLOW)

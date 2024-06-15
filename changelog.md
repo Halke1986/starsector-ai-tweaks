@@ -1,3 +1,5 @@
+- Custom ship AI can avoid ship collisions.
+
 Version 1.7.2
 
 - Fixed compatibility with Starsector 0.96. All features should work correctly. mod_info.json gameVersion needs to be downgraded manually. 
