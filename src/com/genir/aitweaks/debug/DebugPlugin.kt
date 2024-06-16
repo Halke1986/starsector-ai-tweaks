@@ -1,22 +1,20 @@
 package com.genir.aitweaks.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.api.util.Misc
 import com.genir.aitweaks.features.shipai.CustomAIManager
 import com.genir.aitweaks.features.shipai.ai.EngineController
 import com.genir.aitweaks.utils.Rotation
-import com.genir.aitweaks.utils.aitStash
 import com.genir.aitweaks.utils.div
 import com.genir.aitweaks.utils.extensions.hasAIType
 import com.genir.aitweaks.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
-import org.lazywizard.lazylib.opengl.DrawUtils
 import org.lazywizard.lazylib.ui.LazyFont
-import org.lwjgl.opengl.GL11
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
@@ -46,8 +44,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         // Initialize debug renderer.
         val engine = Global.getCombatEngine()
         if (!engine.customData.containsKey(ID)) {
-            engine.addLayeredRenderingPlugin(RenderLines())
-//            engine.addLayeredRenderingPlugin(RendererCollisionRadius())
+            engine.addLayeredRenderingPlugin(Renderer())
             engine.customData[ID] = true
         }
 
@@ -80,35 +77,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
         ships.forEach {
 //            drawEngineLines(it)
-
-            val m = it.aitStash.maneuverAI
-            if (m != null && it != Global.getCombatEngine().playerShip) {
-//                debugPlugin["man"] = it.aitStash.maneuverAI?.let { m -> m::class.java }
-//                debugVertex(it.location, it.location + m.desiredVelocity, Color.YELLOW)
-            }
-
-//            it.allWeapons.filter { weapon -> !weapon.isPD }.mapNotNull { weapon -> weapon.autofireAI }.forEachIndexed { idx, aai ->
-//                debugPlugin[idx] = aai.shouldHoldFire
-//            }
         }
-
-//        val lookup = MethodHandles.lookup()
-//        val methodType = MethodType.methodType(oO0O::class.java)
-//        val handle = lookup.findVirtual(ship.ai::class.java, "getCurrentManeuver", methodType)
-//        debugPlugin["class"] = handle.invoke(ship.ai)?.javaClass?.canonicalName
-//
-//
-//        ship.allWeapons.firstOrNull { it.id == "multineedler" }?.let {
-//            debugPlugin["needler"] = it.ammo
-//        }
-//
-//        drawEngineLines(ship)
-//
-//        val m = ship.AITStash.maneuverAI ?: return
-//        debugPlugin["isBackingOff"] = if (m.isBackingOff) "is backing off" else null
-//        debugPlugin["isHoldingFire"] = if (m.isHoldingFire) "hold fire" else null
-//        debugPlugin["isAvoidingBorder"] = if (m.isAvoidingBorder) "avoid border" else null
-//        debugPlugin["1v1"] = if (m.is1v1) "1v1" else null
     }
 
     private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()
@@ -179,38 +148,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         c.facing(target.location, target.velocity)
 
         drawEngineLines(ship)
-    }
-
-    inner class RendererCollisionRadius : BaseCombatLayeredRenderingPlugin() {
-        override fun render(layer: CombatEngineLayers?, viewport: ViewportAPI?) {
-            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
-
-            GL11.glDisable(GL11.GL_TEXTURE_2D)
-            GL11.glEnable(GL11.GL_BLEND)
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-
-            Misc.setColor(Color.CYAN, 100)
-            GL11.glLineWidth(2f / Global.getCombatEngine().viewport.viewMult)
-
-            Global.getCombatEngine().ships.forEach { ship ->
-
-                DrawUtils.drawArc(
-                    ship.location.x,
-                    ship.location.y,
-                    ship.collisionRadius,
-                    0f,
-                    360f,
-                    64,
-                    false,
-                )
-            }
-
-            GL11.glPopAttrib()
-        }
-
-        override fun getRenderRadius(): Float = 1e6f
-
-        override fun getActiveLayers(): EnumSet<CombatEngineLayers> = EnumSet.of(CombatEngineLayers.JUST_BELOW_WIDGETS)
     }
 }
 

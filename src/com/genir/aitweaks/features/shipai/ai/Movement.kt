@@ -176,6 +176,8 @@ class Movement(private val ai: Maneuver) {
         return aimPoint
     }
 
+    // TODO Avoid modular ships
+
     private fun avoidCollisions(dt: Float, expectedVelocity: Vector2f): Vector2f {
         val obstacles = Global.getCombatEngine().ships.filter {
             when {

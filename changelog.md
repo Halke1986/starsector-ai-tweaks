@@ -1,4 +1,5 @@
 - Custom ship AI can avoid ship collisions.
+- Removed option to draw weapon debug lines.
 
 Version 1.7.2
 
