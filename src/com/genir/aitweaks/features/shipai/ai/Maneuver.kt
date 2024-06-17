@@ -231,13 +231,12 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
         return (target.location - ship.location).length()
     }
 
-    // TODO ensure stations are counted
     private fun updateThreats() {
         val rangeEnvelope = 500f
         val r = 2f * max(Preset.threatEvalRadius, ship.maxRange + rangeEnvelope)
         val allShips = shipGrid().getCheckIterator(ship.location, r, r).asSequence().filterIsInstance<ShipAPI>()
 
-        threats = allShips.filter { it.owner != ship.owner && it.isValidTarget && it.isShip }.toList()
+        threats = allShips.filter { it.owner != ship.owner && it.isAlive && !it.isExpired && it.isShip }.toList()
 
         threatVector = threats.fold(Vector2f()) { sum, it ->
             val dp = it.deploymentPoints

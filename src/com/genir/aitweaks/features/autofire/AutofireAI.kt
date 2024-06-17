@@ -52,7 +52,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val targetDiedLastFrame = when (target) {
             null -> prevFrameTarget != null
             is ShipAPI -> !(target as ShipAPI).isAlive
-            else -> !Global.getCombatEngine().isEntityInPlay(target)
+            else -> target?.isExpired != false
         }
         prevFrameTarget = target
 

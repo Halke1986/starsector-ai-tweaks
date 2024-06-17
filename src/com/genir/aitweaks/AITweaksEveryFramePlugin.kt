@@ -1,6 +1,7 @@
 package com.genir.aitweaks
 
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
+import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 
 class AITweaksEveryFramePlugin : BaseEveryFrameCombatPlugin() {
@@ -18,5 +19,9 @@ class AITweaksEveryFramePlugin : BaseEveryFrameCombatPlugin() {
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         plugins.forEach { it.advance(dt, events) }
+    }
+
+    override fun renderInUICoords(viewport: ViewportAPI?) {
+        plugins.forEach { it.renderInUICoords(viewport) }
     }
 }

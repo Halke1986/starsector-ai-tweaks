@@ -65,19 +65,31 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-//        Global.getCombatEngine().asteroids.forEach {
-//            Global.getCombatEngine().removeEntity(it)
+        val custom = Global.getCombatEngine().ships.filter { it.hasAIType(CustomAIManager.getCustomAIClass()) }
+
+//        custom.forEach {
+//            val ai = it.aitStash.maneuverAI ?: return@forEach
+//
+//            debugPlugin[it] = "${it.name} ${ai.isBackingOff}"
+//
+//            drawLine(it.location, ai.threatVector + it.location, Color.RED)
 //        }
 
-        Global.getCombatEngine().ships.forEach { ship ->
-//            debugVertex(ship.location, ship.location + accelerationTracker[ship], Color.YELLOW)
-        }
 
-        val ships = Global.getCombatEngine().ships.filter { it.hasAIType(CustomAIManager.getCustomAIClass()) }
+//        Global.getCombatEngine().ships.forEach { ship ->
+//
+//            if (!ship.isModule && ship.childModulesCopy.isEmpty()) return@forEach
+//
+//            if (ship.isModule) {
+//                debugPlugin[ship] = "$ship ${ship.rootModule}"
+//            }
+//
+//            drawCollisionRadius(ship)
+//        }
+    }
 
-        ships.forEach {
-//            drawEngineLines(it)
-        }
+    private fun modularCollisionRadius(ship: ShipAPI): Float {
+        return 0f
     }
 
     private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()
@@ -111,6 +123,13 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
 
         drones.forEach { it.shipAI = null }
+    }
+
+    private fun removeAsteroids() {
+        val engine = Global.getCombatEngine()
+        engine.asteroids.forEach {
+            engine.removeEntity(it)
+        }
     }
 
     private fun speedupAsteroids() {

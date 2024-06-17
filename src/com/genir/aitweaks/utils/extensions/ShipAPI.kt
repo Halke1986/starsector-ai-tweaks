@@ -11,6 +11,7 @@ import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
+// Returns false for detached modules.
 val ShipAPI.isModule: Boolean
     get() = stationSlot != null
 

@@ -31,6 +31,10 @@ fun drawEngineLines(ship: ShipAPI) {
     }
 }
 
+fun drawCollisionRadius(ship: ShipAPI) {
+    drawCircle(ship.location, ship.collisionRadius)
+}
+
 fun drawWeaponLines(ship: ShipAPI) {
     val ais = ship.weaponGroupsCopy.flatMap { it.aiPlugins }.filter { it is AutofireAI && it.target != null }
     ais.forEach { drawLine(it.weapon.location, it.target!!, if (it.weapon.isPD) Color.YELLOW else Color.RED) }
