@@ -3,10 +3,7 @@ package com.genir.aitweaks.features.shipai.ai
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.utils.*
-import com.genir.aitweaks.utils.extensions.autofireAI
-import com.genir.aitweaks.utils.extensions.resized
-import com.genir.aitweaks.utils.extensions.rotated
-import com.genir.aitweaks.utils.extensions.rotatedAroundPivot
+import com.genir.aitweaks.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
@@ -25,6 +22,7 @@ class Movement(private val ai: Maneuver) {
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
     private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
+    private var totalCollisionRadius = ship.totalCollisionRadius
 
     fun advance(dt: Float) {
         setFacing()
@@ -184,11 +182,16 @@ class Movement(private val ai: Maneuver) {
                 it == ship -> false
                 it.owner != ship.owner -> false
                 it.isFighter -> false
+
+                // Modules and drones count towards
+                // their parent collision radius.
+                it.isModule -> false
+                it.isDrone -> false
                 else -> true
             }
         }
 
-        // Course is clear, speed ahead.
+        // Course is clear, move ahead.
         if (obstacles.isEmpty()) return expectedVelocity
 
         // Gather all speed limits.
@@ -199,7 +202,7 @@ class Movement(private val ai: Maneuver) {
             else null
         }
 
-        // No relevant speed limits found, speed ahead.
+        // No relevant speed limits found, move ahead.
         if (limits.isEmpty()) return expectedVelocity
 
         // Find the most severe speed limit.
@@ -259,7 +262,7 @@ class Movement(private val ai: Maneuver) {
         val direction = obstacle.location - ship.location
         val dirAbs = direction.length()
         val dirFacing = direction.getFacing()
-        val distance = dirAbs - (ship.collisionRadius + obstacle.collisionRadius + Preset.collisionBuffer)
+        val distance = dirAbs - (totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer)
 
         // Already colliding.
         if (distance <= 0f) return Limit(dirFacing, fullStop)

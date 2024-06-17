@@ -1,5 +1,6 @@
 package com.genir.aitweaks.features.shipai.ai
 
+import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.utils.extensions.frontFacing
@@ -8,6 +9,7 @@ import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.max
 
 /** Weapon range from the center of the ship. */
 val WeaponAPI.trueRange: Float
@@ -40,8 +42,7 @@ fun ShipAPI.effectiveRange(dpsFraction: Float): Float {
     val weapons = primaryWeapons
     val dps = weapons.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
 
-    if (dps == 0f)
-        return 0f
+    if (dps == 0f) return 0f
 
     var dpsInRange = dps
     weapons.sortedWith(compareBy { it.trueRange }).forEach { weapon ->
@@ -62,8 +63,7 @@ fun ShipAPI.dpsFractionAtRange(range: Float): Float {
     primaryWeapons.forEach {
         val dps = it.derivedStats.dps
         all += dps
-        if (it.trueRange >= range)
-            inRange += dps
+        if (it.trueRange >= range) inRange += dps
     }
 
     return if (all != 0f) inRange / all else 0f
@@ -86,4 +86,16 @@ val ShipAPI.strafeAcceleration: Float
         ShipAPI.HullSize.CRUISER -> 0.5f
         ShipAPI.HullSize.CAPITAL_SHIP -> 0.25f
         else -> 1.0f
+    }
+
+/** Collision radius encompassing an entire modular ship, including drones. */
+val ShipAPI.totalCollisionRadius: Float
+    get() {
+        val modules = childModulesCopy
+        val drones = deployedDrones?.filter { it.collisionClass == CollisionClass.SHIP }
+
+        val withModules = modules.maxOfOrNull { (location - it.location).length() + it.collisionRadius } ?: 0f
+        val withDrones = drones?.maxOfOrNull { (location - it.location).length() + it.collisionRadius } ?: 0f
+
+        return max(collisionRadius, max(withDrones, withModules))
     }

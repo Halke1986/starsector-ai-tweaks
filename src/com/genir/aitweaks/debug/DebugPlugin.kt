@@ -66,30 +66,6 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
     private fun debug(dt: Float) {
         val custom = Global.getCombatEngine().ships.filter { it.hasAIType(CustomAIManager.getCustomAIClass()) }
-
-//        custom.forEach {
-//            val ai = it.aitStash.maneuverAI ?: return@forEach
-//
-//            debugPlugin[it] = "${it.name} ${ai.isBackingOff}"
-//
-//            drawLine(it.location, ai.threatVector + it.location, Color.RED)
-//        }
-
-
-//        Global.getCombatEngine().ships.forEach { ship ->
-//
-//            if (!ship.isModule && ship.childModulesCopy.isEmpty()) return@forEach
-//
-//            if (ship.isModule) {
-//                debugPlugin[ship] = "$ship ${ship.rootModule}"
-//            }
-//
-//            drawCollisionRadius(ship)
-//        }
-    }
-
-    private fun modularCollisionRadius(ship: ShipAPI): Float {
-        return 0f
     }
 
     private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()
