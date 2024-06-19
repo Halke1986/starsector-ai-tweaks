@@ -65,7 +65,16 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     }
 
     private fun debug(dt: Float) {
-        val custom = Global.getCombatEngine().ships.filter { it.hasAIType(CustomAIManager.getCustomAIClass()) }
+        val ships = Global.getCombatEngine().ships
+        val custom = ships.filter { it.hasAIType(CustomAIManager.getCustomAIClass()) }
+
+//        custom.forEach {
+//            debugPlugin[it] = "$it"
+//        }
+//
+//        ships.firstOrNull { it.isStation }?.let {
+//            drawCircle(it.location, it.totalCollisionRadius, BLUE)
+//        }
     }
 
     private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()

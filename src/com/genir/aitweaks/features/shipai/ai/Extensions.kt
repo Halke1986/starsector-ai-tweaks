@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.utils.extensions.frontFacing
+import com.genir.aitweaks.utils.extensions.isModule
 import com.genir.aitweaks.utils.extensions.isPD
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
@@ -91,7 +92,7 @@ val ShipAPI.strafeAcceleration: Float
 /** Collision radius encompassing an entire modular ship, including drones. */
 val ShipAPI.totalCollisionRadius: Float
     get() {
-        val modules = childModulesCopy
+        val modules = childModulesCopy.filter { it.isModule } // Make sure the module is still attached.
         val drones = deployedDrones?.filter { it.collisionClass == CollisionClass.SHIP }
 
         val withModules = modules.maxOfOrNull { (location - it.location).length() + it.collisionRadius } ?: 0f

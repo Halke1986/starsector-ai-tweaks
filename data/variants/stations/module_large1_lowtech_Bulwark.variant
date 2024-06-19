@@ -1,0 +1,53 @@
+{
+    "displayName": "Bulwark",
+    "fluxCapacitors": 0,
+    "fluxVents": 10,
+    "goalVariant": true,
+    "hullId": "module_large1_lowtech",
+    "hullMods": [
+		"missleracks",
+		"eccm"
+	],
+    "permaMods": [],
+    "quality": 0.5,
+    "variantId": "module_large1_lowtech_Bulwark",
+    "weaponGroups": [
+        {
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {
+                "WS 000": "heavymg",
+                "WS 003": "heavymg",
+
+                "WS 005": "harpoonpod",
+                "WS 008": "harpoonpod",
+
+                "WS 001": "hephag",
+                "WS 002": "hephag",
+
+                "WS 004": "harpoonpod",
+                "WS 006": "harpoonpod",
+                "WS 007": "harpoonpod",
+                "WS 009": "harpoonpod",
+				
+                "WS 010": "harpoon",
+                "WS 011": "harpoon",
+                "WS 012": "harpoon",
+                "WS 013": "harpoon",
+				
+                "WS 015": "railgun",
+                "WS 020": "railgun",
+                "WS 023": "railgun",
+            }
+        },
+		{
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {
+                "WS 018": "vulcan",
+                "WS 021": "vulcan",
+                "WS 026": "vulcan"
+            }
+        }
+    ]
+}

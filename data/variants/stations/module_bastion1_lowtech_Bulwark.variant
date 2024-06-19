@@ -1,0 +1,35 @@
+{
+    "displayName": "Bulwark",
+    "fluxCapacitors": 0,
+    "fluxVents": 10,
+    "goalVariant": true,
+    "hullId": "module_bastion1_lowtech",
+    "hullMods": [
+		"missleracks",
+		"eccm"
+	],
+    "permaMods": [],
+    "quality": 0.5,
+    "variantId": "module_bastion1_lowtech_Bulwark",
+    "weaponGroups": [
+        {
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {
+                "WS 000": "vulcan",
+                "WS 003": "vulcan"
+            }
+        },
+		{
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {
+				"WS 008": "harpoon",
+                "WS 001": "heavymg",
+                "WS 002": "heavymg",
+                "WS 004": "railgun",
+                "WS 005": "railgun"
+            }
+        }
+    ]
+}

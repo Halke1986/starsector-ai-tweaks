@@ -45,6 +45,9 @@ class CustomAIManager {
                 getCustomAIClass() == null -> false
 
                 ship.owner == 1 && isCryosleeper -> true
+
+                ship.isAlly -> false
+                ship.isStation -> false
                 ship.owner == 0 && (ship.isDestroyer || ship.isCruiser || ship.isCapital) -> true
 
                 else -> false

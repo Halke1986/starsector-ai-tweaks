@@ -1,0 +1,45 @@
+{
+    "displayName": "Bulwark",
+    "fluxCapacitors": 0,
+    "fluxVents": 10,
+    "hullId": "module_large2_lowtech",
+    "hullMods": [
+		"missleracks",
+		"eccm"
+	],
+    "permaMods": [],
+    "quality": 0.5,
+    "variantId": "module_large2_lowtech_Bulwark",
+    "weaponGroups": [
+        {
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {
+                "WS 002": "heavymg",
+            }
+        },
+		{
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {
+                "WS 008": "harpoonpod",
+                "WS 009": "harpoonpod",
+
+                "WS 001": "harpoon",
+                "WS 003": "harpoon",
+
+                "WS 000": "heavymg",
+                "WS 004": "heavymg",
+
+                "WS 005": "railgun",
+                "WS 007": "railgun",
+                "WS 010": "railgun",
+                "WS 012": "railgun"
+            }
+        }
+    ],
+    "wings": [
+        "sarissa_wing",
+        "sarissa_wing"
+    ]
+}

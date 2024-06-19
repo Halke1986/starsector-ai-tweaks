@@ -1,0 +1,43 @@
+{
+    "displayName": "Bulwark",
+    "fluxCapacitors": 0,
+    "fluxVents": 10,
+    "hullId": "module_citadel1_lowtech",
+    "hullMods": [
+		"missleracks",
+		"eccm"
+	],
+    "permaMods": [],
+    "quality": 0.5,
+    "variantId": "module_citadel1_lowtech_Bulwark",
+    "weaponGroups": [
+        {
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {
+                "WS 001": "heavymg",
+                "WS 014": "heavymg",
+            }
+        },
+		{
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {
+                "WS 015": "hephag",
+                "WS 016": "hephag",
+				
+                "WS 004": "heavymg",
+                "WS 010": "heavymg",
+                "WS 000": "heavymg",
+                "WS 006": "railgun",
+                "WS 009": "railgun",
+                "WS 013": "heavymg",
+				
+                "WS 002": "railgun",
+                "WS 007": "railgun",
+                "WS 008": "railgun",
+                "WS 012": "railgun",
+            }
+        }
+    ]
+}
