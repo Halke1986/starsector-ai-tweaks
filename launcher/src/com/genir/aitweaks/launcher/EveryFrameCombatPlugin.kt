@@ -1,10 +1,10 @@
-package com.genir.aitweaks
+package com.genir.aitweaks.launcher
 
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 
-class AITweaksEveryFramePlugin : BaseEveryFrameCombatPlugin() {
+class EveryFrameCombatPlugin : BaseEveryFrameCombatPlugin() {
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
         com.genir.aitweaks.debug.DebugPlugin(),
         com.genir.aitweaks.utils.AccelerationTracker(),

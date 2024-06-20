@@ -1,4 +1,4 @@
-package com.genir.aitweaks
+package com.genir.aitweaks.launcher
 
 import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global

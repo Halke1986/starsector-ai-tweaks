@@ -1,6 +1,6 @@
 ### IntelliJ IDEA ###
 out/
-jars/aitweaks.jar
+jars/aitweaks*
 
 .idea/workspace.xml
 .idea/uiDesigner.xml

@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="aitweaks-launcher:jar">
+    <output-path>$PROJECT_DIR$/jars</output-path>
+    <root id="archive" name="aitweaks-launcher.jar">
+      <element id="module-output" name="launcher" />
+    </root>
+  </artifact>
+</component>

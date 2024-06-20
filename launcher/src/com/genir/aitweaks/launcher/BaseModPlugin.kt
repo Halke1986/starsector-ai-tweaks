@@ -1,4 +1,4 @@
-package com.genir.aitweaks
+package com.genir.aitweaks.launcher
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.PluginPick
@@ -13,11 +13,10 @@ import com.genir.aitweaks.features.CryosleeperEncounter
 import com.genir.aitweaks.features.autofire.AutofireAI
 import com.genir.aitweaks.features.shipai.CustomAIManager
 
-val autofireBlacklist = setOf(
-    "fragbomb", // Stinger-class Proximity Mine is classified as a ballistic weapon, but works more like a missile.
-)
+class BaseModPlugin : MakeAITweaksRemovable() {
+    // Stinger-class Proximity Mine is classified as a ballistic weapon, but works more like a missile.
+    private val autofireBlacklist = setOf("fragbomb")
 
-class AITweaksBaseModPlugin : MakeAITweaksRemovable() {
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
         val ai = if (weapon.type != MISSILE && !autofireBlacklist.contains(weapon.id)) AutofireAI(weapon)
         else null

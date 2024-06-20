@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/AITweaks.iml" filepath="$PROJECT_DIR$/AITweaks.iml" />
+      <module fileurl="file://$PROJECT_DIR$/launcher/launcher.iml" filepath="$PROJECT_DIR$/launcher/launcher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/starsector-ai-tweaks.iml" filepath="$PROJECT_DIR$/starsector-ai-tweaks.iml" />
     </modules>
   </component>
 </project>

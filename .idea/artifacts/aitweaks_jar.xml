@@ -2,7 +2,7 @@
   <artifact type="jar" name="aitweaks:jar">
     <output-path>$PROJECT_DIR$/jars</output-path>
     <root id="archive" name="aitweaks.jar">
-      <element id="module-output" name="AITweaks" />
+      <element id="module-output" name="starsector-ai-tweaks" />
     </root>
   </artifact>
 </component>
