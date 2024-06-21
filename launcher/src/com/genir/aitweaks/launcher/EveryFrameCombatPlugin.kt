@@ -5,17 +5,25 @@ import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 
 class EveryFrameCombatPlugin : BaseEveryFrameCombatPlugin() {
-    private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
-        com.genir.aitweaks.debug.DebugPlugin(),
-        com.genir.aitweaks.utils.AccelerationTracker(),
-        com.genir.aitweaks.utils.TargetTracker(),
-        com.genir.aitweaks.features.AutoOmniShields(),
-        com.genir.aitweaks.features.AutomatedShipAIManager(),
-        com.genir.aitweaks.features.FleetCohesion(),
-        com.genir.aitweaks.features.lidar.AIManager(),
-        com.genir.aitweaks.features.shipai.Guardian(),
-//        com.genir.aitweaks.features.shipai.ai.AttackCoord(),
-    )
+    private val plugins: List<BaseEveryFrameCombatPlugin>
+
+    init {
+        val loadPlugin = fun(path: String): BaseEveryFrameCombatPlugin {
+            return reloader.loadClass(path).newInstance() as BaseEveryFrameCombatPlugin
+        }
+
+        plugins = listOf(
+            loadPlugin("com.genir.aitweaks.debug.DebugPlugin"),
+            loadPlugin("com.genir.aitweaks.utils.AccelerationTracker"),
+            loadPlugin("com.genir.aitweaks.utils.TargetTracker"),
+            loadPlugin("com.genir.aitweaks.features.AutoOmniShields"),
+            loadPlugin("com.genir.aitweaks.features.AutomatedShipAIManager"),
+            loadPlugin("com.genir.aitweaks.features.FleetCohesion"),
+            loadPlugin("com.genir.aitweaks.features.lidar.AIManager"),
+            loadPlugin("com.genir.aitweaks.features.shipai.Guardian"),
+//        loadPlugin("com.genir.aitweaks.features.shipai.ai.AttackCoord"),
+        )
+    }
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         plugins.forEach { it.advance(dt, events) }

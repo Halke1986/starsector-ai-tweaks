@@ -14,9 +14,7 @@ class HighEnergyFocusAI : ShipSystemAIScript {
     private var ship: ShipAPI? = null
     private var engine: CombatEngineAPI? = null
 
-    override fun init(
-        ship: ShipAPI?, p1: ShipSystemAPI?, p2: ShipwideAIFlags?, engine: CombatEngineAPI?
-    ) {
+    override fun init(ship: ShipAPI?, p1: ShipSystemAPI?, p2: ShipwideAIFlags?, engine: CombatEngineAPI?) {
         this.ship = ship
         this.engine = engine
     }
@@ -38,25 +36,31 @@ fun shouldTriggerHEF(ship: ShipAPI): Boolean {
     return ew.any { weaponShouldTriggerHEF(it, size) }
 }
 
-fun shipWeapons(ship: ShipAPI): List<TargetedWeapon> = ship.weaponGroupsCopy.map { unfoldWeaponGroup(it) }.flatten()
+fun shipWeapons(ship: ShipAPI): List<TargetedWeapon> {
+    return ship.weaponGroupsCopy.map { unfoldWeaponGroup(it) }.flatten()
+}
 
-fun unfoldWeaponGroup(wg: WeaponGroupAPI): List<TargetedWeapon> =
-    wg.aiPlugins.map { TargetedWeapon(it.weapon, getTarget(wg, it)) }
+fun unfoldWeaponGroup(wg: WeaponGroupAPI): List<TargetedWeapon> {
+    return wg.aiPlugins.map { TargetedWeapon(it.weapon, getTarget(wg, it)) }
+}
 
-fun getTarget(wg: WeaponGroupAPI, aiPlugin: AutofireAIPlugin): ShipAPI? =
-    if (wg.isAutofiring) aiPlugin.targetShip else wg.ship.shipTarget
+fun getTarget(wg: WeaponGroupAPI, aiPlugin: AutofireAIPlugin): ShipAPI? {
+    return if (wg.isAutofiring) aiPlugin.targetShip else wg.ship.shipTarget
+}
 
-fun energyWeapons(weapons: List<TargetedWeapon>): List<TargetedWeapon> =
-    weapons.filter { it.weapon.type == WeaponAPI.WeaponType.ENERGY }
+fun energyWeapons(weapons: List<TargetedWeapon>): List<TargetedWeapon> {
+    return weapons.filter { it.weapon.type == WeaponAPI.WeaponType.ENERGY }
+}
 
-fun largestWeaponSize(weapons: List<TargetedWeapon>): WeaponAPI.WeaponSize =
-    weapons.fold(WeaponAPI.WeaponSize.SMALL) { size, w ->
+fun largestWeaponSize(weapons: List<TargetedWeapon>): WeaponAPI.WeaponSize {
+    return weapons.fold(WeaponAPI.WeaponSize.SMALL) { size, w ->
         when (w.weapon.size) {
             WeaponAPI.WeaponSize.LARGE -> return WeaponAPI.WeaponSize.LARGE
             WeaponAPI.WeaponSize.MEDIUM -> WeaponAPI.WeaponSize.MEDIUM
             else -> size
         }
     }
+}
 
 fun weaponShouldTriggerHEF(w: TargetedWeapon, size: WeaponAPI.WeaponSize) = when {
     w.weapon.size != size -> false

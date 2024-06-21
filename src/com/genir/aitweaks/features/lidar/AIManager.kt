@@ -24,7 +24,7 @@ class AIManager : BaseEveryFrameCombatPlugin() {
             val target = config?.target
 
             when {
-                ship.hasAIType(BasicShipAI::class.java) || ship.hasAIType(CustomAIManager.getCustomAIClass()) -> {
+                ship.hasAIType(BasicShipAI::class.java) || ship.hasAIType(CustomAIManager().getCustomAIClass()) -> {
                     if (ship.system.isOn && target?.isValidTarget == true) {
                         // Deploy lidar ship AI
                         ship.setCustomData(lidarAIStashID, ship.shipAI)

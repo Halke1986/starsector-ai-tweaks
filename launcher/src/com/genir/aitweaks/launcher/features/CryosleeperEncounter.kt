@@ -1,4 +1,4 @@
-package com.genir.aitweaks.features
+package com.genir.aitweaks.launcher.features
 
 import com.fs.starfarer.api.campaign.CampaignFleetAPI
 import com.fs.starfarer.api.campaign.SectorEntityToken

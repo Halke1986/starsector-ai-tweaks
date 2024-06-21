@@ -1,5 +1,5 @@
 name,id,tier,rarity,tech/manufacturer,tags,uiTags,base value,unlocked,hidden,hiddenEverywhere,cost_frigate,cost_dest,cost_cruiser,cost_capital,script,,,,desc,,,,short,sModDesc,sprite
-Finisher Beam Protocol,fnisherbeamprotocol,0,,,weapons,Weapons,,TRUE,FALSE,,0,0,0,0,com.genir.aitweaks.features.FinisherBeamProtocol,,,,"A set of software modifications and officer training routines designed to modify the firing behavior of certain beam weapons.
+Finisher Beam Protocol,fnisherbeamprotocol,0,,,weapons,Weapons,,TRUE,FALSE,,0,0,0,0,com.genir.aitweaks.launcher.features.FinisherBeamProtocol,,,,"A set of software modifications and officer training routines designed to modify the firing behavior of certain beam weapons.
 
 Under the Protocol, the modified weapons are inhibited from firing at shields. This allows to reliably hit exposed hull surfaces the moment the shields drop and to conserve flux capacity.
 

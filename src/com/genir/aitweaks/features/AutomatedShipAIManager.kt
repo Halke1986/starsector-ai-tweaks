@@ -33,7 +33,7 @@ class AutomatedShipAIManager : BaseEveryFrameCombatPlugin() {
         // with high priority.
         automatedShips.forEach { ship ->
             if (ship.hasAIType(BasicShipAI::class.java))
-                CustomAIManager.getAI(ship)?.let { ship.shipAI = it }
+                CustomAIManager().getAI(ship)?.let { ship.shipAI = it }
         }
 
         // Replace only vanilla AI with incorrect personality
@@ -50,7 +50,7 @@ class AutomatedShipAIManager : BaseEveryFrameCombatPlugin() {
 
                 // AssemblyShipAI needs captain personality change,
                 // because it ignores configured personality override.
-                ship.hasAIType(CustomAIManager.getCustomAIClass()) -> {
+                ship.hasAIType(CustomAIManager().getCustomAIClass()) -> {
                     ship.captain.setPersonality(expectedPersonality)
                 }
             }

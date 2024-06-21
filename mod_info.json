@@ -8,7 +8,6 @@
   "gameVersion": "0.97a-RC6",
   "jars": [
     "jars/aitweaks-launcher.jar",
-    "jars/aitweaks.jar",
     "jars/asm-4.0.jar"
   ],
   "modPlugin": "com.genir.aitweaks.launcher.BaseModPlugin",

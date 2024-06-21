@@ -14,7 +14,7 @@ import java.awt.Color
 
 class AttackCoord : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        val customAI = CustomAIManager.getCustomAIClass() ?: return
+        val customAI = CustomAIManager().getCustomAIClass() ?: return
         val ships = Global.getCombatEngine().ships.asSequence()
         val ais = ships.filter { it.hasAIType(customAI) }.mapNotNull { it.aitStash.maneuverAI }
 

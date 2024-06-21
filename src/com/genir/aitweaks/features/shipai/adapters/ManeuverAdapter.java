@@ -28,12 +28,21 @@ public class ManeuverAdapter implements ManeuverInterface {
 
     ManeuverAdapter(Ship ship, Ship target, Vector2f location) {
         try {
-            // Load Maneuver class.
+            // Load AI Tweaks class loader. This is required when ManeuverAdapter was loaded
+            // from aitweaks-shipai.jar by system class loader, because the system class loader
+            // is not aware of AI Tweaks classes.
             ClassLoader scriptLoader = Global.getSettings().getScriptClassLoader();
-            Class<?> m = scriptLoader.loadClass("com.genir.aitweaks.features.shipai.ai.Maneuver");
+            Class<?> aitLoaderClass = scriptLoader.loadClass("com.genir.aitweaks.launcher.AitLoaderGetter");
+            MethodType getAitLoaderType = MethodType.methodType(ClassLoader.class);
+            MethodHandle getAitLoader = MethodHandles.lookup().findVirtual(aitLoaderClass, "getAitLoader", getAitLoaderType);
+            ClassLoader aitLoader = (ClassLoader) getAitLoader.invoke(aitLoaderClass.newInstance());
+
+            // Load Maneuver class.
+            Class<?> m = aitLoader.loadClass("com.genir.aitweaks.features.shipai.ai.Maneuver");
 
             // Construct Maneuver object.
-            MethodHandle ctor = MethodHandles.lookup().findConstructor(m, MethodType.methodType(void.class, ShipAPI.class, ShipAPI.class, Vector2f.class));
+            MethodType typ = MethodType.methodType(void.class, ShipAPI.class, ShipAPI.class, Vector2f.class);
+            MethodHandle ctor = MethodHandles.lookup().findConstructor(m, typ);
             maneuver = ctor.invoke(ship, target, location);
 
             advance = MethodHandles.lookup().findVirtual(m, "advance", MethodType.methodType(void.class, float.class));
