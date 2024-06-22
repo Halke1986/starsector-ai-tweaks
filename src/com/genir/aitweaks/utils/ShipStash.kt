@@ -33,7 +33,9 @@ class ShipStash(ship: ShipAPI) {
 
 val ShipAPI.aitStash: ShipStash
     get() {
-        if (!this.customData.containsKey(stashKey))
-            this.setCustomData(stashKey, ShipStash(this))
-        return this.customData[stashKey] as ShipStash
+        (this.customData[stashKey] as? ShipStash)?.let { return it }
+
+        val newStash = ShipStash(this)
+        this.setCustomData(stashKey, newStash)
+        return newStash
     }

@@ -16,7 +16,7 @@ open class ShipSystemAIAdapter(classPath: String) : ShipSystemAIScript {
     private val advanceHandle: MethodHandle
 
     init {
-        val systemClass = reloader.loadClass(classPath)
+        val systemClass = coreLoader.loadClass(classPath)
         impl = systemClass.newInstance() as ShipSystemAIScript
 
         val initType = MethodType.methodType(Void.TYPE, ShipAPI::class.java, ShipSystemAPI::class.java, ShipwideAIFlags::class.java, CombatEngineAPI::class.java)

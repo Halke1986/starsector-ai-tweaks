@@ -8,8 +8,12 @@ class EveryFrameCombatPlugin : BaseEveryFrameCombatPlugin() {
     private val plugins: List<BaseEveryFrameCombatPlugin>
 
     init {
+        // Rebuild core loader at the beginning of each battle;
+        // used for aitweaks-core-dev-*.jar hot reload.
+        coreLoader = newCoreLoader()
+
         val loadPlugin = fun(path: String): BaseEveryFrameCombatPlugin {
-            return reloader.loadClass(path).newInstance() as BaseEveryFrameCombatPlugin
+            return coreLoader.loadClass(path).newInstance() as BaseEveryFrameCombatPlugin
         }
 
         plugins = listOf(
