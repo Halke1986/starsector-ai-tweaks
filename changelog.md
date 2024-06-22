@@ -1,5 +1,7 @@
 - Custom ship AI can avoid ship collisions.
 - Removed option to draw weapon debug lines.
+- Added AI Tweaks devmode setting to LunaLib. Devmode shouldn't be used outside development, as it reduces stability.
+- Added the possibility to replace the entire logic jar file without reloading the game. This will speed up development, but should have no impact on gameplay. Enabled only in devmode.
 
 Version 1.7.2
 

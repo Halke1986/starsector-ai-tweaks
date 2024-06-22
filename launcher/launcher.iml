@@ -12,5 +12,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="LazyLib" level="project" />
     <orderEntry type="library" name="starsector-core" level="project" />
+    <orderEntry type="library" name="LunaLib" level="project" />
   </component>
 </module>
