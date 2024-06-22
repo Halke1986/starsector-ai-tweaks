@@ -32,7 +32,9 @@ data class AttackTarget(val location: Vector2f, val velocity: Vector2f, val radi
 }
 
 /** Use ship shields as an approximation for its circumference */
-fun targetShield(ship: ShipAPI): AttackTarget = AttackTarget(ship.shieldCenterEvenIfNoShield, ship.velocity, ship.shieldRadiusEvenIfNoShield)
+fun targetShield(ship: ShipAPI): AttackTarget {
+    return AttackTarget(ship.shieldCenterEvenIfNoShield, ship.velocity, ship.shieldRadiusEvenIfNoShield)
+}
 
 /** Weapon attack parameters: accuracy and delay until attack. */
 data class BallisticParams(val accuracy: Float, val delay: Float)
@@ -76,14 +78,16 @@ fun interceptArc(weapon: WeaponAPI, target: AttackTarget, params: BallisticParam
 
     val tangentDistance = solve(Pair(p, v), target.radius, 1f, cos90) ?: return null
     return Arc(
-        arc = atan(target.radius / tangentDistance) * 2f,
+        arc = atan(target.radius / tangentDistance) * RADIANS_TO_DEGREES * 2f,
         facing = VectorUtils.getFacing(p + v * tangentDistance),
     )
 }
 
 /** Calculates if projectile will collide with the target circumference,
  * given current weapon facing. Weapon range is ignored. */
-fun willHitCircumference(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams): Float? = solve(projectileCoords(weapon, target, params), target.radius, 0f, 0f)
+fun willHitCircumference(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams): Float? {
+    return solve(projectileCoords(weapon, target, params), target.radius, 0f, 0f)
+}
 
 /** Calculates if a perfectly accurate projectile will collide with target shield,
  * given current weapon facing. Will not detect hits to inside of shield.

@@ -45,8 +45,6 @@ fun rotateAroundPivot(toRotate: Vector2f, pivot: Vector2f, angle: Float): Vector
 
 fun unitVector(angle: Float): Vector2f = VectorUtils.rotate(Vector2f(1f, 0f), angle)
 
-fun atan(radians: Float): Float = Math.toDegrees(FastTrig.atan(radians.toDouble())).toFloat()
-
 data class Arc(val arc: Float, val facing: Float)
 
 fun vectorInArc(v: Vector2f, a: Arc): Boolean = abs(getShortestRotation(VectorUtils.getFacing(v), a.facing)) <= a.arc / 2f
