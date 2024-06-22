@@ -5,35 +5,22 @@ import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 
 class EveryFrameCombatPlugin : BaseEveryFrameCombatPlugin() {
-    private val plugins: List<BaseEveryFrameCombatPlugin>
+    private val corePlugin: BaseEveryFrameCombatPlugin
 
     init {
         // Rebuild core loader at the beginning of each battle;
         // used for aitweaks-core-dev-*.jar hot reload.
-        coreLoader = newCoreLoader()
+        CoreLoaderManager().reload()
 
-        val loadPlugin = fun(path: String): BaseEveryFrameCombatPlugin {
-            return coreLoader.loadClass(path).newInstance() as BaseEveryFrameCombatPlugin
-        }
-
-        plugins = listOf(
-            loadPlugin("com.genir.aitweaks.debug.DebugPlugin"),
-            loadPlugin("com.genir.aitweaks.utils.AccelerationTracker"),
-            loadPlugin("com.genir.aitweaks.utils.TargetTracker"),
-            loadPlugin("com.genir.aitweaks.features.AutoOmniShields"),
-            loadPlugin("com.genir.aitweaks.features.AutomatedShipAIManager"),
-            loadPlugin("com.genir.aitweaks.features.FleetCohesion"),
-            loadPlugin("com.genir.aitweaks.features.lidar.AIManager"),
-            loadPlugin("com.genir.aitweaks.features.shipai.Guardian"),
-//        loadPlugin("com.genir.aitweaks.features.shipai.ai.AttackCoord"),
-        )
+        val corePluginClass = coreLoader.loadClass("com.genir.aitweaks.core.EveryFrameCombatPlugin")
+        corePlugin = corePluginClass.newInstance() as BaseEveryFrameCombatPlugin
     }
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        plugins.forEach { it.advance(dt, events) }
+        corePlugin.advance(dt, events)
     }
 
     override fun renderInUICoords(viewport: ViewportAPI?) {
-        plugins.forEach { it.renderInUICoords(viewport) }
+        corePlugin.renderInUICoords(viewport)
     }
 }

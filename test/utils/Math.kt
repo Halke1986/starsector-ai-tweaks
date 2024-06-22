@@ -1,6 +1,6 @@
 package utils
 
-import com.genir.aitweaks.utils.vectorProjection
+import com.genir.aitweaks.core.utils.vectorProjection
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.lwjgl.util.vector.Vector2f

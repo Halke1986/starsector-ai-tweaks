@@ -16,7 +16,7 @@ class BaseModPlugin : MakeAITweaksRemovable() {
 
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
         if (weapon.type != MISSILE && !autofireBlacklist.contains(weapon.id)) {
-            val autofireClass = coreLoader.loadClass("com.genir.aitweaks.features.autofire.AutofireAI")
+            val autofireClass = coreLoader.loadClass("com.genir.aitweaks.core.features.autofire.AutofireAI")
             val ctorType = MethodType.methodType(Void.TYPE, WeaponAPI::class.java)
             val ctor = MethodHandles.lookup().findConstructor(autofireClass, ctorType)
 
@@ -27,7 +27,7 @@ class BaseModPlugin : MakeAITweaksRemovable() {
     }
 
     override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin> {
-        val aiManagerClass = coreLoader.loadClass("com.genir.aitweaks.features.shipai.CustomAIManager")
+        val aiManagerClass = coreLoader.loadClass("com.genir.aitweaks.core.features.shipai.CustomAIManager")
         val getAIType = MethodType.methodType(ShipAIPlugin::class.java, ShipAPI::class.java, ShipAIConfig::class.java)
         val getAI = MethodHandles.lookup().findVirtual(aiManagerClass, "getAI", getAIType)
 
@@ -48,7 +48,7 @@ class BaseModPlugin : MakeAITweaksRemovable() {
     private fun onGameStart() {
         // Test custom AI class loader. Better to crash on game start,
         // instead of when the player has made progress.
-        val aiManagerClass = coreLoader.loadClass("com.genir.aitweaks.features.shipai.CustomAIManager")
+        val aiManagerClass = coreLoader.loadClass("com.genir.aitweaks.core.features.shipai.CustomAIManager")
         val testType = MethodType.methodType(Void.TYPE)
         val test = MethodHandles.lookup().findVirtual(aiManagerClass, "test", testType)
 
@@ -61,5 +61,3 @@ class BaseModPlugin : MakeAITweaksRemovable() {
         }
     }
 }
-
-

@@ -1,6 +1,6 @@
 package shipai
 
-import com.genir.aitweaks.features.shipai.loading.Deobfuscator
+import com.genir.aitweaks.core.features.shipai.loading.Deobfuscator
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

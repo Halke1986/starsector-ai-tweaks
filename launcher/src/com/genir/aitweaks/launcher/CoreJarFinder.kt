@@ -23,7 +23,6 @@ class CoreJarFinder {
         else devJars.fold(devJars[0]) { latest, it -> if (it > latest) it else latest }
         val coreURL = URL(encodedURL.toExternalForm().replace("aitweaks-launcher.jar", coreJar))
 
-        Global.getLogger(this::class.java).info(coreURL.toExternalForm())
         return coreURL
     }
 }
