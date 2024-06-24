@@ -98,63 +98,8 @@ class Movement(private val ai: Maneuver) {
             else -> Pair(ship.location, Vector2f())
         }
 
-        // Avoid border. When in border zone, do not attempt to lead
-        // target, as it may lead to deeper intrusion into the border zone.
-        val censoredHeadingPoint = avoidBorder(headingPoint)
-        val censoredVelocity = if (censoredHeadingPoint == headingPoint) velocity else Vector2f()
-
-        ai.headingPoint = censoredHeadingPoint
-        ai.desiredHeading = engineController.heading(censoredHeadingPoint, censoredVelocity) { v -> avoidCollisions(dt, v) }
-    }
-
-    /** Make the ship avoid map border. The ship will attempt to move
-     * inside a rectangle with rounded corners placed `borderNoGoZone`
-     * units from map border.*/
-    private fun avoidBorder(headingPoint: Vector2f): Vector2f {
-        ai.isAvoidingBorder = false
-
-        val mapH = Global.getCombatEngine().mapHeight / 2f
-        val mapW = Global.getCombatEngine().mapWidth / 2f
-        val borderZone = Preset.borderNoGoZone + Preset.borderCornerRadius
-
-        // Translate ship coordinates so that the ship appears to be
-        // always near a map corner. That way we can use a circle
-        // calculations to approximate a rectangle with rounded corners.
-        val l = ship.location
-        val dirToBorder = Vector2f()
-        dirToBorder.x = if (l.x > 0) (l.x - mapW + borderZone).coerceAtLeast(0f)
-        else (l.x + mapW - borderZone).coerceAtMost(0f)
-        dirToBorder.y = if (l.y > 0) (l.y - mapH + borderZone).coerceAtLeast(0f)
-        else (l.y + mapH - borderZone).coerceAtMost(0f)
-
-        // Distance into the border zone.
-        val d = (dirToBorder.length() - Preset.borderCornerRadius).coerceAtLeast(0f)
-
-        // Ship is far from border, no avoidance required.
-        if (d == 0f) return headingPoint
-
-        val borderFacing = dirToBorder.getFacing()
-        val travelFacing = (headingPoint - ship.location).getFacing()
-        val intrusionAngle = MathUtils.getShortestRotation(borderFacing, travelFacing)
-
-        // Ship attempts to move away from the border on its own.
-        if (abs(intrusionAngle) > 90f) return headingPoint
-
-        // Allow chasing targets into the border zone.
-        val attackAngle = ai.attackTarget?.let { (it.location - ship.location).getFacing() - borderFacing }
-        val absAllowedAngle = if (attackAngle?.sign == intrusionAngle.sign) min(90f, abs(attackAngle))
-        else 90f
-
-        if (abs(intrusionAngle) + 1f >= absAllowedAngle) return headingPoint
-
-        // The closer the ship is to map edge, the stronger
-        // the heading transformation away from the border.
-        val avoidForce = (d / (Preset.borderNoGoZone - Preset.borderHardNoGoZone))
-        val correctionSign = if (intrusionAngle.sign > 0) 1f else -1f
-        val correctionAngle = (absAllowedAngle - abs(intrusionAngle)) * correctionSign * avoidForce
-
-        ai.isAvoidingBorder = true
-        return headingPoint.rotatedAroundPivot(Rotation(correctionAngle), ship.location)
+        ai.headingPoint = headingPoint
+        ai.desiredHeading = engineController.heading(headingPoint, velocity) { v -> avoidObstacles(dt, v) }
     }
 
     /** Aim hardpoint weapons with entire ship, if possible. */
@@ -174,10 +119,45 @@ class Movement(private val ai: Maneuver) {
         return aimPoint
     }
 
-    // TODO Avoid modular ships
+    private fun avoidObstacles(dt: Float, expectedVelocity: Vector2f): Vector2f {
+        val expectedSpeed = expectedVelocity.length()
 
-    private fun avoidCollisions(dt: Float, expectedVelocity: Vector2f): Vector2f {
-        val obstacles = Global.getCombatEngine().ships.filter {
+        // Gather all speed limits.
+        val limits: MutableList<Limit> = mutableListOf()
+        limits.addAll(avoidCollisions(dt, expectedSpeed))
+        avoidBorder(dt)?.let { limits.add(it) }
+
+        // No relevant speed limits found, move ahead.
+        if (limits.isEmpty()) return expectedVelocity
+
+        // Find the most severe speed limit.
+        val expectedHeading = expectedVelocity.getFacing()
+        val lowestLimit = limits.minByOrNull { it.clampSpeed(expectedHeading, expectedSpeed) }
+            ?: return expectedVelocity
+
+        // Most severe speed limit does not influence speed ahead.
+        if (lowestLimit.clampSpeed(expectedHeading, expectedSpeed) == expectedSpeed) return expectedVelocity
+
+        // Find new heading that circumvents the lowest speed limit.
+        val headingOffset = lowestLimit.headingOffset(expectedSpeed)
+        val angleToLimit = MathUtils.getShortestRotation(expectedHeading, lowestLimit.heading)
+        val angleToNewFacing = angleToLimit - headingOffset * angleToLimit.sign
+        val newFacing = expectedHeading + angleToNewFacing
+
+        // Stop if angle to new heading is right, to avoid erratic behavior
+        // when avoiding collision and being stopped close to destination.
+        if (angleToNewFacing >= 89f) return Vector2f()
+
+        // Clamp new heading to not violate any of the speed limits.
+        val newSpeed = limits.fold(expectedSpeed) { clampedSpeed, lim ->
+            lim.clampSpeed(newFacing, clampedSpeed)
+        }
+
+        return expectedVelocity.rotated(Rotation(angleToNewFacing)).resized(newSpeed)
+    }
+
+    private fun avoidCollisions(dt: Float, expectedSpeed: Float): List<Limit> {
+        val potentialCollisions = Global.getCombatEngine().ships.filter {
             when {
                 it == ship -> false
                 it.owner != ship.owner -> false
@@ -191,81 +171,59 @@ class Movement(private val ai: Maneuver) {
             }
         }
 
-        // Course is clear, move ahead.
-        if (obstacles.isEmpty()) return expectedVelocity
-
         // Gather all speed limits.
-        val expectedSpeed = expectedVelocity.length()
-        val limits = obstacles.mapNotNull { obstacle ->
+        return potentialCollisions.mapNotNull { obstacle ->
             val lim = vMaxToObstacle(dt, obstacle)
             if (lim.speed < expectedSpeed) lim
             else null
         }
-
-        // No relevant speed limits found, move ahead.
-        if (limits.isEmpty()) return expectedVelocity
-
-        // Find the most severe speed limit.
-        val expectedFacing = expectedVelocity.getFacing()
-        val lowestLimit = limits.minByOrNull { it.clampSpeed(expectedFacing, expectedSpeed) } ?: return expectedVelocity
-
-        // Most severe speed limit does not influence speed ahead.
-        if (lowestLimit.clampSpeed(expectedFacing, expectedSpeed) == expectedSpeed) return expectedVelocity
-
-        // Find new heading that circumvents the lowest speed limit.
-        val facingOffset = lowestLimit.facingOffset(expectedSpeed)
-        val angleToLimit = MathUtils.getShortestRotation(expectedFacing, lowestLimit.facing)
-        val angleToNewFacing = angleToLimit - facingOffset * angleToLimit.sign
-        val newFacing = expectedFacing + angleToNewFacing
-
-        if (angleToNewFacing >= 89f) return Vector2f()
-
-        // Clamp new heading to not violate any of the speed limits.
-        val newSpeed = limits.fold(expectedSpeed) { clampedSpeed, lim ->
-            lim.clampSpeed(newFacing, clampedSpeed)
-        }
-
-        return expectedVelocity.rotated(Rotation(angleToNewFacing)).resized(newSpeed)
     }
 
-    /** Limit allows to clamp velocity to not exceed max speed in a given direction.
-     * From right triangle, the equation for max speed is:
-     *
-     * maxSpeed = speedLimit / cos( abs(limitFacing - velocityFacing) )
-     *
-     * To avoid using trigonometric functions, f(x) = 1/cos(x) is approximated as
-     * g(t) = 1/t + t/5 where t = PI/2 - x. */
-    private data class Limit(val facing: Float, val speed: Float) {
-        fun clampSpeed(expectedFacing: Float, expectedSpeed: Float): Float {
-            val angleFromLimit = abs(MathUtils.getShortestRotation(expectedFacing, facing))
-            if (angleFromLimit >= 90f) return expectedSpeed
+    private fun avoidBorder(dt: Float): Limit? {
+        ai.isAvoidingBorder = false
 
-            val t = (PI / 2f - angleFromLimit * DEGREES_TO_RADIANS).toFloat()
-            val e = speed * (1f / t + t / 5f)
+        val mapH = Global.getCombatEngine().mapHeight / 2f
+        val mapW = Global.getCombatEngine().mapWidth / 2f
+        val borderZone = Preset.borderNoGoZone + Preset.borderCornerRadius
 
-            return min(e, expectedSpeed)
+        // Translate ship coordinates so that the ship appears to be
+        // always near a map corner. That way we can use a circle
+        // calculations to approximate a rectangle with rounded corners.
+        val l = ship.location
+        val borderIntrusion = Vector2f()
+        borderIntrusion.x = if (l.x > 0) (l.x - mapW + borderZone).coerceAtLeast(0f)
+        else (l.x + mapW - borderZone).coerceAtMost(0f)
+        borderIntrusion.y = if (l.y > 0) (l.y - mapH + borderZone).coerceAtLeast(0f)
+        else (l.y + mapH - borderZone).coerceAtMost(0f)
+
+        // Distance into the border zone.
+        val d = (borderIntrusion.length() - Preset.borderCornerRadius).coerceAtLeast(0f)
+
+        // Ship is far from border, no avoidance required.
+        if (d == 0f) return null
+
+        // Allow chasing targets into the border zone.
+        val tgtLoc = ai.maneuverTarget?.location
+        if (tgtLoc != null && !ai.isBackingOff && getShortestRotation(tgtLoc - ship.location, borderIntrusion) < 90f) {
+            return null
         }
 
-        fun facingOffset(expectedSpeed: Float): Float {
-            val a = 1f
-            val b = -5f * (expectedSpeed / speed)
-            val c = 5f
+        ai.isAvoidingBorder = true
 
-            val t = quad(a, b, c)!!.second
-            return abs(t - PI / 2f).toFloat() * RADIANS_TO_DEGREES
-        }
+        // The closer the ship is to map edge, the stronger
+        // the heading transformation away from the border.
+        val avoidForce = (d / (Preset.borderNoGoZone - Preset.borderHardNoGoZone)).coerceAtMost(1f)
+        return Limit(borderIntrusion.getFacing(), ship.maxSpeed * (1f - avoidForce) * dt)
     }
 
     private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI): Limit {
-        val fullStop = 0.00001f
-
         val direction = obstacle.location - ship.location
         val dirAbs = direction.length()
         val dirFacing = direction.getFacing()
         val distance = dirAbs - (totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer)
 
         // Already colliding.
-        if (distance <= 0f) return Limit(dirFacing, fullStop)
+        if (distance <= 0f) return Limit(dirFacing, 0f)
 
         val vObstacle = vectorProjection(obstacle.velocity, direction)
         val aObstacle = vectorProjection(accelerationTracker[obstacle], direction)
@@ -286,6 +244,43 @@ class Movement(private val ai: Maneuver) {
         }
 
         val vMax = engineController.vMax(distance, shipAcc * dt * dt) + vAbs * dt
-        return Limit(dirFacing, vMax.coerceAtLeast(fullStop))
+        return Limit(dirFacing, vMax)
+    }
+
+    /** Limit allows to clamp velocity to not exceed max speed in a direction along a given heading.
+     * From right triangle, the equation for max speed is:
+     *
+     * maxSpeed = speedLimit / cos( abs(limitFacing - velocityFacing) )
+     *
+     * To avoid using trigonometric functions, f(x) = 1/cos(x) is approximated as
+     * g(t) = 1/t + t/5 where t = PI/2 - x. */
+    private class Limit(val heading: Float, speed: Float) {
+        // Clamp the speed limit so that different limits remain
+        // distinguishable by producing a slightly different value
+        // of f(x) = 1/cos(x) for a given hading, instead of all
+        // being equal to 0f.
+        val speed = speed.coerceAtLeast(0.00001f)
+
+        // Clamp expectedSpeed to maximum speed in which ship can
+        // travel along the expectedHeading and not break the limit.
+        fun clampSpeed(expectedHeading: Float, expectedSpeed: Float): Float {
+            val angleFromLimit = abs(MathUtils.getShortestRotation(expectedHeading, heading))
+            if (angleFromLimit >= 90f) return expectedSpeed
+
+            val t = (PI / 2f - angleFromLimit * DEGREES_TO_RADIANS).toFloat()
+            val e = speed * (1f / t + t / 5f)
+            return min(e, expectedSpeed)
+        }
+
+        // Calculate angle from the limit heading, at which traveling
+        // with expectedSpeed will not break the limit.
+        fun headingOffset(expectedSpeed: Float): Float {
+            val a = 1f
+            val b = -5f * (expectedSpeed / speed)
+            val c = 5f
+
+            val t = quad(a, b, c)!!.second
+            return abs(t - PI / 2f).toFloat() * RADIANS_TO_DEGREES
+        }
     }
 }
