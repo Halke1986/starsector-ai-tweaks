@@ -64,7 +64,7 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         squad.forEach { group ->
             var facing = group.facing - group.angularSize / 2f
 
-            group.ships.sortBy { it.currentFacing }
+            group.ships.sortBy { MathUtils.getShortestRotation(group.facing, it.currentFacing) }
 
 
 
@@ -73,7 +73,8 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
 
                 val angle = facing + ship.angularSize / 2f
 
-//                debugPlugin[ship.ship] = "$dist $r ${ship.angularSize}"
+//                debugPlugin[ship.ship] = "${target}  $dist $r ${ship.angularSize}"
+//                debugPlugin[ship.ship] = "${target}  ${ship.proposedFacing} ${facing} ${group.facing} ${group.angularSize}"
 
                 val pos = target.location + unitVector(angle).resized(dist)
 
@@ -117,8 +118,12 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
 
         fun merge(other: Group) {
             ships.addAll(other.ships)
-            facing = (facing * angularSize + other.facing * other.angularSize) / (angularSize + other.angularSize)
-            angularSize += other.angularSize
+
+            val newAngularSize = angularSize + other.angularSize
+            val toOtherFacing = MathUtils.getShortestRotation(facing, other.facing)
+
+            facing += (toOtherFacing * other.angularSize) / newAngularSize
+            angularSize = newAngularSize
         }
     }
 
