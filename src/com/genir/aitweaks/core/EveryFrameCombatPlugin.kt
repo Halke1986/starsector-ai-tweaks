@@ -17,7 +17,7 @@ class EveryFrameCombatPlugin : BaseEveryFrameCombatPlugin() {
             com.genir.aitweaks.core.features.FleetCohesion(),
             com.genir.aitweaks.core.features.lidar.AIManager(),
             com.genir.aitweaks.core.features.shipai.Guardian(),
-            //com.genir.aitweaks.core.features.shipai.ai.AttackCoord(),
+            com.genir.aitweaks.core.features.shipai.ai.AttackCoord(),
         )
 
         if (LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") == true) {

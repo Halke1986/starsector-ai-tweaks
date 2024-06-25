@@ -31,11 +31,18 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
     var attackTarget: ShipAPI? = maneuverTarget
     var effectiveRange: Float = 0f
 
+    // Required by vanilla logic.
     var desiredHeading: Float = ship.facing
     var desiredFacing: Float = ship.facing
+
+    // Used for communication with attack coordinator.
+    var proposedHeadingPoint: Vector2f? = null
+    var reviewedHeadingPoint: Vector2f? = null
+
     var headingPoint: Vector2f? = null
     var aimPoint: Vector2f? = null
 
+    // State
     var isBackingOff: Boolean = false
     var isHoldingFire: Boolean = false
     var isAvoidingBorder: Boolean = false

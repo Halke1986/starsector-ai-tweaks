@@ -62,7 +62,7 @@ class Movement(private val ai: Maneuver) {
     }
 
     private fun setHeading(dt: Float) {
-        val (headingPoint, velocity) = when {
+        val (headingPoint: Vector2f, velocity: Vector2f) = when {
             // Move opposite to threat direction when backing off.
             // If there's no threat, the ship will continue to coast.
             ai.isBackingOff -> {
@@ -89,7 +89,11 @@ class Movement(private val ai: Maneuver) {
                 val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
                 else vectorToThreat
 
-                val headingPoint = ai.maneuverTarget.location - attackPositionOffset.resized(ship.minRange)
+                // Let the attack coordinator review the calculated heading point.
+                ai.proposedHeadingPoint = ai.maneuverTarget.location - attackPositionOffset.resized(ship.minRange)
+                val headingPoint = (ai.reviewedHeadingPoint ?: ai.proposedHeadingPoint)!!
+                ai.reviewedHeadingPoint = null
+
                 val velocity = (headingPoint - (ai.headingPoint ?: headingPoint)) / dt
                 Pair(headingPoint, velocity)
             }
