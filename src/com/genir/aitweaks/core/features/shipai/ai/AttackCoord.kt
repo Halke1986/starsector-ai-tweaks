@@ -26,7 +26,7 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         if (CustomAIManager().getCustomAIClass() == null) return
 
         val squads = findSquads().filter { it.value.size > 1 }
-        squads.forEach { coordinateSquad(it.value.toMutableSet()) }
+        squads.forEach { coordinateSquad(mergeSquad(it.value)) }
     }
 
     // Divide attacking AIs into squads attacking the same target.
@@ -52,13 +52,7 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         return squads
     }
 
-    private fun coordinateSquad(squad: MutableSet<Group>) {
-        while (true) {
-            val toBeRemoved = findOverlappingGroup(squad)
-            if (toBeRemoved != null) squad.remove(toBeRemoved)
-            else break
-        }
-
+    private fun coordinateSquad(squad: List<Group>) {
         val target = squad.first().ships.first().ai.maneuverTarget!!
 
         squad.forEach { group ->
@@ -66,25 +60,14 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
 
             group.ships.sortBy { MathUtils.getShortestRotation(group.facing, it.currentFacing) }
 
-
-
             group.ships.forEach { ship ->
                 val dist = (ship.proposedHeadingPoint - target.location).length()
 
                 val angle = facing + ship.angularSize / 2f
-
-//                debugPlugin[ship.ship] = "${target}  $dist $r ${ship.angularSize}"
-//                debugPlugin[ship.ship] = "${target}  ${ship.proposedFacing} ${facing} ${group.facing} ${group.angularSize}"
-
                 val pos = target.location + unitVector(angle).resized(dist)
-
-//                val pos = ship.headingPoint
-//                drawLine(ship.ship.location, pos, Color.YELLOW)
 
                 facing += ship.angularSize
 
-
-//                drawCircle(pos, r, Color.CYAN)
                 drawCircle(pos, ship.ship.collisionRadius, Color.CYAN)
                 drawLine(ship.ship.location, pos, Color.YELLOW)
                 drawLine(ship.ship.location, ship.proposedHeadingPoint, Color.BLUE)
@@ -94,20 +77,27 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         }
     }
 
-    private fun findOverlappingGroup(squad: Set<Group>): Group? {
-        squad.forEach { a ->
-            squad.forEach { b ->
-                if (a != b) {
-                    val dist = abs(MathUtils.getShortestRotation(a.facing, b.facing))
-                    if (dist < (a.angularSize + b.angularSize) / 2f) {
-                        a.merge(b)
-                        return b
-                    }
-                }
-            }
+    private fun mergeSquad(squad: List<Group>): List<Group> {
+        return mergeGroups(squad.sortedBy { it.facing })
+    }
+
+    private fun mergeGroups(l: List<Group>): List<Group> {
+        if (l.size == 1) return l
+
+        val l2: MutableList<Group> = mutableListOf(l.first())
+        for (i in 1 until l.size) {
+            if (l2.last().isOverlapping(l[i])) l2.last().merge(l[i])
+            else l2.add(l[i])
         }
 
-        return null
+        if (l2.size == 1) return l2
+        if (l2.first().isOverlapping(l2.last())) {
+            l2.first().merge(l2.last())
+            l2.removeLast()
+        }
+
+        return if (l.size == l2.size) l2
+        else mergeGroups(l2)
     }
 
     private class Group(initialShip: Ship) {
@@ -116,13 +106,18 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         var angularSize = initialShip.angularSize
         var facing = initialShip.proposedFacing
 
+        fun isOverlapping(other: Group): Boolean {
+            val angleToOther = MathUtils.getShortestRotation(facing, other.facing)
+            return abs(angleToOther) < (angularSize + other.angularSize) / 2f
+        }
+
         fun merge(other: Group) {
             ships.addAll(other.ships)
 
             val newAngularSize = angularSize + other.angularSize
-            val toOtherFacing = MathUtils.getShortestRotation(facing, other.facing)
+            val angleToOther = MathUtils.getShortestRotation(facing, other.facing)
 
-            facing += (toOtherFacing * other.angularSize) / newAngularSize
+            facing += (angleToOther * other.angularSize) / newAngularSize
             angularSize = newAngularSize
         }
     }
