@@ -15,6 +15,7 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
 import java.awt.Color.RED
 import kotlin.math.abs
+import kotlin.math.sign
 
 class Movement(private val ai: Maneuver) {
     private val ship = ai.ship
@@ -150,12 +151,12 @@ class Movement(private val ai: Maneuver) {
             else null
         }.toMutableList()
 
-        collisionLimits.addAll(avoidBlockingLineOfFire(potentialCollisions))
+        collisionLimits.addAll(avoidBlockingLineOfFire(dt, potentialCollisions))
 
         return collisionLimits
     }
 
-    private fun avoidBlockingLineOfFire(allies: List<ShipAPI>): List<EngineController.Limit> {
+    private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): List<EngineController.Limit> {
         val target = ai.attackTarget ?: return emptyList()
 
         val customAI = CustomAIManager().getCustomAIClass()
@@ -166,47 +167,52 @@ class Movement(private val ai: Maneuver) {
 
         val lineOfFire = ship.location - target.location
         val facing = lineOfFire.getFacing()
+        val distToTarget = lineOfFire.length()
 
         val limits: MutableList<EngineController.Limit> = mutableListOf()
 
-        squad.forEach { other ->
-            val otherLineOfFire = other.ship.location - target.location
-            val otherFacing = otherLineOfFire.getFacing()
+        squad.forEach { obstacle ->
+            val obstacleLineOfFire = obstacle.ship.location - target.location
+            val obstacleFacing = obstacleLineOfFire.getFacing()
+            val angleToOtherLine = MathUtils.getShortestRotation(facing, obstacleFacing)
 
-            // Too far from other line of fire to consider blocking.
-            if (abs(MathUtils.getShortestRotation(facing, otherFacing)) >= 90f) return@forEach
+            // Too far from obstacle line of fire to consider blocking.
+            if (abs(MathUtils.getShortestRotation(facing, obstacleFacing)) >= 90f) return@forEach
 
-            if (otherLineOfFire.lengthSquared() < lineOfFire.lengthSquared()) {
-                // Avoid blocking own line of fire.
-                if (ai.engagementRange(target) > ship.maxRange + target.collisionRadius) return@forEach
+            val blocked = if (obstacleLineOfFire.lengthSquared() < lineOfFire.lengthSquared()) ai
+            else obstacle
 
-                val pointOnOwnLine = lineOfFire * timeToOrigin(-otherLineOfFire, lineOfFire)
-                val toOther = otherLineOfFire - pointOnOwnLine
+            // Do not consider line of fire blocking if target is out of range.
+            if (blocked.engagementRange(target) > blocked.ship.maxRange + target.collisionRadius) return@forEach
 
-                // Already colliding.
-                if (toOther.length() < ai.totalCollisionRadius + other.totalCollisionRadius) {
-                    limits.add(EngineController.Limit(toOther.getFacing(), 0f))
+            if (blocked.isBackingOff) return@forEach
 
-                    drawLine(ship.location, ship.location + toOther, RED)
-                }
+            val arcLength = distToTarget * abs(angleToOtherLine) * DEGREES_TO_RADIANS
+            val minDist = (ai.totalCollisionRadius + obstacle.totalCollisionRadius) / 2f
+            val distance = arcLength - minDist
+
+//            debugPlugin[ship] = "${ship.name} ${arcLength} ${angleToOtherLine} $distToTarget $minDist"
+
+            val limitFacing = facing + 90f * angleToOtherLine.sign
+
+            // Already colliding.
+            if (distance < 0f) {
+                limits.add(EngineController.Limit(limitFacing, 0f))
+
+                drawLine(ship.location, ship.location + unitVector(limitFacing) * 200f, RED)
             } else {
-                // Avoid blocking other line of fire.
-                if (other.engagementRange(target) > other.ship.maxRange + target.collisionRadius) return@forEach
+                val obstacleV = obstacle.ship.velocity
+                val obstacleAngularV = obstacleV - vectorProjection(obstacleV, obstacleLineOfFire)
 
-                val pointOnOtherLine = otherLineOfFire * timeToOrigin(-lineOfFire, otherLineOfFire)
-                val toOther = pointOnOtherLine - lineOfFire
+                val t = timeToOrigin(obstacle.ship.location - ship.location, obstacleAngularV)
+                val obstacleVComponent = obstacleAngularV.length() * t.sign
 
-                // Already colliding.
-                if (toOther.length() < ai.totalCollisionRadius + other.totalCollisionRadius) {
-                    limits.add(EngineController.Limit(toOther.getFacing(), 0f))
+                val vMax = engineController.vMax(distance, ship.strafeAcceleration * dt * dt) / dt + obstacleVComponent
 
-                    drawLine(ship.location, ship.location + toOther, BLUE)
-                }
+                limits.add(EngineController.Limit(limitFacing, vMax))
+
+                drawLine(ship.location, ship.location + unitVector(limitFacing) * vMax, BLUE)
             }
-
-
-//            drawLine(ship.location, pointOnLine, Color.YELLOW)
-//            drawLine(other.ship.location, target.location, Color.RED)
         }
 
         return limits
