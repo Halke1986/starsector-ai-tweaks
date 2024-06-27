@@ -30,6 +30,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
 
     var attackTarget: ShipAPI? = maneuverTarget
     var effectiveRange: Float = 0f
+    var totalCollisionRadius: Float = 0f
 
     // Required by vanilla logic.
     var desiredHeading: Float = ship.facing
@@ -63,6 +64,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
         // Update state.
         updateThreats()
         effectiveRange = ship.effectiveRange(Preset.effectiveDpsThreshold)
+        totalCollisionRadius = ship.totalCollisionRadius
 
         updateIdleTime(dt)
         updateBackoffStatus()

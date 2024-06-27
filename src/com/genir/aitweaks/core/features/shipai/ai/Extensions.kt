@@ -33,7 +33,7 @@ val ShipAPI.primaryWeapons: List<WeaponAPI>
 val ShipAPI.minRange: Float
     get() = primaryWeapons.minOfOrNull { it.trueRange } ?: 0f
 
-/** Range at which at least one primary weapon can. */
+/** Range at which at least one primary weapon can hit. */
 val ShipAPI.maxRange: Float
     get() = primaryWeapons.maxOfOrNull { it.trueRange } ?: 0f
 

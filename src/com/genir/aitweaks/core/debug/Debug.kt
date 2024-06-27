@@ -17,6 +17,10 @@ fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
     val custom = ships.filter { it.hasAIType(CustomAIManager().getCustomAIClass()) }
 
+//    ships.forEach {
+//        drawCollisionRadius(it)
+//    }
+
     debugPlugin["test"] = "test"
 
 //        custom.forEach {

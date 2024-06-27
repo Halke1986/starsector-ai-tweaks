@@ -2,6 +2,8 @@ package com.genir.aitweaks.core.features.shipai.ai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.debug.drawLine
+import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
@@ -10,6 +12,8 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.BLUE
+import java.awt.Color.RED
 import kotlin.math.abs
 
 class Movement(private val ai: Maneuver) {
@@ -19,7 +23,6 @@ class Movement(private val ai: Maneuver) {
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
     private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
-    private var totalCollisionRadius = ship.totalCollisionRadius
 
     fun advance(dt: Float) {
         setFacing()
@@ -139,12 +142,74 @@ class Movement(private val ai: Maneuver) {
             }
         }
 
+
         // Gather all speed limits.
-        return potentialCollisions.mapNotNull { obstacle ->
+        val collisionLimits = potentialCollisions.mapNotNull { obstacle ->
             val lim = vMaxToObstacle(dt, obstacle)
             if (lim.speed < ship.maxSpeed) lim
             else null
+        }.toMutableList()
+
+        collisionLimits.addAll(avoidBlockingLineOfFire(potentialCollisions))
+
+        return collisionLimits
+    }
+
+    private fun avoidBlockingLineOfFire(allies: List<ShipAPI>): List<EngineController.Limit> {
+        val target = ai.attackTarget ?: return emptyList()
+
+        val customAI = CustomAIManager().getCustomAIClass()
+        val ais = allies.filter { it.hasAIType(customAI) }.mapNotNull { it.aitStash.maneuverAI }
+
+        val squad = ais.filter { it.attackTarget == ai.attackTarget }
+        if (squad.isEmpty()) return emptyList()
+
+        val lineOfFire = ship.location - target.location
+        val facing = lineOfFire.getFacing()
+
+        val limits: MutableList<EngineController.Limit> = mutableListOf()
+
+        squad.forEach { other ->
+            val otherLineOfFire = other.ship.location - target.location
+            val otherFacing = otherLineOfFire.getFacing()
+
+            // Too far from other line of fire to consider blocking.
+            if (abs(MathUtils.getShortestRotation(facing, otherFacing)) >= 90f) return@forEach
+
+            if (otherLineOfFire.lengthSquared() < lineOfFire.lengthSquared()) {
+                // Avoid blocking own line of fire.
+                if (ai.engagementRange(target) > ship.maxRange + target.collisionRadius) return@forEach
+
+                val pointOnOwnLine = lineOfFire * timeToOrigin(-otherLineOfFire, lineOfFire)
+                val toOther = otherLineOfFire - pointOnOwnLine
+
+                // Already colliding.
+                if (toOther.length() < ai.totalCollisionRadius + other.totalCollisionRadius) {
+                    limits.add(EngineController.Limit(toOther.getFacing(), 0f))
+
+                    drawLine(ship.location, ship.location + toOther, RED)
+                }
+            } else {
+                // Avoid blocking other line of fire.
+                if (other.engagementRange(target) > other.ship.maxRange + target.collisionRadius) return@forEach
+
+                val pointOnOtherLine = otherLineOfFire * timeToOrigin(-lineOfFire, otherLineOfFire)
+                val toOther = pointOnOtherLine - lineOfFire
+
+                // Already colliding.
+                if (toOther.length() < ai.totalCollisionRadius + other.totalCollisionRadius) {
+                    limits.add(EngineController.Limit(toOther.getFacing(), 0f))
+
+                    drawLine(ship.location, ship.location + toOther, BLUE)
+                }
+            }
+
+
+//            drawLine(ship.location, pointOnLine, Color.YELLOW)
+//            drawLine(other.ship.location, target.location, Color.RED)
         }
+
+        return limits
     }
 
     private fun avoidBorder(): EngineController.Limit? {
@@ -188,7 +253,7 @@ class Movement(private val ai: Maneuver) {
         val direction = obstacle.location - ship.location
         val dirAbs = direction.length()
         val dirFacing = direction.getFacing()
-        val distance = dirAbs - (totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer)
+        val distance = dirAbs - (ai.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer)
 
         // Already colliding.
         if (distance <= 0f) return EngineController.Limit(dirFacing, 0f)

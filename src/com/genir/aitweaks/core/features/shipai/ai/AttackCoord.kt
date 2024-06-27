@@ -70,7 +70,7 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
 
                 drawCircle(pos, ship.ship.collisionRadius, Color.CYAN)
                 drawLine(ship.ship.location, pos, Color.YELLOW)
-                drawLine(ship.ship.location, ship.proposedHeadingPoint, Color.BLUE)
+//                drawLine(ship.ship.location, ship.proposedHeadingPoint, Color.BLUE)
 
                 ship.ai.reviewedHeadingPoint = pos
             }
