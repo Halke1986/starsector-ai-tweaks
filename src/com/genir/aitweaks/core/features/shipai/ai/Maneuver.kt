@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
+import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE
 import com.genir.aitweaks.core.utils.ShipSystemAiType.MANEUVERING_JETS
 import com.genir.aitweaks.core.utils.aitStash
@@ -19,7 +20,6 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.sign
 
 // TODO retreat order during chase battle freezes the ship
 
@@ -112,8 +112,8 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
             currentTarget == null -> true
             !currentTarget.isValidTarget -> true
 
-            // Do not interrupt bursts.
-            ship.primaryWeapons.find { it.isInFiringSequence && it.autofireAI?.targetShip == attackTarget } != null -> false
+            // Do not interrupt weapon bursts.
+            ship.primaryWeapons.find { it.size != SMALL && it.isInFiringSequence && it.autofireAI?.targetShip == attackTarget } != null -> false
 
             // Target is out of range.
             engagementRange(currentTarget) < ship.maxRange -> true
@@ -126,8 +126,13 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
 
         val updatedTarget = if (updateTarget) {
             val opportunities = threats.filter { engagementRange(it) < ship.maxRange }
-            val target = opportunities.minWithOrNull { o1, o2 -> (evaluateTarget(o1) - evaluateTarget(o2)).sign.toInt() }
-            target ?: maneuverTarget
+            if (opportunities.isEmpty()) maneuverTarget
+
+            opportunities.fold(Pair<ShipAPI?, Float>(null, Float.MAX_VALUE)) { best, it ->
+                val eval = evaluateTarget(it)
+                if (eval < best.second) Pair(it, eval)
+                else best
+            }.first
         } else currentTarget
 
         ship.aitStash.attackTarget = updatedTarget
@@ -271,9 +276,9 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
         val fluxFactor = if (target.phaseCloak?.specAPI?.isPhaseCloak == true) 2f else 0.5f
         val evalFlux = fluxLeft * fluxFactor
 
-        // Avoid attacking bricks.
-        val evalDamper = if (target.system?.id == "damper" && !ship.isFrigate) 1f else 0f
-        val evalShunt = if (target.variant.hasHullMod("fluxshunt")) 4f else 0f
+        // Avoid attacking bricks, especially Monitors.
+        val evalDamper = if (target.system?.id == "damper" && !target.isFrigate) 1f else 0f
+        val evalShunt = if (target.variant.hasHullMod("fluxshunt") && target.isFrigate) 256f else 0f
 
         // Assign lower priority to frigates.
         val evalType = if (target.isFrigate && !target.isModule) 1f else 0f
