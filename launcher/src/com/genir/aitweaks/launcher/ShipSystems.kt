@@ -8,7 +8,7 @@ import java.lang.invoke.MethodType
 
 class HighEnergyFocusAI : ShipSystemAIAdapter("com.genir.aitweaks.core.features.HighEnergyFocusAI")
 
-class LidarArrayAI : ShipSystemAIAdapter("com.genir.aitweaks.core.features.LidarArrayAI")
+class LidarArrayAI : ShipSystemAIAdapter("com.genir.aitweaks.core.features.lidar.LidarArrayAI")
 
 open class ShipSystemAIAdapter(classPath: String) : ShipSystemAIScript {
     private val impl: ShipSystemAIScript
@@ -25,7 +25,6 @@ open class ShipSystemAIAdapter(classPath: String) : ShipSystemAIScript {
         val advanceType = MethodType.methodType(Void.TYPE, Float::class.java, Vector2f::class.java, Vector2f::class.java, ShipAPI::class.java)
         advanceHandle = MethodHandles.lookup().findVirtual(systemClass, "advance", advanceType)
     }
-
 
     override fun init(ship: ShipAPI?, system: ShipSystemAPI?, flags: ShipwideAIFlags?, engine: CombatEngineAPI?) {
         initHandle.invoke(impl, ship, system, flags, engine)
