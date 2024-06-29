@@ -4,8 +4,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.debug.drawCircle
-import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.features.shipai.ai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.utils.aitStash
@@ -18,9 +16,12 @@ import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.abs
 
+/**
+ * Attack Coordinator assigns attack positions to all ships attacking the
+ * same target, so that the ships don't try to crowd in the same spot.
+ */
 class AttackCoord : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         if (CustomAIManager().getCustomAIClass() == null) return
@@ -67,11 +68,6 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
                 val pos = target.location + unitVector(angle).resized(dist)
 
                 facing += ship.angularSize
-
-                drawCircle(pos, ship.ship.collisionRadius, Color.CYAN)
-                drawLine(ship.ship.location, pos, Color.YELLOW)
-//                drawLine(ship.ship.location, ship.proposedHeadingPoint, Color.BLUE)
-
                 ship.ai.reviewedHeadingPoint = pos
             }
         }

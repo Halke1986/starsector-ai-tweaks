@@ -17,19 +17,10 @@ fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
     val custom = ships.filter { it.hasAIType(CustomAIManager().getCustomAIClass()) }
 
-//    ships.forEach {
+    custom.forEach {
 //        drawCollisionRadius(it)
-//    }
-
-    debugPlugin["test"] = "test"
-
-//        custom.forEach {
-//            debugPlugin[it] = "$it"
-//        }
-//
-//        ships.firstOrNull { it.isStation }?.let {
-//            drawCircle(it.location, it.totalCollisionRadius, BLUE)
-//        }
+//        drawLine(it.location, it.location + it.velocity, Color.GREEN)
+    }
 }
 
 private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()

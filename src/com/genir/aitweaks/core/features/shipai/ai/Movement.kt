@@ -2,7 +2,6 @@ package com.genir.aitweaks.core.features.shipai.ai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
@@ -12,8 +11,6 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.BLUE
-import java.awt.Color.RED
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -103,12 +100,8 @@ class Movement(private val ai: Maneuver) {
             else -> Pair(ship.location, Vector2f())
         }
 
-        // Gather all speed limits.
-        val limits = avoidCollisions(dt).toMutableList()
-        avoidBorder()?.let { limits.add(it) }
-
         ai.headingPoint = headingPoint
-        ai.desiredHeading = engineController.heading(headingPoint, velocity, limits)
+        ai.desiredHeading = engineController.heading(headingPoint, velocity, gatherSpeedLimits(dt))
     }
 
     /** Aim hardpoint weapons with entire ship, if possible. */
@@ -128,8 +121,8 @@ class Movement(private val ai: Maneuver) {
         return aimPoint
     }
 
-    private fun avoidCollisions(dt: Float): List<EngineController.Limit> {
-        val potentialCollisions = Global.getCombatEngine().ships.filter {
+    private fun gatherSpeedLimits(dt: Float): List<EngineController.Limit> {
+        val friendlies = Global.getCombatEngine().ships.filter {
             when {
                 it == ship -> false
                 it.owner != ship.owner -> false
@@ -143,63 +136,79 @@ class Movement(private val ai: Maneuver) {
             }
         }
 
+        val limits: MutableList<EngineController.Limit?> = mutableListOf(
+            avoidBlockingLineOfFire(dt, friendlies),
+            avoidBorder()
+        )
 
-        // Gather all speed limits.
-        val collisionLimits = potentialCollisions.mapNotNull { obstacle ->
+        limits.addAll(avoidCollisions(dt, friendlies))
+
+        return limits.filterNotNull()
+    }
+
+    private fun avoidCollisions(dt: Float, friendlies: List<ShipAPI>): List<EngineController.Limit?> {
+        return friendlies.map { obstacle ->
             val lim = vMaxToObstacle(dt, obstacle)
             if (lim.speed < ship.maxSpeed) lim
             else null
-        }.toMutableList()
-
-        collisionLimits.addAll(avoidBlockingLineOfFire(dt, potentialCollisions))
-
-        return collisionLimits
+        }
     }
 
-    private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): List<EngineController.Limit> {
-        val target = ai.attackTarget ?: return emptyList()
+    private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {
+        val target = ai.attackTarget ?: return null
 
         val customAI = CustomAIManager().getCustomAIClass()
         val ais = allies.filter { it.hasAIType(customAI) }.mapNotNull { it.aitStash.maneuverAI }
 
+        // Blocking line of fire occurs mostly among ships attacking the same target.
+        // For simplicity, the AI will try to avoid only those cases of blocking.
         val squad = ais.filter { it.attackTarget == ai.attackTarget }
-        if (squad.isEmpty()) return emptyList()
+        if (squad.isEmpty()) return null
 
+        // Calculations are done in target frame of reference.
         val lineOfFire = ship.location - target.location
         val facing = lineOfFire.getFacing()
         val distToTarget = lineOfFire.length()
 
-        val limits: MutableList<EngineController.Limit> = mutableListOf()
+        val velocityFacing = (ship.location + ship.velocity - target.location).getFacing()
+        val angleToVelocity = MathUtils.getShortestRotation(facing, velocityFacing)
+
+        var maxLimit: EngineController.Limit? = null
 
         squad.forEach { obstacle ->
             val obstacleLineOfFire = obstacle.ship.location - target.location
             val obstacleFacing = obstacleLineOfFire.getFacing()
             val angleToOtherLine = MathUtils.getShortestRotation(facing, obstacleFacing)
 
-            // Too far from obstacle line of fire to consider blocking.
-            if (abs(MathUtils.getShortestRotation(facing, obstacleFacing)) >= 90f) return@forEach
-
             val blocked = if (obstacleLineOfFire.lengthSquared() < lineOfFire.lengthSquared()) ai
             else obstacle
 
-            // Do not consider line of fire blocking if target is out of range.
-            if (blocked.engagementRange(target) > blocked.ship.maxRange + target.collisionRadius) return@forEach
+            when {
+                blocked.isBackingOff -> return@forEach
 
-            if (blocked.isBackingOff) return@forEach
+                // Too far from obstacle line of fire to consider blocking.
+                abs(MathUtils.getShortestRotation(facing, obstacleFacing)) >= 90f -> return@forEach
+
+                // Ship is moving away from the obstacle.
+                angleToVelocity.sign != angleToOtherLine.sign -> return@forEach
+
+                // Do not consider line of fire blocking if target is out of range.
+                blocked.engagementRange(target) > blocked.ship.maxRange + target.collisionRadius -> return@forEach
+            }
 
             val arcLength = distToTarget * abs(angleToOtherLine) * DEGREES_TO_RADIANS
-            val minDist = (ai.totalCollisionRadius + obstacle.totalCollisionRadius) / 2f
+            val minDist = (ai.totalCollisionRadius + obstacle.totalCollisionRadius) * 0.75f
             val distance = arcLength - minDist
 
-//            debugPlugin[ship] = "${ship.name} ${arcLength} ${angleToOtherLine} $distToTarget $minDist"
-
+            // Line of fire blocking occurs when ships orbiting the same target
+            // strafe in front of each one. To prevent this, speed limit is imposed
+            // only on strafing velocity. This allows to return only the most severe
+            // speed limit, as all found limits are parallel.
             val limitFacing = facing + 90f * angleToOtherLine.sign
 
-            // Already colliding.
-            if (distance < 0f) {
-                limits.add(EngineController.Limit(limitFacing, 0f))
-
-                drawLine(ship.location, ship.location + unitVector(limitFacing) * 200f, RED)
+            val limit = if (distance < 0f) {
+                // Already blocking.
+                EngineController.Limit(limitFacing, 0f)
             } else {
                 val obstacleV = obstacle.ship.velocity
                 val obstacleAngularV = obstacleV - vectorProjection(obstacleV, obstacleLineOfFire)
@@ -208,14 +217,15 @@ class Movement(private val ai: Maneuver) {
                 val obstacleVComponent = obstacleAngularV.length() * t.sign
 
                 val vMax = engineController.vMax(distance, ship.strafeAcceleration * dt * dt) / dt + obstacleVComponent
+                EngineController.Limit(limitFacing, vMax)
+            }
 
-                limits.add(EngineController.Limit(limitFacing, vMax))
-
-                drawLine(ship.location, ship.location + unitVector(limitFacing) * vMax, BLUE)
+            if (maxLimit == null || maxLimit!!.speed > limit.speed) {
+                maxLimit = limit
             }
         }
 
-        return limits
+        return maxLimit
     }
 
     private fun avoidBorder(): EngineController.Limit? {
