@@ -41,12 +41,12 @@ class Movement(private val ai: Maneuver) {
                 Pair(target.location.rotatedAroundPivot(Rotation(aimOffset), ship.location), target.velocity)
             }
 
-            // Face threat direction when backing off and no target.
-            ai.isBackingOff && !ai.threatVector.isZeroVector() -> {
+            // Face threat direction when no target.
+            !ai.threatVector.isZeroVector() -> {
                 Pair(ship.location + ai.threatVector, Vector2f())
             }
 
-            // Move to location, if no attack target.
+            // Face movement target location.
             ai.targetLocation != null -> {
                 Pair(ai.targetLocation, Vector2f())
             }
@@ -61,16 +61,16 @@ class Movement(private val ai: Maneuver) {
 
     private fun setHeading(dt: Float) {
         val (headingPoint: Vector2f, velocity: Vector2f) = when {
+            // Move directly to ordered location.
+            ai.targetLocation != null -> {
+                Pair(ai.targetLocation, Vector2f())
+            }
+
             // Move opposite to threat direction when backing off.
             // If there's no threat, the ship will continue to coast.
             ai.isBackingOff -> {
                 if (ai.threatVector.isZeroVector()) Pair(ship.location, ship.velocity.resized(ship.maxSpeed))
                 else Pair(ship.location - ai.threatVector.resized(1000f), Vector2f())
-            }
-
-            // Move directly to ordered location.
-            ai.targetLocation != null -> {
-                Pair(ai.targetLocation, Vector2f())
             }
 
             // Orbit target at effective weapon range.
