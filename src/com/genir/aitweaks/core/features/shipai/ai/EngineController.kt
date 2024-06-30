@@ -2,7 +2,6 @@ package com.genir.aitweaks.core.features.shipai.ai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.resized
@@ -48,7 +47,7 @@ class EngineController(val ship: ShipAPI) {
         // stopping is the distance the ship covers in one frame after
         // accelerating from a standstill.
         if ((target - ship.location).length() < af && vt.isZeroVector()) {
-            if (!ship.velocity.isZeroVector()) ship.move(DECELERATE)
+            if (!ship.velocity.isZeroVector()) ship.command(DECELERATE)
             return noMovementExpected
         }
 
@@ -74,7 +73,7 @@ class EngineController(val ship: ShipAPI) {
 
         // Stop if expected velocity is smaller than half of minimum delta v.
         if (vec.length() < af / 2f && !ship.velocity.isZeroVector()) {
-            ship.move(DECELERATE)
+            ship.command(DECELERATE)
             return noMovementExpected
         }
 
@@ -87,10 +86,10 @@ class EngineController(val ship: ShipAPI) {
         val fMax = max(max(ff, fb), max(fl, fr))
 
         // Give commands to achieve the calculated thrust.
-        if (shouldAccelerate(+d.y, ff, fMax)) ship.move(ACCELERATE)
-        if (shouldAccelerate(-d.y, fb, fMax)) ship.move(ACCELERATE_BACKWARDS)
-        if (shouldAccelerate(-d.x, fl, fMax)) ship.move(STRAFE_LEFT)
-        if (shouldAccelerate(+d.x, fr, fMax)) ship.move(STRAFE_RIGHT)
+        if (shouldAccelerate(+d.y, ff, fMax)) ship.command(ACCELERATE)
+        if (shouldAccelerate(-d.y, fb, fMax)) ship.command(ACCELERATE_BACKWARDS)
+        if (shouldAccelerate(-d.x, fl, fMax)) ship.command(STRAFE_LEFT)
+        if (shouldAccelerate(+d.x, fr, fMax)) ship.command(STRAFE_RIGHT)
 
         return r.reverse(vec).getFacing()
     }
@@ -119,8 +118,8 @@ class EngineController(val ship: ShipAPI) {
         val we = sign(r) * vMax(abs(r), a) + df
         val dw = we - w
 
-        if (shouldAccelerate(+r, +dw / a, 0f)) ship.move(TURN_LEFT)
-        if (shouldAccelerate(-r, -dw / a, 0f)) ship.move(TURN_RIGHT)
+        if (shouldAccelerate(+r, +dw / a, 0f)) ship.command(TURN_LEFT)
+        if (shouldAccelerate(-r, -dw / a, 0f)) ship.command(TURN_RIGHT)
 
         return f
     }
@@ -205,6 +204,4 @@ class EngineController(val ship: ShipAPI) {
         val t = quad(a, b, c)!!.second
         return abs(t - PI / 2f).toFloat() * RADIANS_TO_DEGREES
     }
-
-    private fun ShipAPI.move(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
 }

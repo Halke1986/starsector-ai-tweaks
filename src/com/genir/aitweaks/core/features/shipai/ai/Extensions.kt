@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.features.shipai.ai
 
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.extensions.frontFacing
 import com.genir.aitweaks.core.utils.extensions.isModule
@@ -100,3 +101,5 @@ val ShipAPI.totalCollisionRadius: Float
 
         return max(collisionRadius, max(withDrones, withModules))
     }
+
+fun ShipAPI.command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)

@@ -25,7 +25,6 @@ import kotlin.math.max
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val moveOrderLocation: Vector2f?) {
-    private val systemAIType = ship.system?.specAPI?.AIType
     private val movement = Movement(this)
 
     var attackTarget: ShipAPI? = maneuverTarget
@@ -73,7 +72,6 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val mov
 
         ventIfNeeded()
         holdFireIfOverfluxed()
-        manageMobilitySystems()
 
         movement.advance(dt)
 
@@ -197,40 +195,6 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val mov
         }
 
         if (shouldVent) ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
-    }
-
-    private fun manageMobilitySystems() {
-        when (systemAIType) {
-
-            MANEUVERING_JETS -> {
-                val shouldUse = when {
-                    !ship.canUseSystemThisFrame() -> false
-
-                    // Use MANEUVERING_JETS to back off. Vanilla AI does
-                    // this already, but is not determined enough.
-                    isBackingOff -> true
-
-                    // Use MANEUVERING_JETS to chase target during 1v1 duel.
-                    is1v1 && engagementRange(attackTarget!!) > effectiveRange -> true
-
-                    else -> false
-                }
-
-                if (shouldUse) ship.giveCommand(ShipCommand.USE_SYSTEM, null, 0)
-            }
-
-            // Prevent vanilla AI from jumping closer to target with
-            // BURN_DRIVE, if the target is already within weapons range.
-            BURN_DRIVE -> {
-                if (attackTarget != null && engagementRange(attackTarget!!) < effectiveRange) {
-                    ship.blockCommandForOneFrame(ShipCommand.USE_SYSTEM)
-                }
-            }
-
-            // TODO BURN_DRIVE_TOGGLE
-
-            else -> Unit
-        }
     }
 
     internal fun engagementRange(target: ShipAPI): Float {

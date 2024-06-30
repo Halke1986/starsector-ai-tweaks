@@ -2,10 +2,12 @@ package com.genir.aitweaks.core.features.shipai.ai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
+import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
@@ -17,6 +19,7 @@ import kotlin.math.sign
 class Movement(private val ai: Maneuver) {
     private val ship = ai.ship
     private val engineController = EngineController(ship)
+    private val systemAIType = ship.system?.specAPI?.AIType
 
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
@@ -25,6 +28,7 @@ class Movement(private val ai: Maneuver) {
     fun advance(dt: Float) {
         setFacing()
         setHeading(dt)
+        manageMobilitySystems()
     }
 
     private fun setFacing() {
@@ -104,6 +108,40 @@ class Movement(private val ai: Maneuver) {
         ai.desiredHeading = engineController.heading(headingPoint, velocity, gatherSpeedLimits(dt))
     }
 
+    private fun manageMobilitySystems() {
+        when (systemAIType) {
+
+            ShipSystemAiType.MANEUVERING_JETS -> when {
+                !ship.canUseSystemThisFrame() -> Unit
+
+                // Use MANEUVERING_JETS to back off. Vanilla AI does
+                // this already, but is not determined enough.
+                ai.isBackingOff -> ship.command(USE_SYSTEM)
+
+                // Use MANEUVERING_JETS to chase target during 1v1 duel.
+                ai.is1v1 && ai.engagementRange(ai.attackTarget!!) > ai.effectiveRange -> ship.command(USE_SYSTEM)
+            }
+
+            // Prevent vanilla AI from jumping closer to target with
+            // BURN_DRIVE, if the target is already within weapons range.
+            ShipSystemAiType.BURN_DRIVE -> {
+                if (ai.attackTarget != null && ai.engagementRange(ai.attackTarget!!) < ai.effectiveRange) {
+                    ship.blockCommandForOneFrame(USE_SYSTEM)
+                }
+            }
+
+            // TODO BURN_DRIVE_TOGGLE
+//            ShipSystemAiType.BURN_DRIVE_TOGGLE -> {
+//                val headingVector = ai.headingPoint?.let { it - ship.location } ?: return
+//                val dist = headingVector.length()
+//                val angle = abs(MathUtils.getShortestRotation(ship.facing, headingVector.getFacing()))
+//                debugPlugin[ship] = "$dist $angle"
+//            }
+
+            else -> Unit
+        }
+    }
+
     /** Aim hardpoint weapons with entire ship, if possible. */
     private fun calculateOffsetAimPoint(attackTarget: ShipAPI): Vector2f {
         // Find intercept points of all hardpoints attacking the current target.
@@ -136,10 +174,7 @@ class Movement(private val ai: Maneuver) {
             }
         }
 
-        val limits: MutableList<EngineController.Limit?> = mutableListOf(
-            avoidBlockingLineOfFire(dt, friendlies),
-            avoidBorder()
-        )
+        val limits: MutableList<EngineController.Limit?> = mutableListOf(avoidBlockingLineOfFire(dt, friendlies), avoidBorder())
 
         limits.addAll(avoidCollisions(dt, friendlies))
 
@@ -192,8 +227,8 @@ class Movement(private val ai: Maneuver) {
                 // Ship is moving away from the obstacle.
                 angleToVelocity.sign != angleToOtherLine.sign -> return@forEach
 
-                // Do not consider line of fire blocking if target is out of range.
-                blocked.engagementRange(target) > blocked.ship.maxRange + target.collisionRadius -> return@forEach
+                // Do not consider line of fire blocking if target is out of range, with 1.2 tolerance factor.
+                blocked.engagementRange(target) > (blocked.ship.maxRange + target.collisionRadius) * 1.2f -> return@forEach
             }
 
             val arcLength = distToTarget * abs(angleToOtherLine) * DEGREES_TO_RADIANS
