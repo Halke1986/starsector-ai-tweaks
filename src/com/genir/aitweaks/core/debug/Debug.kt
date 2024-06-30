@@ -2,22 +2,19 @@ package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.features.shipai.ai.EngineController
 import com.genir.aitweaks.core.utils.Rotation
-import com.genir.aitweaks.core.utils.aitStash
 import com.genir.aitweaks.core.utils.div
-import com.genir.aitweaks.core.utils.extensions.hasAIType
+import com.genir.aitweaks.core.utils.extensions.hasCustomAI
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 
 fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
-    val custom = ships.filter { it.hasAIType(CustomAIManager().getCustomAIClass()) }
+    val custom = ships.filter { it.hasCustomAI }
 
 //    custom.filter { it.hullSpec.hullId == "dominator" }.forEach {
 //        drawLine(it.location, it.aitStash.maneuverAI?.headingPoint ?: it.location, Color.YELLOW)

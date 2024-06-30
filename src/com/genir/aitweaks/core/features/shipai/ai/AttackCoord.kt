@@ -8,7 +8,7 @@ import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.features.shipai.ai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.utils.aitStash
 import com.genir.aitweaks.core.utils.angularSize
-import com.genir.aitweaks.core.utils.extensions.hasAIType
+import com.genir.aitweaks.core.utils.extensions.hasCustomAI
 import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
@@ -32,9 +32,8 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
 
     // Divide attacking AIs into squads attacking the same target.
     private fun findSquads(): Map<ShipAPI, List<Group>> {
-        val customAI = CustomAIManager().getCustomAIClass()
         val ships = Global.getCombatEngine().ships.asSequence()
-        val ais = ships.filter { it.hasAIType(customAI) }.mapNotNull { it.aitStash.maneuverAI }
+        val ais = ships.filter { it.hasCustomAI }.mapNotNull { it.aitStash.maneuverAI }
 
         val squads: MutableMap<ShipAPI, MutableList<Group>> = mutableMapOf()
         ais.forEach { attackerAI ->

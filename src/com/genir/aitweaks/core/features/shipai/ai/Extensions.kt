@@ -14,11 +14,11 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 
 /** Weapon range from the center of the ship. */
-val WeaponAPI.trueRange: Float
+internal val WeaponAPI.trueRange: Float
     get() = this.range + this.slot.location.x
 
 /** List of all front facing non-PD non-Missile weapons. */
-val ShipAPI.primaryWeapons: List<WeaponAPI>
+internal val ShipAPI.primaryWeapons: List<WeaponAPI>
     get() = this.allWeapons.filter { weapon ->
         when {
             weapon.type == WeaponAPI.WeaponType.MISSILE -> false
@@ -31,16 +31,16 @@ val ShipAPI.primaryWeapons: List<WeaponAPI>
     }
 
 /** Range at which all primary weapons can hit. */
-val ShipAPI.minRange: Float
+internal val ShipAPI.minRange: Float
     get() = primaryWeapons.minOfOrNull { it.trueRange } ?: 0f
 
 /** Range at which at least one primary weapon can hit. */
-val ShipAPI.maxRange: Float
+internal val ShipAPI.maxRange: Float
     get() = primaryWeapons.maxOfOrNull { it.trueRange } ?: 0f
 
 /** Range at which the ship can deliver at least
  * `dpsFraction` of its primary weapons DPS. */
-fun ShipAPI.effectiveRange(dpsFraction: Float): Float {
+internal fun ShipAPI.effectiveRange(dpsFraction: Float): Float {
     val weapons = primaryWeapons
     val dps = weapons.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
 
@@ -58,7 +58,7 @@ fun ShipAPI.effectiveRange(dpsFraction: Float): Float {
 }
 
 /** Fraction of primary weapons DPS that can be delivered at the given range. */
-fun ShipAPI.dpsFractionAtRange(range: Float): Float {
+internal fun ShipAPI.dpsFractionAtRange(range: Float): Float {
     var all = 0f
     var inRange = 0f
 
@@ -71,16 +71,16 @@ fun ShipAPI.dpsFractionAtRange(range: Float): Float {
     return if (all != 0f) inRange / all else 0f
 }
 
-fun ShipAPI.dpsAtRange(range: Float): Float {
+internal fun ShipAPI.dpsAtRange(range: Float): Float {
     return primaryWeapons.filter { it.trueRange >= range }.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
 }
 
-fun ShipAPI.shortestRotationToTarget(target: Vector2f): Float {
+internal fun ShipAPI.shortestRotationToTarget(target: Vector2f): Float {
     val facingToTarget = (target - location).getFacing()
     return MathUtils.getShortestRotation(facing, facingToTarget)
 }
 
-val ShipAPI.strafeAcceleration: Float
+internal val ShipAPI.strafeAcceleration: Float
     get() = this.acceleration * when (this.hullSize) {
         ShipAPI.HullSize.FIGHTER -> 0.75f
         ShipAPI.HullSize.FRIGATE -> 1.0f
@@ -91,7 +91,7 @@ val ShipAPI.strafeAcceleration: Float
     }
 
 /** Collision radius encompassing an entire modular ship, including drones. */
-val ShipAPI.totalCollisionRadius: Float
+internal val ShipAPI.totalCollisionRadius: Float
     get() {
         val modules = childModulesCopy.filter { it.isModule } // Make sure the module is still attached.
         val drones = deployedDrones?.filter { it.collisionClass == CollisionClass.SHIP }
@@ -102,4 +102,4 @@ val ShipAPI.totalCollisionRadius: Float
         return max(collisionRadius, max(withDrones, withModules))
     }
 
-fun ShipAPI.command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
+internal fun ShipAPI.command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)

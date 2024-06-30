@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.features.shipai.ai
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
-import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
@@ -191,9 +190,7 @@ class Movement(private val ai: Maneuver) {
 
     private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {
         val target = ai.attackTarget ?: return null
-
-        val customAI = CustomAIManager().getCustomAIClass()
-        val ais = allies.filter { it.hasAIType(customAI) }.mapNotNull { it.aitStash.maneuverAI }
+        val ais = allies.filter { it.hasCustomAI }.mapNotNull { it.aitStash.maneuverAI }
 
         // Blocking line of fire occurs mostly among ships attacking the same target.
         // For simplicity, the AI will try to avoid only those cases of blocking.

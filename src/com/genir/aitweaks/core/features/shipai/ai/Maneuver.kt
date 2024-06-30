@@ -6,17 +6,17 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
-import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE
-import com.genir.aitweaks.core.utils.ShipSystemAiType.MANEUVERING_JETS
+import com.genir.aitweaks.core.GlobalState
+import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.utils.aitStash
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import com.genir.aitweaks.core.utils.shipGrid
 import com.genir.aitweaks.core.utils.times
-import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.BLUE
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
@@ -24,10 +24,12 @@ import kotlin.math.max
 // TODO retreat order during chase battle freezes the ship
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val moveOrderLocation: Vector2f?) {
+class Maneuver(val ship: ShipAPI, val vanillaManeuverTarget: ShipAPI?, internal val moveOrderLocation: Vector2f?) {
     private val movement = Movement(this)
 
+    val maneuverTarget = reviewManeuverTarget(vanillaManeuverTarget)
     var attackTarget: ShipAPI? = maneuverTarget
+
     var effectiveRange: Float = 0f
     var totalCollisionRadius: Float = 0f
 
@@ -53,6 +55,10 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val mov
     internal var threatVector = Vector2f()
 
     fun advance(dt: Float) {
+        if (vanillaManeuverTarget != maneuverTarget) {
+            drawLine(ship.location, maneuverTarget?.location ?: ship.location, BLUE)
+        }
+
         ship.aitStash.maneuverAI = this
 
         if (shouldEndManeuver()) {
@@ -83,6 +89,11 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val mov
      * is avoiding collision. But since ShipAI collision avoidance is overriden,
      * setting heading by Maneuver needs to be done each frame, in advance method. */
     fun doManeuver() = Unit
+
+    /** Custom ship AI uses fleet cohesion directly, instead of through orders. */
+    private fun reviewManeuverTarget(vanillaManeuverTarget: ShipAPI?): ShipAPI? {
+        return GlobalState.fleetCohesion?.findValidTarget(ship, vanillaManeuverTarget) ?: vanillaManeuverTarget
+    }
 
     private fun shouldEndManeuver(): Boolean {
         return when {

@@ -11,6 +11,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
+import com.genir.aitweaks.core.GlobalState
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.targetTracker
 import lunalib.lunaSettings.LunaSettings
@@ -18,28 +19,35 @@ import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
 class FleetCohesion : BaseEveryFrameCombatPlugin() {
-    private var impl: FleetCohesionImpl? = null
-    private var isOn = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai") ?: false
+    private val isOn = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai") ?: false
+
+    init {
+        GlobalState.fleetCohesion = null
+    }
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
+        if (isOn && GlobalState.fleetCohesion == null) {
+            GlobalState.fleetCohesion = FleetCohesionAI()
+        }
+
         when {
             Global.getCurrentState() != GameState.COMBAT -> return
             Global.getCombatEngine().isSimulation -> return
-            !isOn -> return
+            GlobalState.fleetCohesion == null -> return
+
+            else -> GlobalState.fleetCohesion!!.advance(dt)
         }
-
-        if (impl == null) impl = FleetCohesionImpl()
-
-        impl!!.advance(dt)
     }
 }
 
-private class FleetCohesionImpl {
+class FleetCohesionAI {
     private val cohesionAssignments: MutableSet<AssignmentKey> = mutableSetOf()
     private val cohesionWaypoints: MutableSet<AssignmentTargetAPI> = mutableSetOf()
 
-    private val advanceInterval = IntervalUtil(0.75f, 1f)
     private var validGroups: List<Set<ShipAPI>> = listOf()
+    private var primaryTargets: List<ShipAPI> = listOf()
+
+    private val advanceInterval = IntervalUtil(0.75f, 1f)
     private var taskManager: CombatTaskManager = Global.getCombatEngine().getFleetManager(0).getTaskManager(false) as CombatTaskManager
 
     fun advance(dt: Float) {
@@ -74,7 +82,7 @@ private class FleetCohesionImpl {
         validGroups = groupsFromLargest.filter { it.dpSum * 4f >= groupsFromLargest.first().dpSum }
 
         val fog = engine.getFogOfWar(0)
-        val primaryTargets = validGroups.first().filter { it.isBig && fog.isVisible(it) }
+        primaryTargets = validGroups.first().filter { it.isBig && fog.isVisible(it) }
 
         val ships = engine.ships.filter {
             when {
@@ -84,7 +92,8 @@ private class FleetCohesionImpl {
                 !it.isBig -> false
                 it.isAlly -> false
                 it.isStation -> false
-                it.isStationModule -> false
+                it.isModule -> false
+                it.hasCustomAI -> false
                 it == engine.playerShip && engine.isUIAutopilotOn -> false
                 else -> true
             }
@@ -92,31 +101,37 @@ private class FleetCohesionImpl {
 
         // Assign targets.
         val channelWasOpen = taskManager.isCommChannelOpen
-        ships.forEach { manageAssignments(it, primaryTargets) }
+        ships.forEach { manageAssignments(it) }
         if (!channelWasOpen && taskManager.isCommChannelOpen) taskManager.closeCommChannel()
     }
 
-    private fun manageAssignments(ship: ShipAPI, primaryTargets: List<ShipAPI>) {
+    fun findValidTarget(ship: ShipAPI, target: ShipAPI?): ShipAPI? {
+        if (target != null) {
+            // Ship is engaging or planning to engage the primary group.
+            if (validGroups.first().contains(target)) return target
+
+            // Ship is engaging a secondary group.
+            if (validGroups.any { it.contains(target) } && closeToEnemy(ship, target)) return target
+        }
+
+        // Ship has wrong target. Find the closest valid target in the main enemy battle group.
+        return primaryTargets.minByOrNull { (it.location - ship.location).lengthSquared() } ?: target
+    }
+
+    private fun manageAssignments(ship: ShipAPI) {
         // Ship has foreign assignment.
         if (ship.assignment != null) {
             return
         }
 
         val target = targetTracker[ship] ?: return
+        val validTarget = findValidTarget(ship, target)
+        if (validTarget == null || validTarget == target) return
 
-        // Ship is engaging or planning to engage the primary group.
-        if (validGroups.first().contains(target)) return
-
-        // Ship is engaging a secondary group.
-        if (validGroups.any { it.contains(target) } && closeToEnemy(ship, target)) return
-
-        // Ship has wrong target. Find the closest valid target in the main enemy battle group.
-        val closestTarget = primaryTargets.minByOrNull { (it.location - ship.location).lengthSquared() } ?: return
-
-        // Create waypoint on the target ship. Make sure it follow the target even on the map edge.
+        // Create waypoint on the target ship. Make sure it follows the target even on the map edge.
         val fleetManager = Global.getCombatEngine().getFleetManager(ship.owner)
         val waypoint = fleetManager.createWaypoint(Vector2f(), true)
-        waypoint.location.set(closestTarget.location)
+        waypoint.location.set(validTarget.location)
         cohesionWaypoints.add(waypoint)
 
         // Assign target to ship.

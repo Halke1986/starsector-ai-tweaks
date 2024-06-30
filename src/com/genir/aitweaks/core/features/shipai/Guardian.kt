@@ -5,14 +5,14 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.utils.extensions.hasAIType
+import com.genir.aitweaks.core.utils.extensions.hasCustomAI
 import com.genir.aitweaks.core.utils.extensions.isPD
 
 /** Special config for Guardians with custom AI. */
 class Guardian : BaseEveryFrameCombatPlugin() {
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
         val ships = Global.getCombatEngine().ships
-        val guardiansWithCustomAI = ships.filter { it.hullSpec.hullId == "guardian" && it.hasAIType(CustomAIManager().getCustomAIClass()) }
+        val guardiansWithCustomAI = ships.filter { it.hullSpec.hullId == "guardian" && it.hasCustomAI }
 
         // Prevent non-PD turrets from attacking fighters.
         guardiansWithCustomAI.flatMap { it.allWeapons }.filter { it.slot.isTurret && !it.isPD }.forEach { it.spec.aiHints.add(WeaponAPI.AIHints.STRIKE) }
