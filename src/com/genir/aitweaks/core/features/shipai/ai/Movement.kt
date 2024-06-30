@@ -47,8 +47,8 @@ class Movement(private val ai: Maneuver) {
             }
 
             // Face movement target location.
-            ai.targetLocation != null -> {
-                Pair(ai.targetLocation, Vector2f())
+            ai.moveOrderLocation != null -> {
+                Pair(ai.moveOrderLocation, Vector2f())
             }
 
             // Nothing to do. Stop rotation.
@@ -62,8 +62,8 @@ class Movement(private val ai: Maneuver) {
     private fun setHeading(dt: Float) {
         val (headingPoint: Vector2f, velocity: Vector2f) = when {
             // Move directly to ordered location.
-            ai.targetLocation != null -> {
-                Pair(ai.targetLocation, Vector2f())
+            ai.moveOrderLocation != null -> {
+                Pair(ai.moveOrderLocation, Vector2f())
             }
 
             // Move opposite to threat direction when backing off.

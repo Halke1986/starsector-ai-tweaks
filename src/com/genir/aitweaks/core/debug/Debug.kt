@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.features.shipai.ai.EngineController
-import com.genir.aitweaks.core.features.shipai.ai.maxRange
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.hasAIType
@@ -17,20 +16,6 @@ import org.lwjgl.util.vector.Vector2f
 fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
     val custom = ships.filter { it.hasAIType(CustomAIManager().getCustomAIClass()) }
-
-    custom.forEach {
-//        val target = it.aitStash.attackTarget
-//        val burst = it.primaryWeapons.find { weapon -> weapon.isInFiringSequence && weapon.autofireAI?.targetShip == target } != null
-//
-//        val c = if (burst) RED
-//        else CYAN
-//
-//        drawCircle(it.location, it.maxRange)
-////        drawCollisionRadius(it)
-////        drawLine(it.location, it.location + it.velocity, Color.GREEN)
-    }
-
-//    debugPlugin["monitors"] = ships.filter { it.variant.hasHullMod("fluxshunt") && it.isFrigate }.size
 }
 
 private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()

@@ -24,7 +24,7 @@ import kotlin.math.max
 // TODO retreat order during chase battle freezes the ship
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val targetLocation: Vector2f?) {
+class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val moveOrderLocation: Vector2f?) {
     private val systemAIType = ship.system?.specAPI?.AIType
     private val movement = Movement(this)
 
@@ -94,7 +94,7 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
             }
 
             // Arrived at location.
-            targetLocation != null && (ship.location - targetLocation).length() <= Preset.arrivedAtLocationRadius -> {
+            moveOrderLocation != null && (ship.location - moveOrderLocation).length() <= Preset.arrivedAtLocationRadius -> {
                 true
             }
 
@@ -124,16 +124,8 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
             else -> true
         }
 
-        val updatedTarget = if (updateTarget) {
-            val opportunities = threats.filter { engagementRange(it) < ship.maxRange }
-            if (opportunities.isEmpty()) maneuverTarget
-
-            opportunities.fold(Pair<ShipAPI?, Float>(null, Float.MAX_VALUE)) { best, it ->
-                val eval = evaluateTarget(it)
-                if (eval < best.second) Pair(it, eval)
-                else best
-            }.first
-        } else currentTarget
+        val updatedTarget = if (updateTarget) findNewAttackTarget()
+        else currentTarget
 
         ship.aitStash.attackTarget = updatedTarget
         ship.shipTarget = updatedTarget
@@ -250,12 +242,37 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
         val r = 2f * max(Preset.threatEvalRadius, ship.maxRange + rangeEnvelope)
         val allShips = shipGrid().getCheckIterator(ship.location, r, r).asSequence().filterIsInstance<ShipAPI>()
 
-        threats = allShips.filter { it.owner != ship.owner && it.isAlive && !it.isExpired && it.isShip }.toList()
+        threats = allShips.filter { isThreat(it) }.toList()
 
         threatVector = threats.fold(Vector2f()) { sum, it ->
             val dp = it.deploymentPoints
             val dir = (it.location - ship.location).resized(1f)
             sum + dir * dp * dp
+        }
+    }
+
+    private fun findNewAttackTarget(): ShipAPI? {
+        val opportunities = threats.filter { engagementRange(it) < ship.maxRange }
+
+        val foldInit: Pair<ShipAPI?, Float> = Pair(null, Float.MAX_VALUE)
+        val bestOpportunity = opportunities.fold(foldInit) { best, it ->
+            val eval = evaluateTarget(it)
+            if (eval < best.second) Pair(it, eval)
+            else best
+        }.first
+
+        return when {
+            bestOpportunity != null -> bestOpportunity
+
+            maneuverTarget != null -> maneuverTarget
+
+            // Try to find a target near move location.
+            moveOrderLocation != null -> {
+                val entityIterator = shipGrid().getCheckIterator(moveOrderLocation, 400f, 400f)
+                entityIterator.asSequence().filterIsInstance<ShipAPI>().filter { isThreat(it) }.firstOrNull()
+            }
+
+            else -> null
         }
     }
 
@@ -286,5 +303,9 @@ class Maneuver(val ship: ShipAPI, val maneuverTarget: ShipAPI?, internal val tar
         // TODO avoid wrecks
 
         return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType
+    }
+
+    private fun isThreat(target: ShipAPI): Boolean {
+        return target.owner != ship.owner && target.isAlive && !target.isExpired && target.isShip
     }
 }
