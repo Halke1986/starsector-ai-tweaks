@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.features.shipai.ai
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
+import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
@@ -12,6 +13,7 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -129,13 +131,27 @@ class Movement(private val ai: Maneuver) {
                 }
             }
 
-            // TODO BURN_DRIVE_TOGGLE
-//            ShipSystemAiType.BURN_DRIVE_TOGGLE -> {
-//                val headingVector = ai.headingPoint?.let { it - ship.location } ?: return
-//                val dist = headingVector.length()
-//                val angle = abs(MathUtils.getShortestRotation(ship.facing, headingVector.getFacing()))
-//                debugPlugin[ship] = "$dist $angle"
-//            }
+            ShipSystemAiType.BURN_DRIVE_TOGGLE -> {
+                val vectorToDest = when {
+                    !ship.canUseSystemThisFrame() || ship.system.isOn -> null
+
+                    ai.moveOrderLocation != null -> ai.moveOrderLocation - ship.location
+
+                    // Charge straight at the maneuver target, disregard fleet coordination.
+                    ai.maneuverTarget != null -> {
+                        val vectorToTarget = ai.maneuverTarget.location - ship.location
+                        vectorToTarget.addLength(-ship.minRange)
+                    }
+
+                    else -> null
+                } ?: return
+
+                drawLine(ship.location, vectorToDest, Color.GREEN)
+
+//                if (vectorToDest.length() > 500f && abs(MathUtils.getShortestRotation(vectorToDest.getFacing(), ship.facing)) <= 5f) {
+//                    ship.command(USE_SYSTEM)
+//                }
+            }
 
             else -> Unit
         }

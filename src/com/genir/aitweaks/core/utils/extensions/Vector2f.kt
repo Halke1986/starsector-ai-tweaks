@@ -18,3 +18,9 @@ val Vector2f.copy: Vector2f
     get() = Vector2f(x, y)
 
 operator fun Vector2f.unaryMinus() = Vector2f(-x, -y)
+
+fun Vector2f.addLength(toAdd: Float): Vector2f {
+    val l = length()
+    val s = (l + toAdd) / l
+    return Vector2f(x * s, y * s)
+}

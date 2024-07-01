@@ -58,6 +58,8 @@ class FleetCohesionAI {
         if (engine.isPaused) return
 
         // Cleanup of previous iteration assignments and waypoints.
+        validGroups = listOf()
+        primaryTargets = listOf()
         clearAssignments()
         clearWaypoints()
 
@@ -105,17 +107,19 @@ class FleetCohesionAI {
         if (!channelWasOpen && taskManager.isCommChannelOpen) taskManager.closeCommChannel()
     }
 
-    fun findValidTarget(ship: ShipAPI, target: ShipAPI?): ShipAPI? {
-        if (target != null) {
+    fun findValidTarget(ship: ShipAPI, currentTarget: ShipAPI?): ShipAPI? {
+        return when {
+            validGroups.isEmpty() -> currentTarget
+
             // Ship is engaging or planning to engage the primary group.
-            if (validGroups.first().contains(target)) return target
+            validGroups.first().contains(currentTarget) -> currentTarget
 
             // Ship is engaging a secondary group.
-            if (validGroups.any { it.contains(target) } && closeToEnemy(ship, target)) return target
-        }
+            currentTarget != null && validGroups.first().contains(currentTarget) && closeToEnemy(ship, currentTarget) -> currentTarget
 
-        // Ship has wrong target. Find the closest valid target in the main enemy battle group.
-        return primaryTargets.minByOrNull { (it.location - ship.location).lengthSquared() } ?: target
+            // Ship has wrong target. Find the closest valid target in the main enemy battle group.
+            else -> primaryTargets.minByOrNull { (it.location - ship.location).lengthSquared() } ?: currentTarget
+        }
     }
 
     private fun manageAssignments(ship: ShipAPI) {
