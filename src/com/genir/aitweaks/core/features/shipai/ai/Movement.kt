@@ -1,10 +1,11 @@
 package com.genir.aitweaks.core.features.shipai.ai
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
-import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE_TOGGLE
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
@@ -13,7 +14,6 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -21,19 +21,27 @@ class Movement(private val ai: Maneuver) {
     private val ship = ai.ship
     private val engineController = EngineController(ship)
     private val systemAIType = ship.system?.specAPI?.AIType
+    private val burnDriveAI: BurnDrive? = if (systemAIType == BURN_DRIVE_TOGGLE) BurnDrive(ship, ai) else null
 
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
     private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
 
     fun advance(dt: Float) {
+        burnDriveAI?.advance(dt)
         setFacing()
         setHeading(dt)
         manageMobilitySystems()
     }
 
     private fun setFacing() {
-        val (aimPoint, velocity) = when {
+        val (aimPoint: Vector2f, velocity: Vector2f) = when {
+            // Position ship to start burn.
+            burnDriveAI?.shouldBurn == true -> {
+                // Compiler should require !! on headingPoint. Is this a Kotlin bug?
+                Pair(burnDriveAI.headingPoint, Vector2f())
+            }
+
             // Face the attack target.
             ai.attackTarget != null -> {
                 val target = ai.attackTarget!!
@@ -66,6 +74,11 @@ class Movement(private val ai: Maneuver) {
 
     private fun setHeading(dt: Float) {
         val (headingPoint: Vector2f, velocity: Vector2f) = when {
+            // Position ship to start burn.
+            burnDriveAI?.shouldBurn == true -> {
+                Pair(burnDriveAI.headingPoint!!, Vector2f())
+            }
+
             // Move directly to ordered location.
             ai.moveOrderLocation != null -> {
                 Pair(ai.moveOrderLocation, Vector2f())
@@ -88,12 +101,12 @@ class Movement(private val ai: Maneuver) {
                 val vectorToThreat = if (!ai.threatVector.isZeroVector()) ai.threatVector else vectorToTarget
 
                 // Strafe the target randomly, when it's the only threat.
-                val shouldStrafe = ai.is1v1 && ai.engagementRange(ai.maneuverTarget) <= ai.effectiveRange
+                val shouldStrafe = ai.is1v1 && ai.range(ai.maneuverTarget) <= ai.effectiveRange
                 val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
                 else vectorToThreat
 
                 // Let the attack coordinator review the calculated heading point.
-                ai.proposedHeadingPoint = ai.maneuverTarget.location - attackPositionOffset.resized(ship.minRange)
+                ai.proposedHeadingPoint = ai.maneuverTarget.location - attackPositionOffset.resized(ai.minRange)
                 val headingPoint = (ai.reviewedHeadingPoint ?: ai.proposedHeadingPoint)!!
                 ai.reviewedHeadingPoint = null
 
@@ -120,37 +133,20 @@ class Movement(private val ai: Maneuver) {
                 ai.isBackingOff -> ship.command(USE_SYSTEM)
 
                 // Use MANEUVERING_JETS to chase target during 1v1 duel.
-                ai.is1v1 && ai.engagementRange(ai.attackTarget!!) > ai.effectiveRange -> ship.command(USE_SYSTEM)
+                ai.is1v1 && ai.range(ai.attackTarget!!) > ai.effectiveRange -> ship.command(USE_SYSTEM)
             }
 
             // Prevent vanilla AI from jumping closer to target with
             // BURN_DRIVE, if the target is already within weapons range.
             ShipSystemAiType.BURN_DRIVE -> {
-                if (ai.attackTarget != null && ai.engagementRange(ai.attackTarget!!) < ai.effectiveRange) {
+                if (ai.attackTarget != null && ai.range(ai.attackTarget!!) < ai.effectiveRange) {
                     ship.blockCommandForOneFrame(USE_SYSTEM)
                 }
             }
 
-            ShipSystemAiType.BURN_DRIVE_TOGGLE -> {
-                val vectorToDest = when {
-                    !ship.canUseSystemThisFrame() || ship.system.isOn -> null
-
-                    ai.moveOrderLocation != null -> ai.moveOrderLocation - ship.location
-
-                    // Charge straight at the maneuver target, disregard fleet coordination.
-                    ai.maneuverTarget != null -> {
-                        val vectorToTarget = ai.maneuverTarget.location - ship.location
-                        vectorToTarget.addLength(-ship.minRange)
-                    }
-
-                    else -> null
-                } ?: return
-
-                drawLine(ship.location, vectorToDest, Color.GREEN)
-
-//                if (vectorToDest.length() > 500f && abs(MathUtils.getShortestRotation(vectorToDest.getFacing(), ship.facing)) <= 5f) {
-//                    ship.command(USE_SYSTEM)
-//                }
+            BURN_DRIVE_TOGGLE -> {
+                if (burnDriveAI?.go() == true) ship.command(USE_SYSTEM)
+                else ship.blockCommandForOneFrame(USE_SYSTEM)
             }
 
             else -> Unit
@@ -179,7 +175,7 @@ class Movement(private val ai: Maneuver) {
             when {
                 it == ship -> false
                 it.owner != ship.owner -> false
-                it.isFighter -> false
+                it.collisionClass != CollisionClass.SHIP -> false
 
                 // Modules and drones count towards
                 // their parent collision radius.
@@ -241,7 +237,7 @@ class Movement(private val ai: Maneuver) {
                 angleToVelocity.sign != angleToOtherLine.sign -> return@forEach
 
                 // Do not consider line of fire blocking if target is out of range, with 1.2 tolerance factor.
-                blocked.engagementRange(target) > (blocked.ship.maxRange + target.collisionRadius) * 1.2f -> return@forEach
+                blocked.range(target) > blocked.maxRange * 1.2f -> return@forEach
             }
 
             val arcLength = distToTarget * abs(angleToOtherLine) * DEGREES_TO_RADIANS

@@ -10,7 +10,7 @@ import com.genir.aitweaks.core.GlobalState
 import com.genir.aitweaks.core.utils.aitStash
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
-import com.genir.aitweaks.core.utils.shipGrid
+import com.genir.aitweaks.core.utils.shipSequence
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -29,6 +29,8 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
     var attackTarget: ShipAPI? = maneuverTarget
 
     var effectiveRange: Float = 0f
+    var minRange: Float = 0f
+    var maxRange: Float = 0f
     var totalCollisionRadius: Float = 0f
 
     // Required by vanilla logic.
@@ -63,6 +65,8 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
         // Update state.
         updateThreats()
         effectiveRange = ship.effectiveRange(Preset.effectiveDpsThreshold)
+        minRange = ship.minRange
+        maxRange = ship.maxRange
         totalCollisionRadius = ship.totalCollisionRadius
 
         updateIdleTime(dt)
@@ -75,7 +79,7 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
 
         movement.advance(dt)
 
-        ship.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, ship.minRange)
+        ship.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, minRange)
         ship.aiFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
     }
 
@@ -119,7 +123,7 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
             ship.primaryWeapons.find { it.size != SMALL && it.isInFiringSequence && it.autofireAI?.targetShip == attackTarget } != null -> false
 
             // Target is out of range.
-            engagementRange(currentTarget) < ship.maxRange -> true
+            range(currentTarget) > maxRange -> true
 
             // Finish helpless target.
             currentTarget.fluxTracker.isOverloadedOrVenting -> false
@@ -202,16 +206,14 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
         if (shouldVent) ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
     }
 
-    internal fun engagementRange(target: ShipAPI): Float {
-        return (target.location - ship.location).length()
+    internal fun range(target: ShipAPI): Float {
+        return (target.location - ship.location).length() - target.collisionRadius / 2f
     }
 
     private fun updateThreats() {
         val rangeEnvelope = 500f
-        val r = 2f * max(Preset.threatEvalRadius, ship.maxRange + rangeEnvelope)
-        val allShips = shipGrid().getCheckIterator(ship.location, r, r).asSequence().filterIsInstance<ShipAPI>()
-
-        threats = allShips.filter { isThreat(it) }.toList()
+        val r = max(Preset.threatEvalRadius, maxRange + rangeEnvelope)
+        threats = shipSequence(ship.location, r).filter { isThreat(it) }.toList()
 
         threatVector = threats.fold(Vector2f()) { sum, it ->
             val dp = it.deploymentPoints
@@ -221,7 +223,7 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
     }
 
     private fun findNewAttackTarget(): ShipAPI? {
-        val opportunities = threats.filter { engagementRange(it) < ship.maxRange }
+        val opportunities = threats.filter { range(it) < maxRange }
 
         val foldInit: Pair<ShipAPI?, Float> = Pair(null, Float.MAX_VALUE)
         val bestOpportunity = opportunities.fold(foldInit) { best, it ->
@@ -237,8 +239,7 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
 
             // Try to find a target near move location.
             moveOrderLocation != null -> {
-                val entityIterator = shipGrid().getCheckIterator(moveOrderLocation, 400f, 400f)
-                entityIterator.asSequence().filterIsInstance<ShipAPI>().filter { isThreat(it) }.firstOrNull()
+                shipSequence(moveOrderLocation, 200f).firstOrNull { isThreat(it) }
             }
 
             else -> null
@@ -253,9 +254,9 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
         val evalAngle = abs(angle) * angleWeight
 
         // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
-        val dist = engagementRange(target)
+        val dist = range(target)
         val distWeight = 1f / ship.dpsFractionAtRange(dist)
-        val evalDist = (dist / ship.maxRange) * distWeight
+        val evalDist = (dist / maxRange) * distWeight
 
         // Prioritize targets high on flux. Avoid hunting low flux phase ships.
         val fluxLeft = (1f - target.fluxLevel)

@@ -81,7 +81,7 @@ class FleetCohesionAI {
         if (enemyFleet.isEmpty()) return
         val groups = segmentFleet(enemyFleet.toTypedArray())
         val groupsFromLargest = groups.sortedBy { it.dpSum }.reversed()
-        validGroups = groupsFromLargest.filter { it.dpSum * 4f >= groupsFromLargest.first().dpSum }
+        validGroups = groupsFromLargest.filter { isValidGroup(it, groupsFromLargest.first().dpSum) }
 
         val fog = engine.getFogOfWar(0)
         primaryTargets = validGroups.first().filter { it.isBig && fog.isVisible(it) }
@@ -219,6 +219,10 @@ class FleetCohesionAI {
     private fun closeToEnemy(ship: ShipAPI, target: ShipAPI): Boolean {
         val maxRange = ship.maxFiringRange * 1.5f
         return (ship.location - target.location).lengthSquared() <= maxRange * maxRange
+    }
+
+    private fun isValidGroup(group: Set<ShipAPI>, largestGroupDP: Float): Boolean {
+        return group.any { ship: ShipAPI -> ship.isCapital } || (group.dpSum * 4f >= largestGroupDP)
     }
 }
 

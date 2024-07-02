@@ -11,6 +11,7 @@ import com.genir.aitweaks.core.utils.attack.analyzeAllyHit
 import com.genir.aitweaks.core.utils.attack.analyzeHit
 import com.genir.aitweaks.core.utils.extensions.rootModule
 import com.genir.aitweaks.core.utils.extensions.totalRange
+import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
 fun closestEntityFinder(
@@ -41,3 +42,8 @@ fun shipGrid(): CollisionGridAPI = Global.getCombatEngine().shipGrid
 fun missileGrid(): CollisionGridAPI = Global.getCombatEngine().missileGrid
 
 fun asteroidGrid(): CollisionGridAPI = Global.getCombatEngine().asteroidGrid
+
+fun shipSequence(p: Vector2f, r: Float): Sequence<ShipAPI> {
+    val sequence = shipGrid().getCheckIterator(p, r + r, r + r).asSequence()
+    return sequence.filterIsInstance<ShipAPI>().filter { (it.location - p).lengthSquared() <= r * r }
+}
