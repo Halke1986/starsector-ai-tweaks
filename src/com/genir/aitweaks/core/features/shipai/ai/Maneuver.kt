@@ -23,10 +23,11 @@ import kotlin.math.max
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, internal val moveOrderLocation: Vector2f?) {
+    val stash = getStash(ship)
     private val movement = Movement(this)
 
     val maneuverTarget = selectManeuverTarget(vanillaManeuverTarget)
-    var attackTarget: ShipAPI? = maneuverTarget
+    var attackTarget: ShipAPI? = stash.attackTarget
 
     var effectiveRange: Float = 0f
     var minRange: Float = 0f
@@ -63,6 +64,8 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
         }
 
         // Update state.
+        stash.advance()
+
         updateThreats()
         effectiveRange = ship.effectiveRange(Preset.effectiveDpsThreshold)
         minRange = ship.minRange
@@ -112,8 +115,7 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
     /** Select which enemy ship to attack. This may be different
      * from the maneuver target provided by the ShipAI. */
     private fun updateAttackTarget() {
-        // Attack target is stored in a flag, so it carries over between Maneuver instances.
-        val currentTarget: ShipAPI? = ship.aitStash.attackTarget
+        val currentTarget = attackTarget
 
         val updateTarget = when {
             currentTarget == null -> true
@@ -134,9 +136,11 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
         val updatedTarget = if (updateTarget) findNewAttackTarget()
         else currentTarget
 
-        ship.aitStash.attackTarget = updatedTarget
         ship.shipTarget = updatedTarget
         attackTarget = updatedTarget
+
+        // Attack target is stored in stash, so it carries over between Maneuver instances.
+        stash.attackTarget = attackTarget
     }
 
     /** Decide if ships needs to back off due to high flux level */

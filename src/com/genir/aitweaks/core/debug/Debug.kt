@@ -16,10 +16,12 @@ fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
     val custom = ships.filter { it.hasCustomAI }
 
-//    custom.filter { it.hullSpec.hullId == "dominator" }.forEach {
+    val p = Global.getCombatEngine().playerShip ?: return
+
+    custom.filter { it.hullSpec.hullId == "dominator" }.forEach {
 //        drawLine(it.location, it.aitStash.maneuverAI?.headingPoint ?: it.location, Color.YELLOW)
 //        drawLine(it.location, it.location + it.velocity * 2f, Color.GREEN)
-//    }
+    }
 }
 
 private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()
@@ -98,3 +100,11 @@ private fun followPlayerShip() {
 
     drawEngineLines(ship)
 }
+
+//fun printCustomManeuverName(ship: ShipAPI) {
+//    val c = CustomAIManager().getCustomAIClass()
+//    val t = MethodType.methodType(oO0O::class.java)
+//    val m = MethodHandles.lookup().findVirtual(c, "getCurrentManeuver", t)
+//    val maneuver = m.invoke(ship.ai)
+//    debugPlugin[ship] = maneuver?.javaClass?.canonicalName
+//}

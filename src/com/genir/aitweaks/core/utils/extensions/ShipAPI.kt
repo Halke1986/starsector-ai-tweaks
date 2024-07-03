@@ -40,11 +40,15 @@ val ShipAPI.maneuverTarget: ShipAPI?
 
 val ShipAPI.trueShipTarget: ShipAPI?
     get() {
-        val root = rootModule
+        if (isModule) return rootModule.trueShipTarget
+
         val engine = Global.getCombatEngine()
-        val aiControl = root != engine.playerShip || !engine.isUIAutopilotOn
-        return if (aiControl) aitStash.attackTarget ?: root.maneuverTarget
-        else root.shipTarget
+        val manualControl = this == engine.playerShip && engine.isUIAutopilotOn
+        if (manualControl) return shipTarget
+
+        aitStash.maneuverAI?.attackTarget?.let { return it }
+
+        return maneuverTarget
     }
 
 val ShipAPI.isAutomated: Boolean
