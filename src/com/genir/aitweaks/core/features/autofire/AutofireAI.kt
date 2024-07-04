@@ -5,6 +5,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.features.autofire.HoldFire.*
+import com.genir.aitweaks.core.features.shipai.ai.customAI
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.attack.*
 import com.genir.aitweaks.core.utils.extensions.*
@@ -190,7 +191,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing)))
             return intercept
 
-        val aimPoint: Vector2f = weapon.ship.aitStash.maneuverAI?.aimPoint ?: target!!.location
+        val aimPoint: Vector2f = weapon.ship.customAI?.aimPoint ?: target!!.location
         val tgtLocation = aimPoint - weapon.ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
         val angleToTarget = MathUtils.getShortestRotation(tgtFacing, weapon.ship.facing)

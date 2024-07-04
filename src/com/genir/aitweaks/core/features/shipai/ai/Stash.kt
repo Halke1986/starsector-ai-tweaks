@@ -2,40 +2,30 @@ package com.genir.aitweaks.core.features.shipai.ai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
-import org.lwjgl.util.vector.Vector2f
-
-/** Stash holds variables that should carry
- * over between instances of Maneuver class. */
-class Stash {
-    var attackTarget: ShipAPI? = null
-    var burnDriveHeading: Vector2f? = null
-
-    private var lastUsed = totalElapsedTime()
-
-    fun advance() {
-        lastUsed = totalElapsedTime()
-    }
-
-    fun age(): Float {
-        return totalElapsedTime() - lastUsed
-    }
-
-    private fun totalElapsedTime(): Float {
-        return Global.getCombatEngine().getTotalElapsedTime(false)
-    }
-}
 
 private const val stashKey = "aitweaks_custom_ai_stash"
 private const val maxAge = 0.5f
 
-fun getStash(ship: ShipAPI): Stash {
-    val s = ship.customData[stashKey] as? Stash
+private data class Stash(val ai: Maneuver, val timestamp: Float)
 
-    if (s != null && s.age() <= maxAge) {
-        return s
-    } else {
-        val newStash = Stash()
-        ship.setCustomData(stashKey, newStash)
-        return newStash
+/** Returns last instance of Custom AI maneuver that was controlling the ship. */
+val ShipAPI.customAI: Maneuver?
+    get() {
+        val s = customData[stashKey] as? Stash
+
+        return when {
+            s == null -> null
+
+            currentTimestamp() - s.timestamp > maxAge -> null
+
+            else -> s.ai
+        }
     }
+
+fun ShipAPI.storeCustomAI(ai: Maneuver) {
+    customData[stashKey] = Stash(ai, currentTimestamp())
+}
+
+private fun currentTimestamp(): Float {
+    return Global.getCombatEngine().getTotalElapsedTime(false)
 }

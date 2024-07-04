@@ -20,7 +20,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
-    var headingPoint: Vector2f? = ai.stash.burnDriveHeading
+    var headingPoint: Vector2f? = Vector2f()
     var shouldBurn = false
 
     private var vectorToTarget: Vector2f = Vector2f()
@@ -53,9 +53,6 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
 
     private fun updateHeadingPoint() {
         val newHeadingPoint = when {
-            // Freeze the heading point when ship is burning.
-            ship.system.isActive -> headingPoint
-
             ai.moveOrderLocation != null -> ai.moveOrderLocation
 
             // Charge straight at the maneuver target, disregard fleet coordination.
@@ -78,10 +75,6 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
             distToTarget = 0f
             angleToTarget = 0f
         }
-
-        // Heading point target is stored in stash,
-        // so it carries over between BurnDrive instances.
-        ai.stash.burnDriveHeading = this.headingPoint
     }
 
     private fun updateShouldBurn() {

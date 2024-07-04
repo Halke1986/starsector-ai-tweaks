@@ -7,7 +7,6 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.genir.aitweaks.core.GlobalState
-import com.genir.aitweaks.core.utils.aitStash
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import com.genir.aitweaks.core.utils.shipSequence
@@ -22,12 +21,12 @@ import kotlin.math.max
 // TODO retreat order during chase battle freezes the ship
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, internal val moveOrderLocation: Vector2f?) {
-    val stash = getStash(ship)
+class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOrderLocation: Vector2f?) {
     private val movement = Movement(this)
 
-    val maneuverTarget = selectManeuverTarget(vanillaManeuverTarget)
-    var attackTarget: ShipAPI? = stash.attackTarget
+    val moveOrderLocation: Vector2f?
+    val maneuverTarget: ShipAPI? //= selectManeuverTarget(vanillaManeuverTarget)
+    var attackTarget: ShipAPI? //= stash.attackTarget
 
     var effectiveRange: Float = 0f
     var minRange: Float = 0f
@@ -55,17 +54,38 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
     private var threats: List<ShipAPI> = listOf()
     internal var threatVector = Vector2f()
 
+    /** Attempt to stay on tar*/
+    init {
+        val oldManeuver = ship.customAI
+
+        // Continue attacking the same target as previous custom AI instance.
+        attackTarget = oldManeuver?.attackTarget
+
+        // When burn drive is activated, vanilla AI passes no orders to Maneuver instance.
+        // In that case, try to follow previous Maneuver instance orders.
+        val noOrders = vanillaManeuverTarget == null && vanillaMoveOrderLocation == null
+
+        moveOrderLocation = when {
+            noOrders -> oldManeuver?.moveOrderLocation
+            vanillaMoveOrderLocation != null -> vanillaMoveOrderLocation
+            else -> null
+        }
+
+        maneuverTarget = when {
+            noOrders -> oldManeuver?.maneuverTarget
+            vanillaManeuverTarget != null -> selectManeuverTarget(vanillaManeuverTarget)
+            else -> null
+        }
+    }
+
     fun advance(dt: Float) {
-        ship.aitStash.maneuverAI = this
+        ship.storeCustomAI(this)
 
         if (shouldEndManeuver()) {
             ship.shipAI.cancelCurrentManeuver()
-            ship.aitStash.maneuverAI = null
         }
 
         // Update state.
-        stash.advance()
-
         updateThreats()
         effectiveRange = ship.effectiveRange(Preset.effectiveDpsThreshold)
         minRange = ship.minRange
@@ -138,9 +158,6 @@ class Maneuver(val ship: ShipAPI, internal val vanillaManeuverTarget: ShipAPI?, 
 
         ship.shipTarget = updatedTarget
         attackTarget = updatedTarget
-
-        // Attack target is stored in stash, so it carries over between Maneuver instances.
-        stash.attackTarget = attackTarget
     }
 
     /** Decide if ships needs to back off due to high flux level */

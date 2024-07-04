@@ -145,7 +145,7 @@ class Movement(private val ai: Maneuver) {
             }
 
             BURN_DRIVE_TOGGLE -> {
-                if (burnDriveAI?.go() == true) ship.command(USE_SYSTEM)
+                if (burnDriveAI?.shouldTrigger(dt) == true) ship.command(USE_SYSTEM)
                 else ship.blockCommandForOneFrame(USE_SYSTEM)
             }
 
@@ -202,7 +202,7 @@ class Movement(private val ai: Maneuver) {
 
     private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {
         val target = ai.attackTarget ?: return null
-        val ais = allies.filter { it.hasCustomAI }.mapNotNull { it.aitStash.maneuverAI }
+        val ais = allies.filter { it.hasCustomAI }.mapNotNull { it.customAI }
 
         // Blocking line of fire occurs mostly among ships attacking the same target.
         // For simplicity, the AI will try to avoid only those cases of blocking.
