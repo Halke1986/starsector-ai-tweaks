@@ -31,7 +31,7 @@ class Movement(private val ai: Maneuver) {
         burnDriveAI?.advance(dt)
         setFacing()
         setHeading(dt)
-        manageMobilitySystems()
+        manageMobilitySystems(dt)
     }
 
     private fun setFacing() {
@@ -122,7 +122,7 @@ class Movement(private val ai: Maneuver) {
         ai.desiredHeading = engineController.heading(headingPoint, velocity, gatherSpeedLimits(dt))
     }
 
-    private fun manageMobilitySystems() {
+    private fun manageMobilitySystems(dt: Float) {
         when (systemAIType) {
 
             ShipSystemAiType.MANEUVERING_JETS -> when {
@@ -260,7 +260,7 @@ class Movement(private val ai: Maneuver) {
                 val t = timeToOrigin(obstacle.ship.location - ship.location, obstacleAngularV)
                 val obstacleVComponent = obstacleAngularV.length() * t.sign
 
-                val vMax = engineController.vMax(distance, ship.strafeAcceleration * dt * dt) / dt + obstacleVComponent
+                val vMax = vMax(dt, distance, ship.strafeAcceleration) + obstacleVComponent
                 EngineController.Limit(limitFacing, vMax)
             }
 
@@ -336,7 +336,7 @@ class Movement(private val ai: Maneuver) {
             else -> ship.acceleration
         }
 
-        val vMax = engineController.vMax(distance, shipAcc * dt * dt) / dt + vAbs
+        val vMax = vMax(dt, distance, shipAcc) + vAbs
         return EngineController.Limit(dirFacing, vMax)
     }
 }

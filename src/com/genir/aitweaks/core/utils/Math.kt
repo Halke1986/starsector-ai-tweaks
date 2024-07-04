@@ -4,6 +4,7 @@ import org.lazywizard.lazylib.FastTrig
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.PI
+import kotlin.math.floor
 import kotlin.math.sign
 import kotlin.math.sqrt
 
@@ -63,3 +64,9 @@ fun atan(z: Double): Double {
 }
 
 fun atan(z: Float): Float = atan(z.toDouble()).toFloat()
+
+/** Maximum velocity in given direction to not overshoot target. */
+fun vMax(dt: Float, dist: Float, deceleration: Float): Float {
+    val (q, _) = quad(0.5f, 0.5f, -dist / (deceleration * dt * dt)) ?: return 0f
+    return floor(q) * deceleration * dt
+}

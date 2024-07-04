@@ -125,7 +125,7 @@ class EngineController(val ship: ShipAPI) {
     }
 
     /** Maximum velocity in given direction to not overshoot target. */
-    fun vMax(d: Float, a: Float): Float {
+    private fun vMax(d: Float, a: Float): Float {
         val (q, _) = quad(0.5f, 0.5f, -d / a) ?: return 0f
         return floor(q) * a
     }
