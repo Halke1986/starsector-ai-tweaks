@@ -28,7 +28,7 @@ class Movement(private val ai: Maneuver) {
     private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
 
     fun advance(dt: Float) {
-        burnDriveAI?.advance(dt)
+        burnDriveAI?.advance()
         setFacing()
         setHeading(dt)
         manageMobilitySystems(dt)

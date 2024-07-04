@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.debug
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.features.shipai.ai.EngineController
+import com.genir.aitweaks.core.features.shipai.ai.customAI
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.hasCustomAI
@@ -16,9 +17,10 @@ fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
     val custom = ships.filter { it.hasCustomAI }
 
-    val p = Global.getCombatEngine().playerShip ?: return
+//    val p = Global.getCombatEngine().playerShip ?: return
 
     custom.filter { it.hullSpec.hullId == "dominator" }.forEach {
+//        debugPlugin[it] = "tgt ${it.customAI} ${it.customAI?.attackTarget?.name}"
 //        drawLine(it.location, it.aitStash.maneuverAI?.headingPoint ?: it.location, Color.YELLOW)
 //        drawLine(it.location, it.location + it.velocity * 2f, Color.GREEN)
     }

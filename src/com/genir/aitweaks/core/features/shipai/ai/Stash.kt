@@ -23,7 +23,7 @@ val ShipAPI.customAI: Maneuver?
     }
 
 fun ShipAPI.storeCustomAI(ai: Maneuver) {
-    customData[stashKey] = Stash(ai, currentTimestamp())
+    setCustomData(stashKey, Stash(ai, currentTimestamp()))
 }
 
 private fun currentTimestamp(): Float {

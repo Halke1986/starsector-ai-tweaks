@@ -25,8 +25,12 @@ class Preset {
 
         // Collision avoidance
         const val collisionBuffer = 30f
+    }
 
-        // Burn Drive
-        const val approachToRangeFraction = 0.75f
+    class BurnDrive {
+        companion object {
+            const val approachToMinRangeFraction = 0.75f
+            const val maxAngleToTarget = 20f
+        }
     }
 }

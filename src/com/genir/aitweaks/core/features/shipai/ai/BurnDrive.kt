@@ -4,7 +4,6 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
-import com.genir.aitweaks.core.debug.debugPlugin
 import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.addLength
@@ -30,7 +29,7 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
     private var maxSpeed = Float.MAX_VALUE
     private var maxBurnDist: Float = 0f
 
-    fun advance(dt: Float) {
+    fun advance() {
         updateMaxBurnDist()
         updateHeadingPoint()
         updateShouldBurn()
@@ -58,7 +57,7 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
             // Charge straight at the maneuver target, disregard fleet coordination.
             ai.maneuverTarget != null -> {
                 val vectorToTarget = ai.maneuverTarget.location - ship.location
-                vectorToTarget.addLength(-ai.minRange * Preset.approachToRangeFraction) + ship.location
+                vectorToTarget.addLength(-ai.minRange * Preset.BurnDrive.approachToMinRangeFraction) + ship.location
             }
 
             else -> null
@@ -87,26 +86,23 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
 
             ai.isBackingOff -> false
 
-            angleToTarget > 15f -> false
+            angleToTarget > Preset.BurnDrive.maxAngleToTarget -> false
 
             distToTarget < maxBurnDist / 2f -> false
 
-            !routeIsClear() -> false
+            !isRouteClear() -> false
 
             else -> true
         }
     }
 
-    private var d = 0
-
     fun shouldTrigger(dt: Float): Boolean {
-        debugPlugin[ship] = "${ship.name} ${ship.system.state} $d"
-        d++
+//        debugPlugin["pos"] = headingPoint
 
         return when {
             // Launch.
             shouldBurn && angleToTarget < 0.1f -> {
-                debugPlugin[ship] = "${ship.name} ${ship.system.state} $d burn"
+//                debugPlugin[ship] = "${ship.name} ${ship.system.state} burn"
                 true
             }
 
@@ -114,13 +110,13 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
 
             // Stop to not overshoot target.
             vMax(dt, distToTarget, 600f) < ship.velocity.length() -> {
-                debugPlugin[ship] = "${ship.name} ${ship.system.state} $d dist"
+//                debugPlugin[ship] = "${ship.name} ${ship.system.state} dist"
                 true
             }
 
             // Veered off course, stop.
-            angleToTarget > 15f -> {
-                debugPlugin[ship] = "${ship.name} ${ship.system.state} $d angle $angleToTarget"
+            angleToTarget > Preset.BurnDrive.maxAngleToTarget -> {
+//                debugPlugin[ship] = "${ship.name} ${ship.system.state} angle $angleToTarget"
                 true
             }
 
@@ -128,7 +124,7 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
         }
     }
 
-    private fun routeIsClear(): Boolean {
+    private fun isRouteClear(): Boolean {
         val p = ship.location + vectorToTarget / 2f
         val r = distToTarget.coerceAtMost(maxBurnDist)
 
