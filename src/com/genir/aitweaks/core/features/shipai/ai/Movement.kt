@@ -28,7 +28,7 @@ class Movement(private val ai: Maneuver) {
     private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
 
     fun advance(dt: Float) {
-        burnDriveAI?.advance()
+        burnDriveAI?.advance(dt)
         setFacing()
         setHeading(dt)
         manageMobilitySystems(dt)
@@ -144,10 +144,9 @@ class Movement(private val ai: Maneuver) {
                 }
             }
 
-            BURN_DRIVE_TOGGLE -> {
-                if (burnDriveAI?.shouldTrigger(dt) == true) ship.command(USE_SYSTEM)
-                else ship.blockCommandForOneFrame(USE_SYSTEM)
-            }
+//            BURN_DRIVE_TOGGLE -> {
+//                if (burnDriveAI?.shouldTrigger(dt) == true) ship.command(USE_SYSTEM)
+//            }
 
             else -> Unit
         }

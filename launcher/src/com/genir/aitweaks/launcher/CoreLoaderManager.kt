@@ -11,15 +11,16 @@ var coreLoader: ClassLoader = Global.getSettings().scriptClassLoader
 private var coreURL: URL? = null
 
 class CoreLoaderManager {
+    private val jarUrls = (this::class.java.classLoader as URLClassLoader).urLs
+
     fun reload() {
         val devmode = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") == true
-        val urLs = (Global.getSettings().scriptClassLoader.parent as URLClassLoader).urLs
 
         if (!devmode) {
-            coreURL ?: run { setNewClassLoader(defaultJarURL(urLs), urLs) }
+            coreURL ?: run { setNewClassLoader(defaultJarURL()) }
         } else {
             // Class loader to circumvent Starsector file access restrictions.
-            val cl = URLClassLoader(urLs)
+            val cl = URLClassLoader(jarUrls)
 
             // Find latest AI Tweaks dev core jar.
             val finderClass = cl.loadClass("com.genir.aitweaks.launcher.CoreJarFinder")
@@ -30,22 +31,19 @@ class CoreLoaderManager {
             // Core jar was not replaced.
             if (coreURL?.sameFile(latestCoreURL) == true) return
 
-            setNewClassLoader(latestCoreURL, urLs)
+            setNewClassLoader(latestCoreURL)
         }
     }
 
-    private fun defaultJarURL(urls: Array<URL>): URL {
-        val baseJarUrl = urls.first { it.path.contains("aitweaks-launcher.jar") }
+    private fun defaultJarURL(): URL {
+        val baseJarUrl = jarUrls.first { it.path.contains("aitweaks-launcher.jar") }
         val jarUrlStr = baseJarUrl.toExternalForm().replace("aitweaks-launcher.jar", "aitweaks-core.jar")
         return URL(jarUrlStr.replace(" ", "%20"))
     }
 
-    private fun setNewClassLoader(coreJarURL: URL, urls: Array<URL>) {
-        val allURLs = urls.clone().toMutableList()
-        allURLs.add(coreJarURL)
-
+    private fun setNewClassLoader(coreJarURL: URL) {
         Global.getLogger(this::class.java).info(coreJarURL.toExternalForm())
-        coreLoader = URLClassLoader(allURLs.toTypedArray())
+        coreLoader = URLClassLoader(arrayOf(*jarUrls, coreJarURL))
         coreURL = coreJarURL
     }
 

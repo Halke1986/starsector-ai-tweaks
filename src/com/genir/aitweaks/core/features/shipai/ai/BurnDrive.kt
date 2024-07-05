@@ -2,9 +2,11 @@ package com.genir.aitweaks.core.features.shipai.ai
 
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
 import com.genir.aitweaks.core.debug.drawLine
+import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.addLength
 import com.genir.aitweaks.core.utils.extensions.isModule
@@ -18,6 +20,7 @@ import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.min
 
+/** Burn Drive AI. It replaces the vanilla implementation in ships with custom AI. */
 class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
     var headingPoint: Vector2f? = Vector2f()
     var shouldBurn = false
@@ -30,10 +33,19 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
     private var maxSpeed = Float.MAX_VALUE
     private var maxBurnDist: Float = 0f
 
-    fun advance() {
+    init {
+        // Remove vanilla burn drive AI, so that it doesn't interfere.
+        val c = CustomAIManager().getCustomAIClass()!!
+        val f = c.getDeclaredField("systemAI")
+        f.setAccessible(true);
+        f.set(ship.shipAI, null);
+    }
+
+    fun advance(dt: Float) {
         updateMaxBurnDist()
         updateHeadingPoint()
         updateShouldBurn()
+        triggerSystem(dt)
 
         if (headingPoint == null) {
             drawLine(ship.location, ship.location + unitVector(ship.facing) * 200f, Color.RED)
@@ -96,8 +108,8 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
         }
     }
 
-    fun shouldTrigger(dt: Float): Boolean {
-        return when {
+    private fun triggerSystem(dt: Float) {
+        val shouldTrigger = when {
             // Launch.
             shouldBurn && angleToTarget < 0.1f -> true
 
@@ -110,10 +122,12 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
             angleToTarget > Preset.BurnDrive.maxAngleToTarget -> true
 
             // Collision is imminent.
-            timeToCollision() < 0.15f -> true
+            timeToCollision() < Preset.BurnDrive.stopBeforeCollision -> true
 
             else -> false
         }
+
+        if (shouldTrigger) ship.command(ShipCommand.USE_SYSTEM)
     }
 
     private fun findObstacles(center: Vector2f, radius: Float): Sequence<ShipAPI> {

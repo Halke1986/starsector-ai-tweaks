@@ -24,9 +24,10 @@ import kotlin.math.max
 class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOrderLocation: Vector2f?) {
     private val movement = Movement(this)
 
+    // Standing orders.
     val moveOrderLocation: Vector2f?
-    val maneuverTarget: ShipAPI? //= selectManeuverTarget(vanillaManeuverTarget)
-    var attackTarget: ShipAPI? //= stash.attackTarget
+    val maneuverTarget: ShipAPI?
+    var attackTarget: ShipAPI?
 
     var effectiveRange: Float = 0f
     var minRange: Float = 0f
