@@ -3,13 +3,15 @@ package com.genir.aitweaks.core.features.shipai.ai
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
+import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
 import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.addLength
-import com.genir.aitweaks.core.utils.extensions.isModule
+import com.genir.aitweaks.core.utils.extensions.resized
+import com.genir.aitweaks.core.utils.extensions.rootModule
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.getFacing
@@ -25,12 +27,15 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
     var headingPoint: Vector2f? = Vector2f()
     var shouldBurn = false
 
+    private val system: ShipSystemAPI = ship.system
+    private val burnDriveFlatBonus: Float = 200f
+
     private var vectorToTarget: Vector2f = Vector2f()
     private var distToTarget: Float = 0f
     private var angleToTarget: Float = 0f
 
-    private val burnDriveFlatBonus = 200f
-    private var maxSpeed = Float.MAX_VALUE
+    // Stats
+    private var maxSpeed: Float = Float.MAX_VALUE
     private var maxBurnDist: Float = 0f
 
     init {
@@ -58,8 +63,8 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
         // Try to get the unmodified max speed, without burn drive bonus.
         maxSpeed = min(maxSpeed, ship.engineController.maxSpeedWithoutBoost)
 
-        val duration = ship.system.chargeActiveDur + (ship.system.chargeUpDur + ship.system.chargeDownDur) / 2f
-        maxBurnDist = (maxSpeed + burnDriveFlatBonus) * duration
+        val effectiveBurnDuration = system.chargeActiveDur + (system.chargeUpDur + system.chargeDownDur) / 2f
+        maxBurnDist = (maxSpeed + burnDriveFlatBonus) * effectiveBurnDuration
     }
 
     private fun updateHeadingPoint() {
@@ -90,7 +95,7 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
 
     private fun updateShouldBurn() {
         shouldBurn = when {
-            ship.system.state != IDLE -> false
+            system.state != IDLE -> false
 
             !ship.canUseSystemThisFrame() -> false
 
@@ -113,7 +118,8 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
             // Launch.
             shouldBurn && angleToTarget < 0.1f -> true
 
-            ship.system.state != ACTIVE -> false
+            // Not burning, no need to abort.
+            system.state != ACTIVE -> false
 
             // Stop to not overshoot target.
             vMax(dt, distToTarget, 600f) < ship.velocity.length() -> true
@@ -121,8 +127,8 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
             // Veered off course, stop.
             angleToTarget > Preset.BurnDrive.maxAngleToTarget -> true
 
-            // Collision is imminent.
-            timeToCollision() < Preset.BurnDrive.stopBeforeCollision -> true
+            // Avoid collisions.
+            isCollisionImminent() -> true
 
             else -> false
         }
@@ -133,44 +139,55 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
     private fun findObstacles(center: Vector2f, radius: Float): Sequence<ShipAPI> {
         return shipSequence(center, radius).filter {
             when {
+                // Self
                 it == ship -> false
+
+                // Fighters
                 it.collisionClass != CollisionClass.SHIP -> false
 
-                // Ram enemy frigates.
-                it.owner != ship.owner && it.isFrigate && !it.isModule -> false
-                else -> true
+                // Allies
+                it.owner == ship.owner -> true
+
+                // Equal or larger hulls. Hitting smaller hulls will not cause flameout.
+                it.rootModule.hullSize.ordinal >= ship.hullSize.ordinal -> true
+
+                // Heavy obstacles.
+                it.mass >= ship.mass * Preset.BurnDrive.ignoreMassFraction -> true
+
+                else -> false
             }
         }
     }
 
     private fun isRouteClear(): Boolean {
-        val p = ship.location + vectorToTarget / 2f
-        val r = distToTarget.coerceAtMost(maxBurnDist)
+        val dist = distToTarget.coerceAtMost(maxBurnDist)
+        val position = ship.location + vectorToTarget.resized(dist) / 2f
+        val obstacles = findObstacles(position, dist / 2f)
 
-        return findObstacles(p, r).none { obstacle ->
-            val t = timeToOrigin(ship.location - obstacle.location, vectorToTarget)
+        val maxBurnDuration = system.chargeActiveDur + system.chargeUpDur + system.chargeDownDur
+        val timeToTarget = maxBurnDuration * (dist / maxBurnDist)
+        val effectiveSpeed = maxBurnDist / maxBurnDuration
 
-            if (t < 0f || t > 1f) false
-            else {
-                val closestPoint = ship.location + vectorToTarget * t
-                val dist = (closestPoint - obstacle.location).length()
-
-                dist < ship.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
-            }
-        }
+        return timeToTarget < timeToCollision(obstacles, vectorToTarget.resized(effectiveSpeed))
     }
 
-    private fun timeToCollision(): Float {
-        val position = ship.location + unitVector(ship.facing) * maxBurnDist / 2f
-        val obstacles = findObstacles(position, maxBurnDist)
+    private fun isCollisionImminent(): Boolean {
+        val radius = maxBurnDist / 2f
+        val position = ship.location + unitVector(ship.facing) * radius
+        val obstacles = findObstacles(position, radius)
 
+        return timeToCollision(obstacles, ship.velocity) <= Preset.BurnDrive.stopBeforeCollision
+    }
+
+    private fun timeToCollision(obstacles: Sequence<ShipAPI>, shipVelocity: Vector2f): Float {
         return obstacles.mapNotNull { obstacle ->
             val p = obstacle.location - ship.location
-            val v = obstacle.velocity - ship.velocity
+            val v = obstacle.velocity - shipVelocity
             val r = ship.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
 
             // Calculate time to collision.
-            solve(Pair(p, v), r, 0f, 0f)
+            if (p.lengthSquared() <= r * r) 0f
+            else solve(Pair(p, v), r)
         }.minOrNull() ?: Float.MAX_VALUE
     }
 }

@@ -32,7 +32,8 @@ class Preset {
         companion object {
             const val approachToMinRangeFraction = 0.75f
             const val maxAngleToTarget = 20f
-            const val stopBeforeCollision = 0.15f // seconds
+            const val stopBeforeCollision = 0.2f // seconds
+            const val ignoreMassFraction = 0.25f
         }
     }
 }

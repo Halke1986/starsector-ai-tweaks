@@ -76,6 +76,10 @@ fun vMax(dt: Float, dist: Float, deceleration: Float): Float {
     return floor(q) * deceleration * dt
 }
 
+/** Time after which point P travelling with velocity V
+ * will find itself at R distance from (0,0). */
+fun solve(pv: Pair<Vector2f, Vector2f>, r: Float) = solve(pv, r, 0f, 0f)
+
 /**
  * Solve the following cosine law equation for t:
  *

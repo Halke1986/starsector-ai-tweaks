@@ -84,7 +84,7 @@ fun interceptArc(weapon: WeaponAPI, target: AttackTarget, params: BallisticParam
 /** Calculates if projectile will collide with the target circumference,
  * given current weapon facing. Weapon range is ignored. */
 fun willHitCircumference(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams): Float? {
-    return solve(projectileCoords(weapon, target, params), target.radius, 0f, 0f)
+    return solve(projectileCoords(weapon, target, params), target.radius)
 }
 
 /** Calculates if a perfectly accurate projectile will collide with target shield,
@@ -95,7 +95,7 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
     if (shield.isOff) return null
 
     val (p, v) = projectileCoords(weapon, targetShield(target), params)
-    val range = solve(Pair(p, v), shield.radius, 0f, 0f) ?: return null
+    val range = solve(Pair(p, v), shield.radius) ?: return null
     val hitPoint = p + v * range
 
     return if (vectorInArc(hitPoint, Arc(shield.activeArc, shield.facing))) range else null
