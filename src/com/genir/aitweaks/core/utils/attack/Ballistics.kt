@@ -11,8 +11,6 @@ import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * All functions in this file take into account target velocity
@@ -159,38 +157,6 @@ private fun projectileCoords(weapon: WeaponAPI, target: AttackTarget, params: Ba
     (weapon.location - target.location) + (weapon.ship.velocity - target.velocity) * params.delay,
     unitVector(weapon.currAngle) + (weapon.ship.velocity - target.velocity) / (weapon.projectileSpeed * params.accuracy),
 )
-
-/**
- * Solve the following cosine law equation for t:
- *
- * a(t)^2 = b(t)^2 + r^2 - 2*b(t)*r*cosA
- *
- * where
- *
- * a(t) = |P + V * t|
- * b(t) = w * t
- *
- * The smaller positive solutions is returned.
- * If no positive solution exists, null is returned.
- *
- * Equation can be expanded the following way:
- * (|P + V * t|)^2 = (w * t)^2 + r^2 - 2(w * t * r * cosA)
- * (Px + Vx * t)^2 + (Py + Vy * t)^2 = = w^2 * t^2 + r^2 - 2(w * t * r * cosA)
- * (Vx^2 + Vy^2 - w^2)*t^2 + 2(Px*Vx + Py*Vy + r*w*cosA)*t + (Px^2 + Py^2 - r^2) = 0
- */
-private fun solve(pv: Pair<Vector2f, Vector2f>, r: Float, w: Float, cosA: Float): Float? {
-    val (p, v) = pv
-    val a = v.lengthSquared() - w * w
-    val b = 2f * (p.x * v.x + p.y * v.y + r * w * cosA)
-    val c = p.lengthSquared() - r * r
-
-    val (t1, t2) = quad(a, b, c) ?: return null
-    return when {
-        t1 >= 0 && t2 >= 0 -> min(t1, t2)
-        t1 <= 0 != t2 <= 0 -> max(t1, t2)
-        else -> null
-    }
-}
 
 /** True if coordinate system zero point is within entity radius */
 private fun targetAboveZero(p: Vector2f, r: Float) = p.lengthSquared() <= r * r

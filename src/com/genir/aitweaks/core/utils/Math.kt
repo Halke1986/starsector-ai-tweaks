@@ -3,10 +3,7 @@ package com.genir.aitweaks.core.utils
 import org.lazywizard.lazylib.FastTrig
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.PI
-import kotlin.math.floor
-import kotlin.math.sign
-import kotlin.math.sqrt
+import kotlin.math.*
 
 const val DEGREES_TO_RADIANS: Float = 0.017453292F
 const val RADIANS_TO_DEGREES: Float = 57.29578F
@@ -43,6 +40,14 @@ fun vectorProjection(a: Vector2f, b: Vector2f): Vector2f {
     return b * (dotProduct(a, b) / dotProduct(b, b))
 }
 
+/** Length of vector projection of 'a' onto 'b'. Positive value
+ * is returned if 'b' and 'a projection onto b' have same the
+ * direction, negative otherwise. */
+fun vectorProjectionLength(a: Vector2f, b: Vector2f): Float {
+    val p = vectorProjection(a, b)
+    return dotProduct(p, b).sign * p.length()
+}
+
 fun dotProduct(a: Vector2f, b: Vector2f): Float {
     return a.x * b.x + a.y * b.y
 }
@@ -69,4 +74,36 @@ fun atan(z: Float): Float = atan(z.toDouble()).toFloat()
 fun vMax(dt: Float, dist: Float, deceleration: Float): Float {
     val (q, _) = quad(0.5f, 0.5f, -dist / (deceleration * dt * dt)) ?: return 0f
     return floor(q) * deceleration * dt
+}
+
+/**
+ * Solve the following cosine law equation for t:
+ *
+ * a(t)^2 = b(t)^2 + r^2 - 2*b(t)*r*cosA
+ *
+ * where
+ *
+ * a(t) = |P + V * t|
+ * b(t) = w * t
+ *
+ * The smaller positive solutions is returned.
+ * If no positive solution exists, null is returned.
+ *
+ * Equation can be expanded in the following way:
+ * (|P + V * t|)^2 = (w * t)^2 + r^2 - 2(w * t * r * cosA)
+ * (Px + Vx * t)^2 + (Py + Vy * t)^2 = = w^2 * t^2 + r^2 - 2(w * t * r * cosA)
+ * (Vx^2 + Vy^2 - w^2)*t^2 + 2(Px*Vx + Py*Vy + r*w*cosA)*t + (Px^2 + Py^2 - r^2) = 0
+ */
+fun solve(pv: Pair<Vector2f, Vector2f>, r: Float, w: Float, cosA: Float): Float? {
+    val (p, v) = pv
+    val a = v.lengthSquared() - w * w
+    val b = 2f * (p.x * v.x + p.y * v.y + r * w * cosA)
+    val c = p.lengthSquared() - r * r
+
+    val (t1, t2) = quad(a, b, c) ?: return null
+    return when {
+        t1 >= 0 && t2 >= 0 -> min(t1, t2)
+        t1 <= 0 != t2 <= 0 -> max(t1, t2)
+        else -> null
+    }
 }

@@ -26,6 +26,7 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
     private var distToTarget: Float = 0f
     private var angleToTarget: Float = 0f
 
+    private val burnDriveFlatBonus = 200f
     private var maxSpeed = Float.MAX_VALUE
     private var maxBurnDist: Float = 0f
 
@@ -45,7 +46,6 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
         // Try to get the unmodified max speed, without burn drive bonus.
         maxSpeed = min(maxSpeed, ship.engineController.maxSpeedWithoutBoost)
 
-        val burnDriveFlatBonus = 200f
         val duration = ship.system.chargeActiveDur + (ship.system.chargeUpDur + ship.system.chargeDownDur) / 2f
         maxBurnDist = (maxSpeed + burnDriveFlatBonus) * duration
     }
@@ -97,38 +97,27 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
     }
 
     fun shouldTrigger(dt: Float): Boolean {
-//        debugPlugin["pos"] = headingPoint
-
         return when {
             // Launch.
-            shouldBurn && angleToTarget < 0.1f -> {
-//                debugPlugin[ship] = "${ship.name} ${ship.system.state} burn"
-                true
-            }
+            shouldBurn && angleToTarget < 0.1f -> true
 
             ship.system.state != ACTIVE -> false
 
             // Stop to not overshoot target.
-            vMax(dt, distToTarget, 600f) < ship.velocity.length() -> {
-//                debugPlugin[ship] = "${ship.name} ${ship.system.state} dist"
-                true
-            }
+            vMax(dt, distToTarget, 600f) < ship.velocity.length() -> true
 
             // Veered off course, stop.
-            angleToTarget > Preset.BurnDrive.maxAngleToTarget -> {
-//                debugPlugin[ship] = "${ship.name} ${ship.system.state} angle $angleToTarget"
-                true
-            }
+            angleToTarget > Preset.BurnDrive.maxAngleToTarget -> true
+
+            // Collision is imminent.
+            timeToCollision() < 0.15f -> true
 
             else -> false
         }
     }
 
-    private fun isRouteClear(): Boolean {
-        val p = ship.location + vectorToTarget / 2f
-        val r = distToTarget.coerceAtMost(maxBurnDist)
-
-        val obstacles = shipSequence(p, r).filter {
+    private fun findObstacles(center: Vector2f, radius: Float): Sequence<ShipAPI> {
+        return shipSequence(center, radius).filter {
             when {
                 it == ship -> false
                 it.collisionClass != CollisionClass.SHIP -> false
@@ -137,9 +126,14 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
                 it.owner != ship.owner && it.isFrigate && !it.isModule -> false
                 else -> true
             }
-        }.toList()
+        }
+    }
 
-        return obstacles.none { obstacle ->
+    private fun isRouteClear(): Boolean {
+        val p = ship.location + vectorToTarget / 2f
+        val r = distToTarget.coerceAtMost(maxBurnDist)
+
+        return findObstacles(p, r).none { obstacle ->
             val t = timeToOrigin(ship.location - obstacle.location, vectorToTarget)
 
             if (t < 0f || t > 1f) false
@@ -150,5 +144,19 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
                 dist < ship.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
             }
         }
+    }
+
+    private fun timeToCollision(): Float {
+        val position = ship.location + unitVector(ship.facing) * maxBurnDist / 2f
+        val obstacles = findObstacles(position, maxBurnDist)
+
+        return obstacles.mapNotNull { obstacle ->
+            val p = obstacle.location - ship.location
+            val v = obstacle.velocity - ship.velocity
+            val r = ship.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
+
+            // Calculate time to collision.
+            solve(Pair(p, v), r, 0f, 0f)
+        }.minOrNull() ?: Float.MAX_VALUE
     }
 }

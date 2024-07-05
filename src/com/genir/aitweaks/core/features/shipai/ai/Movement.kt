@@ -318,16 +318,13 @@ class Movement(private val ai: Maneuver) {
         // Already colliding.
         if (distance <= 0f) return EngineController.Limit(dirFacing, 0f)
 
-        val vObstacle = vectorProjection(obstacle.velocity, direction)
-        val aObstacle = vectorProjection(accelerationTracker[obstacle], direction)
-
-        var vAbs = (vObstacle + direction).length() - dirAbs
-        val aAbs = (aObstacle + direction).length() - dirAbs
+        var vObstacle = vectorProjectionLength(obstacle.velocity, direction)
+        val aObstacle = vectorProjectionLength(accelerationTracker[obstacle], direction)
 
         // Take obstacle acceleration into account when the obstacle is doing a brake check.
         // The acceleration is approximated as total velocity loss. Including actual
         // acceleration (shipAcc + aAbs) in calculations leads to erratic behavior.
-        if (vAbs > 0f && aAbs < 0f) vAbs = 0f
+        if (vObstacle > 0f && aObstacle < 0f) vObstacle = 0f
 
         val angleFromBow = abs(MathUtils.getShortestRotation(ship.facing, dirFacing))
         val shipAcc = when {
@@ -336,7 +333,7 @@ class Movement(private val ai: Maneuver) {
             else -> ship.acceleration
         }
 
-        val vMax = vMax(dt, distance, shipAcc) + vAbs
+        val vMax = vMax(dt, distance, shipAcc) + vObstacle
         return EngineController.Limit(dirFacing, vMax)
     }
 }
