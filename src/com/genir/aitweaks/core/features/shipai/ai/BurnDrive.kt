@@ -6,8 +6,6 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
-import com.genir.aitweaks.core.debug.debugPlugin
-import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.addLength
@@ -20,7 +18,6 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -57,12 +54,6 @@ class BurnDrive(val ship: ShipAPI, override val ai: Maneuver) : Coordinable {
         updateHeadingPoint()
         updateShouldBurn()
         triggerSystem(dt)
-
-        if (destination.isZeroVector()) {
-            drawLine(ship.location, ship.location + unitVector(ship.facing) * 200f, Color.RED)
-        } else {
-            drawLine(ship.location, destination, Color.GREEN)
-        }
     }
 
     private fun updateMaxBurnDist() {
@@ -136,15 +127,7 @@ class BurnDrive(val ship: ShipAPI, override val ai: Maneuver) : Coordinable {
         }
     }
 
-    private var reason = ""
-
     private fun triggerSystem(dt: Float) {
-        if (system.state == IDLE) {
-            reason = ""
-        }
-
-        debugPlugin[ship] = "${ship.name} $reason"
-
         val shouldTrigger = when {
             // Launch.
             shouldBurn && destinationFacing < 0.1f -> true
@@ -152,17 +135,14 @@ class BurnDrive(val ship: ShipAPI, override val ai: Maneuver) : Coordinable {
             // Not burning, no need to abort.
             system.state != ACTIVE -> false
 
+            // Destination vector is lost, stop.
+            destination.isZeroVector() -> true
+
             // Veered off course, stop.
-            destinationFacing > Preset.BurnDrive.maxAngleToTarget -> {
-                reason = "angle"
-                true
-            }
+            destinationFacing > Preset.BurnDrive.maxAngleToTarget -> true
 
             // Avoid collisions.
-            isCollisionImminent() -> {
-                reason = "collision"
-                true
-            }
+            isCollisionImminent() -> true
 
             else -> false
         }

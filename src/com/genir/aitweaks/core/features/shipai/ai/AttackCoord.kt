@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.debug.drawCircle
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.features.shipai.ai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.utils.angularSize
@@ -28,8 +27,6 @@ interface Coordinable {
  * same target, so that the ships don't try to crowd in the same spot.
  */
 class AttackCoord : BaseEveryFrameCombatPlugin() {
-    var debug = false
-
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         if (CustomAIManager().getCustomAIClass() == null) return
 
@@ -37,9 +34,7 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         val movements = ships.mapNotNull { it.customAI?.movement }
         val burnDrives = ships.mapNotNull { it.customAI?.burnDriveAI }
 
-        debug = false
         buildTaskForces(movements).forEach { coordinateUnits(buildFormations(it.value)) }
-        debug = true
         buildTaskForces(burnDrives).forEach { coordinateUnits(buildFormations(it.value)) }
     }
 
@@ -97,11 +92,6 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
 
                 facing += entity.angularSize
                 entity.coordinable.reviewedHeadingPoint = pos
-
-                if (debug) {
-                    drawCircle(pos, entity.ship.collisionRadius)
-//                    drawLine(pos, entity.ship.location, Color.BLUE)
-                }
             }
         }
     }
