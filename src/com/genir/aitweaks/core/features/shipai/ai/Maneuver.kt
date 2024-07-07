@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.genir.aitweaks.core.GlobalState
+import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE_TOGGLE
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import com.genir.aitweaks.core.utils.shipSequence
@@ -22,7 +23,8 @@ import kotlin.math.max
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOrderLocation: Vector2f?) {
-    private val movement = Movement(this)
+    val movement = Movement(this)
+    val burnDriveAI: BurnDrive? = if (ship.system?.specAPI?.AIType == BURN_DRIVE_TOGGLE) BurnDrive(ship, this) else null
 
     // Standing orders.
     val moveOrderLocation: Vector2f?
@@ -38,10 +40,6 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
     var desiredHeading: Float = ship.facing
     var desiredFacing: Float = ship.facing
 
-    // Used for communication with attack coordinator.
-    var proposedHeadingPoint: Vector2f? = null
-    var reviewedHeadingPoint: Vector2f? = null
-
     var headingPoint: Vector2f? = null
     var aimPoint: Vector2f? = null
 
@@ -55,27 +53,33 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
     private var threats: List<ShipAPI> = listOf()
     internal var threatVector = Vector2f()
 
-    /** Attempt to stay on tar*/
+    /** Attempt to stay on target. */
     init {
         val oldManeuver = ship.customAI
+
+        // When burn drive is activated, vanilla AI sometimes passes no orders to
+        // the Maneuver instance. In that case, try to follow previous Maneuver instance orders.
+        val noOrders = vanillaManeuverTarget == null && vanillaMoveOrderLocation == null
 
         // Continue attacking the same target as previous custom AI instance.
         attackTarget = oldManeuver?.attackTarget
 
-        // When burn drive is activated, vanilla AI passes no orders to Maneuver instance.
-        // In that case, try to follow previous Maneuver instance orders.
-        val noOrders = vanillaManeuverTarget == null && vanillaMoveOrderLocation == null
-
         moveOrderLocation = when {
             noOrders -> oldManeuver?.moveOrderLocation
-            vanillaMoveOrderLocation != null -> vanillaMoveOrderLocation
-            else -> null
+
+            else -> vanillaMoveOrderLocation
         }
 
         maneuverTarget = when {
+            // Move order takes priority.
+            moveOrderLocation != null -> null
+
             noOrders -> oldManeuver?.maneuverTarget
-            vanillaManeuverTarget != null -> selectManeuverTarget(vanillaManeuverTarget)
-            else -> null
+
+            // Don't change target when burn drive is on.
+            burnDriveAI != null && ship.system.isOn && oldManeuver?.maneuverTarget?.isValidTarget == true -> oldManeuver.maneuverTarget
+
+            else -> selectManeuverTarget(vanillaManeuverTarget)
         }
     }
 
@@ -143,7 +147,7 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
             !currentTarget.isValidTarget -> true
 
             // Do not interrupt weapon bursts.
-            ship.primaryWeapons.find { it.size != SMALL && it.isInFiringSequence && it.autofireAI?.targetShip == attackTarget } != null -> false
+            ship.primaryWeapons.any { it.size != SMALL && it.isInFiringSequence && it.autofireAI?.targetShip == attackTarget } -> false
 
             // Target is out of range.
             range(currentTarget) > maxRange -> true

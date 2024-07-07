@@ -4,10 +4,10 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.core.debug.drawCircle
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.features.shipai.ai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.utils.angularSize
-import com.genir.aitweaks.core.utils.extensions.hasCustomAI
 import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
@@ -17,68 +17,57 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
+interface Coordinable {
+    var proposedHeadingPoint: Vector2f?
+    var reviewedHeadingPoint: Vector2f?
+    val ai: Maneuver
+}
+
 /**
  * Attack Coordinator assigns attack positions to all ships attacking the
  * same target, so that the ships don't try to crowd in the same spot.
  */
 class AttackCoord : BaseEveryFrameCombatPlugin() {
+    var debug = false
+
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         if (CustomAIManager().getCustomAIClass() == null) return
 
-        val squads = findSquads().filter { it.value.size > 1 }
-        squads.forEach { coordinateSquad(mergeSquad(it.value)) }
-    }
-
-    // Divide attacking AIs into squads attacking the same target.
-    private fun findSquads(): Map<ShipAPI, List<Group>> {
         val ships = Global.getCombatEngine().ships.asSequence()
-        val ais = ships.filter { it.hasCustomAI }.mapNotNull { it.customAI }
+        val movements = ships.mapNotNull { it.customAI?.movement }
+        val burnDrives = ships.mapNotNull { it.customAI?.burnDriveAI }
 
-        val squads: MutableMap<ShipAPI, MutableList<Group>> = mutableMapOf()
-        ais.forEach { attackerAI ->
-            val target = attackerAI.maneuverTarget ?: return@forEach
-            val proposedHeadingPoint = attackerAI.proposedHeadingPoint ?: return@forEach
+        debug = false
+        buildTaskForces(movements).forEach { coordinateUnits(buildFormations(it.value)) }
+        debug = true
+        buildTaskForces(burnDrives).forEach { coordinateUnits(buildFormations(it.value)) }
+    }
 
-            val ship = Ship(target, proposedHeadingPoint, attackerAI)
+    // Divide attacking AIs into task forces attacking the same target.
+    private fun buildTaskForces(coordinables: Sequence<Coordinable>): Map<ShipAPI, List<Unit>> {
+        val taskForces: MutableMap<ShipAPI, MutableList<Unit>> = mutableMapOf()
+        coordinables.forEach { coordinable ->
+            val target = coordinable.ai.maneuverTarget ?: return@forEach
+            val proposedHeadingPoint = coordinable.proposedHeadingPoint ?: return@forEach
 
-            val squad = squads[target]
-            val group = Group(ship)
+            val unit = Unit(target, proposedHeadingPoint, coordinable)
+            val taskForce = taskForces[target]
 
-            if (squad == null) squads[target] = mutableListOf(group)
-            else squad.add(group)
+            if (taskForce == null) taskForces[target] = mutableListOf(unit)
+            else taskForce.add(unit)
         }
 
-        return squads
+        return taskForces
     }
 
-    private fun coordinateSquad(squad: List<Group>) {
-        val target = squad.first().ships.first().ai.maneuverTarget!!
-
-        squad.forEach { group ->
-            var facing = group.facing - group.angularSize / 2f
-
-            group.ships.sortBy { MathUtils.getShortestRotation(group.facing, it.currentFacing) }
-
-            group.ships.forEach { ship ->
-                val dist = (ship.proposedHeadingPoint - target.location).length()
-
-                val angle = facing + ship.angularSize / 2f
-                val pos = target.location + unitVector(angle).resized(dist)
-
-                facing += ship.angularSize
-                ship.ai.reviewedHeadingPoint = pos
-            }
-        }
+    private fun buildFormations(taskForce: List<Unit>): List<Formation> {
+        return mergeFormations(taskForce.map { Formation(it) }.sortedBy { it.facing })
     }
 
-    private fun mergeSquad(squad: List<Group>): List<Group> {
-        return mergeGroups(squad.sortedBy { it.facing })
-    }
-
-    private fun mergeGroups(l: List<Group>): List<Group> {
+    private fun mergeFormations(l: List<Formation>): List<Formation> {
         if (l.size == 1) return l
 
-        val l2: MutableList<Group> = mutableListOf(l.first())
+        val l2: MutableList<Formation> = mutableListOf(l.first())
         for (i in 1 until l.size) {
             if (l2.last().isOverlapping(l[i])) l2.last().merge(l[i])
             else l2.add(l[i])
@@ -91,22 +80,45 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         }
 
         return if (l.size == l2.size) l2
-        else mergeGroups(l2)
+        else mergeFormations(l2)
     }
 
-    private class Group(initialShip: Ship) {
-        val ships: MutableList<Ship> = mutableListOf(initialShip)
+    private fun coordinateUnits(taskForce: List<Formation>) {
+        val target = taskForce.first().units.first().target
 
-        var angularSize = initialShip.angularSize
-        var facing = initialShip.proposedFacing
+        taskForce.forEach { formation ->
+            var facing = formation.facing - formation.angularSize / 2f
 
-        fun isOverlapping(other: Group): Boolean {
+            formation.units.sortBy { MathUtils.getShortestRotation(formation.facing, it.currentFacing) }
+
+            formation.units.forEach { entity ->
+                val angle = facing + entity.angularSize / 2f
+                val pos = target.location + unitVector(angle).resized(entity.attackRange)
+
+                facing += entity.angularSize
+                entity.coordinable.reviewedHeadingPoint = pos
+
+                if (debug) {
+                    drawCircle(pos, entity.ship.collisionRadius)
+//                    drawLine(pos, entity.ship.location, Color.BLUE)
+                }
+            }
+        }
+    }
+
+    private class Formation(initialUnit: Unit) {
+        val units: MutableList<Unit> = mutableListOf(initialUnit)
+
+        var angularSize = initialUnit.angularSize
+        var facing = initialUnit.proposedFacing
+
+        fun isOverlapping(other: Formation): Boolean {
             val angleToOther = MathUtils.getShortestRotation(facing, other.facing)
             return abs(angleToOther) < (angularSize + other.angularSize) / 2f
         }
 
-        fun merge(other: Group) {
-            ships.addAll(other.ships)
+        fun merge(other: Formation) {
+            units.addAll(other.units)
 
             val newAngularSize = angularSize + other.angularSize
             val angleToOther = MathUtils.getShortestRotation(facing, other.facing)
@@ -116,18 +128,11 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         }
     }
 
-    private class Ship(target: ShipAPI, val proposedHeadingPoint: Vector2f, val ai: Maneuver) {
-        val angularSize: Float
-        val proposedFacing: Float
-        val ship = ai.ship
+    private class Unit(val target: ShipAPI, proposedHeadingPoint: Vector2f, val coordinable: Coordinable) {
+        val ship: ShipAPI = coordinable.ai.ship
+        val attackRange: Float = (proposedHeadingPoint - target.location).length()
+        val angularSize: Float = angularSize(attackRange * attackRange, ship.totalCollisionRadius + collisionBuffer)
+        val proposedFacing: Float = (proposedHeadingPoint - target.location).getFacing()
         val currentFacing: Float = (ship.location - target.location).getFacing()
-
-        init {
-            val toShip = proposedHeadingPoint - target.location
-            val distanceSqr = toShip.lengthSquared()
-
-            angularSize = angularSize(distanceSqr, ship.totalCollisionRadius + collisionBuffer)
-            proposedFacing = toShip.getFacing()
-        }
     }
 }

@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
+import com.genir.aitweaks.core.debug.debugPlugin
 import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.utils.*
@@ -15,6 +16,7 @@ import com.genir.aitweaks.core.utils.extensions.rootModule
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.getFacing
+import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -23,16 +25,20 @@ import kotlin.math.abs
 import kotlin.math.min
 
 /** Burn Drive AI. It replaces the vanilla implementation in ships with custom AI. */
-class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
-    var headingPoint: Vector2f? = Vector2f()
+class BurnDrive(val ship: ShipAPI, override val ai: Maneuver) : Coordinable {
+    // Used by Movement class to align ship for burn.
+    var destination: Vector2f = Vector2f()
     var shouldBurn = false
+
+    // Used for communication with attack coordinator.
+    override var proposedHeadingPoint: Vector2f? = null
+    override var reviewedHeadingPoint: Vector2f? = null
 
     private val system: ShipSystemAPI = ship.system
     private val burnDriveFlatBonus: Float = 200f
 
-    private var vectorToTarget: Vector2f = Vector2f()
-    private var distToTarget: Float = 0f
-    private var angleToTarget: Float = 0f
+    private var destinationDist: Float = 0f
+    private var destinationFacing: Float = 0f
 
     // Stats
     private var maxSpeed: Float = Float.MAX_VALUE
@@ -52,10 +58,10 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
         updateShouldBurn()
         triggerSystem(dt)
 
-        if (headingPoint == null) {
+        if (destination.isZeroVector()) {
             drawLine(ship.location, ship.location + unitVector(ship.facing) * 200f, Color.RED)
         } else {
-            drawLine(ship.location, headingPoint!!, Color.GREEN)
+            drawLine(ship.location, destination, Color.GREEN)
         }
     }
 
@@ -68,28 +74,40 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
     }
 
     private fun updateHeadingPoint() {
-        val newHeadingPoint = when {
-            ai.moveOrderLocation != null -> ai.moveOrderLocation
+        // Reset attack coordinator communication.
+        val reviewedHeadingPoint = this.reviewedHeadingPoint
+        this.proposedHeadingPoint = null
+        this.reviewedHeadingPoint = null
+
+        // Choose new burn destination.
+        val newDestination = when {
+            ai.moveOrderLocation != null -> {
+                ai.moveOrderLocation
+            }
 
             // Charge straight at the maneuver target, disregard fleet coordination.
             ai.maneuverTarget != null -> {
                 val vectorToTarget = ai.maneuverTarget.location - ship.location
-                vectorToTarget.addLength(-ai.minRange * Preset.BurnDrive.approachToMinRangeFraction) + ship.location
+                val approachVector = vectorToTarget.addLength(-ai.minRange * Preset.BurnDrive.approachToMinRangeFraction)
+
+                // Let the attack coordinator review the calculated heading point.
+                proposedHeadingPoint = approachVector + ship.location
+                reviewedHeadingPoint
             }
 
             else -> null
         }
 
-        if (newHeadingPoint != null) {
-            vectorToTarget = newHeadingPoint - ship.location
-            headingPoint = vectorToTarget + ship.location
-            distToTarget = vectorToTarget.length()
-            angleToTarget = abs(MathUtils.getShortestRotation(vectorToTarget.getFacing(), ship.facing))
+        // Calculate burn parameters.
+        if (newDestination != null) {
+            val toDestination = newDestination - ship.location
+            destination = toDestination + ship.location
+            destinationDist = toDestination.length()
+            destinationFacing = abs(MathUtils.getShortestRotation(toDestination.getFacing(), ship.facing))
         } else {
-            headingPoint = null
-            vectorToTarget = Vector2f()
-            distToTarget = 0f
-            angleToTarget = 0f
+            destination = Vector2f()
+            destinationDist = 0f
+            destinationFacing = 0f
         }
     }
 
@@ -99,13 +117,18 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
 
             !ship.canUseSystemThisFrame() -> false
 
-            headingPoint == null -> false
+            destination.isZeroVector() -> false
 
             ai.isBackingOff -> false
 
-            angleToTarget > Preset.BurnDrive.maxAngleToTarget -> false
+            // Don't burn to move order location if not facing the location.
+            ai.moveOrderLocation != null && destinationFacing > Preset.BurnDrive.maxAngleToTarget -> false
 
-            distToTarget < maxBurnDist / 2f -> false
+            // Don't burn to maneuver target if it's different from the attack target.
+            ai.maneuverTarget != null && ai.maneuverTarget != ai.attackTarget -> false
+
+            // Don't burn to destination if it's too close.
+            destinationDist < maxBurnDist * Preset.BurnDrive.minBurnDistFraction -> false
 
             !isRouteClear() -> false
 
@@ -113,22 +136,33 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
         }
     }
 
+    private var reason = ""
+
     private fun triggerSystem(dt: Float) {
+        if (system.state == IDLE) {
+            reason = ""
+        }
+
+        debugPlugin[ship] = "${ship.name} $reason"
+
         val shouldTrigger = when {
             // Launch.
-            shouldBurn && angleToTarget < 0.1f -> true
+            shouldBurn && destinationFacing < 0.1f -> true
 
             // Not burning, no need to abort.
             system.state != ACTIVE -> false
 
-            // Stop to not overshoot target.
-            vMax(dt, distToTarget, 600f) < ship.velocity.length() -> true
-
             // Veered off course, stop.
-            angleToTarget > Preset.BurnDrive.maxAngleToTarget -> true
+            destinationFacing > Preset.BurnDrive.maxAngleToTarget -> {
+                reason = "angle"
+                true
+            }
 
             // Avoid collisions.
-            isCollisionImminent() -> true
+            isCollisionImminent() -> {
+                reason = "collision"
+                true
+            }
 
             else -> false
         }
@@ -160,15 +194,16 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
     }
 
     private fun isRouteClear(): Boolean {
-        val dist = distToTarget.coerceAtMost(maxBurnDist)
-        val position = ship.location + vectorToTarget.resized(dist) / 2f
+        val toDestination = destination - ship.location
+        val dist = destinationDist.coerceAtMost(maxBurnDist)
+        val position = ship.location + toDestination.resized(dist) / 2f
         val obstacles = findObstacles(position, dist / 2f)
 
         val maxBurnDuration = system.chargeActiveDur + system.chargeUpDur + system.chargeDownDur
         val timeToTarget = maxBurnDuration * (dist / maxBurnDist)
         val effectiveSpeed = maxBurnDist / maxBurnDuration
 
-        return timeToTarget < timeToCollision(obstacles, vectorToTarget.resized(effectiveSpeed))
+        return timeToTarget < timeToCollision(obstacles, toDestination.resized(effectiveSpeed), Preset.collisionBuffer)
     }
 
     private fun isCollisionImminent(): Boolean {
@@ -176,14 +211,14 @@ class BurnDrive(val ship: ShipAPI, val ai: Maneuver) {
         val position = ship.location + unitVector(ship.facing) * radius
         val obstacles = findObstacles(position, radius)
 
-        return timeToCollision(obstacles, ship.velocity) <= Preset.BurnDrive.stopBeforeCollision
+        return timeToCollision(obstacles, ship.velocity, 0f) <= Preset.BurnDrive.stopBeforeCollision
     }
 
-    private fun timeToCollision(obstacles: Sequence<ShipAPI>, shipVelocity: Vector2f): Float {
+    private fun timeToCollision(obstacles: Sequence<ShipAPI>, shipVelocity: Vector2f, buffer: Float): Float {
         return obstacles.mapNotNull { obstacle ->
             val p = obstacle.location - ship.location
             val v = obstacle.velocity - shipVelocity
-            val r = ship.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
+            val r = ship.totalCollisionRadius + obstacle.totalCollisionRadius + buffer
 
             // Calculate time to collision.
             if (p.lengthSquared() <= r * r) 0f

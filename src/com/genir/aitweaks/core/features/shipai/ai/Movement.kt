@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE_TOGGLE
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
@@ -17,29 +16,31 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.sign
 
-class Movement(private val ai: Maneuver) {
+class Movement(override val ai: Maneuver) : Coordinable {
+    // Used for communication with attack coordinator.
+    override var proposedHeadingPoint: Vector2f? = null
+    override var reviewedHeadingPoint: Vector2f? = null
+
     private val ship = ai.ship
     private val engineController = EngineController(ship)
-    private val systemAIType = ship.system?.specAPI?.AIType
-    private val burnDriveAI: BurnDrive? = if (systemAIType == BURN_DRIVE_TOGGLE) BurnDrive(ship, ai) else null
 
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
     private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
 
     fun advance(dt: Float) {
-        burnDriveAI?.advance(dt)
+        ai.burnDriveAI?.advance(dt)
         setFacing()
         setHeading(dt)
-        manageMobilitySystems(dt)
+        manageMobilitySystems()
     }
 
     private fun setFacing() {
         val (aimPoint: Vector2f, velocity: Vector2f) = when {
             // Position ship to start burn.
-            burnDriveAI?.shouldBurn == true -> {
+            ai.burnDriveAI?.shouldBurn == true -> {
                 // Compiler should require !! on headingPoint. Is this a Kotlin bug?
-                Pair(burnDriveAI.headingPoint, Vector2f())
+                Pair(ai.burnDriveAI.destination, Vector2f())
             }
 
             // Face the attack target.
@@ -75,8 +76,8 @@ class Movement(private val ai: Maneuver) {
     private fun setHeading(dt: Float) {
         val (headingPoint: Vector2f, velocity: Vector2f) = when {
             // Position ship to start burn.
-            burnDriveAI?.shouldBurn == true -> {
-                Pair(burnDriveAI.headingPoint!!, Vector2f())
+            ai.burnDriveAI?.shouldBurn == true -> {
+                Pair(ai.burnDriveAI.destination, Vector2f())
             }
 
             // Move directly to ordered location.
@@ -106,9 +107,9 @@ class Movement(private val ai: Maneuver) {
                 else vectorToThreat
 
                 // Let the attack coordinator review the calculated heading point.
-                ai.proposedHeadingPoint = ai.maneuverTarget.location - attackPositionOffset.resized(ai.minRange)
-                val headingPoint = (ai.reviewedHeadingPoint ?: ai.proposedHeadingPoint)!!
-                ai.reviewedHeadingPoint = null
+                proposedHeadingPoint = ai.maneuverTarget.location - attackPositionOffset.resized(ai.minRange)
+                val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
+                reviewedHeadingPoint = null
 
                 val velocity = (headingPoint - (ai.headingPoint ?: headingPoint)) / dt
                 Pair(headingPoint, velocity)
@@ -122,8 +123,8 @@ class Movement(private val ai: Maneuver) {
         ai.desiredHeading = engineController.heading(headingPoint, velocity, gatherSpeedLimits(dt))
     }
 
-    private fun manageMobilitySystems(dt: Float) {
-        when (systemAIType) {
+    private fun manageMobilitySystems() {
+        when (ship.system?.specAPI?.AIType) {
 
             ShipSystemAiType.MANEUVERING_JETS -> when {
                 !ship.canUseSystemThisFrame() -> Unit
@@ -143,10 +144,6 @@ class Movement(private val ai: Maneuver) {
                     ship.blockCommandForOneFrame(USE_SYSTEM)
                 }
             }
-
-//            BURN_DRIVE_TOGGLE -> {
-//                if (burnDriveAI?.shouldTrigger(dt) == true) ship.command(USE_SYSTEM)
-//            }
 
             else -> Unit
         }
