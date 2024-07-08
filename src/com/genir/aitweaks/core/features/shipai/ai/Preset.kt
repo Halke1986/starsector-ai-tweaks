@@ -25,6 +25,10 @@ class Preset {
 
         // Collision avoidance
         const val collisionBuffer = 30f
+
+        // Broadside
+        const val broadsideDPSThreshold = 1.33f
+        const val broadsideOffsetPadding = 10f
     }
 
     class BurnDrive {

@@ -25,6 +25,7 @@ internal val ShipAPI.primaryWeapons: List<WeaponAPI>
             !weapon.frontFacing -> false
             weapon.isPD -> false
             weapon.isPermanentlyDisabled -> false
+            weapon.derivedStats.dps == 0f -> false
             weapon.usesAmmo() && weapon.ammoTracker?.reloadSize == 0f -> false
             else -> true
         }

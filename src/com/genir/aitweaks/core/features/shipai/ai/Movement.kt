@@ -52,7 +52,7 @@ class Movement(override val ai: Maneuver) : Coordinable {
                 val aimOffsetThisFrame = getShortestRotation(target.location, ship.location, aimPointThisFrame)
                 val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
 
-                Pair(target.location.rotatedAroundPivot(Rotation(aimOffset), ship.location), target.velocity)
+                Pair(target.location.rotatedAroundPivot(Rotation(aimOffset - ai.broadsideOffset), ship.location), target.velocity)
             }
 
             // Face threat direction when no target.
@@ -137,12 +137,14 @@ class Movement(override val ai: Maneuver) : Coordinable {
                 ai.is1v1 && ai.range(ai.attackTarget!!) > ai.effectiveRange -> ship.command(USE_SYSTEM)
             }
 
-            // Prevent vanilla AI from jumping closer to target with
-            // BURN_DRIVE, if the target is already within weapons range.
             ShipSystemAiType.BURN_DRIVE -> {
+                // Prevent vanilla AI from jumping closer to target with
+                // BURN_DRIVE, if the target is already within weapons range.
                 if (ai.attackTarget != null && ai.range(ai.attackTarget!!) < ai.effectiveRange) {
                     ship.blockCommandForOneFrame(USE_SYSTEM)
                 }
+
+                if (ai.isBackingOff) ship.blockCommandForOneFrame(USE_SYSTEM)
             }
 
             else -> Unit

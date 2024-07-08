@@ -135,8 +135,8 @@ class BurnDrive(val ship: ShipAPI, override val ai: Maneuver) : Coordinable {
             // Not burning, no need to abort.
             system.state != ACTIVE -> false
 
-            // Destination vector is lost, stop.
-            destination.isZeroVector() -> true
+            // No target, stop.
+            ai.moveOrderLocation == null && ai.maneuverTarget == null -> true
 
             // Veered off course, stop.
             destinationFacing > Preset.BurnDrive.maxAngleToTarget -> true

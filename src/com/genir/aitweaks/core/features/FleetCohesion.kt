@@ -115,7 +115,7 @@ class FleetCohesionAI {
             validGroups.first().contains(currentTarget) -> currentTarget
 
             // Ship is engaging a secondary group.
-            currentTarget != null && validGroups.first().contains(currentTarget) && closeToEnemy(ship, currentTarget) -> currentTarget
+            currentTarget != null && validGroups.any { it.contains(currentTarget) } && closeToEnemy(ship, currentTarget) -> currentTarget
 
             // Ship has wrong target. Find the closest valid target in the main enemy battle group.
             else -> primaryTargets.minByOrNull { (it.location - ship.location).lengthSquared() } ?: currentTarget
@@ -217,7 +217,7 @@ class FleetCohesionAI {
     }
 
     private fun closeToEnemy(ship: ShipAPI, target: ShipAPI): Boolean {
-        val maxRange = ship.maxFiringRange * 1.5f
+        val maxRange = ship.maxFiringRange * 2f
         return (ship.location - target.location).lengthSquared() <= maxRange * maxRange
     }
 

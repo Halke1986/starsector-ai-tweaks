@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
+import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.genir.aitweaks.core.GlobalState
 import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE_TOGGLE
@@ -12,12 +13,15 @@ import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import com.genir.aitweaks.core.utils.shipSequence
 import com.genir.aitweaks.core.utils.times
+import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.sign
+import kotlin.random.Random
 
 // TODO retreat order during chase battle freezes the ship
 
@@ -35,6 +39,7 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
     var minRange: Float = 0f
     var maxRange: Float = 0f
     var totalCollisionRadius: Float = 0f
+    val broadsideOffset = calculateBroadsideOffset()
 
     // Required by vanilla logic.
     var desiredHeading: Float = ship.facing
@@ -77,18 +82,23 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
             noOrders -> oldManeuver?.maneuverTarget
 
             // Don't change target when burn drive is on.
-            burnDriveAI != null && ship.system.isOn && oldManeuver?.maneuverTarget?.isValidTarget == true -> oldManeuver.maneuverTarget
+            burnDriveAI != null && ship.system.isOn && oldManeuver?.maneuverTarget?.isValidTarget == true -> {
+                oldManeuver.maneuverTarget
+            }
 
-            else -> selectManeuverTarget(vanillaManeuverTarget)
+            // Custom ship AI uses fleet cohesion directly, instead of through orders.
+            else -> {
+                GlobalState.fleetCohesion?.findValidTarget(ship, vanillaManeuverTarget) ?: vanillaManeuverTarget
+            }
         }
     }
 
     fun advance(dt: Float) {
         ship.storeCustomAI(this)
 
-        if (shouldEndManeuver()) {
-            ship.shipAI.cancelCurrentManeuver()
-        }
+        if (shouldEndManeuver()) ship.shipAI.cancelCurrentManeuver()
+
+        calculateBroadsideOffset()
 
         // Update state.
         updateThreats()
@@ -115,11 +125,6 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
      * is avoiding collision. But since ShipAI collision avoidance is overriden,
      * setting heading by Maneuver needs to be done each frame, in advance method. */
     fun doManeuver() = Unit
-
-    /** Custom ship AI uses fleet cohesion directly, instead of through orders. */
-    private fun selectManeuverTarget(vanillaManeuverTarget: ShipAPI?): ShipAPI? {
-        return GlobalState.fleetCohesion?.findValidTarget(ship, vanillaManeuverTarget) ?: vanillaManeuverTarget
-    }
 
     private fun shouldEndManeuver(): Boolean {
         return when {
@@ -232,10 +237,6 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
         if (shouldVent) ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
     }
 
-    internal fun range(target: ShipAPI): Float {
-        return (target.location - ship.location).length() - target.collisionRadius / 2f
-    }
-
     private fun updateThreats() {
         val rangeEnvelope = 500f
         val r = max(Preset.threatEvalRadius, maxRange + rangeEnvelope)
@@ -301,7 +302,47 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
         return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType
     }
 
+    private fun calculateBroadsideOffset(): Float {
+        // Find all important weapons.
+        val weapons = ship.allWeapons.filter { weapon ->
+            when {
+                weapon.type == WeaponAPI.WeaponType.MISSILE -> false
+                weapon.derivedStats.dps == 0f -> false
+                weapon.isPD -> false
+                else -> true
+            }
+        }
+
+        // Find firing arc boundary closes to ship front for each weapon,
+        // or 0f for front facing weapons. Shuffle to randomly chose
+        // one broadside for symmetric broadside ships.
+        val angles = weapons.fold(setOf(0f)) { angles, weapon ->
+            val facing = MathUtils.getShortestRotation(0f, weapon.arcFacing)
+
+            val angle = if (weapon.isAngleInArc(0f)) 0f
+            else facing - facing.sign * (weapon.arc / 2f - 0.1f)
+
+            angles + angle
+        }.shuffled(Random(ship.id.hashCode()))
+
+        // Calculate DPS at each weapon arc boundary angle.
+        val angleDPS: Map<Float, Float> = angles.associateWith { angle ->
+            weapons.filter { it.isAngleInArc(angle) }.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
+        }
+
+        val bestAngleDPS: Map.Entry<Float, Float> = angleDPS.maxByOrNull { it.value } ?: return 0f
+
+        // Prefer non-broadside orientation.
+        if (bestAngleDPS.value * Preset.broadsideDPSThreshold < angleDPS[0f]!!) return 0f
+
+        return bestAngleDPS.key + bestAngleDPS.key.sign * Preset.broadsideOffsetPadding
+    }
+
     private fun isThreat(target: ShipAPI): Boolean {
         return target.owner != ship.owner && target.isAlive && !target.isExpired && target.isShip
+    }
+
+    internal fun range(target: ShipAPI): Float {
+        return (target.location - ship.location).length() - target.collisionRadius / 2f
     }
 }

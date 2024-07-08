@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.features.autofire.AutofireAI
+import com.genir.aitweaks.core.features.shipai.ai.customAI
 import com.genir.aitweaks.core.utils.attack.FiringCycle
 import com.genir.aitweaks.core.utils.attack.firingCycle
 import org.lazywizard.lazylib.MathUtils
@@ -30,8 +31,15 @@ val WeaponAPI.hasBestTargetLeading: Boolean
 val WeaponAPI.ignoresFlares: Boolean
     get() = hasAIHint(IGNORES_FLARES) || ship.mutableStats.dynamic.getValue("pd_ignores_flares", 0f) >= 1f
 
+fun WeaponAPI.isAngleInArc(angle: Float): Boolean {
+    return abs(MathUtils.getShortestRotation(arcFacing, angle)) <= arc / 2f
+}
+
 val WeaponAPI.frontFacing: Boolean
-    get() = abs(MathUtils.getShortestRotation(arcFacing, 0f)) <= arc / 2f
+    get() {
+        val front = ship.customAI?.broadsideOffset ?: 0f
+        return abs(MathUtils.getShortestRotation(arcFacing, front)) <= arc / 2f
+    }
 
 /** weapon arc facing in absolute coordinates, instead of ship coordinates */
 val WeaponAPI.absoluteArcFacing: Float
