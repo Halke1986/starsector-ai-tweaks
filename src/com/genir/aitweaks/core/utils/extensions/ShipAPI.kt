@@ -57,6 +57,7 @@ val ShipAPI.isAutomated: Boolean
 val ShipAPI.deploymentPoints: Float
     get() = fleetMember?.unmodifiedDeploymentPointsCost ?: 0f
 
+// TODO remove duplicate
 val ShipAPI.maxFiringRange: Float
     get() = allWeapons.maxOfOrNull { it.range } ?: 0f
 

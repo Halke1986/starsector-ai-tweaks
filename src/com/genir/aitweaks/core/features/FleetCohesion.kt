@@ -12,11 +12,13 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.GlobalState
+import com.genir.aitweaks.core.features.shipai.ai.Preset
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.targetTracker
 import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.max
 
 class FleetCohesion : BaseEveryFrameCombatPlugin() {
     private val isOn = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai") ?: false
@@ -27,7 +29,7 @@ class FleetCohesion : BaseEveryFrameCombatPlugin() {
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         if (isOn && GlobalState.fleetCohesion == null) {
-            GlobalState.fleetCohesion = FleetCohesionAI()
+            GlobalState.fleetCohesion = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
         }
 
         when {
@@ -35,12 +37,14 @@ class FleetCohesion : BaseEveryFrameCombatPlugin() {
             Global.getCombatEngine().isSimulation -> return
             GlobalState.fleetCohesion == null -> return
 
-            else -> GlobalState.fleetCohesion!!.advance(dt)
+            else -> GlobalState.fleetCohesion?.forEach { it.advance(dt) }
         }
     }
 }
 
-class FleetCohesionAI {
+class FleetCohesionAI(private val side: Int) {
+    private val enemy: Int = side xor 1
+
     private val cohesionAssignments: MutableSet<AssignmentKey> = mutableSetOf()
     private val cohesionWaypoints: MutableSet<AssignmentTargetAPI> = mutableSetOf()
 
@@ -48,7 +52,7 @@ class FleetCohesionAI {
     private var primaryTargets: List<ShipAPI> = listOf()
 
     private val advanceInterval = IntervalUtil(0.75f, 1f)
-    private var taskManager: CombatTaskManager = Global.getCombatEngine().getFleetManager(0).getTaskManager(false) as CombatTaskManager
+    private var taskManager: CombatTaskManager = Global.getCombatEngine().getFleetManager(side).getTaskManager(false) as CombatTaskManager
 
     fun advance(dt: Float) {
         advanceInterval.advance(dt)
@@ -73,22 +77,25 @@ class FleetCohesionAI {
             taskManager.allAssignments.firstOrNull { it.type == AVOID } != null -> return
 
             // Battle is already won.
-            engine.getFleetManager(1).getTaskManager(false).isInFullRetreat -> return
+            engine.getFleetManager(enemy).getTaskManager(false).isInFullRetreat -> return
         }
 
         // Identify enemy battle groups.
-        val enemyFleet = engine.ships.filter { it.owner == 1 && it.isValidTarget }
+        val enemyFleet = engine.ships.filter { it.owner == enemy && it.isValidTarget }
         if (enemyFleet.isEmpty()) return
         val groups = segmentFleet(enemyFleet.toTypedArray())
         val groupsFromLargest = groups.sortedBy { it.dpSum }.reversed()
         validGroups = groupsFromLargest.filter { isValidGroup(it, groupsFromLargest.first().dpSum) }
 
-        val fog = engine.getFogOfWar(0)
+        val fog = engine.getFogOfWar(side)
         primaryTargets = validGroups.first().filter { it.isBig && fog.isVisible(it) }
+
+        // Don't give orders to enemy side.
+        if (side == 1) return
 
         val ships = engine.ships.filter {
             when {
-                it.owner != 0 -> false
+                it.owner != side -> false
                 !it.isAlive -> false
                 it.isExpired -> false
                 !it.isBig -> false
@@ -217,7 +224,7 @@ class FleetCohesionAI {
     }
 
     private fun closeToEnemy(ship: ShipAPI, target: ShipAPI): Boolean {
-        val maxRange = ship.maxFiringRange * 2f
+        val maxRange = max(Preset.threatEvalRadius, ship.maxFiringRange * 2f)
         return (ship.location - target.location).lengthSquared() <= maxRange * maxRange
     }
 

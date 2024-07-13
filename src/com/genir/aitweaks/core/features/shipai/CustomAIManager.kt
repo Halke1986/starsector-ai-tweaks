@@ -5,6 +5,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
+import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.features.shipai.loading.Builder
 import lunalib.lunaSettings.LunaSettings
@@ -43,20 +45,24 @@ class CustomAIManager {
 
     /** Currently, custom AI is enabled only for Guardian in Cryosleeper encounter. */
     private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
-        val ships = Global.getCombatEngine().ships
-        val isCryosleeper = ships.count { it.owner == 1 } == 1 && ships.count { it.owner == 1 && it.hullSpec.hullId == "guardian" } == 1
+//        val ships = Global.getCombatEngine().ships
+//        val isCryosleeper = ships.count { it.owner == 1 } == 1 && ships.count { it.owner == 1 && it.hullSpec.hullId == "guardian" } == 1
 
         return when {
             Global.getCurrentState() != GameState.COMBAT -> false
             getCustomAIClass() == null -> false
 
-            ship.owner == 1 && isCryosleeper -> true
-
-            ship.isAlly -> false
+            ship.hullSpec.isPhase -> false
+            ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
             ship.isStation -> false
-            ship.owner == 0 && (ship.isDestroyer || ship.isCruiser || ship.isCapital) -> true
 
-            else -> false
+            !ship.isDestroyer && !ship.isCruiser && !ship.isCapital -> false
+            ship.owner != 1 -> false
+
+//            ship.isAlly -> false
+//            ship.owner == 0 && (ship.isDestroyer || ship.isCruiser || ship.isCapital) -> true
+
+            else -> true
         }
     }
 }

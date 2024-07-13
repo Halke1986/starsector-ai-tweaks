@@ -12,6 +12,8 @@ import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.RED
+import java.awt.Color.YELLOW
 
 fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
@@ -19,10 +21,11 @@ fun debug(dt: Float) {
 
 //    val p = Global.getCombatEngine().playerShip ?: return
 
-    custom.filter { it.hullSpec.hullId == "dominator" }.forEach {
+    custom.forEach {
 //        debugPlugin[it] = "tgt ${it.customAI} ${it.customAI?.attackTarget?.name}"
-//        drawLine(it.location, it.aitStash.maneuverAI?.headingPoint ?: it.location, Color.YELLOW)
+        drawLine(it.location, it.customAI?.headingPoint ?: it.location, YELLOW)
 //        drawLine(it.location, it.location + it.velocity * 2f, Color.GREEN)
+        drawCircle(it.location, it.collisionRadius / 2f, RED)
     }
 }
 

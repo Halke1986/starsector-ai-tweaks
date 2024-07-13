@@ -70,6 +70,8 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
         attackTarget = oldManeuver?.attackTarget
 
         moveOrderLocation = when {
+            ship.owner == 1 -> null
+
             noOrders -> oldManeuver?.moveOrderLocation
 
             else -> vanillaMoveOrderLocation
@@ -88,7 +90,8 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
 
             // Custom ship AI uses fleet cohesion directly, instead of through orders.
             else -> {
-                GlobalState.fleetCohesion?.findValidTarget(ship, vanillaManeuverTarget) ?: vanillaManeuverTarget
+                GlobalState.fleetCohesion?.get(ship.owner)?.findValidTarget(ship, vanillaManeuverTarget)
+                    ?: vanillaManeuverTarget
             }
         }
     }

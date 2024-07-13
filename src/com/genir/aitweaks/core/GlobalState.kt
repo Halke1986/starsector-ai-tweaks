@@ -4,6 +4,6 @@ import com.genir.aitweaks.core.features.FleetCohesionAI
 
 class GlobalState {
     companion object {
-        var fleetCohesion: FleetCohesionAI? = null
+        var fleetCohesion: Array<FleetCohesionAI>? = null
     }
 }
