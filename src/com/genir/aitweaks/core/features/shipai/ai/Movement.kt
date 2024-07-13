@@ -52,7 +52,7 @@ class Movement(override val ai: Maneuver) : Coordinable {
                 val aimOffsetThisFrame = getShortestRotation(target.location, ship.location, aimPointThisFrame)
                 val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
 
-                Pair(target.location.rotatedAroundPivot(Rotation(aimOffset - ai.broadsideOffset), ship.location), target.velocity)
+                Pair(target.location.rotatedAroundPivot(Rotation(aimOffset - ai.broadsideFacing), ship.location), target.velocity)
             }
 
             // Face threat direction when no target.

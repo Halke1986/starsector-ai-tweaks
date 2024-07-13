@@ -39,7 +39,7 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
     var minRange: Float = 0f
     var maxRange: Float = 0f
     var totalCollisionRadius: Float = 0f
-    val broadsideOffset = calculateBroadsideOffset()
+    val broadsideFacing = calculateBroadsideFacing()
 
     // Required by vanilla logic.
     var desiredHeading: Float = ship.facing
@@ -101,7 +101,7 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
 
         if (shouldEndManeuver()) ship.shipAI.cancelCurrentManeuver()
 
-        calculateBroadsideOffset()
+        calculateBroadsideFacing()
 
         // Update state.
         updateThreats()
@@ -279,7 +279,7 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
     /** Evaluate if target is worth attacking. The lower the score, the better the target. */
     private fun evaluateTarget(target: ShipAPI): Float {
         // Prioritize targets closer to ship facing.
-        val angle = ship.shortestRotationToTarget(target.location) * PI.toFloat() / 180.0f
+        val angle = ship.shortestRotationToTarget(target.location, broadsideFacing) * PI.toFloat() / 180.0f
         val angleWeight = 0.75f
         val evalAngle = abs(angle) * angleWeight
 
@@ -305,7 +305,7 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
         return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType
     }
 
-    private fun calculateBroadsideOffset(): Float {
+    private fun calculateBroadsideFacing(): Float {
         // Find all important weapons.
         val weapons = ship.allWeapons.filter { weapon ->
             when {

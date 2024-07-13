@@ -76,9 +76,9 @@ internal fun ShipAPI.dpsAtRange(range: Float): Float {
     return primaryWeapons.filter { it.trueRange >= range }.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
 }
 
-internal fun ShipAPI.shortestRotationToTarget(target: Vector2f): Float {
+internal fun ShipAPI.shortestRotationToTarget(target: Vector2f, broadsideFacing: Float): Float {
     val facingToTarget = (target - location).getFacing()
-    return MathUtils.getShortestRotation(facing, facingToTarget)
+    return MathUtils.getShortestRotation(facing - broadsideFacing, facingToTarget)
 }
 
 internal val ShipAPI.strafeAcceleration: Float
