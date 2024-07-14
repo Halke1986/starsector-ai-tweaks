@@ -13,8 +13,6 @@ import java.awt.Color
 import java.util.*
 import kotlin.math.max
 
-const val ID = "com.genir.aitweaks.core.features.AutoOmniShields"
-
 class AutoOmniShields : BaseEveryFrameCombatPlugin() {
     private var doNotUseShields = false
     private var prevPlayerShip: ShipAPI? = null
@@ -24,9 +22,10 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
         val engine = Global.getCombatEngine() ?: return
 
         // Initialize omni shield plugin.
-        if (!engine.customData.containsKey(ID)) {
+        val id = "com.genir.aitweaks.core.features.AutoOmniShields"
+        if (!engine.customData.containsKey(id)) {
             engine.addLayeredRenderingPlugin(RendererAutoShieldIndicator())
-            engine.customData[ID] = true
+            engine.customData[id] = true
         }
 
         // Load keybind.

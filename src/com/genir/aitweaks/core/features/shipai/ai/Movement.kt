@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
+import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
@@ -317,7 +318,7 @@ class Movement(override val ai: Maneuver) : Coordinable {
         if (distance <= 0f) return EngineController.Limit(dirFacing, 0f)
 
         var vObstacle = vectorProjectionLength(obstacle.velocity, direction)
-        val aObstacle = vectorProjectionLength(accelerationTracker[obstacle], direction)
+        val aObstacle = vectorProjectionLength(combatState().accelerationTracker[obstacle], direction)
 
         // Take obstacle acceleration into account when the obstacle is doing a brake check.
         // The acceleration is approximated as total velocity loss. Including actual

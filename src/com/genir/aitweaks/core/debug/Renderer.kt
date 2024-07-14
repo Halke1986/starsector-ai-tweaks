@@ -11,15 +11,7 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
 
-private var debugRenderer: Renderer = Renderer()
-
-fun drawCircle(pos: Vector2f, r: Float, color: Color = Color.CYAN) {
-    debugRenderer.circles.add(Renderer.Circle(pos, r, color))
-}
-
-fun drawLine(a: Vector2f, b: Vector2f, color: Color = Color.YELLOW) {
-    debugRenderer.lines.add(Renderer.Line(a, b, color))
-}
+var debugRenderer: Renderer? = null
 
 class Renderer : BaseCombatLayeredRenderingPlugin() {
     data class Line(val a: Vector2f, val b: Vector2f, val color: Color)

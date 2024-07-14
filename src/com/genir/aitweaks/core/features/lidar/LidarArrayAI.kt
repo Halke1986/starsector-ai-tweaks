@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
+import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.utils.attack.AttackTarget
 import com.genir.aitweaks.core.utils.attack.canTrack
 import com.genir.aitweaks.core.utils.attack.defaultBallisticParams
@@ -11,7 +12,6 @@ import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.extensions.isHullDamageable
 import com.genir.aitweaks.core.utils.extensions.isShip
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
-import com.genir.aitweaks.core.utils.targetTracker
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 
@@ -44,7 +44,7 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
                 ship.useSystem()
 
                 // Set data to be used by ShipAI.
-                ship.setCustomData(lidarConfigID, LidarConfig(targetTracker[ship], minLidarWeaponRange()))
+                ship.setCustomData(lidarConfigID, LidarConfig(combatState().targetTracker[ship], minLidarWeaponRange()))
             }
         }
     }
@@ -54,7 +54,7 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
         if (!canUseSystemThisFrame(ship)) return false
 
         // Has valid target.
-        val target = targetTracker[ship] ?: return false
+        val target = combatState().targetTracker[ship] ?: return false
         when {
             !target.isShip -> return false
             target.isFrigate && !target.isStationModule -> return false

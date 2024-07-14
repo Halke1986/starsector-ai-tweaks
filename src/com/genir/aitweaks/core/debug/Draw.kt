@@ -10,7 +10,17 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
+fun drawCircle(pos: Vector2f, r: Float, color: Color = Color.CYAN) {
+    debugRenderer?.circles?.add(Renderer.Circle(pos, r, color))
+}
+
+fun drawLine(a: Vector2f, b: Vector2f, color: Color = Color.YELLOW) {
+    debugRenderer?.lines?.add(Renderer.Line(a, b, color))
+}
+
 fun drawEngineLines(ship: ShipAPI) {
+    if (debugRenderer == null) return
+
     val r = Rotation(ship.facing - 90f)
     val engine = ship.engineController
 
@@ -32,15 +42,23 @@ fun drawEngineLines(ship: ShipAPI) {
 }
 
 fun drawCollisionRadius(ship: ShipAPI) {
+    if (debugRenderer == null) return
+
     drawCircle(ship.location, ship.collisionRadius)
 }
 
 fun drawWeaponLines(ship: ShipAPI) {
+    if (debugRenderer == null) return
+
     val ais = ship.weaponGroupsCopy.flatMap { it.aiPlugins }.filter { it is AutofireAI && it.target != null }
     ais.forEach { drawLine(it.weapon.location, it.target!!, if (it.weapon.isPD) Color.YELLOW else Color.RED) }
 }
 
-fun drawBattleGroup(group: Set<ShipAPI>, color: Color = Color.YELLOW) = DrawBattleGroup().drawBattleGroup(group, color)
+fun drawBattleGroup(group: Set<ShipAPI>, color: Color = Color.YELLOW) {
+    if (debugRenderer == null) return
+
+    DrawBattleGroup().drawBattleGroup(group, color)
+}
 
 private class DrawBattleGroup {
     data class Edge(val src: Int, val dest: Int, val weight: Float)

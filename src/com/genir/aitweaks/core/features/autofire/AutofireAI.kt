@@ -4,11 +4,15 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
+import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.autofire.HoldFire.*
 import com.genir.aitweaks.core.features.shipai.ai.customAI
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.attack.*
 import com.genir.aitweaks.core.utils.extensions.*
+import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
+import com.genir.aitweaks.core.utils.rotateAroundPivot
+import com.genir.aitweaks.core.utils.vectorInArc
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -68,7 +72,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Select target.
         selectTargetInterval.advance(timeDelta)
         if (selectTargetInterval.intervalElapsed()) {
-            target = SelectTarget(weapon, target, targetTracker[weapon.ship], currentParams()).target
+            target = SelectTarget(weapon, target, combatState().targetTracker[weapon.ship], currentParams()).target
             shouldFireInterval.forceIntervalElapsed()
         }
 

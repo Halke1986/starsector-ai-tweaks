@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
-import com.genir.aitweaks.core.GlobalState
+import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE_TOGGLE
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
@@ -90,7 +90,7 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
 
             // Custom ship AI uses fleet cohesion directly, instead of through orders.
             else -> {
-                GlobalState.fleetCohesion?.get(ship.owner)?.findValidTarget(ship, vanillaManeuverTarget)
+                combatState().fleetCohesion?.get(ship.owner)?.findValidTarget(ship, vanillaManeuverTarget)
                     ?: vanillaManeuverTarget
             }
         }

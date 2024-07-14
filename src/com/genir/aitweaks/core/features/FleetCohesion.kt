@@ -5,44 +5,18 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.AssignmentTargetAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.CombatAssignmentType
-import com.fs.starfarer.api.combat.CombatAssignmentType.AVOID
-import com.fs.starfarer.api.combat.CombatAssignmentType.RALLY_TASK_FORCE
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
-import com.genir.aitweaks.core.GlobalState
+import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.ai.Preset
 import com.genir.aitweaks.core.utils.extensions.*
-import com.genir.aitweaks.core.utils.targetTracker
-import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 
-class FleetCohesion : BaseEveryFrameCombatPlugin() {
-    private val isOn = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai") ?: false
-
-    init {
-        GlobalState.fleetCohesion = null
-    }
-
-    override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        if (isOn && GlobalState.fleetCohesion == null) {
-            GlobalState.fleetCohesion = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
-        }
-
-        when {
-            Global.getCurrentState() != GameState.COMBAT -> return
-            Global.getCombatEngine().isSimulation -> return
-            GlobalState.fleetCohesion == null -> return
-
-            else -> GlobalState.fleetCohesion?.forEach { it.advance(dt) }
-        }
-    }
-}
-
-class FleetCohesionAI(private val side: Int) {
+class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     private val enemy: Int = side xor 1
 
     private val cohesionAssignments: MutableSet<AssignmentKey> = mutableSetOf()
@@ -52,14 +26,22 @@ class FleetCohesionAI(private val side: Int) {
     private var primaryTargets: List<ShipAPI> = listOf()
 
     private val advanceInterval = IntervalUtil(0.75f, 1f)
-    private var taskManager: CombatTaskManager = Global.getCombatEngine().getFleetManager(side).getTaskManager(false) as CombatTaskManager
 
-    fun advance(dt: Float) {
+    private data class AssignmentKey(val ship: ShipAPI, val location: Vector2f?, val type: CombatAssignmentType)
+
+    override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         advanceInterval.advance(dt)
-        if (!advanceInterval.intervalElapsed()) return
 
         val engine = Global.getCombatEngine()
-        if (engine.isPaused) return
+        when {
+            Global.getCurrentState() != GameState.COMBAT -> return
+
+            engine.isSimulation -> return
+
+            engine.isPaused -> return
+
+            !advanceInterval.intervalElapsed() -> return
+        }
 
         // Cleanup of previous iteration assignments and waypoints.
         validGroups = listOf()
@@ -67,6 +49,7 @@ class FleetCohesionAI(private val side: Int) {
         clearAssignments()
         clearWaypoints()
 
+        val taskManager = getTaskManager()
         when {
             taskManager.isInFullRetreat -> return
 
@@ -74,7 +57,7 @@ class FleetCohesionAI(private val side: Int) {
             taskManager.isFullAssault -> return
 
             // Do not force targets if there's an avoid assignment active.
-            taskManager.allAssignments.firstOrNull { it.type == AVOID } != null -> return
+            taskManager.allAssignments.firstOrNull { it.type == CombatAssignmentType.AVOID } != null -> return
 
             // Battle is already won.
             engine.getFleetManager(enemy).getTaskManager(false).isInFullRetreat -> return
@@ -135,7 +118,7 @@ class FleetCohesionAI(private val side: Int) {
             return
         }
 
-        val target = targetTracker[ship] ?: return
+        val target = combatState().targetTracker[ship] ?: return
         val validTarget = findValidTarget(ship, target)
         if (validTarget == null || validTarget == target) return
 
@@ -146,8 +129,9 @@ class FleetCohesionAI(private val side: Int) {
         cohesionWaypoints.add(waypoint)
 
         // Assign target to ship.
+        val taskManager = getTaskManager()
         val doNotRefundCP = taskManager.isCommChannelOpen
-        val assignment = taskManager.createAssignment(RALLY_TASK_FORCE, waypoint, doNotRefundCP)
+        val assignment = taskManager.createAssignment(CombatAssignmentType.RALLY_TASK_FORCE, waypoint, doNotRefundCP)
         taskManager.giveAssignment(ship.deployedFleetMember, assignment, false)
 
         if (ship.assignment != null) {
@@ -159,6 +143,7 @@ class FleetCohesionAI(private val side: Int) {
     private fun clearAssignments() {
         // Assignments given be fleet cohesion AI may have
         // already expired. Remove only the non-expired ones.
+        val taskManager = getTaskManager()
         cohesionAssignments.forEach { assignment ->
             val ship = assignment.ship
             when {
@@ -231,15 +216,17 @@ class FleetCohesionAI(private val side: Int) {
     private fun isValidGroup(group: Set<ShipAPI>, largestGroupDP: Float): Boolean {
         return group.any { ship: ShipAPI -> ship.isCapital } || (group.dpSum * 4f >= largestGroupDP)
     }
+
+    private fun getTaskManager(): CombatTaskManager {
+        return Global.getCombatEngine().getFleetManager(side).getTaskManager(false) as CombatTaskManager
+    }
+
+    private val Set<ShipAPI>.dpSum: Float
+        get() = this.sumOf { it.deploymentPoints.toDouble() }.toFloat()
+
+    private val ShipAPI.isSmall: Boolean
+        get() = this.isFighter || (this.isFrigate && !this.isModule)
+
+    private val ShipAPI.isBig: Boolean
+        get() = this.isCruiser || this.isCapital
 }
-
-private data class AssignmentKey(val ship: ShipAPI, val location: Vector2f?, val type: CombatAssignmentType)
-
-private val Set<ShipAPI>.dpSum: Float
-    get() = this.sumOf { it.deploymentPoints.toDouble() }.toFloat()
-
-private val ShipAPI.isSmall: Boolean
-    get() = this.isFighter || (this.isFrigate && !this.isModule)
-
-private val ShipAPI.isBig: Boolean
-    get() = this.isCruiser || this.isCapital

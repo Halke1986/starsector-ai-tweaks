@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.utils
+package com.genir.aitweaks.core.combat.trackers
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
@@ -7,8 +7,6 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.utils.extensions.hasEscortAssignment
 import com.genir.aitweaks.core.utils.extensions.isValidTarget
 import com.genir.aitweaks.core.utils.extensions.trueShipTarget
-
-var targetTracker: TargetTracker = TargetTracker()
 
 class TargetTracker : BaseEveryFrameCombatPlugin() {
     private val targets: MutableMap<ShipAPI, ShipAPI?> = mutableMapOf()
@@ -25,8 +23,6 @@ class TargetTracker : BaseEveryFrameCombatPlugin() {
      * get outdated.
      */
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        targetTracker = this
-
         Global.getCombatEngine().ships.filter { it.isAlive }.forEach { ship ->
             val newTarget = ship.trueShipTarget
             val prevTarget = targets[ship]

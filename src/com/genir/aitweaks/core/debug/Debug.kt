@@ -22,7 +22,9 @@ fun debug(dt: Float) {
 //    val p = Global.getCombatEngine().playerShip ?: return
 
     custom.forEach {
-//        debugPlugin[it] = "tgt ${it.customAI} ${it.customAI?.attackTarget?.name}"
+//        print[it] = "tgt ${it.customAI} ${it.customAI?.attackTarget?.name}"
+        print[it] = it.hullSpec.hullId
+
         drawLine(it.location, it.customAI?.headingPoint ?: it.location, YELLOW)
 //        drawLine(it.location, it.location + it.velocity * 2f, Color.GREEN)
         drawCircle(it.location, it.collisionRadius / 2f, RED)

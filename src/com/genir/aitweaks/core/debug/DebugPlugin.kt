@@ -10,7 +10,15 @@ import java.util.*
 
 const val ID = "com.genir.aitweaks.core.debug.DebugPlugin"
 
-var debugPlugin: DebugPlugin = DebugPlugin()
+val print = Print()
+
+class Print {
+    operator fun set(index: Any, value: Any?) {
+        debugPlugin?.set(index, value)
+    }
+}
+
+private var debugPlugin: DebugPlugin? = null
 
 // DebugPlugin is used to render debug information during combat.
 class DebugPlugin : BaseEveryFrameCombatPlugin() {

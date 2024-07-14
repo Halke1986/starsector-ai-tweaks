@@ -1,14 +1,14 @@
-package com.genir.aitweaks.core.utils
+package com.genir.aitweaks.core.combat.trackers
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.core.utils.RollingAverageVector
+import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.copy
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
-
-var accelerationTracker: AccelerationTracker = AccelerationTracker()
 
 class AccelerationTracker : BaseEveryFrameCombatPlugin() {
     private data class History(
@@ -22,8 +22,6 @@ class AccelerationTracker : BaseEveryFrameCombatPlugin() {
     operator fun get(index: ShipAPI): Vector2f = velocities[index]?.accel ?: Vector2f()
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        accelerationTracker = this
-
         Global.getCombatEngine().ships.forEach { ship ->
             val h = velocities[ship] ?: History()
 
