@@ -38,9 +38,9 @@ val ShipAPI.deployedFleetMember: DeployedFleetMemberAPI?
 val ShipAPI.maneuverTarget: ShipAPI?
     get() = aiFlags.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET) as? ShipAPI
 
-val ShipAPI.trueShipTarget: ShipAPI?
+val ShipAPI.attackTarget: ShipAPI?
     get() {
-        if (isModule) return rootModule.trueShipTarget
+        if (isModule) return rootModule.attackTarget
 
         val engine = Global.getCombatEngine()
         val manualControl = this == engine.playerShip && engine.isUIAutopilotOn

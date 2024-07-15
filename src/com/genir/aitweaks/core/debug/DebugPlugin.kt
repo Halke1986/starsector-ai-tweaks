@@ -10,7 +10,7 @@ import java.util.*
 
 const val ID = "com.genir.aitweaks.core.debug.DebugPlugin"
 
-val print = Print()
+val debugPrint = Print()
 
 class Print {
     operator fun set(index: Any, value: Any?) {

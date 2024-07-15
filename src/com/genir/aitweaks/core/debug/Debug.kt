@@ -2,18 +2,21 @@ package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.ai.EngineController
 import com.genir.aitweaks.core.features.shipai.ai.customAI
+import com.genir.aitweaks.core.features.shipai.ai.primaryWeapons
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.div
+import com.genir.aitweaks.core.utils.extensions.autofireAI
 import com.genir.aitweaks.core.utils.extensions.hasCustomAI
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.BLUE
 import java.awt.Color.RED
-import java.awt.Color.YELLOW
 
 fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
@@ -23,11 +26,16 @@ fun debug(dt: Float) {
 
     custom.forEach {
 //        print[it] = "tgt ${it.customAI} ${it.customAI?.attackTarget?.name}"
-        print[it] = it.hullSpec.hullId
+//        print[it] = it.hullSpec.hullId
 
-        drawLine(it.location, it.customAI?.headingPoint ?: it.location, YELLOW)
+//        debugPrint["a"] = "a ${it.customAI?.attackTarget}"
+//        debugPrint["b"] = "b ${combatState().targetTracker[it]}"
+//        debugPrint["c"] = "c ${it.attackTarget}"
+
+//        drawLine(it.location, it.customAI?.attackTarget?.location ?: it.location, BLUE)
+//        drawLine(it.location, it.customAI?.headingPoint ?: it.location, YELLOW)
 //        drawLine(it.location, it.location + it.velocity * 2f, Color.GREEN)
-        drawCircle(it.location, it.collisionRadius / 2f, RED)
+//        drawCircle(it.location, it.collisionRadius / 2f, RED)
     }
 }
 

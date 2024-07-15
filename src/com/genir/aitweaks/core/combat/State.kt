@@ -20,8 +20,6 @@ class State : BaseEveryFrameCombatPlugin() {
     private val plugins: List<BaseEveryFrameCombatPlugin>
 
     init {
-        combatState = this
-
         val plugins: MutableList<BaseEveryFrameCombatPlugin> = mutableListOf()
 
         // Fleet cohesion.
@@ -51,6 +49,8 @@ class State : BaseEveryFrameCombatPlugin() {
     }
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
+        combatState = this
+
         plugins.forEach { it.advance(dt, events) }
     }
 }
