@@ -4,6 +4,7 @@
 - Added AI Tweaks devmode setting to LunaLib. Devmode shouldn't be used outside development, as it reduces stability.
 - Added the possibility to replace the entire logic jar file without reloading the game. This will speed up development, but should have no impact on gameplay. Enabled only in devmode.
 - Added custom variant for low tech star fortress: station3_Bulwark. The variant is not currently used.
+- Added improved build for Guardians in bar bounty.
 
 Version 1.7.2
 

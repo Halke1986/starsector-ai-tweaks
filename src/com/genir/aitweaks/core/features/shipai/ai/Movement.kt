@@ -81,8 +81,8 @@ class Movement(override val ai: Maneuver) : Coordinable {
                 Pair(ai.burnDriveAI.destination, Vector2f())
             }
 
-            // Move directly to ordered location.
-            ai.moveOrderLocation != null -> {
+            // Move directly to ordered location for player ships.
+            ship.owner == 0 && !ship.isAlly && ai.moveOrderLocation != null -> {
                 Pair(ai.moveOrderLocation, Vector2f())
             }
 
@@ -114,6 +114,11 @@ class Movement(override val ai: Maneuver) : Coordinable {
 
                 val velocity = (headingPoint - (ai.headingPoint ?: headingPoint)) / dt
                 Pair(headingPoint, velocity)
+            }
+
+            // Move directly to ordered location for non-player ships.
+            ai.moveOrderLocation != null -> {
+                Pair(ai.moveOrderLocation, Vector2f())
             }
 
             // Nothing to do, stop the ship.

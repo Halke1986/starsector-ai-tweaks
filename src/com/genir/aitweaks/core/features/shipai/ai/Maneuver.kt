@@ -8,6 +8,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE_TOGGLE
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
@@ -27,14 +28,17 @@ import kotlin.random.Random
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOrderLocation: Vector2f?) {
+    // Subclasses.
     val movement = Movement(this)
     val burnDriveAI: BurnDrive? = if (ship.system?.specAPI?.AIType == BURN_DRIVE_TOGGLE) BurnDrive(ship, this) else null
+    val damageTracker: DamageTracker
 
     // Standing orders.
     val moveOrderLocation: Vector2f?
     val maneuverTarget: ShipAPI?
     var attackTarget: ShipAPI?
 
+    // Ship stats.
     var effectiveRange: Float = 0f
     var minRange: Float = 0f
     var maxRange: Float = 0f
@@ -62,6 +66,14 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
     init {
         val oldManeuver = ship.customAI
 
+        // Continue damage tracking or install new tracker.
+        damageTracker = oldManeuver?.damageTracker ?: run {
+            ship.removeListenerOfClass(DamageTracker::class.java)
+            val newTracker = DamageTracker(ship)
+            ship.addListener(newTracker)
+            newTracker
+        }
+
         // When burn drive is activated, vanilla AI sometimes passes no orders to
         // the Maneuver instance. In that case, try to follow previous Maneuver instance orders.
         val noOrders = vanillaManeuverTarget == null && vanillaMoveOrderLocation == null
@@ -70,17 +82,12 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
         attackTarget = oldManeuver?.attackTarget
 
         moveOrderLocation = when {
-            ship.owner == 1 -> null
-
             noOrders -> oldManeuver?.moveOrderLocation
 
             else -> vanillaMoveOrderLocation
         }
 
         maneuverTarget = when {
-            // Move order takes priority.
-            moveOrderLocation != null -> null
-
             noOrders -> oldManeuver?.maneuverTarget
 
             // Don't change target when burn drive is on.
@@ -101,9 +108,8 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
 
         if (shouldEndManeuver()) ship.shipAI.cancelCurrentManeuver()
 
-        calculateBroadsideFacing()
-
         // Update state.
+        damageTracker.advance()
         updateThreats()
         effectiveRange = ship.effectiveRange(Preset.effectiveDpsThreshold)
         minRange = ship.minRange
@@ -177,12 +183,20 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
     private fun updateBackoffStatus() {
         val backingOffFlag = ship.aiFlags.hasFlag(BACKING_OFF)
         val fluxLevel = ship.fluxTracker.fluxLevel
+        val underFire = damageTracker.damage / ship.maxFlux > 0.2f
 
         isBackingOff = when {
+            // Enemy is routing, keep the pressure.
             Global.getCombatEngine().isEnemyInFullRetreat -> false
 
-            // Start backing off.
+            // High flux.
             fluxLevel > Preset.backoffUpperThreshold -> true
+
+            // Shields down and received damage.
+            ship.shield != null && ship.shield.isOff && underFire -> true
+
+            // Started venting under fire.
+            ship.fluxTracker.isVenting && underFire -> true
 
             // Stop backing off.
             backingOffFlag && fluxLevel <= 0.01f -> false
@@ -326,7 +340,7 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
             else facing - facing.sign * (weapon.arc / 2f - 0.1f)
 
             angles + angle
-        }.shuffled(Random(ship.id.hashCode()))
+        }.filter { abs(it) <= Preset.maxBroadsideFacing }.shuffled(Random(ship.id.hashCode()))
 
         // Calculate DPS at each weapon arc boundary angle.
         val angleDPS: Map<Float, Float> = angles.associateWith { angle ->
@@ -338,7 +352,7 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
         // Prefer non-broadside orientation.
         if (bestAngleDPS.value * Preset.broadsideDPSThreshold < angleDPS[0f]!!) return 0f
 
-        return bestAngleDPS.key + bestAngleDPS.key.sign * Preset.broadsideOffsetPadding
+        return bestAngleDPS.key + bestAngleDPS.key.sign * Preset.broadsideFacingPadding
     }
 
     private fun isThreat(target: ShipAPI): Boolean {

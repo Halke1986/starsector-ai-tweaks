@@ -1,20 +1,27 @@
 {
-  "displayName": "Nonstandard",
-  "fluxCapacitors": 23,
+  "displayName": "Elite",
+  "fluxCapacitors": 20,
   "fluxVents": 50,
   "hullId": "guardian",
   "hullMods": [
+    "adaptiveshields",
+    "extendedshieldemitter",
     "missleracks",
     "stabilizedshieldemitter",
     "eccm",
+    "advancedshieldemitter",
+    "hardenedshieldemitter",
     "autorepair",
     "fluxdistributor",
-    "heavyarmor",
-    "armoredweapons",
+    "magazines",
+    "fnisherbeamprotocol"
   ],
   "permaMods": [],
-  "sMods": [],
-  "variantId": "guardian_Nonstandard",
+  "sMods": [
+    "adaptiveshields",
+    "extendedshieldemitter"
+  ],
+  "variantId": "guardian_Elite",
   "weaponGroups": [
     {
       "autofire": true,
@@ -27,8 +34,8 @@
       "autofire": true,
       "mode": "LINKED",
       "weapons": {
-        "WS 007": "hephag",
-        "WS 008": "hephag",
+        "WS 007": "mjolnir",
+        "WS 008": "mjolnir",
         "WS 004": "heavyneedler",
         "WS 005": "heavyneedler",
         "WS 012": "lightneedler",
@@ -45,8 +52,8 @@
         "WS 006": "locust",
         "WS 009": "locust",
         "WS 020": "multineedler",
-        "WS 000": "heavymg",
-        "WS 001": "heavymg",
+        "WS 000": "phasebeam",
+        "WS 001": "phasebeam",
         "WS 002": "heavymg",
         "WS 003": "heavymg",
         "WS 010": "harpoon",

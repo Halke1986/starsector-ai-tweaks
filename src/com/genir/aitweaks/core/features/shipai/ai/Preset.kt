@@ -12,6 +12,7 @@ class Preset {
         const val backoffUpperThreshold = 0.75f
         const val backoffLowerThreshold = backoffUpperThreshold * 0.6f // will force vent
         const val holdFireThreshold = 0.9f
+        const val damageHistoryDuration = 4f
 
         // Idle time calculation
         const val shieldDownVentTime = 2.0f
@@ -28,7 +29,8 @@ class Preset {
 
         // Broadside
         const val broadsideDPSThreshold = 1.33f
-        const val broadsideOffsetPadding = 10f
+        const val broadsideFacingPadding = 10f
+        const val maxBroadsideFacing = 80f
     }
 
     class BurnDrive {

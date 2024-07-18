@@ -43,11 +43,8 @@ class CustomAIManager {
         return ctor.invoke(ship as Ship, config) as ShipAIPlugin
     }
 
-    /** Currently, custom AI is enabled only for Guardian in Cryosleeper encounter. */
+    /** Currently, custom AI is enabled only for Guardian. */
     private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
-//        val ships = Global.getCombatEngine().ships
-//        val isCryosleeper = ships.count { it.owner == 1 } == 1 && ships.count { it.owner == 1 && it.hullSpec.hullId == "guardian" } == 1
-
         return when {
             Global.getCurrentState() != GameState.COMBAT -> false
             getCustomAIClass() == null -> false
@@ -55,14 +52,16 @@ class CustomAIManager {
             ship.hullSpec.isPhase -> false
             ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
             ship.isStation -> false
-
             !ship.isDestroyer && !ship.isCruiser && !ship.isCapital -> false
-            ship.owner != 0 -> false
 
-//            ship.isAlly -> false
-//            ship.owner == 0 && (ship.isDestroyer || ship.isCruiser || ship.isCapital) -> true
+            // Enemy
+            ship.hullSpec.hullId.startsWith("guardian") -> true
 
-            else -> true
+            // Player
+            ship.isAlly -> false
+//            ship.owner == 0 -> true
+
+            else -> false
         }
     }
 }

@@ -1,0 +1,11 @@
+{
+	"variantOverrides":{
+    	"guardian_Standard":0
+	},
+    "priorityWeapons":{
+        "tags":[],
+        "weapons":[
+            "harpoon"
+        ],
+    },
+},

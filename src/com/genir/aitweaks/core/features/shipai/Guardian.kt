@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.utils.extensions.hasCustomAI
 import com.genir.aitweaks.core.utils.extensions.isPD
 
@@ -12,17 +13,26 @@ import com.genir.aitweaks.core.utils.extensions.isPD
 class Guardian : BaseEveryFrameCombatPlugin() {
     override fun advance(amount: Float, events: MutableList<InputEventAPI>?) {
         val ships = Global.getCombatEngine().ships
-        val guardiansWithCustomAI = ships.filter { it.hullSpec.hullId == "guardian" && it.hasCustomAI }
+        val guardiansWithCustomAI = ships.filter { it.hullSpec.hullId.startsWith("guardian") && it.hasCustomAI }
 
         // Prevent non-PD turrets from attacking fighters.
         guardiansWithCustomAI.flatMap { it.allWeapons }.filter { it.slot.isTurret && !it.isPD }.forEach { it.spec.aiHints.add(WeaponAPI.AIHints.STRIKE) }
 
-        // Stay on first weapon group.
-        guardiansWithCustomAI.forEach { it.blockCommandForOneFrame(ShipCommand.SELECT_GROUP) }
 
-        // Custom ship AI can't follow orders very well. TODO remove when order following is implemented.
-        val isCryosleeper = ships.count { it.owner == 1 } == 1 && guardiansWithCustomAI.count { it.owner == 1 } == 1
-        if (isCryosleeper)
-            Global.getCombatEngine().getFleetManager(1).admiralAI = null
+        // Stay on first weapon group.
+        guardiansWithCustomAI.forEach {
+            val ship = it as Ship
+            val groups = ship.weaponGroupsCopy
+            val firstGroup = groups.removeFirst()
+
+            val weapons = groups.flatMap { group -> group.weaponsCopy }
+            weapons.forEach { weapon ->
+                ship.removeWeaponFromGroupsReal(weapon)
+                firstGroup.addWeaponAPI(weapon)
+            }
+
+            ship.setNoWeaponSelected()
+            ship.blockCommandForOneFrame(ShipCommand.SELECT_GROUP)
+        }
     }
 }
