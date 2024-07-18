@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.ui.LazyFont
 import java.awt.Color
 import java.util.*
@@ -24,6 +25,8 @@ private var debugPlugin: DebugPlugin? = null
 class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var font: LazyFont? = null
     private var logs: MutableMap<String, LazyFont.DrawableString> = TreeMap()
+
+    private val enableHighlight: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_highlight_custom_ai") ?: false
 
     operator fun set(index: Any, value: Any?) {
         if (font == null) return
@@ -46,6 +49,8 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
 
         debug(dt)
+
+        if (enableHighlight) highlightCustomAI()
     }
 
     override fun renderInUICoords(viewport: ViewportAPI?) {

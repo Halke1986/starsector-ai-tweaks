@@ -16,6 +16,8 @@ import java.lang.invoke.MethodType
 private var customShipAIClass: Class<*>? = null
 
 class CustomAIManager {
+    private val devmode: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
+
     /** Test the AI build process by attempting to load custom AI Java class. */
     fun test() {
         getCustomAIClass()
@@ -59,7 +61,7 @@ class CustomAIManager {
 
             // Player
             ship.isAlly -> false
-//            ship.owner == 0 -> true
+            ship.owner == 0 && devmode -> true
 
             else -> false
         }

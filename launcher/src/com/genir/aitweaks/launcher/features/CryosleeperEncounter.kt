@@ -24,7 +24,7 @@ class CryosleeperEncounter : SalvageGenFromSeed.SalvageDefenderModificationPlugi
             return
 
         fleet.fleetData.clear()
-        fleet.fleetData.addFleetMember("guardian_Nonstandard")
+        fleet.fleetData.addFleetMember("guardian_Elite")
 
         val plugin = Misc.getAICoreOfficerPlugin(Commodities.ALPHA_CORE)
         val captain = plugin.createPerson(Commodities.ALPHA_CORE, fleet.faction.id, random)

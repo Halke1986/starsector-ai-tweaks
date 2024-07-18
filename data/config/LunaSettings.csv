@@ -5,3 +5,4 @@ aitweaks_enable_title_screen_fire,Enable Title Screen Fire,Boolean,true,,,,Shoul
 aitweaks_omni_shield_keybind,Omni Shields Toggle Keybind,Keycode,27,,,,"Hotkey used to pass control of player ship omni shield to AI. The AI will take over the shield control when player is piloting manually. Indicator circle is drawn around the ship when shield is in AI control.",,
 aitweaks_ai_core_personality,Player Fleet AI Core Personality,Radio,None,"timid, cautious, steady, aggressive, reckless",,,"Override the personality of automated ships in player fleet. In vanilla, automated ships (except carriers) are locked to fearless personality.",,
 aitweaks_enable_devmode,Dev Mode,Boolean,false,,,,"AI Tweaks dev mode",,,,,Debug
+aitweaks_highlight_custom_ai,Highlight Custom AI,Boolean,false,,,,"Highlight ships controlled by AI Tweaks Custom AI.",,,,,Debug

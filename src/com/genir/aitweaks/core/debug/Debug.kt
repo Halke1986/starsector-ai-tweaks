@@ -11,6 +11,7 @@ import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.RED
 
 internal fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
@@ -20,9 +21,9 @@ internal fun debug(dt: Float) {
 
     val c = custom.firstOrNull() ?: return
 
-    c.weaponGroupsCopy.forEach {
-        debugPrint[it] = "${it.weaponsCopy.size} ${it.isAutofiring}"
-    }
+//    c.weaponGroupsCopy.forEach {
+//        debugPrint[it] = "${it.weaponsCopy.size} ${it.isAutofiring}"
+//    }
 
 //        print[it] = "tgt ${it.customAI} ${it.customAI?.attackTarget?.name}"
 //        debug[it] = it.hullSpec.hullId
@@ -31,6 +32,12 @@ internal fun debug(dt: Float) {
 //        drawLine(it.location, it.customAI?.attackTarget?.location ?: it.location, RED)
 //        drawLine(it.location, it.location + it.velocity * 2f, Color.GREEN)
 //        drawCircle(it.location, it.collisionRadius / 2f, RED)
+}
+
+internal fun highlightCustomAI() {
+    Global.getCombatEngine().ships.filter { it.hasCustomAI }.forEach {
+        drawCircle(it.location, it.collisionRadius / 2f, RED)
+    }
 }
 
 private var history: MutableMap<ShipAPI, Pair<Vector2f, Vector2f>> = mutableMapOf()
