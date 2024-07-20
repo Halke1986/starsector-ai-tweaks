@@ -9,8 +9,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.core.debug.debugPrint
-import com.genir.aitweaks.core.debug.drawLine
+import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE_TOGGLE
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
@@ -66,10 +65,7 @@ class AI(val ship: ShipAPI) {
         // Update state.
         damageTracker.advance()
         updateThreats()
-        effectiveRange = ship.effectiveRange(Preset.effectiveDpsThreshold)
-        minRange = ship.minRange
-        maxRange = ship.maxRange
-        totalCollisionRadius = ship.totalCollisionRadius
+        updateStats()
 
         updateIdleTime(dt)
         updateBackoffStatus()
@@ -80,11 +76,19 @@ class AI(val ship: ShipAPI) {
         vanilla.advance(dt, attackTarget)
         ventIfNeeded()
         holdFireIfOverfluxed()
+        ensureAutofire()
 
         movement.advance(dt)
 
         vanillaFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, minRange)
         vanillaFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
+    }
+
+    private fun updateStats() {
+        effectiveRange = ship.effectiveRange(Preset.effectiveDpsThreshold)
+        minRange = ship.minRange
+        maxRange = ship.maxRange
+        totalCollisionRadius = ship.totalCollisionRadius
     }
 
     private fun updateManeuverTarget(dt: Float) {
@@ -99,9 +103,6 @@ class AI(val ship: ShipAPI) {
 
             else -> false
         }
-
-        debugPrint["needs update"] = needsUpdate
-        debugPrint["maneuver"] = maneuverTarget
 
         if (needsUpdate) {
             val targets = Global.getCombatEngine().ships.filter {
@@ -229,6 +230,23 @@ class AI(val ship: ShipAPI) {
         }
     }
 
+    private fun updateThreats() {
+        val rangeEnvelope = 500f
+        val r = max(Preset.threatEvalRadius, maxRange + rangeEnvelope)
+        threats = shipSequence(ship.location, r).filter { isThreat(it) }.toList()
+
+        threatVector = threats.fold(Vector2f()) { sum, it ->
+            val dp = it.deploymentPoints
+            val dir = (it.location - ship.location).resized(1f)
+            sum + dir * dp * dp
+        }
+    }
+
+    private fun ensureAutofire() {
+        (ship as Ship).setNoWeaponSelected()
+        ship.weaponGroupsCopy.forEach { it.toggleOn() }
+    }
+
     private fun holdFireIfOverfluxed() {
         isHoldingFire = ship.fluxTracker.fluxLevel > Preset.holdFireThreshold
 
@@ -251,18 +269,6 @@ class AI(val ship: ShipAPI) {
         }
 
         if (shouldVent) ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
-    }
-
-    private fun updateThreats() {
-        val rangeEnvelope = 500f
-        val r = max(Preset.threatEvalRadius, maxRange + rangeEnvelope)
-        threats = shipSequence(ship.location, r).filter { isThreat(it) }.toList()
-
-        threatVector = threats.fold(Vector2f()) { sum, it ->
-            val dp = it.deploymentPoints
-            val dir = (it.location - ship.location).resized(1f)
-            sum + dir * dp * dp
-        }
     }
 
     private fun findNewAttackTarget(): ShipAPI? {

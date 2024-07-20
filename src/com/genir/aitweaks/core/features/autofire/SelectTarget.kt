@@ -33,6 +33,8 @@ class SelectTarget(
         // Main weapons
         weapon.hasAIHint(ANTI_FTR) -> selectShip(alsoTargetFighters)
         weapon.hasAIHint(STRIKE) -> selectShip()
+        weapon.ship.hullSpec.hullId.startsWith("guardian") -> selectShip()
+
         else -> selectShip() ?: selectFighter()?.let { if (!it.isSupportFighter) it else null }
     }
 

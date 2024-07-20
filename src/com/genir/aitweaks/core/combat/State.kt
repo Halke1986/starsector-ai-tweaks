@@ -44,7 +44,6 @@ class State : BaseEveryFrameCombatPlugin() {
             com.genir.aitweaks.core.features.AutoOmniShields(),
             com.genir.aitweaks.core.features.AutomatedShipAIManager(),
             com.genir.aitweaks.core.features.lidar.AIManager(),
-            com.genir.aitweaks.core.features.shipai.Guardian(),
             com.genir.aitweaks.core.features.shipai.AttackCoord(),
         ))
 
