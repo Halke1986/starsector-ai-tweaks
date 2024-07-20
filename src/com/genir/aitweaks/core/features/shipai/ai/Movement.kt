@@ -17,7 +17,7 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.sign
 
-class Movement(override val ai: Maneuver) : Coordinable {
+class Movement(override val ai: AI) : Coordinable {
     // Used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
     override var reviewedHeadingPoint: Vector2f? = null
@@ -32,7 +32,7 @@ class Movement(override val ai: Maneuver) : Coordinable {
     fun advance(dt: Float) {
         ai.burnDriveAI?.advance(dt)
         setFacing()
-        setHeading(dt)
+        setHeading(dt, ai.maneuverTarget, ai.moveOrderLocation)
         manageMobilitySystems()
     }
 
@@ -71,10 +71,10 @@ class Movement(override val ai: Maneuver) : Coordinable {
         }
 
         ai.aimPoint = aimPoint
-        ai.desiredFacing = engineController.facing(aimPoint, velocity)
+        engineController.facing(aimPoint, velocity)
     }
 
-    private fun setHeading(dt: Float) {
+    private fun setHeading(dt: Float, maneuverTarget: ShipAPI?, moveOrderLocation: Vector2f?) {
         val (headingPoint: Vector2f, velocity: Vector2f) = when {
             // Position ship to start burn.
             ai.burnDriveAI?.shouldBurn == true -> {
@@ -82,8 +82,8 @@ class Movement(override val ai: Maneuver) : Coordinable {
             }
 
             // Move directly to ordered location for player ships.
-            ship.owner == 0 && !ship.isAlly && ai.moveOrderLocation != null -> {
-                Pair(ai.moveOrderLocation, Vector2f())
+            ship.owner == 0 && !ship.isAlly && moveOrderLocation != null -> {
+                Pair(moveOrderLocation, Vector2f())
             }
 
             // Move opposite to threat direction when backing off.
@@ -97,18 +97,18 @@ class Movement(override val ai: Maneuver) : Coordinable {
             // Rotate away from threat if there are multiple enemy ships around.
             // Chase the target if there are no other enemy ships around.
             // Strafe target randomly if in range and no other threat.
-            ai.maneuverTarget != null -> {
+            maneuverTarget != null -> {
                 // TODO will need syncing when interval tracking is introduced.
-                val vectorToTarget = ai.maneuverTarget.location - ship.location
+                val vectorToTarget = maneuverTarget.location - ship.location
                 val vectorToThreat = if (!ai.threatVector.isZeroVector()) ai.threatVector else vectorToTarget
 
                 // Strafe the target randomly, when it's the only threat.
-                val shouldStrafe = ai.is1v1 && ai.range(ai.maneuverTarget) <= ai.effectiveRange
+                val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.effectiveRange
                 val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
                 else vectorToThreat
 
                 // Let the attack coordinator review the calculated heading point.
-                proposedHeadingPoint = ai.maneuverTarget.location - attackPositionOffset.resized(ai.minRange)
+                proposedHeadingPoint = maneuverTarget.location - attackPositionOffset.resized(ai.minRange)
                 val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
                 reviewedHeadingPoint = null
 
@@ -117,8 +117,8 @@ class Movement(override val ai: Maneuver) : Coordinable {
             }
 
             // Move directly to ordered location for non-player ships.
-            ai.moveOrderLocation != null -> {
-                Pair(ai.moveOrderLocation, Vector2f())
+            moveOrderLocation != null -> {
+                Pair(moveOrderLocation, Vector2f())
             }
 
             // Nothing to do, stop the ship.
@@ -126,7 +126,7 @@ class Movement(override val ai: Maneuver) : Coordinable {
         }
 
         ai.headingPoint = headingPoint
-        ai.desiredHeading = engineController.heading(headingPoint, velocity, gatherSpeedLimits(dt))
+        engineController.heading(headingPoint, velocity, gatherSpeedLimits(dt))
     }
 
     private fun manageMobilitySystems() {
@@ -206,7 +206,7 @@ class Movement(override val ai: Maneuver) : Coordinable {
 
     private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {
         val target = ai.attackTarget ?: return null
-        val ais = allies.filter { it.hasCustomAI }.mapNotNull { it.customAI }
+        val ais = allies.mapNotNull { it.customAI }
 
         // Blocking line of fire occurs mostly among ships attacking the same target.
         // For simplicity, the AI will try to avoid only those cases of blocking.

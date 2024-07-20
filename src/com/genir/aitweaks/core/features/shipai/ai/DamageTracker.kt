@@ -13,6 +13,11 @@ class DamageTracker(val ship: ShipAPI) : DamageListener {
 
     private var history: MutableMap<ShipAPI, MutableList<Entry>> = mutableMapOf()
 
+    init {
+        // Register damage tracker.
+        ship.addListener(this)
+    }
+
     fun advance() {
         val timestamp = Global.getCombatEngine().getTotalElapsedTime(false)
         val historyIter = history.iterator()

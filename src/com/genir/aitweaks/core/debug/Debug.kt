@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.debug
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.features.shipai.ai.EngineController
+import com.genir.aitweaks.core.features.shipai.ai.customAI
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.hasCustomAI
@@ -12,26 +13,15 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.RED
+import java.awt.Color.YELLOW
 
 internal fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
-    val custom = ships.filter { it.hasCustomAI }
+    val custom = ships.mapNotNull { it.customAI }
 
-//    val p = Global.getCombatEngine().playerShip ?: return
-
-    val c = custom.firstOrNull() ?: return
-
-//    c.weaponGroupsCopy.forEach {
-//        debugPrint[it] = "${it.weaponsCopy.size} ${it.isAutofiring}"
+//    custom.forEach {
+//        drawLine(it.ship.location, it.headingPoint ?: it.ship.location, YELLOW)
 //    }
-
-//        print[it] = "tgt ${it.customAI} ${it.customAI?.attackTarget?.name}"
-//        debug[it] = it.hullSpec.hullId
-
-//        drawLine(it.location, it.customAI?.headingPoint ?: it.location, YELLOW)
-//        drawLine(it.location, it.customAI?.attackTarget?.location ?: it.location, RED)
-//        drawLine(it.location, it.location + it.velocity * 2f, Color.GREEN)
-//        drawCircle(it.location, it.collisionRadius / 2f, RED)
 }
 
 internal fun highlightCustomAI() {

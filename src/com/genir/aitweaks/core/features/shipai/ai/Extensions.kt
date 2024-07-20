@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.utils.extensions.frontFacing
 import com.genir.aitweaks.core.utils.extensions.isModule
 import com.genir.aitweaks.core.utils.extensions.isPD
@@ -104,3 +105,6 @@ internal val ShipAPI.totalCollisionRadius: Float
     }
 
 internal fun ShipAPI.command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
+
+val ShipAPI.customAI: AI?
+    get() = ((ai as? Ship.ShipAIWrapper)?.ai as? AIPlugin)?.ai

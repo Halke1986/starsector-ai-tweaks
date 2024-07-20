@@ -4,7 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.features.shipai.CustomAIManager
+import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.ai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.extensions.resized
@@ -19,7 +19,7 @@ import kotlin.math.abs
 interface Coordinable {
     var proposedHeadingPoint: Vector2f?
     var reviewedHeadingPoint: Vector2f?
-    val ai: Maneuver
+    val ai: AI
 }
 
 /**
@@ -28,7 +28,7 @@ interface Coordinable {
  */
 class AttackCoord : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        if (CustomAIManager().getCustomAIClass() == null) return
+        if (!combatState().customAIManager.customAIEnabled) return
 
         val ships = Global.getCombatEngine().ships.asSequence()
         val movements = ships.mapNotNull { it.customAI?.movement }

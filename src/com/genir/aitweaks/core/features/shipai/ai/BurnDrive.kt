@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
-import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.addLength
 import com.genir.aitweaks.core.utils.extensions.resized
@@ -22,7 +21,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 /** Burn Drive AI. It replaces the vanilla implementation in ships with custom AI. */
-class BurnDrive(val ship: ShipAPI, override val ai: Maneuver) : Coordinable {
+class BurnDrive(val ship: ShipAPI, override val ai: AI) : Coordinable {
     // Used by Movement class to align ship for burn.
     var destination: Vector2f = Vector2f()
     var shouldBurn = false
@@ -40,14 +39,6 @@ class BurnDrive(val ship: ShipAPI, override val ai: Maneuver) : Coordinable {
     // Stats
     private var maxSpeed: Float = Float.MAX_VALUE
     private var maxBurnDist: Float = 0f
-
-    init {
-        // Remove vanilla burn drive AI, so that it doesn't interfere.
-        val c = CustomAIManager().getCustomAIClass()!!
-        val f = c.getDeclaredField("systemAI")
-        f.setAccessible(true);
-        f.set(ship.shipAI, null);
-    }
 
     fun advance(dt: Float) {
         updateMaxBurnDist()
@@ -78,7 +69,7 @@ class BurnDrive(val ship: ShipAPI, override val ai: Maneuver) : Coordinable {
 
             // Charge straight at the maneuver target, disregard fleet coordination.
             ai.maneuverTarget != null -> {
-                val vectorToTarget = ai.maneuverTarget.location - ship.location
+                val vectorToTarget = ai.maneuverTarget!!.location - ship.location
                 val approachVector = vectorToTarget.addLength(-ai.minRange * Preset.BurnDrive.approachToMinRangeFraction)
 
                 // Let the attack coordinator review the calculated heading point.

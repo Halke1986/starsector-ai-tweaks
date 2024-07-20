@@ -5,6 +5,7 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.combat.trackers.AccelerationTracker
 import com.genir.aitweaks.core.combat.trackers.TargetTracker
 import com.genir.aitweaks.core.features.FleetCohesion
+import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import lunalib.lunaSettings.LunaSettings
 
 fun combatState(): State = combatState!!
@@ -13,6 +14,8 @@ fun combatState(): State = combatState!!
 private var combatState: State? = null
 
 class State : BaseEveryFrameCombatPlugin() {
+    val customAIManager: CustomAIManager = CustomAIManager()
+
     val fleetCohesion: Array<FleetCohesion>?
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
     val targetTracker: TargetTracker = TargetTracker()

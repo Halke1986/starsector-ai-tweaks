@@ -3,12 +3,14 @@ package com.genir.aitweaks.core.features.shipai.ai
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
+import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
-import com.genir.aitweaks.core.combat.combatState
+import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.debugPrint
+import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE_TOGGLE
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
@@ -24,19 +26,13 @@ import kotlin.math.max
 import kotlin.math.sign
 import kotlin.random.Random
 
-// TODO retreat order during chase battle freezes the ship
-
 @Suppress("MemberVisibilityCanBePrivate")
-class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOrderLocation: Vector2f?) {
+class AI(val ship: ShipAPI) {
     // Subclasses.
-    val movement = Movement(this)
-    val burnDriveAI: BurnDrive? = if (ship.system?.specAPI?.AIType == BURN_DRIVE_TOGGLE) BurnDrive(ship, this) else null
-    val damageTracker: DamageTracker
-
-    // Standing orders.
-    val moveOrderLocation: Vector2f?
-    val maneuverTarget: ShipAPI?
-    var attackTarget: ShipAPI?
+    val vanilla: Vanilla = Vanilla(ship)
+    val movement: Movement = Movement(this)
+    val burnDriveAI: BurnDrive? = if (ship.system?.specAPI?.AIType == BURN_DRIVE_TOGGLE) BurnDrive(ship, this) else null // TODO move to Movement
+    val damageTracker: DamageTracker = DamageTracker(ship)
 
     // Ship stats.
     var effectiveRange: Float = 0f
@@ -45,14 +41,16 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
     var totalCollisionRadius: Float = 0f
     val broadsideFacing = calculateBroadsideFacing()
 
-    // Required by vanilla logic.
-    var desiredHeading: Float = ship.facing
-    var desiredFacing: Float = ship.facing
+    // Standing orders.
+    var moveOrderLocation: Vector2f? = null // TODO handle move order
+    var maneuverTarget: ShipAPI? = null
+    var attackTarget: ShipAPI? = null
 
     var headingPoint: Vector2f? = null
     var aimPoint: Vector2f? = null
 
     // State
+    var vanillaFlags: ShipwideAIFlags = vanilla.flags()
     var isBackingOff: Boolean = false
     var isHoldingFire: Boolean = false
     var isAvoidingBorder: Boolean = false
@@ -62,52 +60,9 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
     private var threats: List<ShipAPI> = listOf()
     internal var threatVector = Vector2f()
 
-    /** Attempt to stay on target. */
-    init {
-        val oldManeuver = ship.customAI
-
-        // Continue damage tracking or install new tracker.
-        damageTracker = oldManeuver?.damageTracker ?: run {
-            ship.removeListenerOfClass(DamageTracker::class.java)
-            val newTracker = DamageTracker(ship)
-            ship.addListener(newTracker)
-            newTracker
-        }
-
-        // When burn drive is activated, vanilla AI sometimes passes no orders to
-        // the Maneuver instance. In that case, try to follow previous Maneuver instance orders.
-        val noOrders = vanillaManeuverTarget == null && vanillaMoveOrderLocation == null
-
-        // Continue attacking the same target as previous custom AI instance.
-        attackTarget = oldManeuver?.attackTarget
-
-        moveOrderLocation = when {
-            noOrders -> oldManeuver?.moveOrderLocation
-
-            else -> vanillaMoveOrderLocation
-        }
-
-        maneuverTarget = when {
-            noOrders -> oldManeuver?.maneuverTarget
-
-            // Don't change target when burn drive is on.
-            burnDriveAI != null && ship.system.isOn && oldManeuver?.maneuverTarget?.isValidTarget == true -> {
-                oldManeuver.maneuverTarget
-            }
-
-            // Custom ship AI uses fleet cohesion directly, instead of through orders.
-            else -> {
-                combatState().fleetCohesion?.get(ship.owner)?.findValidTarget(ship, vanillaManeuverTarget)
-                    ?: vanillaManeuverTarget
-            }
-        }
-    }
+    private var maneuverUpdateInterval: IntervalUtil = IntervalUtil(0.75f, 1.25f)
 
     fun advance(dt: Float) {
-        ship.storeCustomAI(this)
-
-        if (shouldEndManeuver()) ship.shipAI.cancelCurrentManeuver()
-
         // Update state.
         damageTracker.advance()
         updateThreats()
@@ -118,37 +73,81 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
 
         updateIdleTime(dt)
         updateBackoffStatus()
+        updateManeuverTarget(dt)
         updateAttackTarget()
         update1v1Status()
 
+        vanilla.advance(dt, attackTarget)
         ventIfNeeded()
         holdFireIfOverfluxed()
 
         movement.advance(dt)
 
-        ship.aiFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, minRange)
-        ship.aiFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
+        vanillaFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, minRange)
+        vanillaFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
     }
 
-    /** Method called by ShipAI to set ship heading. It is not called when ShipAI
-     * is avoiding collision. But since ShipAI collision avoidance is overriden,
-     * setting heading by Maneuver needs to be done each frame, in advance method. */
-    fun doManeuver() = Unit
+    private fun updateManeuverTarget(dt: Float) {
+        maneuverUpdateInterval.advance(dt)
 
-    private fun shouldEndManeuver(): Boolean {
-        return when {
-            // Target ship was destroyed.
-            maneuverTarget != null && (maneuverTarget.isExpired || !maneuverTarget.isAlive) -> {
-                true
-            }
+        val needsUpdate = when {
+            maneuverTarget == null -> true
 
-            // Arrived at location.
-            moveOrderLocation != null && (ship.location - moveOrderLocation).length() <= Preset.arrivedAtLocationRadius -> {
-                true
-            }
+            maneuverUpdateInterval.intervalElapsed() -> true
+
+            maneuverTarget?.isValidTarget != true -> true
 
             else -> false
         }
+
+        debugPrint["needs update"] = needsUpdate
+        debugPrint["maneuver"] = maneuverTarget
+
+        if (needsUpdate) {
+            val targets = Global.getCombatEngine().ships.filter {
+                when {
+                    it.owner == ship.owner -> false
+
+                    !it.isValidTarget -> false
+
+                    it.isFighter -> false
+
+                    else -> true
+                }
+            }
+
+            maneuverTarget = targets.minByOrNull { (it.location - ship.location).lengthSquared() }
+        }
+
+        //init {
+        //        maneuverTarget = when {
+        //            noOrders -> oldManeuver?.maneuverTarget
+        //
+        //            // Don't change target when burn drive is on.
+        //            burnDriveAI != null && ship.system.isOn && oldManeuver?.maneuverTarget?.isValidTarget == true -> {
+        //                oldManeuver.maneuverTarget
+        //            }
+        //
+        //            // Custom ship AI uses fleet cohesion directly, instead of through orders.
+        //            else -> {
+        //                combatState().fleetCohesion?.get(ship.owner)?.findValidTarget(ship, vanillaManeuverTarget)
+        //                    ?: vanillaManeuverTarget
+        //            }
+        //        }
+        //    }
+//        return when {
+//            // Target ship was destroyed.
+//            maneuverTarget != null && (maneuverTarget.isExpired || !maneuverTarget.isAlive) -> {
+//                true
+//            }
+//
+//            // Arrived at location.
+//            moveOrderLocation != null && (ship.location - moveOrderLocation).length() <= Preset.arrivedAtLocationRadius -> {
+//                true
+//            }
+//
+//            else -> false
+//        }
     }
 
     /** Select which enemy ship to attack. This may be different
@@ -181,7 +180,7 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
 
     /** Decide if ships needs to back off due to high flux level */
     private fun updateBackoffStatus() {
-        val backingOffFlag = ship.aiFlags.hasFlag(BACKING_OFF)
+        val backingOffFlag = vanillaFlags.hasFlag(BACKING_OFF)
         val fluxLevel = ship.fluxTracker.fluxLevel
         val underFire = damageTracker.damage / ship.maxFlux > 0.2f
 
@@ -205,8 +204,8 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
             else -> backingOffFlag
         }
 
-        if (isBackingOff) ship.aiFlags.setFlag(BACKING_OFF)
-        else if (backingOffFlag) ship.aiFlags.unsetFlag(BACKING_OFF)
+        if (isBackingOff) vanillaFlags.setFlag(BACKING_OFF)
+        else if (backingOffFlag) vanillaFlags.unsetFlag(BACKING_OFF)
     }
 
     private fun updateIdleTime(dt: Float) {
@@ -283,7 +282,7 @@ class Maneuver(val ship: ShipAPI, vanillaManeuverTarget: ShipAPI?, vanillaMoveOr
 
             // Try to find a target near move location.
             moveOrderLocation != null -> {
-                shipSequence(moveOrderLocation, 200f).firstOrNull { isThreat(it) }
+                shipSequence(moveOrderLocation!!, 200f).firstOrNull { isThreat(it) }
             }
 
             else -> null

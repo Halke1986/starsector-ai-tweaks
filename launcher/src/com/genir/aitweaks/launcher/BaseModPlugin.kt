@@ -3,7 +3,10 @@ package com.genir.aitweaks.launcher
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.PluginPick
 import com.fs.starfarer.api.campaign.CampaignPlugin.PickPriority
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.AutofireAIPlugin
+import com.fs.starfarer.api.combat.ShipAIPlugin
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.MISSILE
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.genir.aitweaks.launcher.features.CryosleeperEncounter
@@ -28,11 +31,13 @@ class BaseModPlugin : MakeAITweaksRemovable() {
 
     override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin> {
         val aiManagerClass = coreLoader.loadClass("com.genir.aitweaks.core.features.shipai.CustomAIManager")
-        val getAIType = MethodType.methodType(ShipAIPlugin::class.java, ShipAPI::class.java, ShipAIConfig::class.java)
-        val getAI = MethodHandles.lookup().findVirtual(aiManagerClass, "getAI", getAIType)
+        val aiManager = aiManagerClass.newInstance()
 
-        val ai = getAI.invoke(aiManagerClass.newInstance(), ship, ShipAIConfig()) as? ShipAIPlugin
-        return PluginPick(ai, PickPriority.MOD_GENERAL)
+        val getCustomAIForShipType = MethodType.methodType(ShipAIPlugin::class.java, ShipAPI::class.java)
+        val getCustomAIForShip = MethodHandles.lookup().findVirtual(aiManagerClass, "getCustomAIForShip", getCustomAIForShipType)
+
+        val customAI: ShipAIPlugin? = getCustomAIForShip.invoke(aiManager, ship) as? ShipAIPlugin
+        return PluginPick(customAI, PickPriority.MOD_GENERAL)
     }
 
     override fun onNewGame() {
@@ -46,14 +51,6 @@ class BaseModPlugin : MakeAITweaksRemovable() {
     }
 
     private fun onGameStart() {
-        // Test custom AI class loader. Better to crash on game start,
-        // instead of when the player has made progress.
-        val aiManagerClass = coreLoader.loadClass("com.genir.aitweaks.core.features.shipai.CustomAIManager")
-        val testType = MethodType.methodType(Void.TYPE)
-        val test = MethodHandles.lookup().findVirtual(aiManagerClass, "test", testType)
-
-        test.invoke(aiManagerClass.newInstance())
-
         // Register Cryosleeper encounter plugin.
         val plugins = Global.getSector().genericPlugins
         if (!plugins.hasPlugin(CryosleeperEncounter::class.java)) {

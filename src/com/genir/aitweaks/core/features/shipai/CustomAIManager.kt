@@ -2,54 +2,28 @@ package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
-import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.core.features.shipai.loading.Builder
-import lunalib.lunaSettings.LunaSettings
-import java.lang.invoke.MethodHandles
-import java.lang.invoke.MethodType
-
-private var customShipAIClass: Class<*>? = null
+import com.genir.aitweaks.core.features.shipai.ai.AIPlugin
+import lunalib.lunaSettings.LunaSettings.getBoolean
 
 class CustomAIManager {
-    private val devmode: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
+    val customAIEnabled: Boolean = getBoolean("aitweaks", "aitweaks_enable_custom_ship_ai") ?: false
 
-    /** Test the AI build process by attempting to load custom AI Java class. */
-    fun test() {
-        getCustomAIClass()
-    }
+    private val devmode: Boolean = getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
 
-    /** Get CustomShipAI class. Returns null if custom AI is disabled. */
-    fun getCustomAIClass(): Class<*>? {
-        if (LunaSettings.getBoolean("aitweaks", "aitweaks_enable_custom_ship_ai") != true) {
-            return null
-        }
-
-        customShipAIClass?.let { return it }
-
-        customShipAIClass = Builder().buildCustomShipAI()
-        return customShipAIClass
-    }
-
-    /** Get CustomShipAI. Returns null if custom AI is disabled or not applicable to given ship. */
-    fun getAI(ship: ShipAPI, config: ShipAIConfig = ShipAIConfig()): ShipAIPlugin? {
-        if (!shouldHaveCustomAI(ship)) return null
-
-        val klass = getCustomAIClass() ?: return null
-        val type = MethodType.methodType(Void.TYPE, Ship::class.java, ShipAIConfig::class.java)
-        val ctor = MethodHandles.lookup().findConstructor(klass, type)
-        return ctor.invoke(ship as Ship, config) as ShipAIPlugin
+    fun getCustomAIForShip(ship: ShipAPI): ShipAIPlugin? {
+        return if (shouldHaveCustomAI(ship)) AIPlugin(ship)
+        else null
     }
 
     /** Currently, custom AI is enabled only for Guardian. */
     private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
+            !customAIEnabled -> false
             Global.getCurrentState() != GameState.COMBAT -> false
-            getCustomAIClass() == null -> false
 
             ship.hullSpec.isPhase -> false
             ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false

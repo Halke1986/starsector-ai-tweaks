@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.core.features.shipai.CustomAIManager
+import com.genir.aitweaks.core.features.shipai.ai.AIPlugin
 import com.genir.aitweaks.core.features.shipai.ai.customAI
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
@@ -79,4 +79,4 @@ val ShipAPI.hasVanillaAI: Boolean
     get() = hasAIType(BasicShipAI::class.java)
 
 val ShipAPI.hasCustomAI: Boolean
-    get() = hasAIType(CustomAIManager().getCustomAIClass())
+    get() = hasAIType(AIPlugin::class.java)
