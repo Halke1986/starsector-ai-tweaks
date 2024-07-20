@@ -1,11 +1,11 @@
-package com.genir.aitweaks.core.features.shipai.ai
+package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.features.shipai.ai.Preset.Companion.collisionBuffer
+import com.genir.aitweaks.core.features.shipai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.unitVector

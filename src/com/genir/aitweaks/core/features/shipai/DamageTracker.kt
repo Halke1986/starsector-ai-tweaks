@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features.shipai.ai
+package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI

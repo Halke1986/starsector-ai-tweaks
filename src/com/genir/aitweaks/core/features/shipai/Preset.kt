@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features.shipai.ai
+package com.genir.aitweaks.core.features.shipai
 
 class Preset {
     @Suppress("ConstPropertyName")

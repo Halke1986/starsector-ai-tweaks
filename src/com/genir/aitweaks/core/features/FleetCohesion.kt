@@ -10,7 +10,7 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.features.shipai.ai.Preset
+import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f

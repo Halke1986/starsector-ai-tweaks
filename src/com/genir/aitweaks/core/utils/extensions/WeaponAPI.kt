@@ -4,7 +4,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.features.autofire.AutofireAI
-import com.genir.aitweaks.core.features.shipai.ai.customAI
+import com.genir.aitweaks.core.features.shipai.customAI
 import com.genir.aitweaks.core.utils.attack.FiringCycle
 import com.genir.aitweaks.core.utils.attack.firingCycle
 import org.lazywizard.lazylib.MathUtils
@@ -88,7 +88,6 @@ val WeaponAPI.isInFiringSequence: Boolean
         chargeLevel == 1f && isBurstWeapon -> true // burst
         else -> false
     }
-
 
 val WeaponAPI.group: WeaponGroupAPI
     get() = this.ship.getWeaponGroupFor(this)

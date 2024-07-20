@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.autofire.HoldFire.*
-import com.genir.aitweaks.core.features.shipai.ai.customAI
+import com.genir.aitweaks.core.features.shipai.customAI
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.attack.*
 import com.genir.aitweaks.core.utils.extensions.*

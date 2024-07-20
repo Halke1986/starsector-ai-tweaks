@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
-import com.genir.aitweaks.core.features.shipai.ai.AIPlugin
 import lunalib.lunaSettings.LunaSettings.getBoolean
 
 class CustomAIManager {
