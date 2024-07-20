@@ -28,7 +28,7 @@ import kotlin.random.Random
 @Suppress("MemberVisibilityCanBePrivate")
 class AI(val ship: ShipAPI) {
     // Subclasses.
-    val vanilla: Vanilla = Vanilla(ship)
+    val vanilla: Vanilla = Vanilla(ship, listOf(BURN_DRIVE_TOGGLE))
     val movement: Movement = Movement(this)
     val burnDriveAI: BurnDrive? = if (ship.system?.specAPI?.AIType == BURN_DRIVE_TOGGLE) BurnDrive(ship, this) else null // TODO move to Movement
     val damageTracker: DamageTracker = DamageTracker(ship)
