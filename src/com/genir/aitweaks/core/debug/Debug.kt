@@ -19,9 +19,9 @@ internal fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
     val custom = ships.mapNotNull { it.customAI }
 
-//    custom.forEach {
-//        drawLine(it.ship.location, it.headingPoint ?: it.ship.location, YELLOW)
-//    }
+    custom.forEach {
+        drawLine(it.ship.location, it.movement.headingPoint ?: it.ship.location, YELLOW)
+    }
 }
 
 internal fun highlightCustomAI() {
@@ -106,11 +106,3 @@ private fun followPlayerShip() {
 
     drawEngineLines(ship)
 }
-
-//fun printCustomManeuverName(ship: ShipAPI) {
-//    val c = CustomAIManager().getCustomAIClass()
-//    val t = MethodType.methodType(oO0O::class.java)
-//    val m = MethodHandles.lookup().findVirtual(c, "getCurrentManeuver", t)
-//    val maneuver = m.invoke(ship.ai)
-//    debugPlugin[ship] = maneuver?.javaClass?.canonicalName
-//}

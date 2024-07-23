@@ -17,31 +17,36 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.sign
 
-class Movement(override val ai: AI) : Coordinable {
+class Movement(private val ship: ShipAPI, override val ai: AI) : Coordinable {
+    private val engineController = EngineController(ship)
+    val burnDrive: BurnDrive? = if (ship.system?.specAPI?.AIType == ShipSystemAiType.BURN_DRIVE_TOGGLE) BurnDrive(ship, ai) else null // TODO move to Movement
+
+    var headingPoint: Vector2f? = null
+    var aimPoint: Vector2f? = null
+    var expectedVelocity: Vector2f = Vector2f()
+    var expectedFacing: Float = 0f
+
     // Used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
     override var reviewedHeadingPoint: Vector2f? = null
-
-    private val ship = ai.ship
-    private val engineController = EngineController(ship)
 
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
     private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
 
     fun advance(dt: Float) {
-        ai.burnDriveAI?.advance(dt)
+        burnDrive?.advance(dt)
         setFacing()
         setHeading(dt, ai.maneuverTarget, ai.moveOrderLocation)
         manageMobilitySystems()
     }
 
     private fun setFacing() {
-        val (aimPoint: Vector2f, velocity: Vector2f) = when {
+        val (newAimPoint: Vector2f, velocity: Vector2f) = when {
             // Position ship to start burn.
-            ai.burnDriveAI?.shouldBurn == true -> {
+            burnDrive?.shouldBurn == true -> {
                 // Compiler should require !! on headingPoint. Is this a Kotlin bug?
-                Pair(ai.burnDriveAI.destination, Vector2f())
+                Pair(burnDrive.destination, Vector2f())
             }
 
             // Face the attack target.
@@ -53,7 +58,7 @@ class Movement(override val ai: AI) : Coordinable {
                 val aimOffsetThisFrame = getShortestRotation(target.location, ship.location, aimPointThisFrame)
                 val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
 
-                Pair(target.location.rotatedAroundPivot(Rotation(aimOffset - ai.broadsideFacing), ship.location), target.velocity)
+                Pair(target.location.rotatedAroundPivot(Rotation(aimOffset - ai.stats.broadsideFacing), ship.location), target.velocity)
             }
 
             // Face threat direction when no target.
@@ -70,15 +75,15 @@ class Movement(override val ai: AI) : Coordinable {
             else -> Pair(ship.location, Vector2f())
         }
 
-        ai.aimPoint = aimPoint
-        engineController.facing(aimPoint, velocity)
+        aimPoint = newAimPoint
+        expectedFacing = engineController.facing(newAimPoint, velocity)
     }
 
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?, moveOrderLocation: Vector2f?) {
-        val (headingPoint: Vector2f, velocity: Vector2f) = when {
+        val (newHeadingPoint: Vector2f, velocity: Vector2f) = when {
             // Position ship to start burn.
-            ai.burnDriveAI?.shouldBurn == true -> {
-                Pair(ai.burnDriveAI.destination, Vector2f())
+            burnDrive?.shouldBurn == true -> {
+                Pair(burnDrive.destination, Vector2f())
             }
 
             // Move directly to ordered location for player ships.
@@ -103,16 +108,16 @@ class Movement(override val ai: AI) : Coordinable {
                 val vectorToThreat = if (!ai.threatVector.isZeroVector()) ai.threatVector else vectorToTarget
 
                 // Strafe the target randomly, when it's the only threat.
-                val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.effectiveRange
+                val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.stats.effectiveRange
                 val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
                 else vectorToThreat
 
                 // Let the attack coordinator review the calculated heading point.
-                proposedHeadingPoint = maneuverTarget.location - attackPositionOffset.resized(ai.minRange)
+                proposedHeadingPoint = maneuverTarget.location - attackPositionOffset.resized(ai.stats.minRange)
                 val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
                 reviewedHeadingPoint = null
 
-                val velocity = (headingPoint - (ai.headingPoint ?: headingPoint)) / dt
+                val velocity = (headingPoint - (headingPoint ?: headingPoint)) / dt
                 Pair(headingPoint, velocity)
             }
 
@@ -125,8 +130,8 @@ class Movement(override val ai: AI) : Coordinable {
             else -> Pair(ship.location, Vector2f())
         }
 
-        ai.headingPoint = headingPoint
-        engineController.heading(headingPoint, velocity, gatherSpeedLimits(dt))
+        headingPoint = newHeadingPoint
+        expectedVelocity = engineController.heading(newHeadingPoint, velocity, gatherSpeedLimits(dt))
     }
 
     private fun manageMobilitySystems() {
@@ -140,13 +145,13 @@ class Movement(override val ai: AI) : Coordinable {
                 ai.isBackingOff -> ship.command(USE_SYSTEM)
 
                 // Use MANEUVERING_JETS to chase target during 1v1 duel.
-                ai.is1v1 && ai.range(ai.attackTarget!!) > ai.effectiveRange -> ship.command(USE_SYSTEM)
+                ai.is1v1 && ai.range(ai.attackTarget!!) > ai.stats.effectiveRange -> ship.command(USE_SYSTEM)
             }
 
             ShipSystemAiType.BURN_DRIVE -> {
                 // Prevent vanilla AI from jumping closer to target with
                 // BURN_DRIVE, if the target is already within weapons range.
-                if (ai.attackTarget != null && ai.range(ai.attackTarget!!) < ai.effectiveRange) {
+                if (ai.attackTarget != null && ai.range(ai.attackTarget!!) < ai.stats.effectiveRange) {
                     ship.blockCommandForOneFrame(USE_SYSTEM)
                 }
 
@@ -241,11 +246,11 @@ class Movement(override val ai: AI) : Coordinable {
                 angleToVelocity.sign != angleToOtherLine.sign -> return@forEach
 
                 // Do not consider line of fire blocking if target is out of range, with 1.2 tolerance factor.
-                blocked.range(target) > blocked.maxRange * 1.2f -> return@forEach
+                blocked.range(target) > blocked.stats.maxRange * 1.2f -> return@forEach
             }
 
             val arcLength = distToTarget * abs(angleToOtherLine) * DEGREES_TO_RADIANS
-            val minDist = (ai.totalCollisionRadius + obstacle.totalCollisionRadius) * 0.75f
+            val minDist = (ai.stats.totalCollisionRadius + obstacle.stats.totalCollisionRadius) * 0.75f
             val distance = arcLength - minDist
 
             // Line of fire blocking occurs when ships orbiting the same target
@@ -301,7 +306,7 @@ class Movement(override val ai: AI) : Coordinable {
 
         // Allow chasing targets into the border zone.
         val tgtLoc = ai.maneuverTarget?.location
-        if (tgtLoc != null && !ai.isBackingOff && getShortestRotation(tgtLoc - ship.location, borderIntrusion) < 90f) {
+        if (tgtLoc != null && !ai.isBackingOff && abs(getShortestRotation(tgtLoc - ship.location, borderIntrusion)) < 90f) {
             return null
         }
 
@@ -317,7 +322,7 @@ class Movement(override val ai: AI) : Coordinable {
         val direction = obstacle.location - ship.location
         val dirAbs = direction.length()
         val dirFacing = direction.getFacing()
-        val distance = dirAbs - (ai.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer)
+        val distance = dirAbs - (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer)
 
         // Already colliding.
         if (distance <= 0f) return EngineController.Limit(dirFacing, 0f)

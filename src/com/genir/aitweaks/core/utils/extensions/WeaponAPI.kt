@@ -37,7 +37,7 @@ fun WeaponAPI.isAngleInArc(angle: Float): Boolean {
 
 val WeaponAPI.frontFacing: Boolean
     get() {
-        val front = ship.customAI?.broadsideFacing ?: 0f
+        val front = ship.customAI?.stats?.broadsideFacing ?: 0f
         return abs(MathUtils.getShortestRotation(arcFacing, front)) <= arc / 2f
     }
 

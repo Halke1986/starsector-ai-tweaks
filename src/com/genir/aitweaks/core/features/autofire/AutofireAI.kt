@@ -195,7 +195,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing)))
             return intercept
 
-        val aimPoint: Vector2f = weapon.ship.customAI?.aimPoint ?: target!!.location
+        val aimPoint: Vector2f = weapon.ship.customAI?.movement?.aimPoint ?: target!!.location
         val tgtLocation = aimPoint - weapon.ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
         val angleToTarget = MathUtils.getShortestRotation(tgtFacing, weapon.ship.facing)

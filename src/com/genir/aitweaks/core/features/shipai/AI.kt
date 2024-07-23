@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
@@ -15,93 +14,76 @@ import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import com.genir.aitweaks.core.utils.shipSequence
 import com.genir.aitweaks.core.utils.times
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.sign
-import kotlin.random.Random
 
 @Suppress("MemberVisibilityCanBePrivate")
 class AI(val ship: ShipAPI) {
     // Subclasses.
-    val vanilla: Vanilla = Vanilla(ship, listOf(BURN_DRIVE_TOGGLE))
-    val movement: Movement = Movement(this)
-    val burnDriveAI: BurnDrive? = if (ship.system?.specAPI?.AIType == BURN_DRIVE_TOGGLE) BurnDrive(ship, this) else null // TODO move to Movement
-    val damageTracker: DamageTracker = DamageTracker(ship)
+    val movement: Movement = Movement(ship, this)
+    private val vanilla: Vanilla = Vanilla(ship, listOf(BURN_DRIVE_TOGGLE))
 
-    // Ship stats.
-    var effectiveRange: Float = 0f
-    var minRange: Float = 0f
-    var maxRange: Float = 0f
-    var totalCollisionRadius: Float = 0f
-    val broadsideFacing = calculateBroadsideFacing()
+    // Helper classes.
+    private val damageTracker: DamageTracker = DamageTracker(ship)
+    private var updateInterval: IntervalUtil = IntervalUtil(0.75f, 1.25f)
 
     // Standing orders.
     var moveOrderLocation: Vector2f? = null // TODO handle move order
     var maneuverTarget: ShipAPI? = null
     var attackTarget: ShipAPI? = null
 
-    var headingPoint: Vector2f? = null
-    var aimPoint: Vector2f? = null
-
-    // State
+    // AI State.
+    var stats: ShipStats = ShipStats(ship)
     var vanillaFlags: ShipwideAIFlags = vanilla.flags()
     var isBackingOff: Boolean = false
     var isHoldingFire: Boolean = false
     var isAvoidingBorder: Boolean = false
     var is1v1: Boolean = false
-
-    private var idleTime = 0f
-    private var threats: List<ShipAPI> = listOf()
-    internal var threatVector = Vector2f()
-
-    private var maneuverUpdateInterval: IntervalUtil = IntervalUtil(0.75f, 1.25f)
+    var idleTime = 0f
+    var threats: List<ShipAPI> = listOf()
+    var threatVector = Vector2f()
 
     fun advance(dt: Float) {
+        updateInterval.advance(dt)
+        val interval: Boolean = updateInterval.intervalElapsed()
+
+        if (interval) {
+            stats = ShipStats(ship)
+            ensureAutofire()
+        }
+
         // Update state.
         damageTracker.advance()
         updateThreats()
-        updateStats()
 
         updateIdleTime(dt)
         updateBackoffStatus()
-        updateManeuverTarget(dt)
-        updateAttackTarget()
+        updateManeuverTarget(interval)
+        updateAttackTarget(interval)
         update1v1Status()
 
-        vanilla.advance(dt, attackTarget)
+        vanilla.advance(dt, attackTarget, movement.expectedVelocity, movement.expectedFacing)
         ventIfNeeded()
         holdFireIfOverfluxed()
-        ensureAutofire()
+
 
         movement.advance(dt)
 
-        vanillaFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, minRange)
+        vanillaFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, stats.minRange)
         vanillaFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
     }
 
-    private fun updateStats() {
-        effectiveRange = ship.effectiveRange(Preset.effectiveDpsThreshold)
-        minRange = ship.minRange
-        maxRange = ship.maxRange
-        totalCollisionRadius = ship.totalCollisionRadius
-    }
-
-    private fun updateManeuverTarget(dt: Float) {
-        maneuverUpdateInterval.advance(dt)
-
+    private fun updateManeuverTarget(interval: Boolean) {
         val needsUpdate = when {
             maneuverTarget == null -> true
 
-            maneuverUpdateInterval.intervalElapsed() -> true
-
             maneuverTarget?.isValidTarget != true -> true
 
-            else -> false
+            else -> interval
         }
 
         if (needsUpdate) {
@@ -153,7 +135,7 @@ class AI(val ship: ShipAPI) {
 
     /** Select which enemy ship to attack. This may be different
      * from the maneuver target provided by the ShipAI. */
-    private fun updateAttackTarget() {
+    private fun updateAttackTarget(interval: Boolean) {
         val currentTarget = attackTarget
 
         val updateTarget = when {
@@ -164,12 +146,12 @@ class AI(val ship: ShipAPI) {
             ship.primaryWeapons.any { it.size != SMALL && it.isInFiringSequence && it.autofireAI?.targetShip == attackTarget } -> false
 
             // Target is out of range.
-            range(currentTarget) > maxRange -> true
+            range(currentTarget) > stats.maxRange -> true
 
             // Finish helpless target.
             currentTarget.fluxTracker.isOverloadedOrVenting -> false
 
-            else -> true
+            else -> interval
         }
 
         val updatedTarget = if (updateTarget) findNewAttackTarget()
@@ -232,7 +214,7 @@ class AI(val ship: ShipAPI) {
 
     private fun updateThreats() {
         val rangeEnvelope = 500f
-        val r = max(Preset.threatEvalRadius, maxRange + rangeEnvelope)
+        val r = max(Preset.threatEvalRadius, stats.maxRange + rangeEnvelope)
         threats = shipSequence(ship.location, r).filter { isThreat(it) }.toList()
 
         threatVector = threats.fold(Vector2f()) { sum, it ->
@@ -272,7 +254,7 @@ class AI(val ship: ShipAPI) {
     }
 
     private fun findNewAttackTarget(): ShipAPI? {
-        val opportunities = threats.filter { range(it) < maxRange }
+        val opportunities = threats.filter { range(it) < stats.maxRange }
 
         val foldInit: Pair<ShipAPI?, Float> = Pair(null, Float.MAX_VALUE)
         val bestOpportunity = opportunities.fold(foldInit) { best, it ->
@@ -298,14 +280,14 @@ class AI(val ship: ShipAPI) {
     /** Evaluate if target is worth attacking. The lower the score, the better the target. */
     private fun evaluateTarget(target: ShipAPI): Float {
         // Prioritize targets closer to ship facing.
-        val angle = ship.shortestRotationToTarget(target.location, broadsideFacing) * PI.toFloat() / 180.0f
+        val angle = ship.shortestRotationToTarget(target.location, stats.broadsideFacing) * PI.toFloat() / 180.0f
         val angleWeight = 0.75f
         val evalAngle = abs(angle) * angleWeight
 
         // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
         val dist = range(target)
         val distWeight = 1f / ship.dpsFractionAtRange(dist)
-        val evalDist = (dist / maxRange) * distWeight
+        val evalDist = (dist / stats.maxRange) * distWeight
 
         // Prioritize targets high on flux. Avoid hunting low flux phase ships.
         val fluxLeft = (1f - target.fluxLevel)
@@ -322,42 +304,6 @@ class AI(val ship: ShipAPI) {
         // TODO avoid wrecks
 
         return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType
-    }
-
-    private fun calculateBroadsideFacing(): Float {
-        // Find all important weapons.
-        val weapons = ship.allWeapons.filter { weapon ->
-            when {
-                weapon.type == WeaponAPI.WeaponType.MISSILE -> false
-                weapon.derivedStats.dps == 0f -> false
-                weapon.isPD -> false
-                else -> true
-            }
-        }
-
-        // Find firing arc boundary closes to ship front for each weapon,
-        // or 0f for front facing weapons. Shuffle to randomly chose
-        // one broadside for symmetric broadside ships.
-        val angles = weapons.fold(setOf(0f)) { angles, weapon ->
-            val facing = MathUtils.getShortestRotation(0f, weapon.arcFacing)
-
-            val angle = if (weapon.isAngleInArc(0f)) 0f
-            else facing - facing.sign * (weapon.arc / 2f - 0.1f)
-
-            angles + angle
-        }.filter { abs(it) <= Preset.maxBroadsideFacing }.shuffled(Random(ship.id.hashCode()))
-
-        // Calculate DPS at each weapon arc boundary angle.
-        val angleDPS: Map<Float, Float> = angles.associateWith { angle ->
-            weapons.filter { it.isAngleInArc(angle) }.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
-        }
-
-        val bestAngleDPS: Map.Entry<Float, Float> = angleDPS.maxByOrNull { it.value } ?: return 0f
-
-        // Prefer non-broadside orientation.
-        if (bestAngleDPS.value * Preset.broadsideDPSThreshold < angleDPS[0f]!!) return 0f
-
-        return bestAngleDPS.key + bestAngleDPS.key.sign * Preset.broadsideFacingPadding
     }
 
     private fun isThreat(target: ShipAPI): Boolean {

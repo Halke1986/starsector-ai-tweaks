@@ -23,8 +23,8 @@ import kotlin.math.min
 /** Burn Drive AI. It replaces the vanilla implementation in ships with custom AI. */
 class BurnDrive(val ship: ShipAPI, override val ai: AI) : Coordinable {
     // Used by Movement class to align ship for burn.
-    var destination: Vector2f = Vector2f()
-    var shouldBurn = false
+    internal var destination: Vector2f = Vector2f()
+    internal var shouldBurn = false
 
     // Used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
@@ -70,7 +70,7 @@ class BurnDrive(val ship: ShipAPI, override val ai: AI) : Coordinable {
             // Charge straight at the maneuver target, disregard fleet coordination.
             ai.maneuverTarget != null -> {
                 val vectorToTarget = ai.maneuverTarget!!.location - ship.location
-                val approachVector = vectorToTarget.addLength(-ai.minRange * Preset.BurnDrive.approachToMinRangeFraction)
+                val approachVector = vectorToTarget.addLength(-ai.stats.minRange * Preset.BurnDrive.approachToMinRangeFraction)
 
                 // Let the attack coordinator review the calculated heading point.
                 proposedHeadingPoint = approachVector + ship.location

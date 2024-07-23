@@ -13,18 +13,16 @@ import kotlin.math.*
 import kotlin.random.Random
 
 class EngineController(val ship: ShipAPI) {
-    private val noMovementExpected = Float.MAX_VALUE
-
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
     data class Limit(val heading: Float, val speed: Float)
 
     /** Set ship heading towards 'target' location. Appropriate target
      * leading is calculated based on 'targetVelocity'. If ship is already
-     * at 'target' location, it will match the target velocity. Returns the
-     * expected heading angle. Limits are used to modify the restrict
-     * velocity, e.g. for collision avoidance purposes.*/
-    fun heading(target: Vector2f, targetVelocity: Vector2f, limits: List<Limit> = listOf()): Float {
+     * at 'target' location, it will match the target velocity. Limits are
+     * used to restrict the velocity, e.g. for collision avoidance purposes.
+     * Returns the calculated expected velocity. */
+    fun heading(target: Vector2f, targetVelocity: Vector2f, limits: List<Limit> = listOf()): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val dt = Global.getCombatEngine().elapsedInLastFrame
@@ -48,7 +46,7 @@ class EngineController(val ship: ShipAPI) {
         // accelerating from a standstill.
         if ((target - ship.location).length() < af && vt.isZeroVector()) {
             if (!ship.velocity.isZeroVector()) ship.command(DECELERATE)
-            return noMovementExpected
+            return Vector2f()
         }
 
         // Distance to target location in next frame. Next frame
@@ -74,7 +72,7 @@ class EngineController(val ship: ShipAPI) {
         // Stop if expected velocity is smaller than half of minimum delta v.
         if (vec.length() < af / 2f && !ship.velocity.isZeroVector()) {
             ship.command(DECELERATE)
-            return noMovementExpected
+            return Vector2f()
         }
 
         // Proportional thrust required to achieve
@@ -91,7 +89,7 @@ class EngineController(val ship: ShipAPI) {
         if (shouldAccelerate(-d.x, fl, fMax)) ship.command(STRAFE_LEFT)
         if (shouldAccelerate(+d.x, fr, fMax)) ship.command(STRAFE_RIGHT)
 
-        return r.reverse(vec).getFacing()
+        return r.reverse(vec)
     }
 
     /** Set ship facing towards 'target' location. Returns the expected facing angle. */
