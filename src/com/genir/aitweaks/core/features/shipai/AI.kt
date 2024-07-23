@@ -1,6 +1,8 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CombatAssignmentType.*
+import com.fs.starfarer.api.combat.CombatFleetManagerAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
@@ -32,7 +34,8 @@ class AI(val ship: ShipAPI) {
     private var updateInterval: IntervalUtil = IntervalUtil(0.75f, 1.25f)
 
     // Standing orders.
-    var moveOrderLocation: Vector2f? = null // TODO handle move order
+    var assignment: CombatFleetManagerAPI.AssignmentInfo? = null // TODO handle move order
+    var assignmentLocation: Vector2f? = null
     var maneuverTarget: ShipAPI? = null
     var attackTarget: ShipAPI? = null
 
@@ -62,6 +65,7 @@ class AI(val ship: ShipAPI) {
 
         updateIdleTime(dt)
         updateBackoffStatus()
+        updateAssignment(interval)
         updateManeuverTarget(interval)
         updateAttackTarget(interval)
         update1v1Status()
@@ -69,7 +73,6 @@ class AI(val ship: ShipAPI) {
         vanilla.advance(dt, attackTarget, movement.expectedVelocity, movement.expectedFacing)
         ventIfNeeded()
         holdFireIfOverfluxed()
-
 
         movement.advance(dt)
 
@@ -86,21 +89,21 @@ class AI(val ship: ShipAPI) {
             else -> interval
         }
 
-        if (needsUpdate) {
-            val targets = Global.getCombatEngine().ships.filter {
-                when {
-                    it.owner == ship.owner -> false
+        if (!needsUpdate) return
 
-                    !it.isValidTarget -> false
+        val targets = Global.getCombatEngine().ships.filter {
+            when {
+                it.owner == ship.owner -> false
 
-                    it.isFighter -> false
+                !it.isValidTarget -> false
 
-                    else -> true
-                }
+                it.isFighter -> false
+
+                else -> true
             }
-
-            maneuverTarget = targets.minByOrNull { (it.location - ship.location).lengthSquared() }
         }
+
+        maneuverTarget = targets.minByOrNull { (it.location - ship.location).lengthSquared() }
 
         //init {
         //        maneuverTarget = when {
@@ -118,19 +121,49 @@ class AI(val ship: ShipAPI) {
         //            }
         //        }
         //    }
-//        return when {
-//            // Target ship was destroyed.
-//            maneuverTarget != null && (maneuverTarget.isExpired || !maneuverTarget.isAlive) -> {
-//                true
-//            }
-//
-//            // Arrived at location.
-//            moveOrderLocation != null && (ship.location - moveOrderLocation).length() <= Preset.arrivedAtLocationRadius -> {
-//                true
-//            }
-//
-//            else -> false
-//        }
+    }
+
+    private fun updateAssignment(interval: Boolean) {
+        if (ship.assignment == assignment && !interval) return
+
+        assignment = ship.assignment
+        assignmentLocation = null
+
+        if (assignment == null) return
+
+        val assignment = assignment!!
+
+        when (assignment.type) {
+            RECON,
+            AVOID,
+            RETREAT,
+            REPAIR_AND_REFIT,
+            SEARCH_AND_DESTROY -> return
+
+            DEFEND,
+            RALLY_TASK_FORCE,
+            RALLY_CARRIER,
+            RALLY_CIVILIAN,
+            RALLY_STRIKE_FORCE,
+            RALLY_FIGHTERS,
+            STRIKE,
+            INTERCEPT,
+            HARASS,
+            LIGHT_ESCORT,
+            MEDIUM_ESCORT,
+            HEAVY_ESCORT,
+            CAPTURE,
+            CONTROL,
+            ASSAULT,
+            ENGAGE -> Unit
+
+            else -> return
+        }
+
+        val location = assignment.target?.location ?: return
+
+        if ((ship.location - location).length() > Preset.arrivedAtLocationRadius)
+            assignmentLocation = location
     }
 
     /** Select which enemy ship to attack. This may be different
@@ -269,8 +302,8 @@ class AI(val ship: ShipAPI) {
             maneuverTarget != null -> maneuverTarget
 
             // Try to find a target near move location.
-            moveOrderLocation != null -> {
-                shipSequence(moveOrderLocation!!, 200f).firstOrNull { isThreat(it) }
+            assignmentLocation != null -> {
+                shipSequence(assignmentLocation!!, 200f).firstOrNull { isThreat(it) }
             }
 
             else -> null

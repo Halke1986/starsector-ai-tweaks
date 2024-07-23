@@ -89,7 +89,7 @@ class EngineController(val ship: ShipAPI) {
         if (shouldAccelerate(-d.x, fl, fMax)) ship.command(STRAFE_LEFT)
         if (shouldAccelerate(+d.x, fr, fMax)) ship.command(STRAFE_RIGHT)
 
-        return r.reverse(vec)
+        return r.reverse(vec) / dt
     }
 
     /** Set ship facing towards 'target' location. Returns the expected facing angle. */

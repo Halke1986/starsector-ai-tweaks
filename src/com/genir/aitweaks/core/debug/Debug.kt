@@ -19,9 +19,9 @@ internal fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
     val custom = ships.mapNotNull { it.customAI }
 
-    custom.forEach {
-        drawLine(it.ship.location, it.movement.headingPoint ?: it.ship.location, YELLOW)
-    }
+//    custom.forEach {
+//        drawLine(it.ship.location, it.movement.headingPoint ?: it.ship.location, YELLOW)
+//    }
 }
 
 internal fun highlightCustomAI() {

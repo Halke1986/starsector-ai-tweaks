@@ -1,5 +1,6 @@
 - Custom ship AI avoids ship collisions.
 - Custom ship AI avoids blocking line of fire.
+- Removed a lot of class loader jank used in earlier version of custom ship AI.
 - Removed option to draw weapon debug lines.
 - Added AI Tweaks devmode setting to LunaLib. Devmode shouldn't be used outside development, as it reduces stability.
 - Added debug option to highlight ships controlled by AI Tweaks custom AI. 

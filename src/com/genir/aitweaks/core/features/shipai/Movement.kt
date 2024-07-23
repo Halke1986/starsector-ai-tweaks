@@ -37,7 +37,7 @@ class Movement(private val ship: ShipAPI, override val ai: AI) : Coordinable {
     fun advance(dt: Float) {
         burnDrive?.advance(dt)
         setFacing()
-        setHeading(dt, ai.maneuverTarget, ai.moveOrderLocation)
+        setHeading(dt, ai.maneuverTarget, ai.assignmentLocation)
         manageMobilitySystems()
     }
 
@@ -67,8 +67,8 @@ class Movement(private val ship: ShipAPI, override val ai: AI) : Coordinable {
             }
 
             // Face movement target location.
-            ai.moveOrderLocation != null -> {
-                Pair(ai.moveOrderLocation, Vector2f())
+            ai.assignmentLocation != null -> {
+                Pair(ai.assignmentLocation, Vector2f())
             }
 
             // Nothing to do. Stop rotation.
@@ -137,16 +137,16 @@ class Movement(private val ship: ShipAPI, override val ai: AI) : Coordinable {
     private fun manageMobilitySystems() {
         when (ship.system?.specAPI?.AIType) {
 
-            ShipSystemAiType.MANEUVERING_JETS -> when {
-                !ship.canUseSystemThisFrame() -> Unit
-
-                // Use MANEUVERING_JETS to back off. Vanilla AI does
-                // this already, but is not determined enough.
-                ai.isBackingOff -> ship.command(USE_SYSTEM)
-
-                // Use MANEUVERING_JETS to chase target during 1v1 duel.
-                ai.is1v1 && ai.range(ai.attackTarget!!) > ai.stats.effectiveRange -> ship.command(USE_SYSTEM)
-            }
+//            ShipSystemAiType.MANEUVERING_JETS -> when {
+//                !ship.canUseSystemThisFrame() -> Unit
+//
+//                // Use MANEUVERING_JETS to back off. Vanilla AI does
+//                // this already, but is not determined enough.
+//                ai.isBackingOff -> ship.command(USE_SYSTEM)
+//
+//                // Use MANEUVERING_JETS to chase target during 1v1 duel.
+//                ai.is1v1 && ai.range(ai.attackTarget!!) > ai.stats.effectiveRange -> ship.command(USE_SYSTEM)
+//            }
 
             ShipSystemAiType.BURN_DRIVE -> {
                 // Prevent vanilla AI from jumping closer to target with

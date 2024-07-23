@@ -63,8 +63,8 @@ class BurnDrive(val ship: ShipAPI, override val ai: AI) : Coordinable {
 
         // Choose new burn destination.
         val newDestination = when {
-            ai.moveOrderLocation != null -> {
-                ai.moveOrderLocation
+            ai.assignmentLocation != null -> {
+                ai.assignmentLocation
             }
 
             // Charge straight at the maneuver target, disregard fleet coordination.
@@ -104,7 +104,7 @@ class BurnDrive(val ship: ShipAPI, override val ai: AI) : Coordinable {
             ai.isBackingOff -> false
 
             // Don't burn to move order location if not facing the location.
-            ai.moveOrderLocation != null && destinationFacing > Preset.BurnDrive.maxAngleToTarget -> false
+            ai.assignmentLocation != null && destinationFacing > Preset.BurnDrive.maxAngleToTarget -> false
 
             // Don't burn to maneuver target if it's different from the attack target.
             ai.maneuverTarget != null && ai.maneuverTarget != ai.attackTarget -> false
@@ -127,7 +127,7 @@ class BurnDrive(val ship: ShipAPI, override val ai: AI) : Coordinable {
             system.state != ACTIVE -> false
 
             // No target, stop.
-            ai.moveOrderLocation == null && ai.maneuverTarget == null -> true
+            ai.assignmentLocation == null && ai.maneuverTarget == null -> true
 
             // Veered off course, stop.
             destinationFacing > Preset.BurnDrive.maxAngleToTarget -> true
