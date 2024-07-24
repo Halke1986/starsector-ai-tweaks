@@ -5,6 +5,7 @@ import com.fs.starfarer.combat.ai.BasicShipAI
 import org.lwjgl.util.vector.Vector2f
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
+import java.lang.reflect.Method
 
 class ShieldAI(private val shieldAI: Any) {
     private val advance: MethodHandle
@@ -12,7 +13,11 @@ class ShieldAI(private val shieldAI: Any) {
     init {
         // Find advance method.
         val methods = shieldAI::class.java.methods
-        val advance = methods.first { it.parameterTypes.firstOrNull() == Float::class.java }
+        val advance: Method = methods.first { it.parameterTypes.firstOrNull() == Float::class.java }
+
+        // Advance is private in case of inner class defined
+        // in BasicShipAI to control phase shield.
+        advance.setAccessible(true)
         this.advance = MethodHandles.lookup().unreflect(advance)
     }
 

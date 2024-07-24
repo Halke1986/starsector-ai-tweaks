@@ -8,7 +8,6 @@ import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
@@ -117,7 +116,7 @@ class Movement(private val ship: ShipAPI, override val ai: AI) : Coordinable {
                 val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
                 reviewedHeadingPoint = null
 
-                val velocity = (headingPoint - (headingPoint ?: headingPoint)) / dt
+                val velocity = (headingPoint - (this.headingPoint ?: headingPoint)) / dt
                 Pair(headingPoint, velocity)
             }
 
@@ -165,7 +164,7 @@ class Movement(private val ship: ShipAPI, override val ai: AI) : Coordinable {
     /** Aim hardpoint weapons with entire ship, if possible. */
     private fun calculateOffsetAimPoint(attackTarget: ShipAPI): Vector2f {
         // Find intercept points of all hardpoints attacking the current target.
-        val hardpoints = ship.allWeapons.filter { it.slot.isHardpoint }.mapNotNull { it.autofireAI }
+        val hardpoints = ship.allWeapons.filter { it.slot.isHardpoint }.mapNotNull { it.customAI }
         val aimedHardpoints = hardpoints.filter { it.targetShip != null && it.targetShip == attackTarget }
         val interceptPoints = aimedHardpoints.mapNotNull { it.intercept }
 

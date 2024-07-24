@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.autofire.HoldFire.*
-import com.genir.aitweaks.core.features.shipai.customAI
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.attack.*
 import com.genir.aitweaks.core.utils.extensions.*
@@ -19,11 +18,6 @@ import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
-
-// TODO
-/** Low priority / won't do */
-// don't switch targets mid burst
-// fog of war
 
 private var autofireAICount = 0
 
@@ -42,7 +36,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     private var isForcedOff = false
 
-    // Fields accessed by AssemblyShipAI
+    // Fields accessed by custom ship AI
     var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons
     var shouldHoldFire: HoldFire? = NO_TARGET
     var predictedHit: Hit? = null
@@ -192,8 +186,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private fun aimHardpoint(intercept: Vector2f): Vector2f {
         // Weapon is already facing the target. Return the
         // original intercept location to not overcompensate.
-        if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing)))
-            return intercept
+        if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing))) return intercept
 
         val aimPoint: Vector2f = weapon.ship.customAI?.movement?.aimPoint ?: target!!.location
         val tgtLocation = aimPoint - weapon.ship.location

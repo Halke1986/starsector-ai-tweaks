@@ -48,7 +48,7 @@ class AutomatedShipAIManager : BaseEveryFrameCombatPlugin() {
                     (ship.ai as BasicShipAI).config.personalityOverride = expectedPersonality
                 }
 
-                // AssemblyShipAI needs captain personality change,
+                // Custom AI needs captain personality change,
                 // because it ignores configured personality override.
                 ship.hasCustomAI -> {
                     ship.captain.setPersonality(expectedPersonality)

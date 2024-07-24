@@ -155,7 +155,7 @@ class AI(val ship: ShipAPI) {
             !currentTarget.isValidTarget -> true
 
             // Do not interrupt weapon bursts.
-            ship.primaryWeapons.any { it.size != SMALL && it.isInFiringSequence && it.autofireAI?.targetShip == attackTarget } -> false
+            ship.primaryWeapons.any { it.size != SMALL && it.isInFiringSequence && it.customAI?.targetShip == attackTarget } -> false
 
             // Target is out of range.
             range(currentTarget) > stats.maxRange -> true
@@ -286,7 +286,7 @@ class AI(val ship: ShipAPI) {
             idleTime < Preset.shieldDownVentTime -> false
 
             // Don't vent when any weapon is firing.
-            ship.allWeapons.any { it.autofireAI?.shouldFire() == true } -> false
+            ship.allWeapons.any { it.customAI?.shouldFire() == true } -> false
 
             else -> true
         }

@@ -4,7 +4,6 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.features.autofire.AutofireAI
-import com.genir.aitweaks.core.features.shipai.customAI
 import com.genir.aitweaks.core.utils.attack.FiringCycle
 import com.genir.aitweaks.core.utils.attack.firingCycle
 import org.lazywizard.lazylib.MathUtils
@@ -65,7 +64,7 @@ val WeaponAPI.timeToAttack: Float
 val WeaponAPI.autofirePlugin: AutofireAIPlugin?
     get() = ship.getWeaponGroupFor(this)?.getAutofirePlugin(this)
 
-val WeaponAPI.autofireAI: AutofireAI?
+val WeaponAPI.customAI: AutofireAI?
     get() = autofirePlugin as? AutofireAI
 
 val WeaponAPI.isBurstWeapon: Boolean

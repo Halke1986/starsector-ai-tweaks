@@ -7,6 +7,7 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.utils.angularSize
+import com.genir.aitweaks.core.utils.extensions.customAI
 import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.MathUtils

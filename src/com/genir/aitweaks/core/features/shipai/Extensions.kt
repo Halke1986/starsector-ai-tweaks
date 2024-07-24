@@ -22,6 +22,9 @@ val WeaponAPI.trueRange: Float
 val ShipAPI.primaryWeapons: List<WeaponAPI>
     get() = this.allWeapons.filter { weapon ->
         when {
+            weapon.slot.isHidden -> false
+            weapon.slot.isDecorative -> false
+            weapon.slot.isSystemSlot -> false
             weapon.type == WeaponAPI.WeaponType.MISSILE -> false
             !weapon.frontFacing -> false
             weapon.isPD -> false
@@ -105,6 +108,3 @@ val ShipAPI.totalCollisionRadius: Float
     }
 
 fun ShipAPI.command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
-
-val ShipAPI.customAI: AI?
-    get() = ((ai as? Ship.ShipAIWrapper)?.ai as? AIPlugin)?.ai
