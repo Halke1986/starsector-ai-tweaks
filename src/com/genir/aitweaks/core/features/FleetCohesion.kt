@@ -11,6 +11,7 @@ import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.Preset
+import com.genir.aitweaks.core.features.shipai.maxRange
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
@@ -23,7 +24,8 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     private val cohesionWaypoints: MutableSet<AssignmentTargetAPI> = mutableSetOf()
 
     private var validGroups: List<Set<ShipAPI>> = listOf()
-    private var primaryTargets: List<ShipAPI> = listOf()
+    private var primaryBigTargets: List<ShipAPI> = listOf()
+    private var allBigTargets: List<ShipAPI> = listOf()
 
     private val advanceInterval = IntervalUtil(0.75f, 1f)
 
@@ -45,7 +47,8 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
 
         // Cleanup of previous iteration assignments and waypoints.
         validGroups = listOf()
-        primaryTargets = listOf()
+        primaryBigTargets = listOf()
+        allBigTargets = listOf()
         clearAssignments()
         clearWaypoints()
 
@@ -71,7 +74,8 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         validGroups = groupsFromLargest.filter { isValidGroup(it, groupsFromLargest.first().dpSum) }
 
         val fog = engine.getFogOfWar(side)
-        primaryTargets = validGroups.first().filter { it.isBig && fog.isVisible(it) }
+        primaryBigTargets = validGroups.first().filter { it.isBig && fog.isVisible(it) }
+        allBigTargets = validGroups.flatten().filter { it.isBig && fog.isVisible(it) }
 
         // Don't give orders to enemy side.
         if (side == 1) return
@@ -97,7 +101,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         if (!channelWasOpen && taskManager.isCommChannelOpen) taskManager.closeCommChannel()
     }
 
-    fun findValidTarget(ship: ShipAPI, currentTarget: ShipAPI?): ShipAPI? {
+    private fun findValidTarget(ship: ShipAPI, currentTarget: ShipAPI?): ShipAPI? {
         return when {
             validGroups.isEmpty() -> currentTarget
 
@@ -108,8 +112,16 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             currentTarget != null && validGroups.any { it.contains(currentTarget) } && closeToEnemy(ship, currentTarget) -> currentTarget
 
             // Ship has wrong target. Find the closest valid target in the main enemy battle group.
-            else -> primaryTargets.minByOrNull { (it.location - ship.location).lengthSquared() } ?: currentTarget
+            else -> primaryBigTargets.minByOrNull { (it.location - ship.location).lengthSquared() } ?: currentTarget
         }
+    }
+
+    fun findClosestTarget(ship: ShipAPI): ShipAPI? {
+        val closestBigTarget: ShipAPI? = allBigTargets.minByOrNull { (it.location - ship.location).lengthSquared() }
+        if (closestBigTarget != null && closeToEnemy(ship, closestBigTarget))
+            return closestBigTarget
+
+        return primaryBigTargets.minByOrNull { (it.location - ship.location).lengthSquared() }
     }
 
     private fun manageAssignments(ship: ShipAPI) {
@@ -209,7 +221,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     }
 
     private fun closeToEnemy(ship: ShipAPI, target: ShipAPI): Boolean {
-        val maxRange = max(Preset.threatEvalRadius, ship.maxFiringRange * 2f)
+        val maxRange = max(max(Preset.threatEvalRadius, ship.maxRange * 2f), target.maxRange)
         return (ship.location - target.location).lengthSquared() <= maxRange * maxRange
     }
 

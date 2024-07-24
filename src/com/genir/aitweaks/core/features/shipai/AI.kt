@@ -11,6 +11,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE_TOGGLE
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
@@ -34,7 +35,7 @@ class AI(val ship: ShipAPI) {
     private var updateInterval: IntervalUtil = IntervalUtil(0.75f, 1.25f)
 
     // Standing orders.
-    var assignment: CombatFleetManagerAPI.AssignmentInfo? = null // TODO handle move order
+    var assignment: CombatFleetManagerAPI.AssignmentInfo? = null
     var assignmentLocation: Vector2f? = null
     var maneuverTarget: ShipAPI? = null
     var attackTarget: ShipAPI? = null
@@ -82,15 +83,26 @@ class AI(val ship: ShipAPI) {
 
     private fun updateManeuverTarget(interval: Boolean) {
         val needsUpdate = when {
-            maneuverTarget == null -> true
+            // Current target is no longer valid.
+            maneuverTarget?.isValidTarget == false -> true
 
-            maneuverTarget?.isValidTarget != true -> true
+            // Don't change target when burn drive is on.
+            movement.burnDrive != null && ship.system.isOn -> false
 
             else -> interval
         }
 
-        if (!needsUpdate) return
+        if (!needsUpdate)
+            return
 
+        // Try cohesion AI first.
+        val cohesionAI = combatState().fleetCohesion?.get(ship.owner)
+        cohesionAI?.findClosestTarget(ship)?.let {
+            maneuverTarget = it
+            return
+        }
+
+        // Fall back to the closest target.
         val targets = Global.getCombatEngine().ships.filter {
             when {
                 it.owner == ship.owner -> false
@@ -104,26 +116,11 @@ class AI(val ship: ShipAPI) {
         }
 
         maneuverTarget = targets.minByOrNull { (it.location - ship.location).lengthSquared() }
-
-        //init {
-        //        maneuverTarget = when {
-        //            noOrders -> oldManeuver?.maneuverTarget
-        //
-        //            // Don't change target when burn drive is on.
-        //            burnDriveAI != null && ship.system.isOn && oldManeuver?.maneuverTarget?.isValidTarget == true -> {
-        //                oldManeuver.maneuverTarget
-        //            }
-        //
-        //            // Custom ship AI uses fleet cohesion directly, instead of through orders.
-        //            else -> {
-        //                combatState().fleetCohesion?.get(ship.owner)?.findValidTarget(ship, vanillaManeuverTarget)
-        //                    ?: vanillaManeuverTarget
-        //            }
-        //        }
-        //    }
     }
 
     private fun updateAssignment(interval: Boolean) {
+        // Update assignment location only when assignment
+        // was changed or when interval has elapsed.
         if (ship.assignment == assignment && !interval) return
 
         assignment = ship.assignment
@@ -134,36 +131,18 @@ class AI(val ship: ShipAPI) {
         val assignment = assignment!!
 
         when (assignment.type) {
-            RECON,
-            AVOID,
-            RETREAT,
-            REPAIR_AND_REFIT,
-            SEARCH_AND_DESTROY -> return
+            RECON, AVOID, RETREAT, REPAIR_AND_REFIT, SEARCH_AND_DESTROY -> return
 
-            DEFEND,
-            RALLY_TASK_FORCE,
-            RALLY_CARRIER,
-            RALLY_CIVILIAN,
-            RALLY_STRIKE_FORCE,
-            RALLY_FIGHTERS,
-            STRIKE,
-            INTERCEPT,
-            HARASS,
-            LIGHT_ESCORT,
-            MEDIUM_ESCORT,
-            HEAVY_ESCORT,
-            CAPTURE,
-            CONTROL,
-            ASSAULT,
-            ENGAGE -> Unit
+            DEFEND, RALLY_TASK_FORCE, RALLY_CARRIER, RALLY_CIVILIAN, RALLY_STRIKE_FORCE -> Unit
+            RALLY_FIGHTERS, STRIKE, INTERCEPT, HARASS, LIGHT_ESCORT, MEDIUM_ESCORT -> Unit
+            HEAVY_ESCORT, CAPTURE, CONTROL, ASSAULT, ENGAGE -> Unit
 
             else -> return
         }
 
         val location = assignment.target?.location ?: return
 
-        if ((ship.location - location).length() > Preset.arrivedAtLocationRadius)
-            assignmentLocation = location
+        if ((ship.location - location).length() > Preset.arrivedAtLocationRadius) assignmentLocation = location
     }
 
     /** Select which enemy ship to attack. This may be different
@@ -263,10 +242,19 @@ class AI(val ship: ShipAPI) {
     }
 
     private fun holdFireIfOverfluxed() {
-        isHoldingFire = ship.fluxTracker.fluxLevel > Preset.holdFireThreshold
+        isHoldingFire = when {
+            // Ships with no shields don't need to preserve flux.
+            ship.shield == null -> false
+
+            // Ship is overfluxed.
+            ship.fluxTracker.fluxLevel > Preset.holdFireThreshold -> true
+
+            else -> false
+        }
 
         if (isHoldingFire) {
-            ship.allWeapons.filter { !it.isPD && it.fluxCostToFire != 0f }.mapNotNull { it.autofirePlugin }.forEach { it.forceOff() }
+            val fluxWeapons = ship.allWeapons.filter { !it.isPD && it.fluxCostToFire != 0f }
+            fluxWeapons.mapNotNull { it.autofirePlugin }.forEach { it.forceOff() }
         }
     }
 
@@ -274,12 +262,32 @@ class AI(val ship: ShipAPI) {
      * not shooting and with shields down. */
     private fun ventIfNeeded() {
         val shouldVent = when {
-            !isBackingOff -> false
+            // Already venting.
             ship.fluxTracker.isVenting -> false
+
+            // No need to vent.
             ship.fluxLevel < 0.01f -> false
+
+            // Don't interrupt the ship system.
+            ship.system?.isOn == true -> false
+
+            // Ship with no shield vents when it can't fire anymore.
+            ship.shield == null -> {
+                val fluxLeft = ship.fluxTracker.maxFlux - ship.fluxTracker.currFlux
+                ship.allWeapons.any { it.fluxCostToFire >= fluxLeft }
+            }
+
+            !isBackingOff -> false
+
+            // Vent regardless of situation when already passively
+            // dissipated below Preset.backoffLowerThreshold
             ship.fluxLevel < Preset.backoffLowerThreshold -> true
+
             idleTime < Preset.shieldDownVentTime -> false
-            ship.allWeapons.firstOrNull { it.autofireAI?.shouldFire() == true } != null -> false
+
+            // Don't vent when any weapon is firing.
+            ship.allWeapons.any { it.autofireAI?.shouldFire() == true } -> false
+
             else -> true
         }
 

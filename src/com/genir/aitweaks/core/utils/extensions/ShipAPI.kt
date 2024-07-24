@@ -57,10 +57,6 @@ val ShipAPI.isAutomated: Boolean
 val ShipAPI.deploymentPoints: Float
     get() = fleetMember?.unmodifiedDeploymentPointsCost ?: 0f
 
-// TODO remove duplicate
-val ShipAPI.maxFiringRange: Float
-    get() = allWeapons.maxOfOrNull { it.range } ?: 0f
-
 /** Angle between ship facing and direction from ship to point p. */
 fun ShipAPI.angleFromFacing(p: Vector2f): Float {
     return MathUtils.getShortestRotation((p - location).getFacing(), facing)

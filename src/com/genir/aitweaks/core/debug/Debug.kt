@@ -12,8 +12,7 @@ import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.RED
-import java.awt.Color.YELLOW
+import java.awt.Color.*
 
 internal fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
@@ -21,6 +20,7 @@ internal fun debug(dt: Float) {
 
 //    custom.forEach {
 //        drawLine(it.ship.location, it.movement.headingPoint ?: it.ship.location, YELLOW)
+//        drawLine(it.ship.location, it.maneuverTarget?.location ?: it.ship.location, BLUE)
 //    }
 }
 
