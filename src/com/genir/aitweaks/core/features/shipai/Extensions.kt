@@ -4,7 +4,6 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.utils.extensions.frontFacing
 import com.genir.aitweaks.core.utils.extensions.isModule
 import com.genir.aitweaks.core.utils.extensions.isPD

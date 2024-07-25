@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.debug
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.features.shipai.EngineController
-import com.genir.aitweaks.core.features.shipai.primaryWeapons
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.customAI

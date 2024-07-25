@@ -21,7 +21,9 @@ import kotlin.math.abs
 import kotlin.math.min
 
 /** Burn Drive AI. It replaces the vanilla implementation in ships with custom AI. */
-class BurnDrive(val ship: ShipAPI, override val ai: AI) : Coordinable {
+class BurnDrive(override val ai: AI) : Coordinable {
+    val ship: ShipAPI = ai.ship
+
     // Used by Movement class to align ship for burn.
     internal var destination: Vector2f = Vector2f()
     internal var shouldBurn = false

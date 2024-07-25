@@ -16,9 +16,10 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.sign
 
-class Movement(private val ship: ShipAPI, override val ai: AI) : Coordinable {
-    private val engineController = EngineController(ship)
-    val burnDrive: BurnDrive? = if (ship.system?.specAPI?.AIType == ShipSystemAiType.BURN_DRIVE_TOGGLE) BurnDrive(ship, ai) else null // TODO move to Movement
+class Movement(override val ai: AI) : Coordinable {
+    private val ship: ShipAPI = ai.ship
+    private val engineController: EngineController = EngineController(ship)
+    val burnDrive: BurnDrive? = if (ship.system?.specAPI?.AIType == ShipSystemAiType.BURN_DRIVE_TOGGLE) BurnDrive(ai) else null // TODO move to Movement
 
     var headingPoint: Vector2f? = null
     var aimPoint: Vector2f? = null
@@ -44,7 +45,6 @@ class Movement(private val ship: ShipAPI, override val ai: AI) : Coordinable {
         val (newAimPoint: Vector2f, velocity: Vector2f) = when {
             // Position ship to start burn.
             burnDrive?.shouldBurn == true -> {
-                // Compiler should require !! on headingPoint. Is this a Kotlin bug?
                 Pair(burnDrive.destination, Vector2f())
             }
 

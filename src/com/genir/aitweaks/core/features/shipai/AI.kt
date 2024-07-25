@@ -27,7 +27,7 @@ import kotlin.math.max
 @Suppress("MemberVisibilityCanBePrivate")
 class AI(val ship: ShipAPI) {
     // Subclasses.
-    val movement: Movement = Movement(ship, this)
+    val movement: Movement = Movement(this)
     private val vanilla: Vanilla = Vanilla(ship, listOf(BURN_DRIVE_TOGGLE))
 
     // Helper classes.
