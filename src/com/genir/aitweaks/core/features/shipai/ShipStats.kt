@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.utils.extensions.isAngleInArc
 import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.sign
 import kotlin.random.Random
 
@@ -22,11 +23,17 @@ class ShipStats(ship: ShipAPI) {
         // one broadside for symmetric broadside ships.
         val angles = weapons.fold(setOf(0f)) { angles, weapon ->
             val facing = MathUtils.getShortestRotation(0f, weapon.arcFacing)
+            val limitedArc = max(0f, weapon.arc - 2f * Preset.broadsideFacingPadding)
 
-            val angle = if (weapon.isAngleInArc(0f)) 0f
-            else facing - facing.sign * (weapon.arc / 2f - 0.1f)
+            angles + when {
+                // Assume hardpoints have no arc at all.
+                weapon.slot.isHardpoint -> facing
 
-            angles + angle
+                // Ship front is within weapon arc.
+                abs(facing) < limitedArc / 2f -> 0f
+
+                else -> facing - facing.sign * (limitedArc / 2f)
+            }
         }.filter { abs(it) <= Preset.maxBroadsideFacing }.shuffled(Random(ship.id.hashCode()))
 
         // Calculate DPS at each weapon arc boundary angle.
@@ -39,6 +46,6 @@ class ShipStats(ship: ShipAPI) {
         // Prefer non-broadside orientation.
         if (bestAngleDPS.value * Preset.broadsideDPSThreshold < angleDPS[0f]!!) return 0f
 
-        return bestAngleDPS.key + bestAngleDPS.key.sign * Preset.broadsideFacingPadding
+        return bestAngleDPS.key
     }
 }

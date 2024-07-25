@@ -27,7 +27,7 @@ val WeaponAPI.reloadTimeRemaining: Float
         // Weapon is permanently out if ammo.
         if (tracker.ammoPerSecond <= 0f) return Float.MAX_VALUE
 
-        val reloadTime = tracker.reloadProgress * tracker.reloadSize / tracker.ammoPerSecond
+        val reloadTime = (1f - tracker.reloadProgress) * tracker.reloadSize / tracker.ammoPerSecond
         return max(reloadTime, cooldownRemaining)
     }
 

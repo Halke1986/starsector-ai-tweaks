@@ -9,15 +9,13 @@ import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.SystemAI
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.extensions.addLength
-import org.lazywizard.lazylib.MathUtils
+import com.genir.aitweaks.core.utils.getShortestRotation
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-import kotlin.math.abs
 
 class SrBurstBoost(private val ai: AI) : SystemAI {
     private val ship: ShipAPI = ai.ship
@@ -25,7 +23,6 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
 
     private var target: ShipAPI? = null
     private var headingPoint: Vector2f = Vector2f()
-    private var angleToHeadingPoint: Float = 0f
     private var shouldBurn: Boolean = false
 
     private var attackRange: Float = 0f
@@ -50,7 +47,7 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     }
 
     override fun overrideFacing(): Pair<Vector2f, Vector2f>? {
-        return overrideHeading()
+        return null
     }
 
     private fun updateHeadingPoint() {
@@ -66,13 +63,11 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
 
         if (target == null) {
             headingPoint = Vector2f()
-            angleToHeadingPoint = 0f
         } else {
             val vectorToTarget = target!!.location - ship.location
             val approachVector = vectorToTarget.addLength(-attackRange)
 
             headingPoint = approachVector + ship.location
-            angleToHeadingPoint = abs(MathUtils.getShortestRotation(vectorToTarget.getFacing(), ship.facing))
         }
     }
 
@@ -97,18 +92,18 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
         val shouldTrigger = when {
             !shouldBurn -> false
 
-            angleToHeadingPoint > 0.1f -> false
+            getShortestRotation(ship.velocity, headingPoint - ship.location) > 0.1f -> false
 
             else -> true
         }
 
         if (shouldTrigger) {
+            ship.blockCommandForOneFrame(ShipCommand.ACCELERATE)
             ship.blockCommandForOneFrame(ShipCommand.STRAFE_RIGHT)
             ship.blockCommandForOneFrame(ShipCommand.STRAFE_LEFT)
             ship.blockCommandForOneFrame(ShipCommand.DECELERATE)
 
             ship.command(ShipCommand.USE_SYSTEM)
-            ship.command(ShipCommand.ACCELERATE)
         }
     }
 }
