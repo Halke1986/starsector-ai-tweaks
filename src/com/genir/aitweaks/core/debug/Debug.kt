@@ -13,7 +13,6 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.RED
-import java.awt.Color.YELLOW
 
 internal fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
@@ -22,9 +21,6 @@ internal fun debug(dt: Float) {
     custom.forEach {
 //        drawLine(it.ship.location, it.movement.headingPoint ?: it.ship.location, YELLOW)
 
-//        it.ship.primaryWeapons.forEachIndexed { idx, w ->
-//            debugPrint[idx] = "${w.id} ${w.customAI?.shouldHoldFire} ${w.range}"
-//        }
 
 //        drawLine(it.ship.location, it.maneuverTarget?.location ?: it.ship.location, BLUE)
     }
