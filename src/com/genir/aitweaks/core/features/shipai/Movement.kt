@@ -19,7 +19,6 @@ import kotlin.math.sign
 class Movement(override val ai: AI) : Coordinable {
     private val ship: ShipAPI = ai.ship
     private val engineController: EngineController = EngineController(ship)
-    val burnDrive: BurnDrive? = if (ship.system?.specAPI?.AIType == ShipSystemAiType.BURN_DRIVE_TOGGLE) BurnDrive(ai) else null // TODO move to Movement
 
     var headingPoint: Vector2f? = null
     var aimPoint: Vector2f? = null
@@ -35,7 +34,6 @@ class Movement(override val ai: AI) : Coordinable {
     private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
 
     fun advance(dt: Float) {
-        burnDrive?.advance(dt)
         setFacing()
         setHeading(dt, ai.maneuverTarget, ai.assignmentLocation)
         manageMobilitySystems()
@@ -43,9 +41,9 @@ class Movement(override val ai: AI) : Coordinable {
 
     private fun setFacing() {
         val (newAimPoint: Vector2f, velocity: Vector2f) = when {
-            // Position ship to start burn.
-            burnDrive?.shouldBurn == true -> {
-                Pair(burnDrive.destination, Vector2f())
+            // Let movement system determine ship facing.
+            ai.systemAI?.overrideFacing() != null -> {
+                ai.systemAI.overrideFacing()!!
             }
 
             // Face the attack target.
@@ -80,9 +78,9 @@ class Movement(override val ai: AI) : Coordinable {
 
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?, moveOrderLocation: Vector2f?) {
         val (newHeadingPoint: Vector2f, velocity: Vector2f) = when {
-            // Position ship to start burn.
-            burnDrive?.shouldBurn == true -> {
-                Pair(burnDrive.destination, Vector2f())
+            // Let movement system determine ship heading.
+            ai.systemAI?.overrideHeading() != null -> {
+                ai.systemAI.overrideHeading()!!
             }
 
             // Move directly to ordered location for player ships.

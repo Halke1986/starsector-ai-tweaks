@@ -33,7 +33,7 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
 
         val ships = Global.getCombatEngine().ships.asSequence()
         val movements = ships.mapNotNull { it.customAI?.movement }
-        val burnDrives = ships.mapNotNull { it.customAI?.movement?.burnDrive }
+        val burnDrives = ships.mapNotNull { it.customAI?.systemAI as? Coordinable }
 
         buildTaskForces(movements).forEach { coordinateUnits(buildFormations(it.value)) }
         buildTaskForces(burnDrives).forEach { coordinateUnits(buildFormations(it.value)) }

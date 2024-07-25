@@ -20,7 +20,7 @@ internal fun debug(dt: Float) {
     val custom = ships.mapNotNull { it.customAI }
 
     custom.forEach {
-        drawLine(it.ship.location, it.movement.headingPoint ?: it.ship.location, YELLOW)
+//        drawLine(it.ship.location, it.movement.headingPoint ?: it.ship.location, YELLOW)
 
 //        it.ship.primaryWeapons.forEachIndexed { idx, w ->
 //            debugPrint[idx] = "${w.id} ${w.customAI?.shouldHoldFire} ${w.range}"

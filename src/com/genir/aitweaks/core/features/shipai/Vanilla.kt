@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.genir.aitweaks.core.features.shipai.adapters.*
+import com.genir.aitweaks.core.features.shipai.adapters.SystemAI
 import com.genir.aitweaks.core.utils.ShipSystemAiType
 import com.genir.aitweaks.core.utils.extensions.AIType
 import org.lazywizard.lazylib.ext.getFacing
@@ -13,14 +14,14 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
 
 /** AI modules carried over from vanilla ship AI. */
-class Vanilla(ship: ShipAPI, systemBlacklist: List<ShipSystemAiType> = listOf()) {
+class Vanilla(ship: ShipAPI, overrideVanillaSystem: Boolean) {
     private val vanillaAI: BasicShipAI = Global.getSettings().createDefaultShipAI(ship, ShipAIConfig()) as BasicShipAI
 
     private val flockingAI: FlockingAI = FlockingAI(vanillaAI)
     private val threatEvalAI: ThreatEvalAI = ThreatEvalAI(vanillaAI)
     private val ventModule: VentModule = VentModule(vanillaAI)
     private val shieldAI: ShieldAI? = ShieldAI.getIfExists(vanillaAI)
-    private val systemAI: SystemAI? = if (systemBlacklisted(ship, systemBlacklist)) null else SystemAI.getIfExists(vanillaAI)
+    private val systemAI: SystemAI? = if (overrideVanillaSystem) null else SystemAI.getIfExists(vanillaAI)
 
     fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Float) {
         vanillaAI.aiFlags.advance(dt)

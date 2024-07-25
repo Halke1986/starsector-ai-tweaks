@@ -12,7 +12,6 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE_TOGGLE
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import com.genir.aitweaks.core.utils.shipSequence
@@ -28,7 +27,8 @@ import kotlin.math.max
 class AI(val ship: ShipAPI) {
     // Subclasses.
     val movement: Movement = Movement(this)
-    private val vanilla: Vanilla = Vanilla(ship, listOf(BURN_DRIVE_TOGGLE))
+    val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
+    private val vanilla: Vanilla = Vanilla(ship, systemAI != null)
 
     // Helper classes.
     private val damageTracker: DamageTracker = DamageTracker(ship)
@@ -75,6 +75,7 @@ class AI(val ship: ShipAPI) {
         ventIfNeeded()
         holdFireIfOverfluxed()
 
+        systemAI?.advance(dt)
         movement.advance(dt)
 
         vanillaFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, stats.minRange)
@@ -86,14 +87,13 @@ class AI(val ship: ShipAPI) {
             // Current target is no longer valid.
             maneuverTarget?.isValidTarget == false -> true
 
-            // Don't change target when burn drive is on.
-            movement.burnDrive != null && ship.system.isOn -> false
+            // Don't change target when movement system is on.
+            systemAI?.holdManeuverTarget() == true -> false
 
             else -> interval
         }
 
-        if (!needsUpdate)
-            return
+        if (!needsUpdate) return
 
         // Try cohesion AI first.
         val cohesionAI = combatState().fleetCohesion?.get(ship.owner)

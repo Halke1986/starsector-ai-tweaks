@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features.shipai
+package com.genir.aitweaks.core.features.shipai.systems
 
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
+import com.genir.aitweaks.core.features.shipai.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.addLength
 import com.genir.aitweaks.core.utils.extensions.resized
@@ -21,32 +22,44 @@ import kotlin.math.abs
 import kotlin.math.min
 
 /** Burn Drive AI. It replaces the vanilla implementation in ships with custom AI. */
-class BurnDrive(override val ai: AI) : Coordinable {
-    val ship: ShipAPI = ai.ship
+class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
+    private val ship: ShipAPI = ai.ship
+    private val system: ShipSystemAPI = ship.system
 
-    // Used by Movement class to align ship for burn.
-    internal var destination: Vector2f = Vector2f()
-    internal var shouldBurn = false
+    private var headingPoint: Vector2f = Vector2f()
+    private var shouldBurn = false
 
     // Used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
     override var reviewedHeadingPoint: Vector2f? = null
 
-    private val system: ShipSystemAPI = ship.system
     private val burnDriveFlatBonus: Float = 200f
 
     private var destinationDist: Float = 0f
     private var destinationFacing: Float = 0f
 
-    // Stats
+    // Stats // TODO should refresh
     private var maxSpeed: Float = Float.MAX_VALUE
     private var maxBurnDist: Float = 0f
 
-    fun advance(dt: Float) {
+    override fun advance(dt: Float) {
         updateMaxBurnDist()
         updateHeadingPoint()
         updateShouldBurn()
-        triggerSystem(dt)
+        triggerSystem()
+    }
+
+    override fun holdManeuverTarget(): Boolean {
+        return ship.system.isOn
+    }
+
+    override fun overrideHeading(): Pair<Vector2f, Vector2f>? {
+        return if (shouldBurn) Pair(headingPoint, Vector2f())
+        else null
+    }
+
+    override fun overrideFacing(): Pair<Vector2f, Vector2f>? {
+        return overrideHeading()
     }
 
     private fun updateMaxBurnDist() {
@@ -85,11 +98,11 @@ class BurnDrive(override val ai: AI) : Coordinable {
         // Calculate burn parameters.
         if (newDestination != null) {
             val toDestination = newDestination - ship.location
-            destination = toDestination + ship.location
+            headingPoint = toDestination + ship.location
             destinationDist = toDestination.length()
             destinationFacing = abs(MathUtils.getShortestRotation(toDestination.getFacing(), ship.facing))
         } else {
-            destination = Vector2f()
+            headingPoint = Vector2f()
             destinationDist = 0f
             destinationFacing = 0f
         }
@@ -101,7 +114,7 @@ class BurnDrive(override val ai: AI) : Coordinable {
 
             !ship.canUseSystemThisFrame() -> false
 
-            destination.isZeroVector() -> false
+            headingPoint.isZeroVector() -> false
 
             ai.isBackingOff -> false
 
@@ -120,7 +133,7 @@ class BurnDrive(override val ai: AI) : Coordinable {
         }
     }
 
-    private fun triggerSystem(dt: Float) {
+    private fun triggerSystem() {
         val shouldTrigger = when {
             // Launch.
             shouldBurn && destinationFacing < 0.1f -> true
@@ -167,7 +180,7 @@ class BurnDrive(override val ai: AI) : Coordinable {
     }
 
     private fun isRouteClear(): Boolean {
-        val toDestination = destination - ship.location
+        val toDestination = headingPoint - ship.location
         val dist = destinationDist.coerceAtMost(maxBurnDist)
         val position = ship.location + toDestination.resized(dist) / 2f
         val obstacles = findObstacles(position, dist / 2f)
