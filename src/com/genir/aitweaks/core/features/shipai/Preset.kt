@@ -31,6 +31,8 @@ class Preset {
         const val broadsideDPSThreshold = 1.33f
         const val broadsideFacingPadding = 10f
         const val maxBroadsideFacing = 80f
+
+        const val weaponMaxReloadTime = 12f
     }
 
     class BurnDrive {

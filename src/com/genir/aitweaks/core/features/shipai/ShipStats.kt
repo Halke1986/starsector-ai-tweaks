@@ -1,9 +1,7 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.extensions.isAngleInArc
-import com.genir.aitweaks.core.utils.extensions.isPD
 import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
 import kotlin.math.sign
@@ -17,15 +15,7 @@ class ShipStats(ship: ShipAPI) {
     val broadsideFacing = calculateBroadsideFacing(ship)
 
     private fun calculateBroadsideFacing(ship: ShipAPI): Float {
-        // Find all important weapons.
-        val weapons = ship.allWeapons.filter { weapon ->
-            when {
-                weapon.type == WeaponAPI.WeaponType.MISSILE -> false
-                weapon.derivedStats.dps == 0f -> false
-                weapon.isPD -> false
-                else -> true
-            }
-        }
+        val weapons = ship.significantWeapons
 
         // Find firing arc boundary closes to ship front for each weapon,
         // or 0f for front facing weapons. Shuffle to randomly chose

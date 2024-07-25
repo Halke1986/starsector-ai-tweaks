@@ -56,8 +56,8 @@ class SelectTarget(
         // Use ship target as a priority. When ship is on escort assignment
         // or flamed out, the priority target needs to be estimated instead.
         val priorityTarget = when {
-            shipTarget == null && weapon.frontFacing && weapon.ship.hasEscortAssignment -> estimateShipTarget(weapon)
-            weapon.frontFacing && weapon.ship.engineController.isFlamedOut -> estimateShipTarget(weapon)
+            shipTarget == null && weapon.isFrontFacing && weapon.ship.hasEscortAssignment -> estimateShipTarget(weapon)
+            weapon.isFrontFacing && weapon.ship.engineController.isFlamedOut -> estimateShipTarget(weapon)
             shipTarget?.isValidTarget == true && shipTarget.owner != weapon.ship.owner -> shipTarget
             else -> null
         }

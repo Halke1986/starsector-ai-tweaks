@@ -22,7 +22,7 @@ val WeaponAPI.conserveAmmo: Boolean
     get() = usesAmmo() || isBurstBeam
 
 val WeaponAPI.hasAmmoToSpare: Boolean
-    get() = !usesAmmo() || ammoTracker.let { it.reloadSize > 0 && (it.ammo + it.reloadSize > it.maxAmmo) }
+    get() = !usesAmmo() || ammoTracker.let { it.ammoPerSecond > 0 && (it.ammo + it.reloadSize > it.maxAmmo) }
 
 val WeaponAPI.hasBestTargetLeading: Boolean
     get() = isPD && !hasAIHint(STRIKE) && ship.mutableStats.dynamic.getValue("pd_best_target_leading", 0f) >= 1f
@@ -34,7 +34,7 @@ fun WeaponAPI.isAngleInArc(angle: Float): Boolean {
     return abs(MathUtils.getShortestRotation(arcFacing, angle)) <= arc / 2f
 }
 
-val WeaponAPI.frontFacing: Boolean
+val WeaponAPI.isFrontFacing: Boolean
     get() {
         val front = ship.customAI?.stats?.broadsideFacing ?: 0f
         return abs(MathUtils.getShortestRotation(arcFacing, front)) <= arc / 2f
