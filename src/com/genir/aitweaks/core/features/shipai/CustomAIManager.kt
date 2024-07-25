@@ -29,8 +29,9 @@ class CustomAIManager {
             ship.isStation -> false
             !ship.isDestroyer && !ship.isCruiser && !ship.isCapital -> false
 
-            // Enemy
+            // Selected ships.
             ship.hullSpec.hullId.startsWith("guardian") -> true
+            ship.hullSpec.hullId.startsWith("sr_melvillei") -> true
 
             // Player
             ship.isAlly -> false
