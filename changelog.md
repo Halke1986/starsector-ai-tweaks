@@ -1,12 +1,15 @@
+Version 1.7.2
+
 - Custom ship AI avoids ship collisions.
 - Custom ship AI avoids blocking line of fire.
 - Removed a lot of class loader jank used in earlier version of custom ship AI.
+- Custom ship AI is enabled for Guardians in bar bounty. 
+- Added improved build for Guardians in bar bounty.
 - Removed option to draw weapon debug lines.
 - Added AI Tweaks devmode setting to LunaLib. Devmode shouldn't be used outside development, as it reduces stability.
 - Added debug option to highlight ships controlled by AI Tweaks custom AI. 
 - Added the possibility to replace the entire logic jar file without reloading the game. This will speed up development, but should have no impact on gameplay. Enabled only in devmode.
 - Added custom variant for low tech star fortress: station3_Bulwark. The variant is not currently used.
-- Added improved build for Guardians in bar bounty.
 
 Version 1.7.2
 
