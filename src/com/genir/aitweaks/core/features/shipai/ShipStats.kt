@@ -44,7 +44,7 @@ class ShipStats(ship: ShipAPI) {
         val bestAngleDPS: Map.Entry<Float, Float> = angleDPS.maxByOrNull { it.value } ?: return 0f
 
         // Prefer non-broadside orientation.
-        if (bestAngleDPS.value * Preset.broadsideDPSThreshold < angleDPS[0f]!!) return 0f
+        if (bestAngleDPS.value < angleDPS[0f]!! * Preset.frontAttackMultiplier) return 0f
 
         return bestAngleDPS.key
     }

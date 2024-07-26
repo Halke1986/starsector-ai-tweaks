@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features.shipai
+package com.genir.aitweaks.core.features.shipai.systems
 
 import org.lwjgl.util.vector.Vector2f
 

@@ -28,7 +28,7 @@ class Preset {
         const val collisionBuffer = 30f
 
         // Broadside
-        const val broadsideDPSThreshold = 1.33f
+        const val frontAttackMultiplier = 1.5f
         const val broadsideFacingPadding = 7f
         const val maxBroadsideFacing = 80f
 

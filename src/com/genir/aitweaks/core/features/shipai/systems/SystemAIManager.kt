@@ -1,7 +1,6 @@
-package com.genir.aitweaks.core.features.shipai
+package com.genir.aitweaks.core.features.shipai.systems
 
-import com.genir.aitweaks.core.features.shipai.systems.BurnDrive
-import com.genir.aitweaks.core.features.shipai.systems.SrBurstBoost
+import com.genir.aitweaks.core.features.shipai.AI
 import com.genir.aitweaks.core.utils.ShipSystemAiType
 import com.genir.aitweaks.core.utils.ShipSystemAiType.BURN_DRIVE_TOGGLE
 import com.genir.aitweaks.core.utils.ShipSystemAiType.MANEUVERING_JETS

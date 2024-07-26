@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.AI
 import com.genir.aitweaks.core.features.shipai.Preset
-import com.genir.aitweaks.core.features.shipai.SystemAI
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.extensions.addLength
 import com.genir.aitweaks.core.utils.getShortestRotation
