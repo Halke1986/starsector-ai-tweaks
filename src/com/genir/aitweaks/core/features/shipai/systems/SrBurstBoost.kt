@@ -16,6 +16,7 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
+import kotlin.math.abs
 
 class SrBurstBoost(private val ai: AI) : SystemAI {
     private val ship: ShipAPI = ai.ship
@@ -92,7 +93,7 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
         val shouldTrigger = when {
             !shouldBurn -> false
 
-            getShortestRotation(ship.velocity, headingPoint - ship.location) > 0.1f -> false
+            abs(getShortestRotation(ship.velocity, headingPoint - ship.location)) > 0.1f -> false
 
             else -> true
         }

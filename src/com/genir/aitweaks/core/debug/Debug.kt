@@ -20,9 +20,7 @@ internal fun debug(dt: Float) {
 
     custom.forEach {
 //        drawLine(it.ship.location, it.movement.headingPoint ?: it.ship.location, YELLOW)
-
-
-//        drawLine(it.ship.location, it.maneuverTarget?.location ?: it.ship.location, BLUE)
+//        drawLine(it.ship.location, it.ship.location + it.ship.velocity * 2f, GREEN)
     }
 }
 
