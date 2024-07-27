@@ -43,10 +43,10 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     private val debugIdx = autofireAICount++
 
-    override fun advance(timeDelta: Float) {
+    override fun advance(dt: Float) {
         if (Global.getCurrentState() == GameState.CAMPAIGN) return
 
-        trackAttackTimes(timeDelta)
+        trackAttackTimes(dt)
 
         val targetDiedLastFrame = when (target) {
             null -> prevFrameTarget != null
@@ -64,7 +64,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         // Select target.
-        selectTargetInterval.advance(timeDelta)
+        selectTargetInterval.advance(dt)
         if (selectTargetInterval.intervalElapsed()) {
             target = SelectTarget(weapon, target, combatState().targetTracker[weapon.ship], currentParams()).target
             shouldFireInterval.forceIntervalElapsed()
@@ -73,7 +73,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         updateAimLocation()
 
         // Calculate if weapon should fire.
-        shouldFireInterval.advance(timeDelta)
+        shouldFireInterval.advance(dt)
         if (shouldFireInterval.intervalElapsed()) {
             shouldHoldFire = calculateShouldFire(selectTargetInterval.elapsed)
         }

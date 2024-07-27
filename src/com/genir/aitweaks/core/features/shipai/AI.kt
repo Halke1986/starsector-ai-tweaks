@@ -12,7 +12,7 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.debug.debugPrint
+import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.utils.extensions.*
@@ -22,6 +22,7 @@ import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.RED
 import kotlin.math.PI
 import kotlin.math.abs
 
@@ -94,6 +95,10 @@ class AI(val ship: ShipAPI) {
 //        stats.broadsides.forEachIndexed { idx, b ->
 //            debugPrint[idx] = "${b.facing}"
 //        }
+
+        //val gun = stats.significantWeapons.firstOrNull { it.slot.isHardpoint } ?: return
+
+
     }
 
     private fun updateManeuverTarget(interval: Boolean) {
@@ -173,9 +178,6 @@ class AI(val ship: ShipAPI) {
 
             // Target is out of range.
             range(currentTarget) > broadside.maxRange -> true
-
-            // Finish helpless target.
-            currentTarget.fluxTracker.isOverloadedOrVenting -> false
 
             else -> interval
         }
@@ -363,9 +365,12 @@ class AI(val ship: ShipAPI) {
         // Assign lower priority to frigates.
         val evalType = if (target.isFrigate && !target.isModule) 1f else 0f
 
+        // Finish helpless target.
+        val evalVent = if (target.fluxTracker.isOverloadedOrVenting) -2f else 0f
+
         // TODO avoid wrecks
 
-        return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType
+        return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType + evalVent
     }
 
     private fun isThreat(target: ShipAPI): Boolean {

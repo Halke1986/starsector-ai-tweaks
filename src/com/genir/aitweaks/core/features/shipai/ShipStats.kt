@@ -34,9 +34,6 @@ class ShipStats(private val ship: ShipAPI) {
                 weapon.isPD -> false
                 weapon.isDisabled -> false
                 weapon.isPermanentlyDisabled -> false
-
-                weapon.maxReloadTime >= Preset.weaponMaxReloadTime -> false // TODO REMOVE
-
                 weapon.derivedStats.dps == 0f -> false
                 weapon.isInLongReload -> false
                 else -> true

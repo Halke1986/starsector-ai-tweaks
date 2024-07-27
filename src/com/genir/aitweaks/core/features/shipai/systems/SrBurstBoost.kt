@@ -4,14 +4,13 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ShipSystemAPI
-import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.AI
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.features.shipai.strafeAcceleration
-import com.genir.aitweaks.core.utils.extensions.addLength
 import com.genir.aitweaks.core.utils.extensions.facing
+import com.genir.aitweaks.core.utils.extensions.isInFiringSequence
 import com.genir.aitweaks.core.utils.times
 import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
@@ -30,31 +29,23 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     private var target: ShipAPI? = null
     private var headingPoint: Vector2f = Vector2f()
     private var shouldBurn: Boolean = false
-    private var trigger: Set<ShipCommand>? = null
+    private var trigger: Boolean = true
 
     private var attackRange: Float = 0f
 
     override fun advance(dt: Float) {
-//        burstVectors().forEach {
-//            drawLine(ship.location, ship.location + unitVector(it.key) * 200f, Color.GREEN)
-//            debugPrint["x"] = it.key
-//        }
+        if (trigger) {
+            ship.command(USE_SYSTEM)
+            trigger = false
+        }
 
-//        if (trigger) {
-////            ship.command(USE_SYSTEM)
-//            trigger = false
-//        }
-
-        debugPrint.clear()
 
         attackRange = ai.broadside.minRange * Preset.BurnDrive.approachToMinRangeFraction
 
         updateHeadingPoint()
         updateShouldBurn()
         updatedSystemTrigger()
-        triggerSystem()
 
-//        drawLine(ship.location, if (headingPoint.isZeroVector()) ship.location else headingPoint, Color.BLUE)
         drawLine(ship.location, target?.location ?: ship.location, Color.BLUE)
     }
 
@@ -74,46 +65,40 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     }
 
     override fun overrideFacing(): Pair<Vector2f, Vector2f>? {
-        if (!shouldBurn) return null
+        when {
+            !shouldBurn -> return null
+
+            // Don't interrupt hardpoint bursts.
+            ai.stats.significantWeapons.any { it.slot.isHardpoint && it.isInFiringSequence } -> return null
+        }
 
         val toTarget = (headingPoint - ship.location).facing - ship.facing
 
         val vectors = burstVectors()
         val bestVector = vectors.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.key, toTarget)) })!!
 
-        vectors.forEach {
-            debugPrint[it.value] = "${abs(MathUtils.getShortestRotation(it.key, toTarget))} ${it.value}"
-        }
-
-        return Pair(unitVector(ship.facing - bestVector.key) * 1000f, Vector2f())
+        val rotation = MathUtils.getShortestRotation(bestVector.key, toTarget)
+        return Pair(ship.location + unitVector(ship.facing + rotation) * 1000f, Vector2f())
     }
 
     private fun updateHeadingPoint() {
         target = ai.attackTarget
-//        target = when {
-//            ai.maneuverTarget == null -> null
-//
-//            ai.attackTarget == null -> null
-//
-//            ai.maneuverTarget != ai.attackTarget -> null
-//
-//            else -> ai.maneuverTarget
-//        }
 
         if (target == null) {
             headingPoint = Vector2f()
         } else {
-            val vectorToTarget = target!!.location - ship.location
-            val approachVector = vectorToTarget.addLength(-attackRange)
-
-            headingPoint = approachVector + ship.location
+//            val vectorToTarget = target!!.location - ship.location
+//            val approachVector = vectorToTarget.addLength(-attackRange)
+//
+//            headingPoint = approachVector + ship.location
+            headingPoint = target!!.location
         }
     }
 
     private fun updateShouldBurn() {
         shouldBurn = when {
-            // System is already scheduled to trigger. // TODO expire
-            trigger != null -> false
+            // System is already scheduled to trigger.
+            trigger -> false
 
             system.state != ShipSystemAPI.SystemState.IDLE -> false
 
@@ -122,9 +107,6 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
             target == null -> false
 
             headingPoint.isZeroVector() -> false
-
-            // Already close to target.
-            (target!!.location - ship.location).length() < attackRange -> false
 
             else -> true
         }
@@ -142,21 +124,18 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
         val bestVector = vectors.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.key, toTarget)) })!!
 
 //        vectors.forEach {
-//            debugPrint[it.value] = "${abs(MathUtils.getShortestRotation(it.key, toTarget))} ${it.value}"
+//            debugPrint[it.value] = "${MathUtils.getShortestRotation(it.key, toTarget)} ${it.value}"
 //        }
 
         if (abs(MathUtils.getShortestRotation(bestVector.key, toTarget)) > 2f) return
 
-        trigger = bestVector.value
+        val commands: Set<ShipCommand> = bestVector.value
+        val blockedCommands = setOf(ACCELERATE, ACCELERATE_BACKWARDS, STRAFE_RIGHT, STRAFE_LEFT, DECELERATE) - commands
 
-//        val commands: Set<ShipCommand> = bestVector.value
-//        val blockedCommands = setOf(ACCELERATE, DECELERATE, STRAFE_RIGHT, STRAFE_LEFT) - commands
+        commands.forEach { ship.command(it) }
+        blockedCommands.forEach { ship.blockCommandForOneFrame(it) }
 
-//        commands.forEach { ship.command(it) }
-//        blockedCommands.forEach { ship.blockCommandForOneFrame(it) }
-//
-//        trigger = true
-//        ship.command(USE_SYSTEM)
+        trigger = true
     }
 
     private fun burstVectors(): Map<Float, Set<ShipCommand>> {
@@ -176,29 +155,5 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
             (d + l).facing to setOf(ACCELERATE_BACKWARDS, STRAFE_LEFT),
             (d + r).facing to setOf(ACCELERATE_BACKWARDS, STRAFE_RIGHT),
         )
-    }
-
-    private fun triggerSystem() {
-        if (trigger == null) return
-
-        val commands = trigger!!
-        val blockedCommands = setOf(ACCELERATE, ACCELERATE_BACKWARDS, STRAFE_RIGHT, STRAFE_LEFT) - commands
-
-        commands.forEach { ship.command(it) }
-        blockedCommands.forEach { ship.blockCommandForOneFrame(it) }
-
-        val shouldUse = when {
-            ship.engineController.isAccelerating != commands.contains(ACCELERATE) -> false
-            ship.engineController.isAcceleratingBackwards != commands.contains(ACCELERATE_BACKWARDS) -> false
-            ship.engineController.isStrafingLeft != commands.contains(STRAFE_LEFT) -> false
-            ship.engineController.isStrafingRight != commands.contains(STRAFE_RIGHT) -> false
-
-            else -> true
-        }
-
-        if (shouldUse) {
-            trigger = null
-            ship.command(USE_SYSTEM)
-        }
     }
 }
