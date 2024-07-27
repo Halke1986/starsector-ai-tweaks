@@ -8,13 +8,12 @@ import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sign
-import kotlin.random.Random
 
 class ShipStats(private val ship: ShipAPI) {
     val significantWeapons: List<WeaponAPI> = findSignificantWeapons()
     val threatSearchRange: Float = calculateThreatSearchRange()
     val totalCollisionRadius: Float = ship.totalCollisionRadius
-    val broadsides: List<Broadside> = calculateBroadsides(ship)
+    val broadsides: List<Broadside> = calculateBroadsides()
 
     private fun calculateThreatSearchRange(): Float {
         val rangeEnvelope = 500f
@@ -41,9 +40,11 @@ class ShipStats(private val ship: ShipAPI) {
     }
 
     /** A ship can have multiple broadside configurations, not necessarily symmetrical. */
-    private fun calculateBroadsides(ship: ShipAPI): List<Broadside> {
+    private fun calculateBroadsides(): List<Broadside> {
         // Special case for built-in front facing hardpoints, which are used for spinal mounted rail guns etc.
-        if (significantWeapons.any { it.slot.isHardpoint && it.slot.isBuiltIn && it.arcFacing == 0f }) return broadsides(0f)
+        if (significantWeapons.any { it.slot.isHardpoint && it.slot.isBuiltIn && it.arcFacing == 0f }) {
+            return listOf(Broadside(significantWeapons, 0f))
+        }
 
         // Find firing arc boundary closes to ship front for
         // each weapon, or 0f for front facing weapons.
@@ -63,34 +64,19 @@ class ShipStats(private val ship: ShipAPI) {
             }
         }.toSet() + 0f
 
-        // Calculate DPS for each attack angle.
-        val angleDPS: Map<Float, Float> = attackAngles.associateWith { angle ->
-            significantWeapons.filter { it.isAngleInArc(angle) }.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
+        data class AngleDPS(val angle: Float, val dps: Float)
+
+        // Calculate DPS for each attack angle. Give bonus to frontal attack orientation.
+        val anglesDPS: List<AngleDPS> = attackAngles.map { angle ->
+            val dps = significantWeapons.filter { it.isAngleInArc(angle) }.sumOf { it.derivedStats.dps.toDouble() }
+            val adjustedDps = if (angle == 0f) dps * Preset.frontAttackMultiplier else dps
+
+            AngleDPS(angle, adjustedDps.toFloat())
         }
 
-        data class AttackAngle(val angle: Float, val dps: Float)
-
-        val frontDPS: Float = angleDPS[0f]!!
-        val sortedAttackAngles: List<AttackAngle> = angleDPS.toList().map { AttackAngle(it.first, it.second) }.sortedBy { -it.dps }
-        val bestAttackAngle: AttackAngle = sortedAttackAngles[0]
-
-        return when {
-            // Only front broadside is always present.
-            sortedAttackAngles.size == 1 -> broadsides(0f)
-
-            // Prefer non-broadside orientation.
-            bestAttackAngle.dps < frontDPS * Preset.frontAttackMultiplier -> broadsides(0f)
-
-            // Two similar DPS broadsides are present.
-            bestAttackAngle.dps * 0.92f <= sortedAttackAngles[1].dps -> {
-                broadsides(bestAttackAngle.angle, sortedAttackAngles[1].angle).shuffled(Random(ship.id.hashCode()))
-            }
-
-            else -> broadsides(bestAttackAngle.angle)
-        }
-    }
-
-    private fun broadsides(vararg angles: Float): List<Broadside> {
-        return angles.map { Broadside(significantWeapons, it) }
+        // Find all broadside configurations with acceptable DPS.
+        val bestBroadside: AngleDPS = anglesDPS.maxWithOrNull(compareBy { it.dps })!!
+        val validBroadsides = anglesDPS.filter { it.dps >= bestBroadside.dps * Preset.validBroadsideDPSThreshold }
+        return validBroadsides.map { Broadside(significantWeapons, it.angle) }
     }
 }

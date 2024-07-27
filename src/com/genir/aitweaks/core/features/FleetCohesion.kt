@@ -240,7 +240,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         get() = this.isFighter || (this.isFrigate && !this.isModule)
 
     private val ShipAPI.isBig: Boolean
-        get() = this.isCruiser || this.isCapital
+        get() = this.isDestroyer || this.isCruiser || this.isCapital
 
     private val ShipAPI.maxRange: Float
         get() = allWeapons.maxOfOrNull { it.slotRange } ?: 0f

@@ -12,7 +12,6 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.utils.extensions.*
@@ -89,12 +88,7 @@ class AI(val ship: ShipAPI) {
 
     private fun debug() {
 //        drawLine(ship.location, movement.headingPoint ?: ship.location, Color.YELLOW)
-//        ship.significantWeapons.forEachIndexed { idx, w ->
-//            debugPrint[idx] = "${w.id} ${w.slotRange}"
-//        }
-//        stats.broadsides.forEachIndexed { idx, b ->
-//            debugPrint[idx] = "${b.facing} ${b.maxRange}"
-//        }
+//        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
     }
 
     private fun updateManeuverTarget(interval: Boolean) {

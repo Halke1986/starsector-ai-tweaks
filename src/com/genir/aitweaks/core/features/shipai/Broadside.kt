@@ -1,13 +1,13 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.WeaponAPI
-import org.lazywizard.lazylib.MathUtils
-import kotlin.math.abs
+import com.genir.aitweaks.core.utils.extensions.isAngleInArc
 
+/** Attack characteristics of an individual broadside configuration. */
 class Broadside(significantWeapons: List<WeaponAPI>, val facing: Float) {
-    private val weapons = significantWeapons.filter { abs(MathUtils.getShortestRotation(it.arcFacing, facing)) <= it.arc / 2f }
+    private val weapons = significantWeapons.filter { it.isAngleInArc(facing) }
 
-    val effectiveRange: Float = effectiveRange()
+    val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)
     val minRange: Float = weapons.minOfOrNull { it.slotRange } ?: 0f
     val maxRange: Float = weapons.maxOfOrNull { it.slotRange } ?: 0f
 
@@ -27,7 +27,7 @@ class Broadside(significantWeapons: List<WeaponAPI>, val facing: Float) {
 
     /** Range at which the ship can deliver at least
      * `dpsFraction` of its primary weapons DPS. */
-    private fun effectiveRange(): Float {
+    private fun effectiveRange(effectiveDpsThreshold: Float): Float {
         val dps = weapons.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
 
         if (dps == 0f) return 0f
@@ -35,7 +35,7 @@ class Broadside(significantWeapons: List<WeaponAPI>, val facing: Float) {
         var dpsInRange = dps
         weapons.sortedWith(compareBy { it.slotRange }).forEach { weapon ->
             dpsInRange -= weapon.derivedStats.dps
-            if (dpsInRange / dps <= Preset.effectiveDpsThreshold) {
+            if (dpsInRange / dps <= effectiveDpsThreshold) {
                 return weapon.slotRange
             }
         }
