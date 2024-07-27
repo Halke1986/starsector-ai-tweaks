@@ -55,7 +55,7 @@ class Movement(override val ai: AI) : Coordinable {
                 val aimOffsetThisFrame = getShortestRotation(target.location, ship.location, aimPointThisFrame)
                 val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
 
-                Pair(target.location.rotatedAroundPivot(Rotation(aimOffset - ai.stats.broadsideFacing), ship.location), target.velocity)
+                Pair(target.location.rotatedAroundPivot(Rotation(aimOffset - ai.broadside.facing), ship.location), target.velocity)
             }
 
             // Face threat direction when no target.
@@ -105,12 +105,12 @@ class Movement(override val ai: AI) : Coordinable {
                 val vectorToThreat = if (!ai.threatVector.isZeroVector()) ai.threatVector else vectorToTarget
 
                 // Strafe the target randomly, when it's the only threat.
-                val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.stats.effectiveRange
+                val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.broadside.effectiveRange
                 val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
                 else vectorToThreat
 
                 // Let the attack coordinator review the calculated heading point.
-                proposedHeadingPoint = maneuverTarget.location - attackPositionOffset.resized(ai.stats.minRange)
+                proposedHeadingPoint = maneuverTarget.location - attackPositionOffset.resized(ai.broadside.minRange)
                 val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
                 reviewedHeadingPoint = null
 
@@ -148,7 +148,7 @@ class Movement(override val ai: AI) : Coordinable {
             ShipSystemAiType.BURN_DRIVE -> {
                 // Prevent vanilla AI from jumping closer to target with
                 // BURN_DRIVE, if the target is already within weapons range.
-                if (ai.attackTarget != null && ai.range(ai.attackTarget!!) < ai.stats.effectiveRange) {
+                if (ai.attackTarget != null && ai.range(ai.attackTarget!!) < ai.broadside.effectiveRange) {
                     ship.blockCommandForOneFrame(USE_SYSTEM)
                 }
 
@@ -243,7 +243,7 @@ class Movement(override val ai: AI) : Coordinable {
                 angleToVelocity.sign != angleToOtherLine.sign -> return@forEach
 
                 // Do not consider line of fire blocking if target is out of range, with 1.2 tolerance factor.
-                blocked.range(target) > blocked.stats.maxRange * 1.2f -> return@forEach
+                blocked.range(target) > blocked.broadside.maxRange * 1.2f -> return@forEach
             }
 
             val arcLength = distToTarget * abs(angleToOtherLine) * DEGREES_TO_RADIANS

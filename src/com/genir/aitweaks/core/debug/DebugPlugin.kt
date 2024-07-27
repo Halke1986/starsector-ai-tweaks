@@ -17,6 +17,8 @@ class Print {
     operator fun set(index: Any, value: Any?) {
         debugPlugin?.set(index, value)
     }
+
+    fun clear() = debugPlugin?.clear()
 }
 
 private var debugPlugin: DebugPlugin? = null

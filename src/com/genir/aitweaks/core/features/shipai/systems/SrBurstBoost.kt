@@ -28,7 +28,7 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     private var attackRange: Float = 0f
 
     override fun advance(dt: Float) {
-        attackRange = ai.stats.minRange * Preset.BurnDrive.approachToMinRangeFraction
+        attackRange = ai.broadside.minRange * Preset.BurnDrive.approachToMinRangeFraction
 
         updateHeadingPoint()
         updateShouldBurn()

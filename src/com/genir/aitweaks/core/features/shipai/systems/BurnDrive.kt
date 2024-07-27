@@ -85,7 +85,7 @@ class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
             // Charge straight at the maneuver target, disregard fleet coordination.
             ai.maneuverTarget != null -> {
                 val vectorToTarget = ai.maneuverTarget!!.location - ship.location
-                val approachVector = vectorToTarget.addLength(-ai.stats.minRange * Preset.BurnDrive.approachToMinRangeFraction)
+                val approachVector = vectorToTarget.addLength(-ai.broadside.minRange * Preset.BurnDrive.approachToMinRangeFraction)
 
                 // Let the attack coordinator review the calculated heading point.
                 proposedHeadingPoint = approachVector + ship.location
