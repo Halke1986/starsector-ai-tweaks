@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.features.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.extensions.isAngleInArc
+import com.genir.aitweaks.core.utils.extensions.isInFiringSequence
 import com.genir.aitweaks.core.utils.extensions.isPD
 import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
@@ -31,13 +32,20 @@ class ShipStats(private val ship: ShipAPI) {
                 weapon.slot.isStationModule -> false
                 weapon.type == WeaponAPI.WeaponType.MISSILE -> false
                 weapon.isPD -> false
+                weapon.isDisabled -> false
                 weapon.isPermanentlyDisabled -> false
+
+                weapon.maxReloadTime >= Preset.weaponMaxReloadTime -> false // TODO REMOVE
+
                 weapon.derivedStats.dps == 0f -> false
-                weapon.maxReloadTime >= Preset.weaponMaxReloadTime && weapon.reloadTimeRemaining >= 2f -> false
+                weapon.isInLongReload -> false
                 else -> true
             }
         }
     }
+
+    private val WeaponAPI.isInLongReload: Boolean
+        get() = maxReloadTime >= Preset.weaponMaxReloadTime && reloadTimeRemaining >= 2f && !isInFiringSequence
 
     /** A ship can have multiple broadside configurations, not necessarily symmetrical. */
     private fun calculateBroadsides(): List<Broadside> {
@@ -48,19 +56,22 @@ class ShipStats(private val ship: ShipAPI) {
 
         // Find firing arc boundary closes to ship front for
         // each weapon, or 0f for front facing weapons.
-        val attackAngles: Set<Float> = significantWeapons.map { weapon ->
+        val attackAngles: Set<Float> = significantWeapons.flatMap { weapon ->
             val facing = MathUtils.getShortestRotation(0f, weapon.arcFacing)
             val limitedArc = max(0f, weapon.arc - 2f * Preset.broadsideFacingPadding)
 
             when {
                 // Assume hardpoints have no arc at all.
-                weapon.slot.isHardpoint -> facing
+                weapon.slot.isHardpoint -> listOf(facing)
 
                 // Ship front is within weapon arc.
-                abs(facing) < limitedArc / 2f -> 0f
+                abs(facing) < limitedArc / 2f -> listOf(0f)
+
+                // Ship back is within weapon arc, return both angles.
+                180f - abs(facing) < limitedArc / 2f -> listOf(facing - limitedArc / 2f, facing + limitedArc / 2f)
 
                 // Return weapon arc boundary closer to ship front.
-                else -> facing - facing.sign * (limitedArc / 2f)
+                else -> listOf(facing - facing.sign * (limitedArc / 2f))
             }
         }.toSet() + 0f
 

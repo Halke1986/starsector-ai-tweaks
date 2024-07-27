@@ -12,6 +12,7 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.utils.extensions.*
@@ -89,6 +90,10 @@ class AI(val ship: ShipAPI) {
     private fun debug() {
 //        drawLine(ship.location, movement.headingPoint ?: ship.location, Color.YELLOW)
 //        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
+
+//        stats.broadsides.forEachIndexed { idx, b ->
+//            debugPrint[idx] = "${b.facing}"
+//        }
     }
 
     private fun updateManeuverTarget(interval: Boolean) {
@@ -317,12 +322,6 @@ class AI(val ship: ShipAPI) {
                 else best
             }.first
         }.filterValues { it != null }.mapValues { it.value!! }
-
-//        debugPrint.clear()
-//
-//        broadsideTargets.forEach {
-//            debugPrint[it.key] = "${it.value.name} ${evaluateTarget(it.value, it.key)}"
-//        }
 
         val bestTarget = broadsideTargets.minOfWithOrNull(compareBy { evaluateTarget(it.value, it.key) }) { it }
         if (bestTarget != null) return bestTarget.toPair()

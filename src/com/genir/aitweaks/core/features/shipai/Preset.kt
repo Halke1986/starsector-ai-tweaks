@@ -29,7 +29,7 @@ class Preset {
 
         // Broadside
         const val frontAttackMultiplier = 1.5f
-        const val broadsideFacingPadding = 7f
+        const val broadsideFacingPadding = 10f
         const val maxBroadsideFacing = 80f
         const val validBroadsideDPSThreshold = 0.9f
 

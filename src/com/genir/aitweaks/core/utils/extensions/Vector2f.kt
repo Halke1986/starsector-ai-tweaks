@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.utils.extensions
 
 import com.genir.aitweaks.core.utils.Rotation
 import org.lazywizard.lazylib.VectorUtils
+import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -24,3 +25,6 @@ fun Vector2f.addLength(toAdd: Float): Vector2f {
     val s = (l + toAdd) / l
     return Vector2f(x * s, y * s)
 }
+
+val Vector2f.facing: Float
+    get() = getFacing()
