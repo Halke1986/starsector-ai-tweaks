@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.genir.aitweaks.core.features.shipai.adapters.*
-import com.genir.aitweaks.core.features.shipai.adapters.SystemAI
 import com.genir.aitweaks.core.utils.ShipSystemAiType
 import com.genir.aitweaks.core.utils.extensions.AIType
 import org.lazywizard.lazylib.ext.getFacing
@@ -22,6 +21,7 @@ class Vanilla(ship: ShipAPI, overrideVanillaSystem: Boolean) {
     private val ventModule: VentModule = VentModule(vanillaAI)
     private val shieldAI: ShieldAI? = ShieldAI.getIfExists(vanillaAI)
     private val systemAI: SystemAI? = if (overrideVanillaSystem) null else SystemAI.getIfExists(vanillaAI)
+    private val fighterPullbackModule: FighterPullbackModule? = FighterPullbackModule.getIfExists(vanillaAI)
 
     fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Float) {
         vanillaAI.aiFlags.advance(dt)
@@ -37,6 +37,7 @@ class Vanilla(ship: ShipAPI, overrideVanillaSystem: Boolean) {
         val collisionDangerDir: Vector2f? = null
 
         ventModule.advance(dt, attackTarget)
+        fighterPullbackModule?.advance(dt, attackTarget)
         shieldAI?.advance(dt, threatEvalAI, missileDangerDir, collisionDangerDir, attackTarget)
         systemAI?.advance(dt, missileDangerDir, collisionDangerDir, attackTarget)
     }
