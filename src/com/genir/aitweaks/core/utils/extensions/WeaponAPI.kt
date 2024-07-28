@@ -4,8 +4,6 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.features.autofire.AutofireAI
-import com.genir.aitweaks.core.utils.attack.FiringCycle
-import com.genir.aitweaks.core.utils.attack.firingCycle
 import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
 
@@ -44,9 +42,6 @@ val WeaponAPI.absoluteArcFacing: Float
 val WeaponAPI.totalRange: Float
     get() = range + projectileFadeRange * 0.5f
 
-val WeaponAPI.firingCycle: FiringCycle
-    get() = firingCycle(this)
-
 val WeaponAPI.timeToAttack: Float
     get() {
         val spec = spec as? ProjectileWeaponSpecAPI ?: return 0f
@@ -80,10 +75,14 @@ val WeaponAPI.isBurstWeapon: Boolean
 val WeaponAPI.isInFiringSequence: Boolean
     get() = when {
         isBeam && !isBurstBeam -> false
-        chargeLevel > 0f && chargeLevel < 1f && cooldownRemaining == 0f -> true // warmup
+        isInWarmup -> true // warmup
         chargeLevel == 1f && isBurstWeapon -> true // burst
         else -> false
     }
+
+/** Warmup is the first phase of weapon firing sequence, preceding the first shot. */
+val WeaponAPI.isInWarmup: Boolean
+    get() = chargeLevel > 0f && chargeLevel < 1f && cooldownRemaining == 0f
 
 val WeaponAPI.group: WeaponGroupAPI
     get() = this.ship.getWeaponGroupFor(this)

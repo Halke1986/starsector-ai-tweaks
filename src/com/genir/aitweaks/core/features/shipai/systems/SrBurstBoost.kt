@@ -11,6 +11,7 @@ import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.features.shipai.strafeAcceleration
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.isInFiringSequence
+import com.genir.aitweaks.core.utils.extensions.isInWarmup
 import com.genir.aitweaks.core.utils.times
 import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
@@ -105,7 +106,12 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     }
 
     private fun updatedSystemTrigger() {
-        if (!shouldBurn) return
+        when {
+            !shouldBurn -> return
+
+            // Don't interrupt hardpoint warmup. It's possible to burn when weapon is already in burst.
+            ai.stats.significantWeapons.any { it.slot.isHardpoint && it.isInWarmup } -> return
+        }
 
         // Find all possible burn vectors.
         val vectors = burstVectors().toMutableMap()

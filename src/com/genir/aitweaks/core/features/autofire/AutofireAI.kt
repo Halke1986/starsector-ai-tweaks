@@ -34,7 +34,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var selectTargetInterval = IntervalUtil(0.25F, 0.50F)
     private var shouldFireInterval = IntervalUtil(0.1F, 0.2F)
 
-    private var aimLocation: Vector2f? = null
+    private var aimPoint: Vector2f? = null
 
     // Fields accessed by custom ship AI
     var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons
@@ -91,7 +91,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         isForcedOff = true
     }
 
-    override fun getTarget(): Vector2f? = aimLocation
+    override fun getTarget(): Vector2f? = aimPoint
     override fun getTargetShip(): ShipAPI? = target as? ShipAPI
     override fun getWeapon(): WeaponAPI = weapon
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
@@ -109,7 +109,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         this.predictedHit = null
 
         if (target == null) return NO_TARGET
-        if (aimLocation == null) return NO_HIT_EXPECTED
+        if (aimPoint == null) return NO_HIT_EXPECTED
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
@@ -122,9 +122,11 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         // Hold fire for a period of time after initially acquiring
         // the target to increase first volley accuracy. PD weapons
-        // should fire with no delay.
+        // should fire with no delay. Use intercept point instead
+        // aim point for hardpoints, to not get false accuracy because
+        // of predictive aiming.
         if (!weapon.isPD && onTargetTime < min(2f, weapon.firingCycle.duration)) {
-            val angleToTarget = VectorUtils.getFacing(aimLocation!! - weapon.location)
+            val angleToTarget = VectorUtils.getFacing(intercept!! - weapon.location)
             val inaccuracy = abs(MathUtils.getShortestRotation(weapon.currAngle, angleToTarget))
             if (inaccuracy > 1f) return STABILIZE_ON_TARGET
         }
@@ -151,12 +153,12 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     private fun updateAimLocation() {
         intercept = null
-        aimLocation = null
+        aimPoint = null
 
         if (target == null) return
 
         intercept = intercept(weapon, AttackTarget(target!!), currentParams()) ?: return
-        aimLocation = if (weapon.slot.isTurret) intercept
+        aimPoint = if (weapon.slot.isTurret) intercept
         else aimHardpoint(intercept!!)
     }
 
@@ -188,8 +190,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // original intercept location to not overcompensate.
         if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing))) return intercept
 
-        val aimPoint: Vector2f = ship.customAI?.movement?.aimPoint ?: target!!.location
-        val tgtLocation = aimPoint - ship.location
+        val shipAimPoint: Vector2f = ship.customAI?.movement?.aimPoint ?: target!!.location
+        val tgtLocation = shipAimPoint - ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
         val angleToTarget = MathUtils.getShortestRotation(tgtFacing, ship.facing)
 

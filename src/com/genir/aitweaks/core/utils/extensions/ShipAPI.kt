@@ -83,3 +83,6 @@ val ShipAPI.hasCustomAI: Boolean
 
 val ShipAPI.customAI: AI?
     get() = ((ai as? Ship.ShipAIWrapper)?.ai as? AIPlugin)?.ai
+
+val ShipAPI.fluxLeft: Float
+    get() = fluxTracker.maxFlux - fluxTracker.currFlux

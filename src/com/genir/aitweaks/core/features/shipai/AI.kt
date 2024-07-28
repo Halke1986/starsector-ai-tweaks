@@ -12,7 +12,7 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.debug.drawLine
+import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.utils.extensions.*
@@ -22,7 +22,6 @@ import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.RED
 import kotlin.math.PI
 import kotlin.math.abs
 
@@ -92,13 +91,20 @@ class AI(val ship: ShipAPI) {
 //        drawLine(ship.location, movement.headingPoint ?: ship.location, Color.YELLOW)
 //        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
 
+//        debugPrint.clear()
 //        stats.broadsides.forEachIndexed { idx, b ->
-//            debugPrint[idx] = "${b.facing}"
+//            debugPrint[idx] = b.facing
+//        }
+//
+//        stats.significantWeapons.firstOrNull { it.slot.isHardpoint }?.let {
+//            debugPrint[it] = it.isInFiringSequence
+//        }
+
+//        stats.significantWeapons.forEachIndexed { idx, w ->
+//            debugPrint[idx] = "${w.firingCycle.flux} ${w.getFluxCostToFire()}"
 //        }
 
         //val gun = stats.significantWeapons.firstOrNull { it.slot.isHardpoint } ?: return
-
-
     }
 
     private fun updateManeuverTarget(interval: Boolean) {
@@ -184,8 +190,6 @@ class AI(val ship: ShipAPI) {
 
         if (updateTarget) {
             val (broadside, target) = findNewAttackTarget()
-//            if (currentTarget == target)
-//                return
 
             ship.shipTarget = target
             attackTarget = target
@@ -290,10 +294,7 @@ class AI(val ship: ShipAPI) {
             ship.system?.isOn == true -> false
 
             // Ship with no shield vents when it can't fire anymore.
-            ship.shield == null -> {
-                val fluxLeft = ship.fluxTracker.maxFlux - ship.fluxTracker.currFlux
-                ship.allWeapons.any { it.fluxCostToFire >= fluxLeft }
-            }
+            ship.shield == null -> ship.allWeapons.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft }
 
             !isBackingOff -> false
 
