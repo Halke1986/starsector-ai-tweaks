@@ -1,11 +1,15 @@
 package com.genir.aitweaks.core.utils.extensions
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
+import com.fs.starfarer.api.combat.CombatFleetManagerAPI
+import com.fs.starfarer.api.combat.CombatTaskManagerAPI
+import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
+import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.AI
 import com.genir.aitweaks.core.features.shipai.AIPlugin
 import org.lazywizard.lazylib.MathUtils
@@ -35,20 +39,20 @@ val ShipAPI.hasEscortAssignment: Boolean
 val ShipAPI.deployedFleetMember: DeployedFleetMemberAPI?
     get() = Global.getCombatEngine().getFleetManager(owner).getDeployedFleetMember(this)
 
-val ShipAPI.maneuverTarget: ShipAPI?
-    get() = aiFlags.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET) as? ShipAPI
-
+/** Get target which the ship is currently attacking. */
 val ShipAPI.attackTarget: ShipAPI?
-    get() {
-        if (isModule) return rootModule.attackTarget
+    get() = when {
+        // Modules follow their parent target.
+        isModule -> rootModule.attackTarget
 
-        val engine = Global.getCombatEngine()
-        val manualControl = this == engine.playerShip && engine.isUIAutopilotOn
-        if (manualControl) return shipTarget
+        // Custom AI reliably sets shipTarget value.
+        customAI != null -> shipTarget
 
-        customAI?.attackTarget?.let { return it }
+        // For manually controlled ship, return R-selected target.
+        this == Global.getCombatEngine().playerShip && Global.getCombatEngine().isUIAutopilotOn -> shipTarget
 
-        return maneuverTarget
+        // Fall back to using vanilla AI maneuver target.
+        else -> combatState().maneuverTargetTracker[this]
     }
 
 val ShipAPI.isAutomated: Boolean

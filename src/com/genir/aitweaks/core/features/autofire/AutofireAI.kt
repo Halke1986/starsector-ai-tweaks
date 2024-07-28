@@ -4,7 +4,6 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.autofire.HoldFire.*
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.attack.*
@@ -22,19 +21,20 @@ import kotlin.math.min
 private var autofireAICount = 0
 
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
+    private val ship: ShipAPI = weapon.ship
+
     private var target: CombatEntityAPI? = null
     private var prevFrameTarget: CombatEntityAPI? = null
 
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
     private var onTargetTime: Float = 0f
+    private var isForcedOff = false
 
     private var selectTargetInterval = IntervalUtil(0.25F, 0.50F)
     private var shouldFireInterval = IntervalUtil(0.1F, 0.2F)
 
     private var aimLocation: Vector2f? = null
-
-    private var isForcedOff = false
 
     // Fields accessed by custom ship AI
     var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons
@@ -66,7 +66,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Select target.
         selectTargetInterval.advance(dt)
         if (selectTargetInterval.intervalElapsed()) {
-            target = SelectTarget(weapon, target, combatState().targetTracker[weapon.ship], currentParams()).target
+            target = SelectTarget(weapon, target, ship.attackTarget, currentParams()).target
             shouldFireInterval.forceIntervalElapsed()
         }
 
@@ -177,7 +177,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private fun getAccuracy(): Float {
         if (weapon.hasBestTargetLeading || Global.getCurrentState() == GameState.TITLE) return 1f
 
-        val accBase = weapon.ship.aimAccuracy
+        val accBase = ship.aimAccuracy
         val accBonus = weapon.spec.autofireAccBonus
         return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
     }
@@ -188,12 +188,12 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // original intercept location to not overcompensate.
         if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing))) return intercept
 
-        val aimPoint: Vector2f = weapon.ship.customAI?.movement?.aimPoint ?: target!!.location
-        val tgtLocation = aimPoint - weapon.ship.location
+        val aimPoint: Vector2f = ship.customAI?.movement?.aimPoint ?: target!!.location
+        val tgtLocation = aimPoint - ship.location
         val tgtFacing = VectorUtils.getFacing(tgtLocation)
-        val angleToTarget = MathUtils.getShortestRotation(tgtFacing, weapon.ship.facing)
+        val angleToTarget = MathUtils.getShortestRotation(tgtFacing, ship.facing)
 
         // Aim the hardpoint as if the ship was facing the target directly.
-        return rotateAroundPivot(intercept, weapon.ship.location, angleToTarget)
+        return rotateAroundPivot(intercept, ship.location, angleToTarget)
     }
 }

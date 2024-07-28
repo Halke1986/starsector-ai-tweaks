@@ -53,6 +53,8 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
         return ship.system.isOn
     }
 
+    //TODO autofire flameout
+
     override fun overrideHeading(): Pair<Vector2f, Vector2f>? {
         return when {
             // Prevent engine controller from overriding system commands.

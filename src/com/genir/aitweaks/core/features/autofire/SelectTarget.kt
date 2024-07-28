@@ -16,7 +16,7 @@ private const val alsoTargetFighters = true
 class SelectTarget(
     private val weapon: WeaponAPI,
     private val current: CombatEntityAPI?,
-    private val shipTarget: ShipAPI?,
+    private val attackTarget: ShipAPI?,
     private val params: BallisticParams,
 ) {
     val target: CombatEntityAPI? = when {
@@ -53,19 +53,26 @@ class SelectTarget(
     private fun selectFighter(): CombatEntityAPI? = selectEntity<ShipAPI>(shipGrid()) { it.isFighter }
 
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
-        // Use ship target as a priority. When ship is on escort assignment
-        // or flamed out, the priority target needs to be estimated instead.
+        // Estimate priority target.
         val priorityTarget = when {
-            shipTarget == null && weapon.isFrontFacing && weapon.ship.hasEscortAssignment -> estimateShipTarget(weapon)
-            weapon.isFrontFacing && weapon.ship.engineController.isFlamedOut -> estimateShipTarget(weapon)
-            shipTarget?.isValidTarget == true && shipTarget.owner != weapon.ship.owner -> shipTarget
-            else -> null
+            // When ship is on vanilla escort assignment, the priority target needs to be estimated.
+            attackTarget == null && weapon.isFrontFacing && weapon.ship.hasEscortAssignment -> estimateShipTarget(weapon)
+
+            // Don't attack allies.
+            attackTarget?.owner == weapon.ship.owner -> null
+
+            // Try to follow ship attack target.
+            else -> attackTarget
         }
 
-        // Prioritize ship target. Hardpoint weapons track ships target even when it's outside their firing arc.
         return when {
+            // Hardpoint weapons track ships target even when it's outside their firing arc.
             priorityTarget != null && weapon.slot.isHardpoint -> priorityTarget
+
+            // Select priority target, if it can be tracked.
             priorityTarget != null && canTrack(weapon, AttackTarget(priorityTarget), params) -> priorityTarget
+
+            // Select alternative target.
             else -> selectEntity<ShipAPI>(shipGrid()) { !it.isFighter || alsoFighter }
         }
     }

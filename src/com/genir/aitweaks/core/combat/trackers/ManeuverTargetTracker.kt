@@ -3,12 +3,12 @@ package com.genir.aitweaks.core.combat.trackers
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.utils.extensions.attackTarget
 import com.genir.aitweaks.core.utils.extensions.hasEscortAssignment
 import com.genir.aitweaks.core.utils.extensions.isValidTarget
 
-class TargetTracker : BaseEveryFrameCombatPlugin() {
+class ManeuverTargetTracker : BaseEveryFrameCombatPlugin() {
     private val targets: MutableMap<ShipAPI, ShipAPI?> = mutableMapOf()
 
     operator fun get(index: ShipAPI): ShipAPI? = targets[index]
@@ -23,21 +23,21 @@ class TargetTracker : BaseEveryFrameCombatPlugin() {
      * get outdated.
      */
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        Global.getCombatEngine().ships.filter { it.isAlive }.forEach { ship ->
-            val newTarget = ship.attackTarget
+        Global.getCombatEngine().ships.filter { it.isAlive && !it.isExpired }.forEach { ship ->
+            val newTarget = ship.aiFlags.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET) as? ShipAPI
             val prevTarget = targets[ship]
 
             targets[ship] = when {
-                // Discard outdated attack target when ship has escort assignment.
+                // Discard outdated maneuver target when ship has escort assignment.
                 newTarget == null && prevTarget != null && ship.hasEscortAssignment -> null
 
-                // Update attack target.
+                // Update maneuver target.
                 newTarget != null -> newTarget
 
                 // Previous target is no longer valid, discard it.
                 prevTarget?.isValidTarget != true -> null
 
-                // Continue to attack previous target.
+                // Continue to maneuver around previous target.
                 else -> prevTarget
             }
         }

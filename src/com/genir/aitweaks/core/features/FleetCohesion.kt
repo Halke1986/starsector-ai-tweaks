@@ -9,7 +9,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
-import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.slotRange
 import com.genir.aitweaks.core.utils.extensions.*
@@ -130,7 +129,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             return
         }
 
-        val target = combatState().targetTracker[ship] ?: return
+        val target = ship.attackTarget ?: return
         val validTarget = findValidTarget(ship, target)
         if (validTarget == null || validTarget == target) return
 
