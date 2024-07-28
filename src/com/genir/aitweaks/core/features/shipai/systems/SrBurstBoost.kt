@@ -39,7 +39,6 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
             trigger = false
         }
 
-
         attackRange = ai.broadside.minRange * Preset.BurnDrive.approachToMinRangeFraction
 
         updateHeadingPoint()
@@ -52,8 +51,6 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     override fun holdManeuverTarget(): Boolean {
         return ship.system.isOn
     }
-
-    //TODO autofire flameout
 
     override fun overrideHeading(): Pair<Vector2f, Vector2f>? {
         return when {
@@ -86,15 +83,8 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     private fun updateHeadingPoint() {
         target = ai.attackTarget
 
-        if (target == null) {
-            headingPoint = Vector2f()
-        } else {
-//            val vectorToTarget = target!!.location - ship.location
-//            val approachVector = vectorToTarget.addLength(-attackRange)
-//
-//            headingPoint = approachVector + ship.location
-            headingPoint = target!!.location
-        }
+        // Head straight to the target.
+        headingPoint = ai.attackTarget?.location ?: Vector2f()
     }
 
     private fun updateShouldBurn() {
@@ -117,26 +107,26 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     private fun updatedSystemTrigger() {
         if (!shouldBurn) return
 
-        val toTarget = (headingPoint - ship.location).facing - ship.facing
-
+        // Find all possible burn vectors.
         val vectors = burstVectors().toMutableMap()
-        if (!ship.velocity.isZeroVector()) {
-            vectors += Pair(ship.velocity.facing - ship.facing, setOf())
-        }
+        if (!ship.velocity.isZeroVector()) vectors += Pair(ship.velocity.facing - ship.facing, setOf())
+
+        // Find burn vector best aligned with direction to target.
+        val toTarget = (headingPoint - ship.location).facing - ship.facing
         val bestVector = vectors.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.key, toTarget)) })!!
 
-//        vectors.forEach {
-//            debugPrint[it.value] = "${MathUtils.getShortestRotation(it.key, toTarget)} ${it.value}"
-//        }
-
+        // Best burn vector is not aligned well with direction to target.
         if (abs(MathUtils.getShortestRotation(bestVector.key, toTarget)) > 2f) return
 
+        // Issue commands that will trigger burn in the right direction.
         val commands: Set<ShipCommand> = bestVector.value
-        val blockedCommands = setOf(ACCELERATE, ACCELERATE_BACKWARDS, STRAFE_RIGHT, STRAFE_LEFT, DECELERATE) - commands
-
         commands.forEach { ship.command(it) }
+
+        // Block commands that could skew the burn direction.
+        val blockedCommands = setOf(ACCELERATE, ACCELERATE_BACKWARDS, STRAFE_RIGHT, STRAFE_LEFT, DECELERATE) - commands
         blockedCommands.forEach { ship.blockCommandForOneFrame(it) }
 
+        // Use system the next frame, when issued commands are in effect.
         trigger = true
     }
 
