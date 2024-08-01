@@ -359,9 +359,12 @@ class AI(val ship: ShipAPI) {
         // Finish helpless target.
         val evalVent = if (target.fluxTracker.isOverloadedOrVenting) -2f else 0f
 
+        // Try to stay on target.
+        val evalCurrentTarget = if (target == attackTarget) -1f else 0f
+
         // TODO avoid wrecks
 
-        return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType + evalVent
+        return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType + evalVent + evalCurrentTarget
     }
 
     private fun isThreat(target: ShipAPI): Boolean {

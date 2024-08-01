@@ -26,7 +26,7 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     private var target: ShipAPI? = null
     private var headingPoint: Vector2f = Vector2f()
     private var shouldBurn: Boolean = false
-    private var trigger: Boolean = true
+    private var trigger: Boolean = false
 
     private var attackRange: Float = 0f
 
