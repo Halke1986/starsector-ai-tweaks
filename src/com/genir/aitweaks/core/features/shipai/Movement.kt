@@ -16,14 +16,14 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.sign
 
+@Suppress("MemberVisibilityCanBePrivate")
 class Movement(override val ai: AI) : Coordinable {
     private val ship: ShipAPI = ai.ship
     private val engineController: EngineController = EngineController(ship)
 
-    var headingPoint: Vector2f? = null
-    var aimPoint: Vector2f? = null
+    var headingPoint: Vector2f = Vector2f()
     var expectedVelocity: Vector2f = Vector2f()
-    var expectedFacing: Float = 0f
+    var expectedFacing: Float = ship.facing
 
     // Used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
@@ -34,65 +34,30 @@ class Movement(override val ai: AI) : Coordinable {
     private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
 
     fun advance(dt: Float) {
-        setFacing()
         setHeading(dt, ai.maneuverTarget, ai.assignmentLocation)
+        setFacing()
         manageMobilitySystems()
     }
 
-    private fun setFacing() {
-        val (newAimPoint: Vector2f, velocity: Vector2f) = when {
-            // Let movement system determine ship facing.
-            ai.systemAI?.overrideFacing() != null -> {
-                ai.systemAI.overrideFacing()!!
-            }
-
-            // Face the attack target.
-            ai.attackTarget != null -> {
-                val target = ai.attackTarget!!
-
-                // Average aim offset to avoid ship wobbling.
-                val aimPointThisFrame = calculateOffsetAimPoint(target)
-                val aimOffsetThisFrame = getShortestRotation(target.location, ship.location, aimPointThisFrame)
-                val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
-
-                Pair(target.location.rotatedAroundPivot(Rotation(aimOffset - ai.broadside.facing), ship.location), target.velocity)
-            }
-
-            // Face threat direction when no target.
-            !ai.threatVector.isZeroVector() -> {
-                Pair(ship.location + ai.threatVector, Vector2f())
-            }
-
-            // Face movement target location.
-            ai.assignmentLocation != null -> {
-                Pair(ai.assignmentLocation, Vector2f())
-            }
-
-            // Nothing to do. Stop rotation.
-            else -> Pair(ship.location, Vector2f())
-        }
-
-        aimPoint = newAimPoint
-        expectedFacing = engineController.facing(newAimPoint, velocity)
-    }
-
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?, moveOrderLocation: Vector2f?) {
-        val (newHeadingPoint: Vector2f, velocity: Vector2f) = when {
+        val systemOverride: Vector2f? = ai.systemAI?.overrideHeading()
+
+        headingPoint = when {
             // Let movement system determine ship heading.
-            ai.systemAI?.overrideHeading() != null -> {
-                ai.systemAI.overrideHeading()!!
+            systemOverride != null -> {
+                systemOverride
             }
 
             // Move directly to ordered location for player ships.
             ship.owner == 0 && !ship.isAlly && moveOrderLocation != null -> {
-                Pair(moveOrderLocation, Vector2f())
+                moveOrderLocation
             }
 
             // Move opposite to threat direction when backing off.
             // If there's no threat, the ship will continue to coast.
             ai.isBackingOff -> {
-                if (ai.threatVector.isZeroVector()) Pair(ship.location, ship.velocity.resized(ship.maxSpeed))
-                else Pair(ship.location - ai.threatVector.resized(1000f), Vector2f())
+                if (ai.threatVector.isZeroVector()) ship.location + ship.velocity.resized(ship.maxSpeed)
+                else ship.location - ai.threatVector.resized(1000f)
             }
 
             // Orbit target at effective weapon range.
@@ -114,36 +79,64 @@ class Movement(override val ai: AI) : Coordinable {
                 val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
                 reviewedHeadingPoint = null
 
-                val velocity = (headingPoint - (this.headingPoint ?: headingPoint)) / dt
-                Pair(headingPoint, velocity)
+                headingPoint
             }
 
             // Move directly to ordered location for non-player ships.
             moveOrderLocation != null -> {
-                Pair(moveOrderLocation, Vector2f())
+                moveOrderLocation
             }
 
             // Nothing to do, stop the ship.
-            else -> Pair(ship.location, Vector2f())
+            else -> {
+                if ((ship.location - headingPoint).length() > ship.collisionRadius) ship.location
+                else headingPoint
+            }
         }
 
-        headingPoint = newHeadingPoint
-        expectedVelocity = engineController.heading(newHeadingPoint, velocity, gatherSpeedLimits(dt))
+        expectedVelocity = engineController.heading(headingPoint, gatherSpeedLimits(dt))
+    }
+
+    private fun setFacing() {
+        val systemOverride: Float? = ai.systemAI?.overrideFacing()
+
+        expectedFacing = when {
+            // Let movement system determine ship facing.
+            systemOverride != null -> {
+                systemOverride
+            }
+
+            // Face the attack target.
+            ai.attackTarget != null -> {
+                val target = ai.attackTarget!!
+
+                // Average aim offset to avoid ship wobbling.
+                val aimPointThisFrame = calculateOffsetAimPoint(target)
+                val aimOffsetThisFrame = getShortestRotation(target.location, ship.location, aimPointThisFrame)
+                val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
+
+                (target.location - ship.location).facing + aimOffset - ai.broadside.facing
+            }
+
+            // Face threat direction when no target.
+            !ai.threatVector.isZeroVector() -> {
+                ai.threatVector.facing
+            }
+
+            // Face movement target location.
+            ai.assignmentLocation != null -> {
+                (ai.assignmentLocation!! - ship.location).facing
+            }
+
+            // Nothing to do. Stop rotation.
+            else -> expectedFacing
+        }
+
+        engineController.facing(expectedFacing)
     }
 
     private fun manageMobilitySystems() {
         when (ship.system?.specAPI?.AIType) {
-
-//            ShipSystemAiType.MANEUVERING_JETS -> when {
-//                !ship.canUseSystemThisFrame() -> Unit
-//
-//                // Use MANEUVERING_JETS to back off. Vanilla AI does
-//                // this already, but is not determined enough.
-//                ai.isBackingOff -> ship.command(USE_SYSTEM)
-//
-//                // Use MANEUVERING_JETS to chase target during 1v1 duel.
-//                ai.is1v1 && ai.range(ai.attackTarget!!) > ai.stats.effectiveRange -> ship.command(USE_SYSTEM)
-//            }
 
             ShipSystemAiType.BURN_DRIVE -> {
                 // Prevent vanilla AI from jumping closer to target with

@@ -9,6 +9,7 @@ import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
 import com.genir.aitweaks.core.features.shipai.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.addLength
+import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.extensions.rootModule
 import org.lazywizard.lazylib.MathUtils
@@ -53,13 +54,14 @@ class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
         return ship.system.isOn
     }
 
-    override fun overrideHeading(): Pair<Vector2f, Vector2f>? {
-        return if (shouldBurn) Pair(headingPoint, Vector2f())
+    override fun overrideHeading(): Vector2f? {
+        return if (shouldBurn) headingPoint
         else null
     }
 
-    override fun overrideFacing(): Pair<Vector2f, Vector2f>? {
-        return overrideHeading()
+    override fun overrideFacing(): Float? {
+        return if (shouldBurn) (headingPoint - ship.location).facing
+        else null
     }
 
     private fun updateMaxBurnDist() {

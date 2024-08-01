@@ -19,6 +19,11 @@ fun drawLine(a: Vector2f, b: Vector2f, color: Color = Color.YELLOW) {
 }
 
 fun drawEngineLines(ship: ShipAPI) {
+    drawAccelerationLines(ship)
+    drawTurnLines(ship)
+}
+
+fun drawAccelerationLines(ship: ShipAPI) {
     if (debugRenderer == null) return
 
     val r = Rotation(ship.facing - 90f)
@@ -32,6 +37,13 @@ fun drawEngineLines(ship: ShipAPI) {
     ).forEach {
         drawLine(ship.location, ship.location + r.rotate(it * ship.collisionRadius * 1.2f), Color.BLUE)
     }
+}
+
+fun drawTurnLines(ship: ShipAPI) {
+    if (debugRenderer == null) return
+
+    val r = Rotation(ship.facing - 90f)
+    val engine = ship.engineController
 
     listOfNotNull(
         if (engine.isTurningLeft) Vector2f(-0.75f, 0.20f) else null,

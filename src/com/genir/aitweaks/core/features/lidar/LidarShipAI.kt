@@ -7,10 +7,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.features.autofire.AutofireAI
 import com.genir.aitweaks.core.features.shipai.EngineController
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.extensions.deploymentPoints
-import com.genir.aitweaks.core.utils.extensions.isShip
-import com.genir.aitweaks.core.utils.extensions.resized
-import com.genir.aitweaks.core.utils.extensions.rotated
+import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -40,8 +37,8 @@ class LidarShipAI(private val ship: ShipAPI, private val target: ShipAPI, privat
         }
 
         val c = EngineController(ship)
-        c.facing(getAimPoint(), target.velocity)
-        c.heading(target.location + offset, target.velocity)
+        c.facing((getAimPoint() - ship.location).facing)
+        c.heading(target.location + offset)
     }
 
     /** Get average aim point of lidar weapons. */

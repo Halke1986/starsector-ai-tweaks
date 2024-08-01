@@ -4,15 +4,23 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.extensions.copy
+import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.extensions.rotated
 import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.ext.*
+import org.lazywizard.lazylib.ext.clampLength
+import org.lazywizard.lazylib.ext.isZeroVector
+import org.lazywizard.lazylib.ext.minus
+import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 import kotlin.random.Random
 
 class EngineController(val ship: ShipAPI) {
+    private var prevFacing: Float = 0f
+    private var prevHeading: Vector2f = Vector2f()
+
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
     data class Limit(val heading: Float, val speed: Float)
@@ -22,7 +30,7 @@ class EngineController(val ship: ShipAPI) {
      * at 'target' location, it will match the target velocity. Limits are
      * used to restrict the velocity, e.g. for collision avoidance purposes.
      * Returns the calculated expected velocity. */
-    fun heading(target: Vector2f, targetVelocity: Vector2f, limits: List<Limit> = listOf()): Vector2f {
+    fun heading(heading: Vector2f, limits: List<Limit> = listOf()): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val dt = Global.getCombatEngine().elapsedInLastFrame
@@ -37,14 +45,18 @@ class EngineController(val ship: ShipAPI) {
         val w = ship.angularVelocity * dt
         val toShipFacing = 90f - ship.facing - w
         val r = Rotation(toShipFacing)
-        val l = r.rotate(target - ship.location)
+        val l = r.rotate(heading - ship.location)
         val v = r.rotate(ship.velocity) * dt
-        val vt = r.rotate(targetVelocity) * dt
+
+        // Calculate heading change in time,
+        // i.e. the target linear velocity.
+        val vt = r.rotate(heading - prevHeading)
+        prevHeading = heading.copy
 
         // Stop if reached stationary target. Distance threshold for
         // stopping is the distance the ship covers in one frame after
         // accelerating from a standstill.
-        if ((target - ship.location).length() < af && vt.isZeroVector()) {
+        if ((heading - ship.location).length() < af && vt.isZeroVector()) {
             if (!ship.velocity.isZeroVector()) ship.command(DECELERATE)
             return Vector2f()
         }
@@ -92,34 +104,31 @@ class EngineController(val ship: ShipAPI) {
         return r.reverse(vec) / dt
     }
 
-    /** Set ship facing towards 'target' location. Returns the expected facing angle. */
-    fun facing(target: Vector2f, targetVelocity: Vector2f): Float {
+    /** Set ship facing. */
+    fun facing(facing: Float) {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val dt = Global.getCombatEngine().elapsedInLastFrame
         val a = ship.turnAcceleration * dt * dt
         val w = ship.angularVelocity * dt
-        val vr = (targetVelocity - ship.velocity) * dt
 
-        // Calculate facing and facing change.
-        val reachedTarget = (target - ship.location).length() < ship.collisionRadius / 2f
-        val f = if (reachedTarget) ship.facing else (target - ship.location).getFacing()
-        val df = if (reachedTarget) 0f else (target + vr - ship.location).getFacing() - f
+        // Calculate facing change in time,
+        // i.e. the target angular velocity.
+        val wt = MathUtils.getShortestRotation(prevFacing, facing)
+        prevFacing = facing
 
         // Angular distance between expected
         // facing and ship facing the next frame.
-        val r = MathUtils.getShortestRotation(ship.facing + w, f + df)
+        val r = MathUtils.getShortestRotation(ship.facing + w, facing + wt)
 
         // Expected velocity change. Since rotation is
         // 1-dimensional, as opposed to the 2-dimensional
         // heading, the calculations can be simplified.
-        val we = sign(r) * vMax(abs(r), a) + df
+        val we = sign(r) * vMax(abs(r), a) + wt
         val dw = we - w
 
         if (shouldAccelerate(+r, +dw / a, 0f)) ship.command(TURN_LEFT)
         if (shouldAccelerate(-r, -dw / a, 0f)) ship.command(TURN_RIGHT)
-
-        return f
     }
 
     /** Maximum velocity in given direction to not overshoot target. */
@@ -150,7 +159,7 @@ class EngineController(val ship: ShipAPI) {
 
         // Find the most severe speed limit.
         val expectedSpeed = expectedVelocity.length()
-        val expectedHeading = expectedVelocity.getFacing()
+        val expectedHeading = expectedVelocity.facing
         val lowestLimit = limits.minByOrNull { it.clampSpeed(expectedHeading, expectedSpeed) }
             ?: return expectedVelocity
 

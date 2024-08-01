@@ -4,7 +4,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ShipSystemAPI
-import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.AI
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.command
@@ -12,15 +11,12 @@ import com.genir.aitweaks.core.features.shipai.strafeAcceleration
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.isInFiringSequence
 import com.genir.aitweaks.core.utils.extensions.isInWarmup
-import com.genir.aitweaks.core.utils.times
-import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.abs
 
 class SrBurstBoost(private val ai: AI) : SystemAI {
@@ -45,26 +41,18 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
         updateHeadingPoint()
         updateShouldBurn()
         updatedSystemTrigger()
-
-        drawLine(ship.location, target?.location ?: ship.location, Color.BLUE)
     }
 
     override fun holdManeuverTarget(): Boolean {
         return ship.system.isOn
     }
 
-    override fun overrideHeading(): Pair<Vector2f, Vector2f>? {
-        return when {
-            // Prevent engine controller from overriding system commands.
-//            trigger != null -> Pair(ship.location, Vector2f())
-
-            shouldBurn -> Pair(headingPoint, Vector2f())
-
-            else -> null
-        }
+    override fun overrideHeading(): Vector2f? {
+        return if (shouldBurn) headingPoint
+        else null
     }
 
-    override fun overrideFacing(): Pair<Vector2f, Vector2f>? {
+    override fun overrideFacing(): Float? {
         when {
             !shouldBurn -> return null
 
@@ -78,7 +66,7 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
         val bestVector = vectors.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.key, toTarget)) })!!
 
         val rotation = MathUtils.getShortestRotation(bestVector.key, toTarget)
-        return Pair(ship.location + unitVector(ship.facing + rotation) * 1000f, Vector2f())
+        return ship.facing + rotation
     }
 
     private fun updateHeadingPoint() {

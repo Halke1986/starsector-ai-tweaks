@@ -7,7 +7,7 @@ interface SystemAI {
 
     fun holdManeuverTarget(): Boolean
 
-    fun overrideHeading(): Pair<Vector2f, Vector2f>?
+    fun overrideHeading(): Vector2f?
 
-    fun overrideFacing(): Pair<Vector2f, Vector2f>?
+    fun overrideFacing(): Float?
 }

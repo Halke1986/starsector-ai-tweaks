@@ -8,6 +8,7 @@ import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
+import com.fs.starfarer.combat.ai.FighterAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.AI
@@ -23,6 +24,12 @@ val ShipAPI.isModule: Boolean
 
 val ShipAPI.rootModule: ShipAPI
     get() = if (isModule) parentStation else this
+
+val ShipAPI.isSmall: Boolean
+    get() = !isBig
+
+val ShipAPI.isBig: Boolean
+    get() = isModule || isDestroyer || isCruiser || isCapital
 
 val ShipAPI.isHullDamageable: Boolean
     get() = mutableStats.hullDamageTakenMult.getModifiedValue() > 0f
@@ -76,7 +83,7 @@ fun ShipAPI.hasAIType(c: Class<*>?): Boolean {
 }
 
 val ShipAPI.hasVanillaAI: Boolean
-    get() = hasAIType(BasicShipAI::class.java)
+    get() = hasAIType(BasicShipAI::class.java) || hasAIType(FighterAI::class.java)
 
 val ShipAPI.hasCustomAI: Boolean
     get() = hasAIType(AIPlugin::class.java)

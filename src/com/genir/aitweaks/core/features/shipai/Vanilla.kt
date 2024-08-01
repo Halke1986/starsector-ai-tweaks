@@ -6,8 +6,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.genir.aitweaks.core.features.shipai.adapters.*
-import com.genir.aitweaks.core.utils.ShipSystemAiType
-import com.genir.aitweaks.core.utils.extensions.AIType
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
@@ -43,8 +41,4 @@ class Vanilla(ship: ShipAPI, overrideVanillaSystem: Boolean) {
     }
 
     fun flags(): ShipwideAIFlags = vanillaAI.aiFlags
-
-    private fun systemBlacklisted(ship: ShipAPI, systemBlacklist: List<ShipSystemAiType>): Boolean {
-        return systemBlacklist.contains(ship.system?.specAPI?.AIType)
-    }
 }

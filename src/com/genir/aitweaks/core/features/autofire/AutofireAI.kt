@@ -190,10 +190,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // original intercept location to not overcompensate.
         if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing))) return intercept
 
-        val shipAimPoint: Vector2f = ship.customAI?.movement?.aimPoint ?: target!!.location
-        val tgtLocation = shipAimPoint - ship.location
-        val tgtFacing = VectorUtils.getFacing(tgtLocation)
-        val angleToTarget = MathUtils.getShortestRotation(tgtFacing, ship.facing)
+        val expectedFacing = ship.customAI?.movement?.expectedFacing ?: (target!!.location - ship.location).facing
+        val angleToTarget = MathUtils.getShortestRotation(ship.facing, expectedFacing)
 
         // Aim the hardpoint as if the ship was facing the target directly.
         return rotateAroundPivot(intercept, ship.location, angleToTarget)
