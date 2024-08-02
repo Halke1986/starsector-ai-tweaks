@@ -23,6 +23,15 @@ fun drawEngineLines(ship: ShipAPI) {
     drawTurnLines(ship)
 }
 
+fun drawBounds(ship: ShipAPI) {
+    val bounds = ship.exactBounds ?: return
+    bounds.update(ship.location, ship.facing)
+
+    bounds.segments.forEach {
+        drawLine(it.p1, it.p2, Color.CYAN)
+    }
+}
+
 fun drawAccelerationLines(ship: ShipAPI) {
     if (debugRenderer == null) return
 

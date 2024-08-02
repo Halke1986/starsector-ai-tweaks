@@ -28,3 +28,6 @@ fun Vector2f.addLength(toAdd: Float): Vector2f {
 
 val Vector2f.facing: Float
     get() = getFacing()
+
+val Vector2f.length: Float
+    get() = length()

@@ -6,7 +6,10 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
-import com.genir.aitweaks.core.features.shipai.*
+import com.genir.aitweaks.core.features.shipai.AI
+import com.genir.aitweaks.core.features.shipai.Coordinable
+import com.genir.aitweaks.core.features.shipai.command
+import com.genir.aitweaks.core.features.shipai.totalCollisionRadius
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.addLength
 import com.genir.aitweaks.core.utils.extensions.facing
@@ -42,6 +45,15 @@ class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
     // Stats // TODO should refresh
     private var maxSpeed: Float = Float.MAX_VALUE
     private var maxBurnDist: Float = 0f
+
+    @Suppress("ConstPropertyName")
+    companion object Preset {
+        const val approachToMinRangeFraction = 0.75f
+        const val maxAngleToTarget = 45f
+        const val stopBeforeCollision = 0.2f // seconds
+        const val ignoreMassFraction = 0.25f
+        const val minBurnDistFraction = 0.33f
+    }
 
     override fun advance(dt: Float) {
         updateMaxBurnDist()
@@ -87,7 +99,7 @@ class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
             // Charge straight at the maneuver target, disregard fleet coordination.
             ai.maneuverTarget != null -> {
                 val vectorToTarget = ai.maneuverTarget!!.location - ship.location
-                val approachVector = vectorToTarget.addLength(-ai.broadside.minRange * Preset.BurnDrive.approachToMinRangeFraction)
+                val approachVector = vectorToTarget.addLength(-ai.broadside.minRange * approachToMinRangeFraction)
 
                 // Let the attack coordinator review the calculated heading point.
                 proposedHeadingPoint = approachVector + ship.location
@@ -121,13 +133,13 @@ class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
             ai.isBackingOff -> false
 
             // Don't burn to move order location if not facing the location.
-            ai.assignmentLocation != null && destinationFacing > Preset.BurnDrive.maxAngleToTarget -> false
+            ai.assignmentLocation != null && destinationFacing > maxAngleToTarget -> false
 
             // Don't burn to maneuver target if it's different from the attack target.
             ai.maneuverTarget != null && ai.maneuverTarget != ai.attackTarget -> false
 
             // Don't burn to destination if it's too close.
-            destinationDist < maxBurnDist * Preset.BurnDrive.minBurnDistFraction -> false
+            destinationDist < maxBurnDist * minBurnDistFraction -> false
 
             !isRouteClear() -> false
 
@@ -147,7 +159,7 @@ class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
             ai.assignmentLocation == null && ai.maneuverTarget == null -> true
 
             // Veered off course, stop.
-            destinationFacing > Preset.BurnDrive.maxAngleToTarget -> true
+            destinationFacing > maxAngleToTarget -> true
 
             // Avoid collisions.
             isCollisionImminent() -> true
@@ -174,7 +186,7 @@ class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
                 it.rootModule.hullSize.ordinal >= ship.hullSize.ordinal -> true
 
                 // Heavy obstacles.
-                it.mass >= ship.mass * Preset.BurnDrive.ignoreMassFraction -> true
+                it.mass >= ship.mass * ignoreMassFraction -> true
 
                 else -> false
             }
@@ -191,7 +203,8 @@ class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
         val timeToTarget = maxBurnDuration * (dist / maxBurnDist)
         val effectiveSpeed = maxBurnDist / maxBurnDuration
 
-        return timeToTarget < timeToCollision(obstacles, toDestination.resized(effectiveSpeed), Preset.collisionBuffer)
+        val collisionBuffer = com.genir.aitweaks.core.features.shipai.Preset.collisionBuffer
+        return timeToTarget < timeToCollision(obstacles, toDestination.resized(effectiveSpeed), collisionBuffer)
     }
 
     private fun isCollisionImminent(): Boolean {
@@ -199,7 +212,7 @@ class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
         val position = ship.location + unitVector(ship.facing) * radius
         val obstacles = findObstacles(position, radius)
 
-        return timeToCollision(obstacles, ship.velocity, 0f) <= Preset.BurnDrive.stopBeforeCollision
+        return timeToCollision(obstacles, ship.velocity, 0f) <= stopBeforeCollision
     }
 
     private fun timeToCollision(obstacles: Sequence<ShipAPI>, shipVelocity: Vector2f, buffer: Float): Float {

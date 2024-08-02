@@ -35,15 +35,4 @@ class Preset {
 
         const val weaponMaxReloadTime = 12f
     }
-
-    class BurnDrive {
-        @Suppress("ConstPropertyName")
-        companion object {
-            const val approachToMinRangeFraction = 0.75f
-            const val maxAngleToTarget = 45f
-            const val stopBeforeCollision = 0.2f // seconds
-            const val ignoreMassFraction = 0.25f
-            const val minBurnDistFraction = 0.33f
-        }
-    }
 }

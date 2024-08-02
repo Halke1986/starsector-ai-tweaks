@@ -6,13 +6,10 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.features.shipai.EngineController
-import com.genir.aitweaks.core.utils.Rotation
-import com.genir.aitweaks.core.utils.extensions.customAI
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.hasVanillaAI
-import com.genir.aitweaks.core.utils.times
-import com.genir.aitweaks.core.utils.unitVector
+import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.VectorUtils
+import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.*
@@ -30,6 +27,27 @@ internal fun debug(dt: Float) {
 
 //    followRotation(dt)
 //    makeDroneFormation()
+
+//    showBoundsCollision()
+}
+
+private fun showBoundsCollision() {
+    val ship = Global.getCombatEngine().playerShip ?: return
+
+    val position = Vector2f(
+        Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()),
+        Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()),
+    )
+
+    drawBounds(ship)
+
+    val dir = ship.location - position
+
+    val dist = boundsCollision(position - ship.location, dir, ship) ?: return
+
+    debugPrint["dist"] = dist
+
+    drawLine(position, dir.resized(dir.length * dist) + position, YELLOW)
 }
 
 internal fun highlightCustomAI() {
