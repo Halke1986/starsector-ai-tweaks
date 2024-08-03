@@ -56,8 +56,9 @@ class Movement(override val ai: AI) : Coordinable {
             // Move opposite to threat direction when backing off.
             // If there's no threat, the ship will continue to coast.
             ai.isBackingOff -> {
-                if (ai.threatVector.isZeroVector()) ship.location + ship.velocity.resized(ship.maxSpeed)
-                else ship.location - ai.threatVector.resized(1000f)
+                val farAway = 2048f
+                if (ai.threatVector.isZeroVector()) ship.location + ship.velocity.resized(farAway)
+                else ship.location - ai.threatVector.resized(farAway)
             }
 
             // Orbit target at effective weapon range.

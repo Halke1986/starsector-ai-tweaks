@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ShipSystemAPI
+import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.features.shipai.AI
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.*
@@ -19,6 +20,7 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     private val ship: ShipAPI = ai.ship
     private val system: ShipSystemAPI = ship.system
     private var burstVectors: List<BurstVector> = listOf()
+    private var hardpoints: List<WeaponAPI> = listOf()
 
     private var burstPlan: BurstPlan? = null
     private var useSystem: Boolean = false
@@ -27,9 +29,9 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     @Suppress("ConstPropertyName")
     companion object Preset {
         const val burstTriggerAngle = 1f
-        const val maxOpportunityBurstAngle = 5f
+        const val maxOpportunityBurstAngle = 7f
         const val maxRammingDistance = 400f
-        const val minChaseDistance = 800f
+        const val minChaseDistance = 700f
         const val burstSpeed = 600f
     }
 
@@ -40,16 +42,19 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
             ventAfterBurst = !ship.fluxTracker.isVenting
         }
 
+        // Execute scheduled system use.
         if (useSystem) {
             ship.command(USE_SYSTEM)
             useSystem = false
         }
 
         if (canUseBurst()) {
+            hardpoints = ai.stats.significantWeapons.filter { it.slot.isHardpoint }
             burstVectors = calculateBurstVectors()
             burstPlan = updatePlannedBurst()
             if (shouldExecuteBurstPlan()) executeBurstPlan(burstPlan!!)
         } else {
+            hardpoints = listOf()
             burstVectors = listOf()
             burstPlan = null
             useSystem = false
@@ -61,14 +66,15 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     }
 
     override fun overrideHeading(): Vector2f? {
-        return burstPlan?.toTarget
+        return null
     }
 
     override fun overrideFacing(): Float? {
         val plan = burstPlan ?: return null
 
-        // Don't interrupt hardpoint bursts.
-        if (ai.stats.significantWeapons.any { it.slot.isHardpoint && it.isInFiringSequence }) return null
+        // Don't interrupt hardpoint bursts. When flux is high, the weapon
+        // may be stuck in warmup loop, so execute burst when backing off.
+        if (!ai.isBackingOff && hardpoints.any { it.isInFiringSequence }) return null
 
         return ship.facing + plan.angleToTarget()
     }
@@ -87,9 +93,9 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     }
 
     private fun updatePlannedBurst(): BurstPlan? {
-        // Use burst to run.
+        // Use burst to back off.
         if (ai.isBackingOff) {
-            return makeBurstPlan(-ai.threatVector.resized(2048f), burstVectors, null)
+            return makeBurstPlan(ai.movement.headingPoint - ship.location, burstVectors, null)
         }
 
         // Use burst to ram opportunity target.
@@ -123,9 +129,12 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
         return when {
             burstPlan == null -> false
 
-            // Don't interrupt hardpoint warmup. It's possible to burn when weapon is already in burst.
-            ai.stats.significantWeapons.any { it.slot.isHardpoint && it.isInWarmup } -> false
+            // Don't interrupt hardpoint warmup. It's possible to burn when
+            // weapon is already in burst. When flux is high, the weapon may
+            // be stuck in warmup loop, so execute burst when backing off.
+            !ai.isBackingOff && hardpoints.any { it.isInWarmup } -> false
 
+            // Ship is not aligned for burst.
             abs(burstPlan!!.angleToTarget()) > burstTriggerAngle -> false
 
             else -> true
@@ -135,10 +144,7 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
     private fun executeBurstPlan(plan: BurstPlan) {
         // Issue commands that will trigger burn in the right direction.
         val commands: Set<ShipCommand> = plan.burst.commands
-        commands.forEach {
-            ship.command(it)
-            log(it)
-        }
+        commands.forEach { ship.command(it) }
 
         // Block commands that could skew the burn direction.
         val blockedCommands = setOf(ACCELERATE, ACCELERATE_BACKWARDS, STRAFE_RIGHT, STRAFE_LEFT, DECELERATE) - commands

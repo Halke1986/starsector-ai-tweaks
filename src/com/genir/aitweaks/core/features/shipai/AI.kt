@@ -89,6 +89,12 @@ class AI(val ship: ShipAPI) {
     private fun debug() {
 //        drawTurnLines(ship)
 //        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
+//        drawLine(ship.location, movement.headingPoint, Color.YELLOW)
+//        drawLine(ship.location, threatVector.resized(600f), Color.PINK)
+
+//        debugPrint["threats"] = "threats ${threats.size}"
+//        debugPrint["tvector"] = "tvector ${threatVector}"
+
 
 //        drawLine(ship.location, ship.location + unitVector(ship.facing) * 700f, Color.GREEN)
 //        drawLine(ship.location, ship.location + unitVector(movement.expectedFacing) * 600f, Color.YELLOW)
@@ -187,7 +193,6 @@ class AI(val ship: ShipAPI) {
 
     /** Decide if ships needs to back off due to high flux level */
     private fun updateBackoffStatus() {
-        val backingOffFlag = vanillaFlags.hasFlag(BACKING_OFF)
         val fluxLevel = ship.fluxTracker.fluxLevel
         val underFire = damageTracker.damage / ship.maxFlux > 0.2f
 
@@ -196,26 +201,26 @@ class AI(val ship: ShipAPI) {
             Global.getCombatEngine().isEnemyInFullRetreat -> false
 
             // Ship with no shield backs off when it can't fire anymore.
-            ship.shield == null -> ship.allWeapons.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft }
+            ship.shield == null && ship.allWeapons.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft } -> true
 
             // High flux.
             ship.shield != null && fluxLevel > Preset.backoffUpperThreshold -> true
 
             // Shields down and received damage.
-            ship.shield != null && ship.shield.isOff && underFire -> true
+            underFire && ship.shield != null && ship.shield.isOff -> true
 
             // Started venting under fire.
-            ship.fluxTracker.isVenting && underFire -> true
+            underFire && ship.fluxTracker.isVenting -> true
 
             // Stop backing off.
-            backingOffFlag && fluxLevel <= 0.01f -> false
+            fluxLevel <= 0.01f -> false
 
-            // Continue backing off.
-            else -> backingOffFlag
+            // Continue current backoff status.
+            else -> isBackingOff
         }
 
         if (isBackingOff) vanillaFlags.setFlag(BACKING_OFF)
-        else if (backingOffFlag) vanillaFlags.unsetFlag(BACKING_OFF)
+        else vanillaFlags.unsetFlag(BACKING_OFF)
     }
 
     private fun updateIdleTime(dt: Float) {
@@ -292,8 +297,8 @@ class AI(val ship: ShipAPI) {
 
             idleTime < Preset.shieldDownVentTime -> false
 
-            // Don't vent when any weapon is firing.
-            ship.allWeapons.any { it.customAI?.shouldFire() == true } -> false
+            // Don't vent when defending from missiles.
+            ship.allWeapons.any { it.autofirePlugin?.targetMissile != null } -> false
 
             else -> true
         }
@@ -352,13 +357,13 @@ class AI(val ship: ShipAPI) {
         val evalShunt = if (target.variant.hasHullMod("fluxshunt") && target.isFrigate) 256f else 0f
 
         // Assign lower priority to frigates.
-        val evalType = if (target.isFrigate && !target.isModule) 1f else 0f
+        val evalType = if (target.isSmall) 1f else 0f
 
         // Finish helpless target.
         val evalVent = if (target.fluxTracker.isOverloadedOrVenting) -2f else 0f
 
         // Try to stay on target.
-        val evalCurrentTarget = if (target == attackTarget) -1f else 0f
+        val evalCurrentTarget = if (target == attackTarget) -2f else 0f
 
         // TODO avoid wrecks
 
