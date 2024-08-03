@@ -4,65 +4,86 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ShipSystemAPI
+import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.AI
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
-import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.BLUE
 import kotlin.math.abs
 
 class SrBurstBoost(private val ai: AI) : SystemAI {
     private val ship: ShipAPI = ai.ship
     private val system: ShipSystemAPI = ship.system
+    private var burstVectors: List<BurstVector> = listOf()
 
-    private var target: ShipAPI? = null
-    private var headingPoint: Vector2f = Vector2f()
-    private var shouldBurnAtTarget: Boolean = false
-    private var trigger: Boolean = false
-
-    private var attackRange: Float = 0f
-    private var burstVectors: List<BurstVector> = calculateBurstVectors()
+    private var burstPlan: BurstPlan? = null
+    private var useSystem: Boolean = false
+    private var ventAfterBurst: Boolean = false
 
     @Suppress("ConstPropertyName")
     companion object Preset {
         const val maxBurnAngle = 2f
-        const val approachToMinRangeFraction = 0.75f
         const val maxRammingDistance = 400f
-        const val minChaseDistance = 650f
+        const val minChaseDistance = 800f
         const val burstSpeed = 600f
     }
 
-    data class BurstVector(val vector: Vector2f, val facing: Float, val offset: Float, val commands: Set<ShipCommand>)
-
     override fun advance(dt: Float) {
-        burstVectors = calculateBurstVectors()
-
-        if (trigger) {
-            ship.command(USE_SYSTEM)
-            trigger = false
+        // Vent if burst was used to back off.
+//        if (!useSystem && ventAfterBurst && system.state != ShipSystemAPI.SystemState.ACTIVE) {
+        if (!useSystem && ventAfterBurst) {
+            ship.command(VENT_FLUX)
+            ventAfterBurst = !ship.fluxTracker.isVenting
         }
 
-//        burstVectors.forEach {
-//            drawLine(ship.location + it.vector.resized(it.offset), ship.location + it.vector.resized(it.offset + burstSpeed), BLUE)
-//        }
-//
-//
-//        drawBounds(ship)
-//
-//        ai.threats.forEach {
-//            rammingDistance(it)
+//        debugPrint["vent"] = "vent $useSystem $ventAfterBurst ${ship.fluxTracker.isVenting} ${system.state}"
+//        debugPrint["backoff"] = "backoff ${ai.isBackingOff}"
+
+        if (useSystem) {
+            ship.command(USE_SYSTEM)
+
+            val controller = ship.engineController
+
+            if (controller.isAccelerating) log("isAccelerating")
+            if (controller.isDecelerating) log("isDecelerating")
+            if (controller.isAcceleratingBackwards) log("isAcceleratingBackwards")
+            if (controller.isStrafingLeft) log("isStrafingLeft")
+            if (controller.isStrafingRight) log("isStrafingRight")
+
+            useSystem = false
+        }
+
+        if (canUseBurst()) {
+            burstVectors = calculateBurstVectors()
+            burstPlan = makeBurstPlan()
+
+            val toExecute = shouldExecutePlannedBurst() ?: burstAtOpportunity()
+            if (toExecute != null) {
+                executeBurst(toExecute)
+            }
+        } else {
+            burstVectors = listOf()
+            burstPlan = null
+            useSystem = false
+        }
+
+//        if (burstPlan != null) {
+//            drawLine(ship.location, ship.location + burstPlan!!.burst.vector, Color.RED)
 //        }
 
-        attackRange = ai.broadside.minRange * approachToMinRangeFraction
+//        ai.threats.mapNotNull { estimateCollision(it) }.forEach {
+//            drawLine(ship.location, ship.location + unitVector(it.facing).resized(it.distance), YELLOW)
+//        }
 
-        updateHeadingPoint()
-        updateShouldBurn()
-        updateTrigger()
+        burstVectors.forEach {
+            drawLine(ship.location + it.vector.resized(it.boundsOffset), ship.location + it.vector.resized(it.boundsOffset + burstSpeed), BLUE)
+        }
     }
 
     override fun holdManeuverTarget(): Boolean {
@@ -71,35 +92,21 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
 
     override fun overrideHeading(): Vector2f? {
         return null
-//        return if (shouldBurn) headingPoint
-//        else null
     }
 
     override fun overrideFacing(): Float? {
-        when {
-            !shouldBurnAtTarget -> return null
+        val plan = burstPlan ?: return null
 
-            // Don't interrupt hardpoint bursts.
-            ai.stats.significantWeapons.any { it.slot.isHardpoint && it.isInFiringSequence } -> return null
-        }
+        // Don't interrupt hardpoint bursts.
+        if (ai.stats.significantWeapons.any { it.slot.isHardpoint && it.isInFiringSequence }) return null
 
-        val bestVector = bestBurstVector(headingPoint, 360f)!!
-        val toTarget = (headingPoint - ship.location).facing
-        val rotation = MathUtils.getShortestRotation(bestVector.facing, toTarget)
-        return ship.facing + rotation
+        return ship.facing + plan.angleToTarget()
     }
 
-    private fun updateHeadingPoint() {
-        target = ai.attackTarget
-
-        // Head straight to the target.
-        headingPoint = ai.attackTarget?.location ?: Vector2f()
-    }
-
-    private fun canBurn(): Boolean {
+    private fun canUseBurst(): Boolean {
         return when {
             // System is already scheduled to trigger.
-            trigger -> false
+            useSystem -> false
 
             system.state != ShipSystemAPI.SystemState.IDLE -> false
 
@@ -109,55 +116,110 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
         }
     }
 
-    private fun updateShouldBurn() {
-        shouldBurnAtTarget = when {
-            !canBurn() -> false
+    private fun makeBurstPlan(): BurstPlan? {
+        // Use burst to run.
+        if (ai.isBackingOff) {
+            return BurstPlan(2048f, (-ai.threatVector).facing, null)
+        }
 
-            target == null -> false
-
-            headingPoint.isZeroVector() -> false
+        val shouldUseBurstToAttack = when {
+            ai.attackTarget == null -> false
 
             // Save charges for better opportunities.
             system.ammo < system.maxAmmo / 2f -> false
 
             else -> true
         }
+
+        if (!shouldUseBurstToAttack) return null
+
+        val attackTarget = ai.attackTarget!!
+        val (targetDistance, targetFacing) = estimateCollision(attackTarget) ?: return null
+        val plan = BurstPlan(targetDistance, targetFacing, attackTarget)
+
+//        debugPrint["distance"] = "distance ${plan.distanceToTarget()}"
+
+        // Validate plan.
+        return when {
+            plan.distanceToTarget() <= maxRammingDistance -> plan
+            plan.distanceToTarget() >= minChaseDistance -> plan
+            else -> null
+        }
     }
 
-    private fun updateTrigger() {
-        when {
-            !canBurn() -> return
-
-            // Don't interrupt hardpoint warmup. It's possible to burn when weapon is already in burst.
-            ai.stats.significantWeapons.any { it.slot.isHardpoint && it.isInWarmup } -> return
+    private fun burstAtOpportunity(): BurstPlan? {
+//        val plans: Sequence<BurstPlan> = ai.threats.asSequence().mapNotNull { target ->
+//            estimateCollision(target)?.let { BurstPlan(it.first, it.second, target) }
+//        }
+        val plans: List<BurstPlan> = ai.threats.mapNotNull { target ->
+            estimateCollision(target)?.let { BurstPlan(it.first, it.second, target) }
         }
+        val validPlans = plans.filter { abs(it.angleToTarget()) <= maxBurnAngle && it.distanceToTarget() <= maxRammingDistance }
 
-        // Use system the next frame, when issued commands are in effect.
-        val burst: BurstVector = burnAtTarget() ?: burnAtOpportunity() ?: return
+//        debugPrint.clear()
+////
+//        plans.forEach {
+//            debugPrint[it] = "${it.angleToTarget()} ${it.distanceToTarget()} ${it.target?.hullSpec?.hullId}"
+//            drawLine(ship.location, unitVector(it.targetFacing).resized(it.targetDistance) + ship.location, GREEN)
+//        }
 
+//        plans.forEach {
+//        }
+
+        val bestPlan = validPlans.minWithOrNull(compareBy { it.distanceToTarget() }) ?: return null
+
+        return if (bestPlan.distanceToTarget() <= maxRammingDistance) bestPlan
+        else null
+    }
+
+    private fun shouldExecutePlannedBurst(): BurstPlan? {
+        val plan = burstPlan ?: return null
+
+        return when {
+            // Don't interrupt hardpoint warmup. It's possible to burn when weapon is already in burst.
+            ai.stats.significantWeapons.any { it.slot.isHardpoint && it.isInWarmup } -> null
+
+            abs(plan.angleToTarget()) > maxBurnAngle -> null
+
+            else -> plan
+        }
+    }
+
+    private fun executeBurst(plan: BurstPlan) {
         // Issue commands that will trigger burn in the right direction.
-        val commands: Set<ShipCommand> = burst.commands
-        commands.forEach { ship.command(it) }
+        val commands: Set<ShipCommand> = plan.burst.commands
+        commands.forEach {
+            ship.command(it)
+            log(it)
+        }
 
         // Block commands that could skew the burn direction.
         val blockedCommands = setOf(ACCELERATE, ACCELERATE_BACKWARDS, STRAFE_RIGHT, STRAFE_LEFT, DECELERATE) - commands
         blockedCommands.forEach { ship.blockCommandForOneFrame(it) }
 
         // Use system the next frame, when issued commands are in effect.
-        trigger = true
+        useSystem = true
+
+        ventAfterBurst = ventAfterBurst || ai.isBackingOff
     }
 
-    private fun burnAtTarget(): BurstVector? {
-        return if (shouldBurnAtTarget) bestBurstVector(headingPoint, maxBurnAngle)
-        else null
+    inner class BurstVector(direction: Vector2f, toShipFacing: Rotation, val commands: Set<ShipCommand>) {
+        val vector: Vector2f = direction.rotated(toShipFacing).resized(burstSpeed)
+        val facing: Float = vector.facing
+        val boundsOffset: Float = burstSpeed - boundsCollision(vector, -vector, ship)!!
     }
 
-    private fun burnAtOpportunity(): BurstVector? {
-        val vectors: List<Pair<BurstVector, Float>> = ai.threats.mapNotNull { rammingVector(it) }
-        val bestVector = vectors.minWithOrNull(compareBy { it.second }) ?: return null
+    /** Burst vector associated with a target. */
+    inner class BurstPlan(val targetDistance: Float, val targetFacing: Float, val target: ShipAPI?) {
+        val burst: BurstVector = burstVectors.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.facing, targetFacing)) })!!
 
-        return if (bestVector.second <= maxRammingDistance) bestVector.first
-        else null
+        fun angleToTarget(): Float {
+            return MathUtils.getShortestRotation(burst.facing, targetFacing)
+        }
+
+        fun distanceToTarget(): Float {
+            return targetDistance - burst.boundsOffset
+        }
     }
 
     private fun calculateBurstVectors(): List<BurstVector> {
@@ -178,53 +240,8 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
             Pair((d + r), setOf(ACCELERATE_BACKWARDS, STRAFE_RIGHT)),
         )
 
-        val rot = Rotation(ship.facing)
-        return rawVectors.map {
-            val burstVector = it.first.rotated(rot).resized(burstSpeed)
-            val offsetRelative = boundsCollision(burstVector, -burstVector, ship)!!
-            val offset = burstSpeed * (1f - offsetRelative)
-
-            BurstVector(burstVector, it.first.facing + ship.facing, offset, it.second)
-        }
-    }
-
-    /** Find burn vector best aligned with direction to target. */
-    private fun bestBurstVector(target: Vector2f, maxAngle: Float): BurstVector? {
-        val toTarget = (target - ship.location).facing
-        val bestVector = burstVectors.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.facing, toTarget)) })!!
-
-        // Best burn vector is not aligned well with direction to target.
-        return if (abs(MathUtils.getShortestRotation(bestVector.facing, toTarget)) <= maxAngle) bestVector
-        else null
-    }
-
-    private fun rammingVector(target: ShipAPI): Pair<BurstVector, Float>? {
-        val bestVector = bestBurstVector(target.location, 360f) ?: return null
-        val collision = shieldCollision(bestVector, target) ?: boundsCollision(bestVector, target) ?: return null
-
-        return Pair(bestVector, collision - bestVector.offset)
-    }
-
-    /** Distance along burn vector at which collision with target shield occurs. */
-    private fun shieldCollision(burst: BurstVector, target: ShipAPI): Float? {
-        if (target.shield?.isOn != true) return null
-        val shield = target.shield
-
-        val position = ship.location - shield.location
-        val velocity = burst.vector
-
-        val time = solve(Pair(position, velocity), shield.radius) ?: return null
-        val hitPoint = position + velocity * time
-
-        return if (vectorInArc(hitPoint, Arc(shield.activeArc, shield.facing))) (velocity * time).length else null
-    }
-
-    /** Distance along burn vector at which collision with target bounds occurs. */
-    private fun boundsCollision(burst: BurstVector, target: ShipAPI): Float? {
-        val position = ship.location - target.location
-
-        val distanceRelative = boundsCollision(position, burst.vector, target) ?: return null
-        return burst.vector.length * distanceRelative
+        val toShipFacing = Rotation(ship.facing)
+        return rawVectors.map { BurstVector(it.first, toShipFacing, it.second) }
     }
 
     /** Burst boost strafe acceleration differs
@@ -238,5 +255,46 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
             ShipAPI.HullSize.CAPITAL_SHIP -> 0.35f
             else -> 1.0f
         }
+    }
+
+    /** Estimate collision parameters with target, assuming the ship travels
+     * directly at target (including target leading) with burstSpeed. */
+    private fun estimateCollision(target: ShipAPI): Pair<Float, Float>? {
+        val intercept = intercept(target) ?: return null
+        val toIntercept = intercept - ship.location
+
+        // Ship location and velocity in target frame of reference.
+        val p = ship.location - target.location
+        val v = toIntercept.resized(burstSpeed) - target.velocity
+
+        val distance = shieldCollision(p, v, target) ?: boundsCollision(p, v, target) ?: return null
+        return Pair(distance, toIntercept.facing)
+    }
+
+    private fun intercept(target: ShipAPI): Vector2f? {
+        // Target location and velocity in ship frame of reference.
+        val p = target.location - ship.location
+        val v = target.velocity
+
+        val time = solve(Pair(p, v), 0f, burstSpeed, 0f) ?: return null
+        return target.location + v * time
+    }
+
+    /** Distance along burn vector at which collision with target shield occurs. */
+    private fun shieldCollision(position: Vector2f, velocity: Vector2f, target: ShipAPI): Float? {
+        if (target.shield?.isOn != true) return null
+        val shield = target.shield
+
+        val time = solve(Pair(position, velocity), shield.radius) ?: return null
+        val hitPoint = position + velocity * time
+        val willHitShield = vectorInArc(hitPoint, Arc(shield.activeArc, shield.facing))
+
+        return if (willHitShield) (velocity * time).length else null
+    }
+
+    /** Distance along burn vector at which collision with target bounds occurs. */
+    private fun boundsCollision(position: Vector2f, velocity: Vector2f, target: ShipAPI): Float? {
+        val distanceRelative = com.genir.aitweaks.core.utils.boundsCollision(position, velocity, target)
+        return distanceRelative?.let { it * velocity.length }
     }
 }
