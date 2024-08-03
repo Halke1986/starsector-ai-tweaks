@@ -12,18 +12,15 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import com.genir.aitweaks.core.utils.shipSequence
 import com.genir.aitweaks.core.utils.times
-import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
 
@@ -91,7 +88,7 @@ class AI(val ship: ShipAPI) {
 
     private fun debug() {
 //        drawTurnLines(ship)
-        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
+//        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
 
 //        drawLine(ship.location, ship.location + unitVector(ship.facing) * 700f, Color.GREEN)
 //        drawLine(ship.location, ship.location + unitVector(movement.expectedFacing) * 600f, Color.YELLOW)

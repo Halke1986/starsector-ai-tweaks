@@ -4,7 +4,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ShipSystemAPI
-import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.AI
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.*
@@ -14,7 +13,6 @@ import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.BLUE
 import kotlin.math.abs
 
 class SrBurstBoost(private val ai: AI) : SystemAI {
@@ -37,50 +35,24 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
 
     override fun advance(dt: Float) {
         // Vent if burst was used to back off.
-//        if (!useSystem && ventAfterBurst && system.state != ShipSystemAPI.SystemState.ACTIVE) {
         if (!useSystem && ventAfterBurst) {
             ship.command(VENT_FLUX)
             ventAfterBurst = !ship.fluxTracker.isVenting
         }
 
-//        debugPrint["vent"] = "vent $useSystem $ventAfterBurst ${ship.fluxTracker.isVenting} ${system.state}"
-//        debugPrint["backoff"] = "backoff ${ai.isBackingOff}"
-
         if (useSystem) {
             ship.command(USE_SYSTEM)
-
-            val controller = ship.engineController
-
-            if (controller.isAccelerating) log("isAccelerating")
-            if (controller.isDecelerating) log("isDecelerating")
-            if (controller.isAcceleratingBackwards) log("isAcceleratingBackwards")
-            if (controller.isStrafingLeft) log("isStrafingLeft")
-            if (controller.isStrafingRight) log("isStrafingRight")
-
             useSystem = false
         }
 
         if (canUseBurst()) {
             burstVectors = calculateBurstVectors()
             burstPlan = updatePlannedBurst()
-
             if (shouldExecuteBurstPlan()) executeBurstPlan(burstPlan!!)
         } else {
             burstVectors = listOf()
             burstPlan = null
             useSystem = false
-        }
-
-//        if (burstPlan != null) {
-//            drawLine(ship.location, ship.location + burstPlan!!.burst.vector, Color.RED)
-//        }
-
-//        ai.threats.mapNotNull { estimateCollision(it) }.forEach {
-//            drawLine(ship.location, ship.location + unitVector(it.facing).resized(it.distance), YELLOW)
-//        }
-
-        burstVectors.forEach {
-            drawLine(ship.location + it.vector.resized(it.boundsOffset), ship.location + it.vector.resized(it.boundsOffset + burstSpeed), BLUE)
         }
     }
 
@@ -145,26 +117,6 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
         val shortestRotationPlan = makeBurstPlan(collision, frontVectors, attackTarget)
         return if (shortestRotationPlan.distanceToTarget() >= minChaseDistance) shortestRotationPlan
         else null
-
-//        val shouldUseBurstToAttack = when {
-//            ai.attackTarget == null -> false
-//
-//
-//
-//
-//            else -> true
-//        }
-
-
-//        when {
-//            shortestRotationPlan.distanceToTarget() <= maxRammingDistance -> return shortestRotationPlan
-//
-//        }
-//
-//        // Check if other bursts allow to ram the attack target.
-//
-//
-//        return rammingPlans.minWithOrNull(compareBy { it.distanceToTarget() })
     }
 
     private fun shouldExecuteBurstPlan(): Boolean {
@@ -195,7 +147,8 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
         // Use system the next frame, when issued commands are in effect.
         useSystem = true
 
-        ventAfterBurst = ventAfterBurst || ai.isBackingOff
+        // Schedule vent after burst if ship is backing off.
+        ventAfterBurst = ai.isBackingOff
     }
 
     /** Description of one of the eight possible burst vectors around the ship. */
