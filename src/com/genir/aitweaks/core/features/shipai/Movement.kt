@@ -39,18 +39,18 @@ class Movement(override val ai: AI) : Coordinable {
         manageMobilitySystems()
     }
 
-    private fun setHeading(dt: Float, maneuverTarget: ShipAPI?, moveOrderLocation: Vector2f?) {
+    private fun setHeading(dt: Float, maneuverTarget: ShipAPI?, assignmentLocation: Vector2f?) {
         val systemOverride: Vector2f? = ai.systemAI?.overrideHeading()
 
-        headingPoint = when {
+        val newHeadingPoint: Vector2f? = when {
             // Let movement system determine ship heading.
             systemOverride != null -> {
                 systemOverride
             }
 
-            // Move directly to ordered location for player ships.
-            ship.owner == 0 && !ship.isAlly && moveOrderLocation != null -> {
-                moveOrderLocation
+            // For player ships the heading to assignment location takes priority.
+            ship.owner == 0 && !ship.isAlly && shouldHeadToAssigment(assignmentLocation) -> {
+                assignmentLocation
             }
 
             // Move opposite to threat direction when backing off.
@@ -83,19 +83,22 @@ class Movement(override val ai: AI) : Coordinable {
                 headingPoint
             }
 
-            // Move directly to ordered location for non-player ships.
-            moveOrderLocation != null -> {
-                moveOrderLocation
+            // Move directly to assignment location.
+            assignmentLocation != null -> {
+                assignmentLocation
             }
 
             // Nothing to do, stop the ship.
-            else -> {
-                if ((ship.location - headingPoint).length() > ship.collisionRadius) ship.location
-                else headingPoint
-            }
+            else -> null
         }
 
-        expectedVelocity = engineController.heading(headingPoint, gatherSpeedLimits(dt))
+        if (newHeadingPoint != null) {
+            headingPoint = newHeadingPoint.copy
+            expectedVelocity = engineController.heading(headingPoint, gatherSpeedLimits(dt))
+        } else {
+            headingPoint = ship.location
+            expectedVelocity = engineController.stop()
+        }
     }
 
     private fun setFacing() {
@@ -134,6 +137,10 @@ class Movement(override val ai: AI) : Coordinable {
         }
 
         engineController.facing(expectedFacing)
+    }
+
+    private fun shouldHeadToAssigment(location: Vector2f?): Boolean {
+        return location != null && (location - ship.location).length > Preset.arrivedAtLocationRadius
     }
 
     private fun manageMobilitySystems() {
@@ -185,8 +192,10 @@ class Movement(override val ai: AI) : Coordinable {
             }
         }
 
-        val limits: MutableList<EngineController.Limit?> = mutableListOf(avoidBlockingLineOfFire(dt, friendlies), avoidBorder())
+        val limits: MutableList<EngineController.Limit?> = mutableListOf()
 
+        limits.add(avoidBlockingLineOfFire(dt, friendlies))
+        limits.add(avoidBorder())
         limits.addAll(avoidCollisions(dt, friendlies))
 
         return limits.filterNotNull()

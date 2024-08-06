@@ -53,14 +53,6 @@ class EngineController(val ship: ShipAPI) {
         val vt = r.rotate(heading - prevHeading)
         prevHeading = heading.copy
 
-        // Stop if reached stationary target. Distance threshold for
-        // stopping is the distance the ship covers in one frame after
-        // accelerating from a standstill.
-        if ((heading - ship.location).length() < af && vt.isZeroVector()) {
-            if (!ship.velocity.isZeroVector()) ship.command(DECELERATE)
-            return Vector2f()
-        }
-
         // Distance to target location in next frame. Next frame
         // is used because game engine apparently updates location
         // before updating velocity, so it's only the next frame
@@ -82,10 +74,7 @@ class EngineController(val ship: ShipAPI) {
         val dv = vec - v
 
         // Stop if expected velocity is smaller than half of minimum delta v.
-        if (vec.length() < af / 2f && !ship.velocity.isZeroVector()) {
-            ship.command(DECELERATE)
-            return Vector2f()
-        }
+        if (vec.length() < af / 2f) return stop()
 
         // Proportional thrust required to achieve
         // the expected velocity change.
@@ -102,6 +91,12 @@ class EngineController(val ship: ShipAPI) {
         if (shouldAccelerate(+d.x, fr, fMax)) ship.command(STRAFE_RIGHT)
 
         return r.reverse(vec) / dt
+    }
+
+    /** Decelerate the ship to standstill. */
+    fun stop(): Vector2f {
+        if (!ship.velocity.isZeroVector()) ship.command(DECELERATE)
+        return Vector2f()
     }
 
     /** Set ship facing. */

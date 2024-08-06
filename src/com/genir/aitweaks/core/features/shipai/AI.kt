@@ -12,6 +12,7 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.utils.extensions.*
@@ -21,6 +22,7 @@ import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
 
@@ -89,7 +91,7 @@ class AI(val ship: ShipAPI) {
     private fun debug() {
 //        drawTurnLines(ship)
 //        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
-//        drawLine(ship.location, movement.headingPoint, Color.YELLOW)
+        drawLine(ship.location, movement.headingPoint, Color.YELLOW)
 //        drawLine(ship.location, threatVector.resized(600f), Color.PINK)
 
 //        debugPrint["threats"] = "threats ${threats.size}"
@@ -159,9 +161,7 @@ class AI(val ship: ShipAPI) {
             else -> return
         }
 
-        val location = assignment.target?.location ?: return
-
-        if ((ship.location - location).length() > Preset.arrivedAtLocationRadius) assignmentLocation = location
+        assignmentLocation = assignment.target?.location
     }
 
     /** Select which enemy ship to attack. This may be different
