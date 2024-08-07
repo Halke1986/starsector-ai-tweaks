@@ -16,9 +16,7 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
-class SrBurstBoost(private val ai: AI) : SystemAI {
-    private val ship: ShipAPI = ai.ship
-    private val system: ShipSystemAPI = ship.system
+class SrBurstBoost(ai: AI) : SystemAI(ai) {
     private var burstVectors: List<BurstVector> = listOf()
     private var hardpoints: List<WeaponAPI> = listOf()
 
@@ -61,14 +59,7 @@ class SrBurstBoost(private val ai: AI) : SystemAI {
         }
     }
 
-    override fun holdManeuverTarget(): Boolean {
-        return ship.system.isOn
-    }
-
-    override fun overrideHeading(): Vector2f? {
-        return null
-    }
-
+    /** Rotate the ship to point selected burst vector at target. */
     override fun overrideFacing(): Float? {
         val plan = burstPlan ?: return null
 

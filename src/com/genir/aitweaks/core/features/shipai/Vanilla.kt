@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.features.shipai
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.genir.aitweaks.core.features.shipai.adapters.*
 import org.lazywizard.lazylib.ext.getFacing
@@ -14,6 +13,7 @@ import org.lwjgl.util.vector.Vector2f
 class Vanilla(ship: ShipAPI, overrideVanillaSystem: Boolean) {
     private val vanillaAI: BasicShipAI = Global.getSettings().createDefaultShipAI(ship, ShipAIConfig()) as BasicShipAI
 
+    val flags = vanillaAI.aiFlags
     private val flockingAI: FlockingAI = FlockingAI(vanillaAI)
     private val threatEvalAI: ThreatEvalAI = ThreatEvalAI(vanillaAI)
     private val ventModule: VentModule = VentModule(vanillaAI)
@@ -22,7 +22,7 @@ class Vanilla(ship: ShipAPI, overrideVanillaSystem: Boolean) {
     private val fighterPullbackModule: FighterPullbackModule? = FighterPullbackModule.getIfExists(vanillaAI)
 
     fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Float) {
-        vanillaAI.aiFlags.advance(dt)
+        flags.advance(dt)
         threatEvalAI.advance(dt)
 
         // Vanilla ship systems read maneuvers planned by ship AI through the flockingAI.
@@ -39,6 +39,4 @@ class Vanilla(ship: ShipAPI, overrideVanillaSystem: Boolean) {
         shieldAI?.advance(dt, threatEvalAI, missileDangerDir, collisionDangerDir, attackTarget)
         systemAI?.advance(dt, missileDangerDir, collisionDangerDir, attackTarget)
     }
-
-    fun flags(): ShipwideAIFlags = vanillaAI.aiFlags
 }

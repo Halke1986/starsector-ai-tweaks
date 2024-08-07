@@ -1,13 +1,19 @@
 package com.genir.aitweaks.core.features.shipai.systems
 
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipSystemAPI
+import com.genir.aitweaks.core.features.shipai.AI
 import org.lwjgl.util.vector.Vector2f
 
-interface SystemAI {
-    fun advance(dt: Float)
+abstract class SystemAI(val ai: AI) {
+    protected val ship: ShipAPI = ai.ship
+    protected val system: ShipSystemAPI = ship.system
 
-    fun holdManeuverTarget(): Boolean
+    abstract fun advance(dt: Float)
 
-    fun overrideHeading(): Vector2f?
+    open fun holdTargets(): Boolean = system.isOn
 
-    fun overrideFacing(): Float?
+    open fun overrideHeading(): Vector2f? = null
+
+    open fun overrideFacing(): Float? = null
 }

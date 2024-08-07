@@ -3,13 +3,10 @@ package com.genir.aitweaks.core.features.shipai.systems
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
-import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
-import com.genir.aitweaks.core.features.shipai.AI
-import com.genir.aitweaks.core.features.shipai.Coordinable
-import com.genir.aitweaks.core.features.shipai.command
-import com.genir.aitweaks.core.features.shipai.totalCollisionRadius
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
+import com.genir.aitweaks.core.features.shipai.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.addLength
 import com.genir.aitweaks.core.utils.extensions.facing
@@ -26,10 +23,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 /** Burn Drive AI. It replaces the vanilla implementation in ships with custom AI. */
-class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
-    private val ship: ShipAPI = ai.ship
-    private val system: ShipSystemAPI = ship.system
-
+class BurnDriveToggle(ai: AI) : SystemAI(ai), Coordinable {
     private var headingPoint: Vector2f = Vector2f()
     private var shouldBurn = false
 
@@ -60,10 +54,6 @@ class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
         updateHeadingPoint()
         updateShouldBurn()
         triggerSystem()
-    }
-
-    override fun holdManeuverTarget(): Boolean {
-        return ship.system.isOn
     }
 
     override fun overrideHeading(): Vector2f? {
@@ -99,7 +89,9 @@ class BurnDrive(override val ai: AI) : SystemAI, Coordinable {
             // Charge straight at the maneuver target, disregard fleet coordination.
             ai.maneuverTarget != null -> {
                 val vectorToTarget = ai.maneuverTarget!!.location - ship.location
-                val approachVector = vectorToTarget.addLength(-ai.broadside.minRange * approachToMinRangeFraction)
+                val distance = ai.vanilla.flags.get<Float>(AIFlags.MANEUVER_RANGE_FROM_TARGET)
+                    ?: (ai.broadside.minRange * approachToMinRangeFraction)
+                val approachVector = vectorToTarget.addLength(-distance)
 
                 // Let the attack coordinator review the calculated heading point.
                 proposedHeadingPoint = approachVector + ship.location

@@ -6,19 +6,23 @@ import com.fs.starfarer.api.combat.CombatFleetManagerAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.*
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.BACKING_OFF
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
+import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import com.genir.aitweaks.core.utils.shipSequence
 import com.genir.aitweaks.core.utils.times
+import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -26,27 +30,29 @@ import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
 
+// TODO no ram when weapon disabled
+// TODO weird rotating heading point
+
 @Suppress("MemberVisibilityCanBePrivate")
 class AI(val ship: ShipAPI) {
-    // Subclasses.
+    // Subsystems.
     val movement: Movement = Movement(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
-    private val vanilla: Vanilla = Vanilla(ship, systemAI != null)
+    val vanilla: Vanilla = Vanilla(ship, systemAI != null)
 
     // Helper classes.
     private val damageTracker: DamageTracker = DamageTracker(ship)
-    private var updateInterval: IntervalUtil = IntervalUtil(0.75f, 1.25f)
+    private val updateInterval: IntervalUtil = defaultAIInterval()
 
     // Standing orders.
     var assignment: CombatFleetManagerAPI.AssignmentInfo? = null
-    var assignmentLocation: Vector2f? = null
+    var assignmentLocation: Vector2f? = null // Assignment takes priority over maneuver target.
     var maneuverTarget: ShipAPI? = null
     var attackTarget: ShipAPI? = null
 
     // AI State.
     var stats: ShipStats = ShipStats(ship)
     var broadside: Broadside = stats.broadsides[0]
-    var vanillaFlags: ShipwideAIFlags = vanilla.flags()
     var isBackingOff: Boolean = false
     var isHoldingFire: Boolean = false
     var isAvoidingBorder: Boolean = false
@@ -60,37 +66,48 @@ class AI(val ship: ShipAPI) {
 
         updateInterval.advance(dt)
         val interval: Boolean = updateInterval.intervalElapsed()
-
         if (interval) {
             stats = ShipStats(ship)
+            updateBroadside()
             ensureAutofire()
         }
 
         // Update state.
         damageTracker.advance()
         updateThreats()
-
         updateIdleTime(dt)
         updateBackoffStatus()
+        update1v1Status()
+
+        // Update targets.
         updateAssignment(interval)
         updateManeuverTarget(interval)
         updateAttackTarget(interval)
-        update1v1Status()
 
-        vanilla.advance(dt, attackTarget, movement.expectedVelocity, movement.expectedFacing)
         ventIfNeeded()
         holdFireIfOverfluxed()
 
+        // Advance subsystems.
+        vanilla.advance(dt, attackTarget, movement.expectedVelocity, movement.expectedFacing)
         systemAI?.advance(dt)
         movement.advance(dt)
 
-        vanillaFlags.setFlag(MANEUVER_RANGE_FROM_TARGET, broadside.minRange)
-        vanillaFlags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
+        vanilla.flags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
     }
 
     private fun debug() {
+
+        debugPrint["range"] = broadside.maxRange
+        debugPrint["override"] = "override ${vanilla.flags.get<Float>(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)}}"
+        debugPrint["override2"] = "override2 ${vanilla.flags.hasFlag(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)}"
+
+//        ship.allWeapons.filter { it.slot.isHardpoint }.forEach {
+//            debugPrint[it.id] = it.range
+//        }
+
 //        drawTurnLines(ship)
 //        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
+//        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
         drawLine(ship.location, movement.headingPoint, Color.YELLOW)
 //        drawLine(ship.location, threatVector.resized(600f), Color.PINK)
 
@@ -103,13 +120,38 @@ class AI(val ship: ShipAPI) {
 //        drawLine(ship.location, ship.location + threatVector.resized(600f), Color.PINK)
     }
 
+    private fun updateAssignment(interval: Boolean) {
+        // Update assignment location only when assignment
+        // was changed or when interval has elapsed.
+        if (ship.assignment == assignment && !interval) return
+
+        assignment = ship.assignment
+        assignmentLocation = null
+
+        if (assignment == null) return
+
+        val assignment = assignment!!
+
+        when (assignment.type) {
+            RECON, AVOID, RETREAT, REPAIR_AND_REFIT, SEARCH_AND_DESTROY -> return
+
+            DEFEND, RALLY_TASK_FORCE, RALLY_CARRIER, RALLY_CIVILIAN, RALLY_STRIKE_FORCE -> Unit
+            RALLY_FIGHTERS, STRIKE, INTERCEPT, HARASS, LIGHT_ESCORT, MEDIUM_ESCORT -> Unit
+            HEAVY_ESCORT, CAPTURE, CONTROL, ASSAULT, ENGAGE -> Unit
+
+            else -> return
+        }
+
+        assignmentLocation = assignment.target?.location
+    }
+
     private fun updateManeuverTarget(interval: Boolean) {
         val needsUpdate = when {
             // Current target is no longer valid.
             maneuverTarget?.isValidTarget == false -> true
 
             // Don't change target when movement system is on.
-            systemAI?.holdManeuverTarget() == true -> false
+            systemAI?.holdTargets() == true -> false
 
             else -> interval
         }
@@ -139,31 +181,6 @@ class AI(val ship: ShipAPI) {
         maneuverTarget = targets.minByOrNull { (it.location - ship.location).lengthSquared() }
     }
 
-    private fun updateAssignment(interval: Boolean) {
-        // Update assignment location only when assignment
-        // was changed or when interval has elapsed.
-        if (ship.assignment == assignment && !interval) return
-
-        assignment = ship.assignment
-        assignmentLocation = null
-
-        if (assignment == null) return
-
-        val assignment = assignment!!
-
-        when (assignment.type) {
-            RECON, AVOID, RETREAT, REPAIR_AND_REFIT, SEARCH_AND_DESTROY -> return
-
-            DEFEND, RALLY_TASK_FORCE, RALLY_CARRIER, RALLY_CIVILIAN, RALLY_STRIKE_FORCE -> Unit
-            RALLY_FIGHTERS, STRIKE, INTERCEPT, HARASS, LIGHT_ESCORT, MEDIUM_ESCORT -> Unit
-            HEAVY_ESCORT, CAPTURE, CONTROL, ASSAULT, ENGAGE -> Unit
-
-            else -> return
-        }
-
-        assignmentLocation = assignment.target?.location
-    }
-
     /** Select which enemy ship to attack. This may be different
      * from the maneuver target provided by the ShipAI. */
     private fun updateAttackTarget(interval: Boolean) {
@@ -175,6 +192,9 @@ class AI(val ship: ShipAPI) {
 
             // Do not interrupt weapon bursts.
             stats.significantWeapons.any { it.size != SMALL && it.isInFiringSequence && it.customAI?.targetShip == attackTarget } -> false
+
+            // Don't change target when movement system is on.
+            systemAI?.holdTargets() == true -> false
 
             // Target is out of range.
             range(currentTarget) > broadside.maxRange -> true
@@ -219,8 +239,14 @@ class AI(val ship: ShipAPI) {
             else -> isBackingOff
         }
 
-        if (isBackingOff) vanillaFlags.setFlag(BACKING_OFF)
-        else vanillaFlags.unsetFlag(BACKING_OFF)
+        if (isBackingOff) vanilla.flags.setFlag(BACKING_OFF)
+        else vanilla.flags.unsetFlag(BACKING_OFF)
+    }
+
+    /** Find the most similar broadside to the current
+     * one after ship stats have been updated. */
+    private fun updateBroadside() {
+        broadside = stats.broadsides.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.facing, broadside.facing)) })!!
     }
 
     private fun updateIdleTime(dt: Float) {
@@ -322,6 +348,7 @@ class AI(val ship: ShipAPI) {
         val bestTarget = broadsideTargets.minOfWithOrNull(compareBy { evaluateTarget(it.value, it.key) }) { it }
         if (bestTarget != null) return bestTarget.toPair()
 
+        // No good attack target found. Try alternatives.
         val altTarget: ShipAPI? = when {
             maneuverTarget != null -> maneuverTarget
 

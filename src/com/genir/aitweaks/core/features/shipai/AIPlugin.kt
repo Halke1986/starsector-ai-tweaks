@@ -16,7 +16,7 @@ class AIPlugin(ship: ShipAPI) : ShipAIPlugin {
 
     override fun needsRefit(): Boolean = false
 
-    override fun getAIFlags(): ShipwideAIFlags = ai.vanillaFlags
+    override fun getAIFlags(): ShipwideAIFlags = ai.vanilla.flags
 
     override fun cancelCurrentManeuver() = Unit
 

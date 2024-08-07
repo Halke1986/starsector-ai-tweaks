@@ -1,9 +1,6 @@
 package com.genir.aitweaks.core.features.shipai
 
-import com.fs.starfarer.api.combat.CollisionClass
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipCommand
-import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.utils.extensions.isModule
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
@@ -69,3 +66,7 @@ val ShipAPI.totalCollisionRadius: Float
     }
 
 fun ShipAPI.command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
+
+inline fun <reified T> ShipwideAIFlags.get(flag: ShipwideAIFlags.AIFlags): T? {
+    return getCustom(flag) as? T
+}

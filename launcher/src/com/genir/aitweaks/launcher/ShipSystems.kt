@@ -8,8 +8,6 @@ import java.lang.invoke.MethodType
 
 class HighEnergyFocusAI : ShipSystemAIAdapter("com.genir.aitweaks.core.features.HighEnergyFocusAI")
 
-class LidarArrayAI : ShipSystemAIAdapter("com.genir.aitweaks.core.features.lidar.LidarArrayAI")
-
 open class ShipSystemAIAdapter(classPath: String) : ShipSystemAIScript {
     private val impl: ShipSystemAIScript
     private val initHandle: MethodHandle

@@ -1,9 +1,11 @@
-package com.genir.aitweaks.core.features.lidar
+package com.genir.aitweaks.core.features.shipai.systems
 
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
+import com.genir.aitweaks.core.features.shipai.AI
+import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.attack.AttackTarget
 import com.genir.aitweaks.core.utils.attack.canTrack
 import com.genir.aitweaks.core.utils.attack.defaultBallisticParams
@@ -13,38 +15,26 @@ import com.genir.aitweaks.core.utils.extensions.isHullDamageable
 import com.genir.aitweaks.core.utils.extensions.isShip
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
-import org.lwjgl.util.vector.Vector2f
 
-class LidarArrayAI : ShipSystemAIScript {
-    private var ai: LidarArrayAIImpl? = null
+class LidarArray(ai: AI) : SystemAI(ai) {
+    private val updateInterval = defaultAIInterval()
+    private var rangeOverride: Float = minLidarWeaponRange()
 
-    override fun init(ship: ShipAPI?, system: ShipSystemAPI?, flags: ShipwideAIFlags?, engine: CombatEngineAPI?) {
-        ship ?: return
-        system ?: return
-        flags ?: return
+    override fun advance(dt: Float) {
+        updateInterval.advance(dt)
+        if (updateInterval.intervalElapsed()) {
 
-        this.ai = LidarArrayAIImpl(ship, system)
-    }
+            // Override maneuver distance to always stay at lidar weapons range.
+            if (system.state == ShipSystemAPI.SystemState.IDLE)
+                rangeOverride = minLidarWeaponRange()
+            ai.vanilla.flags.setFlag(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET, 1.0f, rangeOverride)
 
-    override fun advance(amount: Float, missileDangerDir: Vector2f?, collisionDangerDir: Vector2f?, target: ShipAPI?) {
-        ai?.advance(amount)
-    }
-}
+            when {
+                system.isOn || getLidarWeapons().isEmpty() -> return
 
-class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystemAPI) {
-    private var shouldUseSystemInterval = defaultAIInterval()
+                shouldForceVent() -> ship.command(ShipCommand.VENT_FLUX)
 
-    fun advance(dt: Float) {
-        shouldUseSystemInterval.advance(dt)
-
-        when {
-            system.isOn || getLidarWeapons().isEmpty() -> return
-            shouldForceVent() -> ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
-            shouldUseSystemInterval.intervalElapsed() && shouldUseSystem() -> {
-                ship.useSystem()
-
-                // Set data to be used by ShipAI.
-                ship.setCustomData(lidarConfigID, LidarConfig(ship.attackTarget, minLidarWeaponRange()))
+                shouldUseSystem() -> ship.command(ShipCommand.USE_SYSTEM)
             }
         }
     }
@@ -121,7 +111,8 @@ class LidarArrayAIImpl(private val ship: ShipAPI, private val system: ShipSystem
 
         return result
     }
+
+    private val WeaponAPI.isLidarWeapon: Boolean
+        get() = this.slot.isHardpoint && !this.isBeam && !this.isDecorative && (this.type == ENERGY || this.type == BALLISTIC)
 }
 
-val WeaponAPI.isLidarWeapon: Boolean
-    get() = this.slot.isHardpoint && !this.isBeam && !this.isDecorative && (this.type == ENERGY || this.type == BALLISTIC)

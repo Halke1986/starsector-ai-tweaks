@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
@@ -76,7 +77,8 @@ class Movement(override val ai: AI) : Coordinable {
                 else vectorToThreat
 
                 // Let the attack coordinator review the calculated heading point.
-                proposedHeadingPoint = maneuverTarget.location - attackPositionOffset.resized(ai.broadside.minRange)
+                val distance = ai.vanilla.flags.get<Float>(AIFlags.MANEUVER_RANGE_FROM_TARGET) ?: ai.broadside.minRange
+                proposedHeadingPoint = maneuverTarget.location - attackPositionOffset.resized(distance)
                 val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
                 reviewedHeadingPoint = null
 
