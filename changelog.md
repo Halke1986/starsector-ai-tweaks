@@ -1,3 +1,6 @@
+- Autofire weapons with long bursts like Tachyon Lance or Plasma Cannon are even less likely to change targets mid-burst.
+- Fixed issue where autofire weapons in some cases were too accurate on ships with low Combat Readiness.
+
 Version 1.7.4
 
 - Updated LunaLib settings description. Reported by @soundso.

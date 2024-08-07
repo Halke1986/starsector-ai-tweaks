@@ -16,6 +16,10 @@ class SystemAI(private val systemAI: Any) {
         val methods = systemAI::class.java.methods
         val advanceParams = arrayOf(Float::class.java, Vector2f::class.java, Vector2f::class.java, Ship::class.java)
         val advance = methods.first { it.parameterTypes.contentEquals(advanceParams) }
+
+        // Advance is private in case of inner class defined
+        // in ShipSystemSpec as a wrapper for CUSTOM system AI.
+        advance.setAccessible(true)
         this.advance = MethodHandles.lookup().unreflect(advance)
     }
 

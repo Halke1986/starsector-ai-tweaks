@@ -93,24 +93,11 @@ class AI(val ship: ShipAPI) {
     }
 
     private fun debug() {
-
-//        debugPrint["range"] = calculateAttackRange()
-//        debugPrint["override"] = "override ${vanilla.flags.get<Float>(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)}}"
-//        debugPrint["override2"] = "override2 ${vanilla.flags.hasFlag(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)}"
-
-//        ship.allWeapons.filter { it.slot.isHardpoint }.forEach {
-//            debugPrint[it.id] = it.range
-//        }
-
 //        drawTurnLines(ship)
+
 //        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
 //        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
 //        drawLine(ship.location, movement.headingPoint, Color.YELLOW)
-//        drawLine(ship.location, threatVector.resized(600f), Color.PINK)
-
-//        debugPrint["threats"] = "threats ${threats.size}"
-//        debugPrint["tvector"] = "tvector ${threatVector}"
-
 
 //        drawLine(ship.location, ship.location + unitVector(ship.facing) * 700f, Color.GREEN)
 //        drawLine(ship.location, ship.location + unitVector(movement.expectedFacing) * 600f, Color.YELLOW)
@@ -187,7 +174,7 @@ class AI(val ship: ShipAPI) {
             currentTarget == null -> true
             !currentTarget.isValidTarget -> true
 
-            // Do not interrupt weapon bursts.
+            // Do not interrupt weapon bursts. // TODO fixme
             stats.significantWeapons.any { it.size != SMALL && it.isInFiringSequence && it.customAI?.targetShip == attackTarget } -> false
 
             // Don't change target when movement system is on.

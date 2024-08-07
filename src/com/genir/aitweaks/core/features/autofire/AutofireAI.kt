@@ -3,14 +3,10 @@ package com.genir.aitweaks.core.features.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.features.autofire.HoldFire.*
-import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.attack.*
 import com.genir.aitweaks.core.utils.extensions.*
-import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
-import com.genir.aitweaks.core.utils.rotateAroundPivot
-import com.genir.aitweaks.core.utils.vectorInArc
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -24,17 +20,15 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
 
     private var target: CombatEntityAPI? = null
-    private var prevFrameTarget: CombatEntityAPI? = null
+    private var aimPoint: Vector2f? = null
 
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
     private var onTargetTime: Float = 0f
     private var isForcedOff = false
 
-    private var selectTargetInterval = IntervalUtil(0.25F, 0.50F)
-    private var shouldFireInterval = IntervalUtil(0.1F, 0.2F)
-
-    private var aimPoint: Vector2f? = null
+    private var selectTargetInterval = Interval(0.25F, 0.50F)
+    private var shouldFireInterval = Interval(0.1F, 0.2F)
 
     // Fields accessed by custom ship AI
     var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons
@@ -44,48 +38,44 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val debugIdx = autofireAICount++
 
     override fun advance(dt: Float) {
-        if (Global.getCurrentState() == GameState.CAMPAIGN) return
+        when {
+            // Don't operate the weapon in refit screen.
+            Global.getCurrentState() == GameState.CAMPAIGN -> return
+            Global.getCombatEngine().isPaused -> return
+        }
 
+        // Update time trackers.
+        selectTargetInterval.advance(dt)
+        shouldFireInterval.advance(dt)
         trackAttackTimes(dt)
 
-        val targetDiedLastFrame = when (target) {
-            null -> prevFrameTarget != null
-            is ShipAPI -> !(target as ShipAPI).isAlive
-            else -> !Global.getCombatEngine().isEntityInPlay(target)
+        // Update target.
+        val updateTarget = shouldUpdateTarget()
+        if (updateTarget) {
+            val previousTarget = target
+            target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target
+            selectTargetInterval.reset()
+            if (previousTarget != target) {
+                attackTime = 0f
+                onTargetTime = 0f
+            }
         }
-        prevFrameTarget = target
-
-        // Force recalculate if target died last frame.
-        if (targetDiedLastFrame) {
-            selectTargetInterval.forceIntervalElapsed()
-            target = null
-            attackTime = 0f
-            onTargetTime = 0f
-        }
-
-        // Select target.
-        selectTargetInterval.advance(dt)
-        if (selectTargetInterval.intervalElapsed()) {
-            target = SelectTarget(weapon, target, ship.attackTarget, currentParams()).target
-            shouldFireInterval.forceIntervalElapsed()
-        }
-
-        updateAimLocation()
 
         // Calculate if weapon should fire.
-        shouldFireInterval.advance(dt)
-        if (shouldFireInterval.intervalElapsed()) {
-            shouldHoldFire = calculateShouldFire(selectTargetInterval.elapsed)
-        }
-
-        // Override the calculated decision.
         if (isForcedOff) {
             isForcedOff = false
             shouldHoldFire = FORCE_OFF
+        } else if (updateTarget || shouldFireInterval.intervalElapsed()) {
+            shouldHoldFire = calculateShouldFire(dt)
+            shouldFireInterval.reset()
         }
+
+        updateAimLocation()
     }
 
-    override fun shouldFire(): Boolean = shouldHoldFire == null
+    override fun shouldFire(): Boolean {
+        return shouldHoldFire == null
+    }
 
     override fun forceOff() {
         isForcedOff = true
@@ -96,16 +86,32 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getWeapon(): WeaponAPI = weapon
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
 
-    private fun trackAttackTimes(timeDelta: Float) {
+    private fun trackAttackTimes(dt: Float) {
         if (weapon.isFiring) {
-            attackTime += timeDelta
+            attackTime += dt
             idleTime = 0f
-        } else idleTime += timeDelta
+        } else idleTime += dt
 
         if (idleTime >= 3f) attackTime = 0f
     }
 
-    private fun calculateShouldFire(timeDelta: Float): HoldFire? {
+    private fun shouldUpdateTarget(): Boolean {
+        return when {
+            // Current target is no longer valid.
+            target?.isValidTarget == false -> {
+                target = null
+                true
+            }
+
+            // Do not interrupt started firing sequence.
+            target != null && weapon.isInFiringSequence -> false
+
+            // Refresh target every interval.
+            else -> selectTargetInterval.intervalElapsed()
+        }
+    }
+
+    private fun calculateShouldFire(dt: Float): HoldFire? {
         this.predictedHit = null
 
         if (target == null) return NO_TARGET
@@ -114,7 +120,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
         val expectedHit = target?.let { analyzeHit(weapon, target!!, currentParams()) }
-        onTargetTime += timeDelta
+        onTargetTime += dt
         if (expectedHit == null) {
             onTargetTime = 0f
             return NO_HIT_EXPECTED

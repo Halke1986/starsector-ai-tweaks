@@ -13,7 +13,7 @@ import org.lwjgl.util.vector.Vector2f
 
 private const val alsoTargetFighters = true
 
-class SelectTarget(
+class UpdateTarget(
     private val weapon: WeaponAPI,
     private val current: CombatEntityAPI?,
     private val attackTarget: ShipAPI?,
@@ -117,5 +117,3 @@ class SelectTarget(
         }?.target as? ShipAPI
     }
 }
-
-

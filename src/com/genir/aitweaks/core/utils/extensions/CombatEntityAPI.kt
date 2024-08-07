@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core.utils.extensions
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 
@@ -9,7 +10,7 @@ val CombatEntityAPI.isShip: Boolean
 
 val CombatEntityAPI.isValidTarget: Boolean
     get() = if (this is ShipAPI) isAlive && isHullDamageable && !isExpired
-    else !isExpired
+    else !isExpired && Global.getCombatEngine().isEntityInPlay(this)
 
 val CombatEntityAPI.isSupportFighter: Boolean
     get() = (this is ShipAPI) && wing?.spec?.isSupport == true
