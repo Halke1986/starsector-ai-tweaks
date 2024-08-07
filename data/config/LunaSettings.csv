@@ -1,8 +1,8 @@
 fieldID,fieldName,fieldType,defaultValue,secondaryValue,,,fieldDescription,,,minValue,maxValue,tab
-aitweaks_enable_custom_ship_ai,Enable Custom Ship AI,Boolean,true,,,,"Enable modded AI for selected ships. The AI controls ship movement and target selection during battle. Currently implemented only for Guardian in Cryosleeper encounter. Requires adding -Xverify:none parameter to game vmparams file."
+aitweaks_enable_custom_ship_ai,Enable Custom Ship AI,Boolean,true,,,,Enable early WIP modded AI for selected ships. The AI controls ship movement and target selection during battle. Currently implemented only for vanilla Guardian.
 aitweaks_enable_fleet_cohesion_ai,Enable Fleet Cohesion AI,Boolean,true,,,,Should the AI attempt to maintain fleet cohesion by auto-assigning move commands to cruisers and capitals that stray off from the rest of the fleet.,,
-aitweaks_enable_title_screen_fire,Enable Title Screen Fire,Boolean,true,,,,Should ships on the title screen fire at asteroids.,,
-aitweaks_omni_shield_keybind,Omni Shields Toggle Keybind,Keycode,27,,,,"Hotkey used to pass control of player ship omni shield to AI. The AI will take over the shield control when player is piloting manually. Indicator circle is drawn around the ship when shield is in AI control.",,
+aitweaks_enable_title_screen_fire,Enable Title Screen Fire,Boolean,true,,,,Ships on the title screen fire at asteroids.,,
+aitweaks_omni_shield_keybind,Omni Shields Toggle Keybind,Keycode,27,,,,Hotkey used to pass control of player ship omni shield to AI. The AI will take over the shield control when player is piloting manually. Indicator circle is drawn around the ship when shield is in AI control.,,
 aitweaks_ai_core_personality,Player Fleet AI Core Personality,Radio,None,"timid, cautious, steady, aggressive, reckless",,,"Override the personality of automated ships in player fleet. In vanilla, automated ships (except carriers) are locked to fearless personality.",,
-aitweaks_enable_devmode,Dev Mode,Boolean,false,,,,"AI Tweaks dev mode",,,,,Debug
+aitweaks_enable_devmode,Dev Mode,Boolean,false,,,,AI Tweaks dev mode,,,,,Debug
 aitweaks_highlight_custom_ai,Highlight Custom AI,Boolean,false,,,,"Highlight ships controlled by AI Tweaks Custom AI.",,,,,Debug

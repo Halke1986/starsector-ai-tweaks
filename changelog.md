@@ -1,4 +1,8 @@
-Version 1.7.2
+Version 1.7.4
+
+- Updated LunaLib settings description. Reported by @soundso.
+
+Version 1.7.3
 
 - Custom ship AI avoids ship collisions.
 - Custom ship AI avoids blocking line of fire.
