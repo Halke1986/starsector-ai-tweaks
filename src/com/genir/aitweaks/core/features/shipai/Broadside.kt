@@ -10,6 +10,7 @@ class Broadside(significantWeapons: List<WeaponAPI>, val facing: Float) {
     val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)
     val minRange: Float = weapons.minOfOrNull { it.slotRange } ?: 0f
     val maxRange: Float = weapons.maxOfOrNull { it.slotRange } ?: 0f
+    val dps: Float = weapons.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
 
     /** Fraction of primary weapons DPS that can be delivered at the given range. */
     fun dpsFractionAtRange(range: Float): Float {
@@ -28,8 +29,6 @@ class Broadside(significantWeapons: List<WeaponAPI>, val facing: Float) {
     /** Range at which the ship can deliver at least
      * `dpsFraction` of its primary weapons DPS. */
     private fun effectiveRange(effectiveDpsThreshold: Float): Float {
-        val dps = weapons.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
-
         if (dps == 0f) return 0f
 
         var dpsInRange = dps

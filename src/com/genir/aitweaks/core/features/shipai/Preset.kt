@@ -32,6 +32,7 @@ class Preset {
         const val broadsideFacingPadding = 10f
         const val maxBroadsideFacing = 80f
         const val validBroadsideDPSThreshold = 0.9f
+        const val noWeaponsAttackRange = 2000f
 
         const val weaponMaxReloadTime = 12f
     }

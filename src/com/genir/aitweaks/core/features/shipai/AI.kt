@@ -13,7 +13,6 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
@@ -30,7 +29,6 @@ import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
 
-// TODO no ram when weapon disabled
 // TODO weird rotating heading point
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -67,8 +65,7 @@ class AI(val ship: ShipAPI) {
         updateInterval.advance(dt)
         val interval: Boolean = updateInterval.intervalElapsed()
         if (interval) {
-            stats = ShipStats(ship)
-            updateBroadside()
+            updateShipStats()
             ensureAutofire()
         }
 
@@ -97,9 +94,9 @@ class AI(val ship: ShipAPI) {
 
     private fun debug() {
 
-        debugPrint["range"] = broadside.maxRange
-        debugPrint["override"] = "override ${vanilla.flags.get<Float>(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)}}"
-        debugPrint["override2"] = "override2 ${vanilla.flags.hasFlag(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)}"
+//        debugPrint["range"] = calculateAttackRange()
+//        debugPrint["override"] = "override ${vanilla.flags.get<Float>(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)}}"
+//        debugPrint["override2"] = "override2 ${vanilla.flags.hasFlag(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)}"
 
 //        ship.allWeapons.filter { it.slot.isHardpoint }.forEach {
 //            debugPrint[it.id] = it.range
@@ -108,7 +105,7 @@ class AI(val ship: ShipAPI) {
 //        drawTurnLines(ship)
 //        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
 //        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
-        drawLine(ship.location, movement.headingPoint, Color.YELLOW)
+//        drawLine(ship.location, movement.headingPoint, Color.YELLOW)
 //        drawLine(ship.location, threatVector.resized(600f), Color.PINK)
 
 //        debugPrint["threats"] = "threats ${threats.size}"
@@ -243,9 +240,11 @@ class AI(val ship: ShipAPI) {
         else vanilla.flags.unsetFlag(BACKING_OFF)
     }
 
-    /** Find the most similar broadside to the current
-     * one after ship stats have been updated. */
-    private fun updateBroadside() {
+
+    private fun updateShipStats() {
+        stats = ShipStats(ship)
+
+        // Find the most similar broadside to the current one after ship stats have been updated.
         broadside = stats.broadsides.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.facing, broadside.facing)) })!!
     }
 
@@ -395,6 +394,22 @@ class AI(val ship: ShipAPI) {
         // TODO avoid wrecks
 
         return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType + evalVent + evalCurrentTarget
+    }
+
+    /** Range from which ship should attack its target. */
+    fun calculateAttackRange(): Float {
+        val flag = vanilla.flags.get<Float>(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)
+
+        return when {
+            // Range overriden by ai flag.
+            flag != null -> flag
+
+            // Default all-weapons attack range.
+            broadside.dps > 0f -> broadside.minRange
+
+            // Range for ships with no weapons.
+            else -> Preset.noWeaponsAttackRange
+        }
     }
 
     private fun isThreat(target: ShipAPI): Boolean {

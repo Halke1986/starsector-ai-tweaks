@@ -31,7 +31,7 @@ class ShipStats(private val ship: ShipAPI) {
                 weapon.slot.isSystemSlot -> false
                 weapon.slot.isStationModule -> false
                 weapon.type == WeaponAPI.WeaponType.MISSILE -> false
-                weapon.isPD -> false
+                weapon.isPD && !weapon.slot.isHardpoint -> false
                 weapon.isDisabled -> false
                 weapon.isPermanentlyDisabled -> false
                 weapon.derivedStats.dps == 0f -> false
