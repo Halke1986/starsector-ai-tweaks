@@ -6,7 +6,7 @@ import kotlin.random.Random
  * automatically by advance() method. Instead, the interval must be
  * restarted explicitly by calling reset(). This allows for easy
  * tracking of overdue actions.  */
-class Interval(private val min: Float, private val max: Float) {
+class IntervalTracker(private val min: Float, private val max: Float) {
     private var timeLeft: Float = 0f
 
     init {

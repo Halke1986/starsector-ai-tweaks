@@ -13,7 +13,6 @@ import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.attack.AttackTarget
 import com.genir.aitweaks.core.utils.attack.canTrack
 import com.genir.aitweaks.core.utils.attack.defaultBallisticParams
-import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.extensions.attackTarget
 import com.genir.aitweaks.core.utils.extensions.autofirePlugin
 import com.genir.aitweaks.core.utils.extensions.isHullDamageable
@@ -22,7 +21,7 @@ import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 
 class LidarArray(ai: AI) : SystemAI(ai) {
-    private val updateInterval: IntervalUtil = defaultAIInterval()
+    private val updateInterval: IntervalUtil = IntervalUtil(0.25f, 0.50f)
     private var lidarWeapons: List<WeaponAPI> = listOf()
     private var zeroFluxBoostMode: Boolean = false
 

@@ -10,22 +10,16 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.BACKING_OFF
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
-import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
-import com.genir.aitweaks.core.utils.defaultAIInterval
+import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
-import com.genir.aitweaks.core.utils.shieldUptime
-import com.genir.aitweaks.core.utils.shipSequence
-import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
 
@@ -40,7 +34,7 @@ class AI(val ship: ShipAPI) {
 
     // Helper classes.
     private val damageTracker: DamageTracker = DamageTracker(ship)
-    private val updateInterval: IntervalUtil = defaultAIInterval()
+    private val updateInterval: IntervalTracker = defaultAIInterval()
 
     // Standing orders.
     var assignment: CombatFleetManagerAPI.AssignmentInfo? = null
@@ -65,6 +59,7 @@ class AI(val ship: ShipAPI) {
         updateInterval.advance(dt)
         val interval: Boolean = updateInterval.intervalElapsed()
         if (interval) {
+            updateInterval.reset()
             updateShipStats()
             ensureAutofire()
         }

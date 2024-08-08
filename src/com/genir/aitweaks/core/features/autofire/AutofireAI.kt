@@ -27,8 +27,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var onTargetTime: Float = 0f
     private var isForcedOff = false
 
-    private var selectTargetInterval = Interval(0.25F, 0.50F)
-    private var shouldFireInterval = Interval(0.1F, 0.2F)
+    private var selectTargetInterval = IntervalTracker(0.25F, 0.50F)
+    private var shouldFireInterval = IntervalTracker(0.1F, 0.2F)
 
     // Fields accessed by custom ship AI
     var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons

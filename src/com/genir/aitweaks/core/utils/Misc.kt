@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.fs.starfarer.api.util.IntervalUtil
 import org.json.JSONObject
 import org.lazywizard.lazylib.MathUtils.getShortestRotation
 import org.lazywizard.lazylib.VectorUtils
@@ -64,7 +63,7 @@ class Rotation(angle: Float) {
     fun reverse(v: Vector2f) = Vector2f(v.x * cos + v.y * sin, -v.x * sin + v.y * cos)
 }
 
-fun defaultAIInterval() = IntervalUtil(0.25f, 0.50f)
+fun defaultAIInterval() = IntervalTracker(0.25f, 0.50f)
 
 class RollingAverageVector(private val historySize: Int) {
     private var history: MutableList<Vector2f> = mutableListOf()
