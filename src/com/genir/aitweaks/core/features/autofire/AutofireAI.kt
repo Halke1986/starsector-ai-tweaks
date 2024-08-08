@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.features.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.features.autofire.HoldFire.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.attack.*
@@ -25,7 +26,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
     private var onTargetTime: Float = 0f
-    private var isForcedOff = false
+    private var isForcedOff: Boolean = false
 
     private var selectTargetInterval = IntervalTracker(0.25F, 0.50F)
     private var shouldFireInterval = IntervalTracker(0.1F, 0.2F)
@@ -33,7 +34,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     // Fields accessed by custom ship AI
     var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons
     var shouldHoldFire: HoldFire? = NO_TARGET
-    var predictedHit: Hit? = null
 
     private val debugIdx = autofireAICount++
 
@@ -49,32 +49,35 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         shouldFireInterval.advance(dt)
         trackAttackTimes(dt)
 
+        updateAimLocation()
+
+        // Calculate if weapon should fire at current target.
+        if (shouldFireInterval.intervalElapsed()) {
+            shouldFireInterval.reset()
+            shouldHoldFire = calculateShouldFire(dt)
+        }
+
         // Update target.
-        val updateTarget = shouldUpdateTarget()
-        if (updateTarget) {
+        debugPrint["update"] = ""
+        if (shouldUpdateTarget()) {
+            selectTargetInterval.reset()
             val previousTarget = target
             target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target
-            selectTargetInterval.reset()
+
+            debugPrint["update"] = "update"
+
+            // Target changed, do cleanup.
             if (previousTarget != target) {
                 attackTime = 0f
                 onTargetTime = 0f
             }
         }
-
-        // Calculate if weapon should fire.
-        if (isForcedOff) {
-            isForcedOff = false
-            shouldHoldFire = FORCE_OFF
-        } else if (updateTarget || shouldFireInterval.intervalElapsed()) {
-            shouldHoldFire = calculateShouldFire(dt)
-            shouldFireInterval.reset()
-        }
-
-        updateAimLocation()
     }
 
     override fun shouldFire(): Boolean {
-        return shouldHoldFire == null
+        val off = isForcedOff
+        isForcedOff = false
+        return !off && shouldHoldFire == null
     }
 
     override fun forceOff() {
@@ -97,30 +100,32 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     private fun shouldUpdateTarget(): Boolean {
         return when {
-            // Current target is no longer valid.
-            target?.isValidTarget == false -> {
-                target = null
-                true
-            }
+            // Target became invalid this frame, update immediately.
+            // This is important for PD weapons defending against swarms of missiles.
+            shouldHoldFire == INVALID_TARGET || shouldHoldFire == CANT_TRACK -> true
 
-            // Do not interrupt started firing sequence.
+            // Do not interrupt firing sequence.
             target != null && weapon.isInFiringSequence -> false
 
-            // Refresh target every interval.
+            // Outside above special circumstances, refresh target periodically.
             else -> selectTargetInterval.intervalElapsed()
         }
     }
 
     private fun calculateShouldFire(dt: Float): HoldFire? {
-        this.predictedHit = null
+        val ballisticParams = currentParams()
 
-        if (target == null) return NO_TARGET
-        if (aimPoint == null) return NO_HIT_EXPECTED
+        // Check if target is valid and can be tracked.
+        when {
+            target == null -> return NO_TARGET
+            target?.isValidTarget == false -> return INVALID_TARGET
+            !canTrack(weapon, AttackTarget(target!!), ballisticParams) -> return CANT_TRACK
+            aimPoint == null -> return CANT_TRACK
+        }
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
-        val expectedHit = target?.let { analyzeHit(weapon, target!!, currentParams()) }
-        onTargetTime += dt
+        val expectedHit = target?.let { analyzeHit(weapon, target!!, ballisticParams) }
         if (expectedHit == null) {
             onTargetTime = 0f
             return NO_HIT_EXPECTED
@@ -131,6 +136,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // should fire with no delay. Use intercept point instead
         // aim point for hardpoints, to not get false accuracy because
         // of predictive aiming.
+        onTargetTime += dt
         if (!weapon.isPD && onTargetTime < min(2f, weapon.firingCycle.duration)) {
             val angleToTarget = VectorUtils.getFacing(intercept!! - weapon.location)
             val inaccuracy = abs(MathUtils.getShortestRotation(weapon.currAngle, angleToTarget))
@@ -138,8 +144,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
-        val actualHit = firstShipAlongLineOfFire(weapon, currentParams())
-        this.predictedHit = actualHit
+        val actualHit = firstShipAlongLineOfFire(weapon, ballisticParams)
         avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
 
         // Rest of the should-fire decisioning will be based on the actual hit.
@@ -154,7 +159,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             !hit.shieldHit && hit.range > weapon.totalRange -> return OUT_OF_RANGE
         }
 
-        return AttackRules(weapon, hit, currentParams()).shouldHoldFire
+        return AttackRules(weapon, hit, ballisticParams).shouldHoldFire
     }
 
     private fun updateAimLocation() {

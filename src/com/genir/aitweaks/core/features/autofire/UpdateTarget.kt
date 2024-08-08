@@ -28,7 +28,7 @@ class UpdateTarget(
 
         // PD
         weapon.hasAIHint(PD) && weapon.hasAIHint(ANTI_FTR) -> selectFighter() ?: selectMissile() ?: selectShip()
-        weapon.hasAIHint(PD) -> selectFighter() ?: selectMissile() ?: selectShip()
+        weapon.hasAIHint(PD) -> selectMissile() ?: selectFighter() ?: selectShip()
 
         // Main weapons
         weapon.hasAIHint(ANTI_FTR) -> selectShip(alsoTargetFighters)
