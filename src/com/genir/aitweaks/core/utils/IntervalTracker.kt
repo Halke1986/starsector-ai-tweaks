@@ -24,4 +24,8 @@ class IntervalTracker(private val min: Float, private val max: Float) {
     fun reset() {
         timeLeft = min + Random.nextFloat() * (max - min)
     }
+
+    fun forceElapsed() {
+        timeLeft = 0f
+    }
 }

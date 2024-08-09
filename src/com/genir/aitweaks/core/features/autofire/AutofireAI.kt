@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.features.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.features.autofire.HoldFire.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.attack.*
@@ -47,30 +46,29 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Update time trackers.
         selectTargetInterval.advance(dt)
         shouldFireInterval.advance(dt)
-        trackAttackTimes(dt)
 
+        // Update target if needed.
+        if (shouldUpdateTarget()) {
+            selectTargetInterval.reset()
+            val previousTarget = target
+            target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target
+
+            // Target changed, do cleanup.
+            if (previousTarget != target) {
+                attackTime = 0f
+                onTargetTime = 0f
+
+                shouldFireInterval.forceElapsed()
+            }
+        }
+
+        trackAttackTimes(dt)
         updateAimLocation()
 
         // Calculate if weapon should fire at current target.
         if (shouldFireInterval.intervalElapsed()) {
             shouldFireInterval.reset()
             shouldHoldFire = calculateShouldFire(dt)
-        }
-
-        // Update target.
-        debugPrint["update"] = ""
-        if (shouldUpdateTarget()) {
-            selectTargetInterval.reset()
-            val previousTarget = target
-            target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target
-
-            debugPrint["update"] = "update"
-
-            // Target changed, do cleanup.
-            if (previousTarget != target) {
-                attackTime = 0f
-                onTargetTime = 0f
-            }
         }
     }
 
@@ -100,9 +98,18 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     private fun shouldUpdateTarget(): Boolean {
         return when {
-            // Target became invalid this frame, update immediately.
+            // Target became invalid last frame, update immediately.
             // This is important for PD weapons defending against swarms of missiles.
-            shouldHoldFire == INVALID_TARGET || shouldHoldFire == CANT_TRACK -> true
+            target?.isValidTarget == false -> {
+                target = null
+                true
+            }
+
+            // Target can no longer be tracked.
+            target != null && !canTrack(weapon, AttackTarget(target!!), currentParams()) -> {
+                target = null
+                true
+            }
 
             // Do not interrupt firing sequence.
             target != null && weapon.isInFiringSequence -> false
@@ -113,18 +120,12 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     private fun calculateShouldFire(dt: Float): HoldFire? {
-        val ballisticParams = currentParams()
-
-        // Check if target is valid and can be tracked.
-        when {
-            target == null -> return NO_TARGET
-            target?.isValidTarget == false -> return INVALID_TARGET
-            !canTrack(weapon, AttackTarget(target!!), ballisticParams) -> return CANT_TRACK
-            aimPoint == null -> return CANT_TRACK
-        }
+        if (target == null) return NO_TARGET
+        if (intercept == null) return NO_HIT_EXPECTED
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
+        val ballisticParams = currentParams()
         val expectedHit = target?.let { analyzeHit(weapon, target!!, ballisticParams) }
         if (expectedHit == null) {
             onTargetTime = 0f
@@ -170,7 +171,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         intercept = intercept(weapon, AttackTarget(target!!), currentParams()) ?: return
         aimPoint = if (weapon.slot.isTurret) intercept
-        else aimHardpoint(intercept!!)
+        else aimHardpoint(intercept!!, target!!)
     }
 
     /** get current weapon attack parameters */
@@ -196,12 +197,12 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     /** predictive aiming for hardpoints */
-    private fun aimHardpoint(intercept: Vector2f): Vector2f {
+    private fun aimHardpoint(intercept: Vector2f, target: CombatEntityAPI): Vector2f {
         // Weapon is already facing the target. Return the
         // original intercept location to not overcompensate.
         if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing))) return intercept
 
-        val expectedFacing = ship.customAI?.movement?.expectedFacing ?: (target!!.location - ship.location).facing
+        val expectedFacing = ship.customAI?.movement?.expectedFacing ?: (target.location - ship.location).facing
         val angleToTarget = MathUtils.getShortestRotation(ship.facing, expectedFacing)
 
         // Aim the hardpoint as if the ship was facing the target directly.
