@@ -9,9 +9,9 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.BACKING_OFF
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
-import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.SMALL
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.utils.*
@@ -20,6 +20,7 @@ import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
 
@@ -41,6 +42,11 @@ class AI(val ship: ShipAPI) {
     var assignmentLocation: Vector2f? = null // Assignment takes priority over maneuver target.
     var maneuverTarget: ShipAPI? = null
     var attackTarget: ShipAPI? = null
+
+    // Keep attacking the previous target for the
+    // duration or already started weapon bursts.
+    var finishBurstTarget: ShipAPI? = null
+    var finishBurstBroadside: Broadside? = null
 
     // AI State.
     var stats: ShipStats = ShipStats(ship)
@@ -75,6 +81,7 @@ class AI(val ship: ShipAPI) {
         updateAssignment(interval)
         updateManeuverTarget(interval)
         updateAttackTarget(interval)
+        updateFinishBurstTarget()
 
         ventIfNeeded()
         holdFireIfOverfluxed()
@@ -90,7 +97,9 @@ class AI(val ship: ShipAPI) {
     private fun debug() {
 //        drawTurnLines(ship)
 
-//        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
+        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
+        drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
+
 //        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
 //        drawLine(ship.location, movement.headingPoint, Color.YELLOW)
 
@@ -166,11 +175,7 @@ class AI(val ship: ShipAPI) {
         val currentTarget = attackTarget
 
         val updateTarget = when {
-            currentTarget == null -> true
-            !currentTarget.isValidTarget -> true
-
-            // Do not interrupt weapon bursts. // TODO fixme
-            stats.significantWeapons.any { it.size != SMALL && it.isInFiringSequence && it.customAI?.targetShip == attackTarget } -> false
+            currentTarget?.isValidTarget != true -> true
 
             // Don't change target when movement system is on.
             systemAI?.holdTargets() == true -> false
@@ -182,11 +187,17 @@ class AI(val ship: ShipAPI) {
         }
 
         if (updateTarget) {
-            val (broadside, target) = findNewAttackTarget()
+            val (newBroadside, newTarget) = findNewAttackTarget()
 
-            ship.shipTarget = target
-            attackTarget = target
-            this.broadside = broadside
+            // Keep track of previous target until weapon bursts subside.
+            if (newTarget != attackTarget && attackTarget?.isValidTarget == true) {
+                finishBurstTarget = attackTarget
+                finishBurstBroadside = broadside
+            }
+
+            ship.shipTarget = newTarget
+            attackTarget = newTarget
+            broadside = newBroadside
         }
     }
 
@@ -221,7 +232,6 @@ class AI(val ship: ShipAPI) {
         if (isBackingOff) vanilla.flags.setFlag(BACKING_OFF)
         else vanilla.flags.unsetFlag(BACKING_OFF)
     }
-
 
     private fun updateShipStats() {
         stats = ShipStats(ship)
@@ -259,6 +269,18 @@ class AI(val ship: ShipAPI) {
             val dir = (it.location - ship.location).resized(1f)
             sum + dir * dp * dp
         }
+    }
+
+    // Keep track of previous target until weapon bursts subside.
+    private fun updateFinishBurstTarget() {
+        if (finishBurstTarget?.isValidTarget != true) {
+            finishBurstTarget = null
+            finishBurstBroadside = null
+            return
+        }
+
+        val continueBurst = finishBurstBroadside?.weapons?.any { it.isInFiringSequence && it.customAI?.targetShip == finishBurstTarget }
+        if (continueBurst != true) finishBurstTarget = null
     }
 
     private fun ensureAutofire() {
@@ -371,7 +393,7 @@ class AI(val ship: ShipAPI) {
         val evalVent = if (target.fluxTracker.isOverloadedOrVenting) -2f else 0f
 
         // Try to stay on target.
-        val evalCurrentTarget = if (target == attackTarget) -2f else 0f
+        val evalCurrentTarget = if (target == attackTarget && range(target) <= broadside.effectiveRange) -2f else 0f
 
         // TODO avoid wrecks
 

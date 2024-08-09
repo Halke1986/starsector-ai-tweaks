@@ -111,15 +111,19 @@ class Movement(override val ai: AI) : Coordinable {
             }
 
             // Face the attack target.
-            ai.attackTarget != null -> {
-                val target = ai.attackTarget!!
+            ai.attackTarget != null || ai.finishBurstTarget != null -> {
+                val (target, broadsideFacing) = when {
+                    ai.finishBurstTarget != null -> Pair(ai.finishBurstTarget!!, ai.finishBurstBroadside!!.facing)
+
+                    else -> Pair(ai.attackTarget!!, ai.broadside.facing)
+                }
 
                 // Average aim offset to avoid ship wobbling.
                 val aimPointThisFrame = calculateOffsetAimPoint(target)
                 val aimOffsetThisFrame = getShortestRotation(target.location, ship.location, aimPointThisFrame)
                 val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
 
-                (target.location - ship.location).facing + aimOffset - ai.broadside.facing
+                (target.location - ship.location).facing + aimOffset - broadsideFacing
             }
 
             // Face threat direction when no target.
