@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core.utils
 
+import com.genir.aitweaks.core.utils.extensions.length
 import org.lazywizard.lazylib.FastTrig
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -31,7 +32,7 @@ fun timeToOrigin(p: Vector2f, v: Vector2f): Float {
  */
 fun distanceToOrigin(p: Vector2f, v: Vector2f): Float? {
     val t = timeToOrigin(p, v)
-    return if (t >= 0) (p + v * t).length()
+    return if (t >= 0) (p + v * t).length
     else null
 }
 
@@ -45,7 +46,7 @@ fun vectorProjection(a: Vector2f, b: Vector2f): Vector2f {
  * direction, negative otherwise. */
 fun vectorProjectionLength(a: Vector2f, b: Vector2f): Float {
     val p = vectorProjection(a, b)
-    return dotProduct(p, b).sign * p.length()
+    return dotProduct(p, b).sign * p.length
 }
 
 fun dotProduct(a: Vector2f, b: Vector2f): Float {
@@ -74,6 +75,15 @@ fun atan(z: Float): Float = atan(z.toDouble()).toFloat()
 fun vMax(dt: Float, dist: Float, deceleration: Float): Float {
     val (q, _) = quad(0.5f, 0.5f, -dist / (deceleration * dt * dt)) ?: return 0f
     return floor(q) * deceleration * dt
+}
+
+/** Distance covered by ship when decelerating from given velocity. */
+fun decelerationDist(dt: Float, velocity: Float, deceleration: Float): Float {
+    val v = velocity * dt
+    val a = deceleration * dt * dt
+
+    val t = ceil(v / a)
+    return (v + a) * t * 0.5f
 }
 
 /** Time after which point P travelling with velocity V

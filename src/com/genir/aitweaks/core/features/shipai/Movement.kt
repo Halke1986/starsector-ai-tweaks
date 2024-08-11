@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
@@ -206,11 +207,7 @@ class Movement(override val ai: AI) : Coordinable {
     }
 
     private fun avoidCollisions(dt: Float, friendlies: List<ShipAPI>): List<EngineController.Limit?> {
-        return friendlies.map { obstacle ->
-            val lim = vMaxToObstacle(dt, obstacle)
-            if (lim.speed < ship.maxSpeed) lim
-            else null
-        }
+        return friendlies.map { obstacle -> vMaxToObstacle(dt, obstacle) }
     }
 
     private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {
@@ -322,31 +319,52 @@ class Movement(override val ai: AI) : Coordinable {
         return EngineController.Limit(borderIntrusion.getFacing(), ship.maxSpeed * (1f - avoidForce))
     }
 
-    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI): EngineController.Limit {
+    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI): EngineController.Limit? {
         val direction = obstacle.location - ship.location
-        val dirAbs = direction.length()
-        val dirFacing = direction.getFacing()
-        val distance = dirAbs - (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer)
+        val dirFacing = direction.facing
+        val distance = direction.length - (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer)
 
         // Already colliding.
         if (distance <= 0f) return EngineController.Limit(dirFacing, 0f)
 
-        var vObstacle = vectorProjectionLength(obstacle.velocity, direction)
+        val vObstacle = vectorProjectionLength(obstacle.velocity, direction)
         val aObstacle = vectorProjectionLength(combatState().accelerationTracker[obstacle], direction)
+        val decelShip = ship.collisionDeceleration(dirFacing)
 
-        // Take obstacle acceleration into account when the obstacle is doing a brake check.
-        // The acceleration is approximated as total velocity loss. Including actual
-        // acceleration (shipAcc + aAbs) in calculations leads to erratic behavior.
-        if (vObstacle > 0f && aObstacle < 0f) vObstacle = 0f
+        debugPrint[obstacle] = ""
 
-        val angleFromBow = abs(MathUtils.getShortestRotation(ship.facing, dirFacing))
-        val shipAcc = when {
-            angleFromBow < 30f -> ship.deceleration
-            angleFromBow < 150f -> ship.strafeAcceleration
-            else -> ship.acceleration
+        val vMax: Float = when {
+            // Take obstacle acceleration into account when the obstacle is doing a brake check.
+            // The acceleration is approximated as total velocity loss. Including actual
+            // acceleration (shipAcc + aAbs) in calculations leads to erratic behavior.
+            vObstacle > 0f && aObstacle < 0f -> {
+                vMax(dt, distance, decelShip)
+            }
+
+            // Obstacle is moving towards the ship. If the obstacle is a friendly,
+            // non flamed out ship, assume both ship will try to avoid the collision.
+            vObstacle < 0f && obstacle.owner == ship.owner && !obstacle.engineController.isFlamedOut -> {
+                val decelObstacle = obstacle.collisionDeceleration(-dirFacing)
+                val decelDistObstacle = decelerationDist(dt, -vObstacle, decelObstacle)
+
+                vMax(dt, distance - decelDistObstacle, decelShip)
+            }
+
+            // Maximum velocity that will not lead to collision with inert obstacle.
+            else -> vMax(dt, distance, decelShip) + vObstacle
         }
 
-        val vMax = vMax(dt, distance, shipAcc) + vObstacle
-        return EngineController.Limit(dirFacing, vMax)
+        return if (vMax > ship.maxSpeed) null
+        else EngineController.Limit(dirFacing, vMax)
+    }
+
+    /** Ship deceleration for collision avoidance purposes. */
+    private fun ShipAPI.collisionDeceleration(collisionFacing: Float): Float {
+        val angleFromBow = abs(MathUtils.getShortestRotation(facing, collisionFacing))
+        return when {
+            angleFromBow < 30f -> deceleration
+            angleFromBow < 150f -> strafeAcceleration
+            else -> acceleration
+        }
     }
 }

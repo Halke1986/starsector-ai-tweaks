@@ -4,10 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.extensions.copy
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.resized
-import com.genir.aitweaks.core.utils.extensions.rotated
+import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.clampLength
 import org.lazywizard.lazylib.ext.isZeroVector
@@ -37,7 +34,7 @@ class EngineController(val ship: ShipAPI) {
         val af = ship.acceleration * dt * dt
         val ab = ship.deceleration * dt * dt
         val al = ship.strafeAcceleration * dt * dt
-        val vMax = max(ship.maxSpeed, ship.velocity.length()) * dt + af
+        val vMax = max(ship.maxSpeed, ship.velocity.length) * dt + af
 
         // Transform input into ship frame of reference. Account for
         // ship angular velocity, as linear acceleration is applied
@@ -45,12 +42,12 @@ class EngineController(val ship: ShipAPI) {
         val w = ship.angularVelocity * dt
         val toShipFacing = 90f - ship.facing - w
         val r = Rotation(toShipFacing)
-        val l = r.rotate(heading - ship.location)
-        val v = r.rotate(ship.velocity) * dt
+        val l = (heading - ship.location).rotated(r)
+        val v = (ship.velocity).rotated(r) * dt
 
-        // Calculate heading change in time,
+        // Calculate target position change in time,
         // i.e. the target linear velocity.
-        val vt = r.rotate(heading - prevHeading)
+        val vt = (heading - prevHeading).rotated(r)
         prevHeading = heading.copy
 
         // Distance to target location in next frame. Next frame
@@ -74,7 +71,7 @@ class EngineController(val ship: ShipAPI) {
         val dv = vec - v
 
         // Stop if expected velocity is smaller than half of minimum delta v.
-        if (vec.length() < af / 2f) return stop()
+        if (vec.length < af / 2f) return stop()
 
         // Proportional thrust required to achieve
         // the expected velocity change.
@@ -90,7 +87,7 @@ class EngineController(val ship: ShipAPI) {
         if (shouldAccelerate(-d.x, fl, fMax)) ship.command(STRAFE_LEFT)
         if (shouldAccelerate(+d.x, fr, fMax)) ship.command(STRAFE_RIGHT)
 
-        return r.reverse(vec) / dt
+        return vec.rotatedReverse(r) / dt
     }
 
     /** Decelerate the ship to standstill. */
@@ -153,7 +150,7 @@ class EngineController(val ship: ShipAPI) {
         val limits = absLimits.map { Limit(it.heading + toShipFacing, (it.speed * dt).coerceAtLeast(0.00001f)) }
 
         // Find the most severe speed limit.
-        val expectedSpeed = expectedVelocity.length()
+        val expectedSpeed = expectedVelocity.length
         val expectedHeading = expectedVelocity.facing
         val lowestLimit = limits.minByOrNull { it.clampSpeed(expectedHeading, expectedSpeed) }
             ?: return expectedVelocity
