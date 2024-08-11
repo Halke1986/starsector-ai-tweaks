@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
@@ -330,8 +329,6 @@ class Movement(override val ai: AI) : Coordinable {
         val vObstacle = vectorProjectionLength(obstacle.velocity, direction)
         val aObstacle = vectorProjectionLength(combatState().accelerationTracker[obstacle], direction)
         val decelShip = ship.collisionDeceleration(dirFacing)
-
-        debugPrint[obstacle] = ""
 
         val vMax: Float = when {
             // Take obstacle acceleration into account when the obstacle is doing a brake check.

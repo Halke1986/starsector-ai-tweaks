@@ -16,7 +16,7 @@ import com.genir.aitweaks.core.utils.attack.defaultBallisticParams
 import com.genir.aitweaks.core.utils.extensions.attackTarget
 import com.genir.aitweaks.core.utils.extensions.autofirePlugin
 import com.genir.aitweaks.core.utils.extensions.isHullDamageable
-import com.genir.aitweaks.core.utils.extensions.isShip
+import com.genir.aitweaks.core.utils.extensions.isValidTarget
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 
@@ -28,6 +28,7 @@ class LidarArray(ai: AI) : SystemAI(ai) {
     @Suppress("ConstPropertyName")
     companion object Preset {
         const val weaponRangeFraction = 0.92f
+        const val ventThreshold = 0.2f
     }
 
     override fun advance(dt: Float) {
@@ -56,30 +57,29 @@ class LidarArray(ai: AI) : SystemAI(ai) {
     }
 
     private fun shouldUseSystem(): Boolean {
-        // System can be used.
-        if (!canUseSystemThisFrame(ship)) return false
+        return when {
+            // System is not ready.
+            !canUseSystemThisFrame(ship) -> false
 
-        // Has valid target.
-        val target = ship.attackTarget ?: return false
-        when {
-            !target.isShip -> return false
-            target.isFrigate && !target.isStationModule -> return false
-            target.armorGrid.armorRating < 250 -> return false
+            // Does ship wave a valid target.
+            ship.attackTarget?.isValidTarget != true -> false
+
+            ship.attackTarget?.isFighter == true -> false
+
+            // All weapons are on target.
+            else -> applyLidarRangeBonus { weaponsOnTarget(ship.attackTarget!!) && weaponsNotBlocked() }
         }
-
-        // All weapons are on target.
-        return applyLidarRangeBonus { weaponsOnTarget(target) && weaponsNotBlocked() }
     }
 
     private fun shouldForceVent(): Boolean {
         return when {
-            zeroFluxBoostMode && !ship.fluxTracker.isVenting && ship.fluxTracker.fluxLevel > 0f -> true
+            zeroFluxBoostMode && !ship.fluxTracker.isVenting && ship.fluxTracker.fluxLevel > ventThreshold -> true
 
             // Ship has enough flux for next burst.
             burstFluxRequired() < ship.maxFlux - ship.currFlux -> false
 
             // Do not force mini-vents.
-            ship.fluxTracker.fluxLevel < 0.2f -> false
+            ship.fluxTracker.fluxLevel < ventThreshold -> false
 
             else -> ship.fluxTracker.timeToVent >= system.cooldownRemaining
         }
