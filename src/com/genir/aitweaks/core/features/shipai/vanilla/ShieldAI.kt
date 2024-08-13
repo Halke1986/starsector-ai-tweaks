@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features.shipai.adapters
+package com.genir.aitweaks.core.features.shipai.vanilla
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
@@ -12,6 +12,7 @@ class ShieldAI(private val shieldAI: Any) {
 
     init {
         // Find advance method.
+        // There's only one ShieldAI method taking Float as first parameter.
         val methods = shieldAI::class.java.methods
         val advance: Method = methods.first { it.parameterTypes.firstOrNull() == Float::class.java }
 

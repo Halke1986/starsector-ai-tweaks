@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features.shipai.adapters
+package com.genir.aitweaks.core.features.shipai.vanilla
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
@@ -15,6 +15,8 @@ class VentModule(vanillaAI: BasicShipAI) {
         val field: Field = vanillaAI::class.java.getDeclaredField("ventModule").also { it.setAccessible(true) }
         ventModule = field.get(vanillaAI)
 
+        // Find advance method.
+        // There's only one FighterPullbackModule method taking (Float, Ship) parameters.
         val methods = ventModule::class.java.methods
         val advanceParams = arrayOf(Float::class.java, Ship::class.java)
         val advance = methods.first { it.parameterTypes.contentEquals(advanceParams) }

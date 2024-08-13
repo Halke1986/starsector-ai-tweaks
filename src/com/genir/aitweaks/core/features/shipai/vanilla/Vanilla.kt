@@ -1,25 +1,36 @@
-package com.genir.aitweaks.core.features.shipai
+package com.genir.aitweaks.core.features.shipai.vanilla
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
-import com.genir.aitweaks.core.features.shipai.adapters.*
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
 
 /** AI modules carried over from vanilla ship AI. */
-class Vanilla(ship: ShipAPI, overrideVanillaSystem: Boolean) {
+class Vanilla(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     private val vanillaAI: BasicShipAI = Global.getSettings().createDefaultShipAI(ship, ShipAIConfig()) as BasicShipAI
+    private val avoidMissiles: MethodHandle
 
-    val flags = vanillaAI.aiFlags
     private val flockingAI: FlockingAI = FlockingAI(vanillaAI)
     private val threatEvalAI: ThreatEvalAI = ThreatEvalAI(vanillaAI)
     private val ventModule: VentModule = VentModule(vanillaAI)
     private val shieldAI: ShieldAI? = ShieldAI.getIfExists(vanillaAI)
     private val systemAI: SystemAI? = if (overrideVanillaSystem) null else SystemAI.getIfExists(vanillaAI)
     private val fighterPullbackModule: FighterPullbackModule? = FighterPullbackModule.getIfExists(vanillaAI)
+
+    val flags: ShipwideAIFlags = vanillaAI.aiFlags
+
+    init {
+        val methods = vanillaAI::class.java.declaredMethods
+        val avoidMissiles = methods.first { it.name == "avoidMissiles" }
+        avoidMissiles.setAccessible(true)
+        this.avoidMissiles = MethodHandles.lookup().unreflect(avoidMissiles)
+    }
 
     fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Float) {
         flags.advance(dt)
@@ -30,9 +41,11 @@ class Vanilla(ship: ShipAPI, overrideVanillaSystem: Boolean) {
         flockingAI.setDesiredSpeed(expectedVelocity.length())
         flockingAI.setDesiredFacing(expectedFacing)
 
-        // TODO maybe implement?
-        val missileDangerDir: Vector2f? = null
-        val collisionDangerDir: Vector2f? = null
+        avoidMissiles.invoke(vanillaAI)
+        flockingAI.advanceCollisionAnalysisModule(dt)
+
+        val missileDangerDir: Vector2f? = flockingAI.getMissileDangerDir()
+        val collisionDangerDir: Vector2f? = null // TODO maybe implement?
 
         ventModule.advance(dt, attackTarget)
         fighterPullbackModule?.advance(dt, attackTarget)

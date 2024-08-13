@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features.shipai.adapters
+package com.genir.aitweaks.core.features.shipai.vanilla
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.combat.ai.BasicShipAI

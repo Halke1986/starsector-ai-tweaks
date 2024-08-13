@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features.shipai.adapters
+package com.genir.aitweaks.core.features.shipai.vanilla
 
 import com.fs.starfarer.combat.ai.BasicShipAI
 import java.lang.invoke.MethodHandle
@@ -9,6 +9,8 @@ class ThreatEvalAI(vanillaAI: BasicShipAI) {
     private val advance: MethodHandle
 
     init {
+        // Find advance method.
+        // There's only one ThreatEvalAI public method taking (Float) parameters.
         val methods = threatEvalAI::class.java.methods
         val advance = methods.first { it.parameterTypes.contentEquals(arrayOf(Float::class.java)) }
         this.advance = MethodHandles.lookup().unreflect(advance)
