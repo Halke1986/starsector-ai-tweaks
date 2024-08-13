@@ -1,7 +1,7 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.features.autofire.AutofireAI
+import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.extensions.isPD
 import com.genir.aitweaks.core.utils.times

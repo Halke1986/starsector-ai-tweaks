@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features
+package com.genir.aitweaks.core.features.shipai.systems
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global

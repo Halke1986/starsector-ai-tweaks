@@ -1,9 +1,9 @@
-package com.genir.aitweaks.core.features.autofire
+package com.genir.aitweaks.core.features.shipai.autofire
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.core.features.autofire.HoldFire.*
+import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.attack.*
 import com.genir.aitweaks.core.utils.extensions.*

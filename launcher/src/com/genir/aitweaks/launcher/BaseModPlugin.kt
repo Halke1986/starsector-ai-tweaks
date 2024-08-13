@@ -19,7 +19,7 @@ class BaseModPlugin : MakeAITweaksRemovable() {
 
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
         if (weapon.type != MISSILE && !autofireBlacklist.contains(weapon.id)) {
-            val autofireClass = coreLoader.loadClass("com.genir.aitweaks.core.features.autofire.AutofireAI")
+            val autofireClass = coreLoader.loadClass("com.genir.aitweaks.core.features.shipai.autofire.AutofireAI")
             val ctorType = MethodType.methodType(Void.TYPE, WeaponAPI::class.java)
             val ctor = MethodHandles.lookup().findConstructor(autofireClass, ctorType)
 

@@ -3,7 +3,7 @@ package com.genir.aitweaks.core.utils.extensions
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
-import com.genir.aitweaks.core.features.autofire.AutofireAI
+import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
 

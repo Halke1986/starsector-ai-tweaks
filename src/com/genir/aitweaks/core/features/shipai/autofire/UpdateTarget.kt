@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features.autofire
+package com.genir.aitweaks.core.features.shipai.autofire
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
