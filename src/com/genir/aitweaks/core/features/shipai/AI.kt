@@ -26,6 +26,7 @@ import kotlin.math.PI
 import kotlin.math.abs
 
 // TODO weird rotating heading point
+// TODO move to interval update
 
 @Suppress("MemberVisibilityCanBePrivate")
 class AI(val ship: ShipAPI) {
