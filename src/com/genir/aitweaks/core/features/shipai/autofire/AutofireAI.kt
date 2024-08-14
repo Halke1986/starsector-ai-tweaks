@@ -87,6 +87,10 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getWeapon(): WeaponAPI = weapon
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
 
+    fun plotIntercept(target: CombatEntityAPI): Vector2f? {
+        return intercept(weapon, AttackTarget(target), currentParams())
+    }
+
     private fun trackAttackTimes(dt: Float) {
         if (weapon.isFiring) {
             attackTime += dt
@@ -169,7 +173,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         if (target == null) return
 
-        intercept = intercept(weapon, AttackTarget(target!!), currentParams()) ?: return
+        intercept = plotIntercept(target!!) ?: return
         aimPoint = if (weapon.slot.isTurret) intercept
         else aimHardpoint(intercept!!, target!!)
     }
@@ -177,9 +181,9 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     /** get current weapon attack parameters */
     private fun currentParams() = BallisticParams(
         getAccuracy(),
-        // Provide weapon attack delay time only for turrets. It's not required for hardpoints,
-        // since the ship rotating to face the target will compensate for the delay.
-        if (weapon.slot.isTurret) weapon.timeToAttack else 0f,
+        //Currently, the weapon attack delay time is disabled. It's not required for ship broadside weapons,
+        // since the ship rotating to face the target will compensate for the delay, at least for custom AI.
+        0f,
     )
 
     /**

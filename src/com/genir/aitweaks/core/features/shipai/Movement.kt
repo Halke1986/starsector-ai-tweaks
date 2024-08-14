@@ -4,7 +4,9 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
+import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
@@ -14,6 +16,8 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sign
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -103,6 +107,9 @@ class Movement(override val ai: AI) : Coordinable {
 
     private fun setFacing() {
         val systemOverride: Float? = ai.systemAI?.overrideFacing()
+        val currentAttackTarget: ShipAPI? = ai.attackTarget ?: ai.finishBurstTarget
+        val broadside = if (currentAttackTarget == ai.attackTarget) ai.broadside
+        else ai.finishBurstBroadside!!
 
         expectedFacing = when {
             // Let movement system determine ship facing.
@@ -111,19 +118,13 @@ class Movement(override val ai: AI) : Coordinable {
             }
 
             // Face the attack target.
-            ai.attackTarget != null || ai.finishBurstTarget != null -> {
-                val (target, broadsideFacing) = when {
-                    ai.finishBurstTarget != null -> Pair(ai.finishBurstTarget!!, ai.finishBurstBroadside!!.facing)
-
-                    else -> Pair(ai.attackTarget!!, ai.broadside.facing)
-                }
-
+            currentAttackTarget != null && (currentAttackTarget.location - ship.location).length <= broadside.maxRange + 1000f -> {
                 // Average aim offset to avoid ship wobbling.
-                val aimPointThisFrame = calculateOffsetAimPoint(target)
-                val aimOffsetThisFrame = getShortestRotation(target.location, ship.location, aimPointThisFrame)
+                val aimPointThisFrame = unitVector(aimShip(currentAttackTarget, broadside)) * 100f + ship.location
+                val aimOffsetThisFrame = getShortestRotation(currentAttackTarget.location, ship.location, aimPointThisFrame)
                 val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
 
-                (target.location - ship.location).facing + aimOffset - broadsideFacing
+                (currentAttackTarget.location - ship.location).facing + aimOffset
             }
 
             // Face threat direction when no target.
@@ -131,9 +132,9 @@ class Movement(override val ai: AI) : Coordinable {
                 ai.threatVector.facing
             }
 
-            // Face movement target location.
-            ai.assignmentLocation != null -> {
-                (ai.assignmentLocation!! - ship.location).facing
+            // Face expected velocity.
+            !expectedVelocity.isZeroVector() -> {
+                expectedVelocity.facing
             }
 
             // Nothing to do. Stop rotation.
@@ -164,21 +165,64 @@ class Movement(override val ai: AI) : Coordinable {
         }
     }
 
-    /** Aim hardpoint weapons with entire ship, if possible. */
-    private fun calculateOffsetAimPoint(attackTarget: ShipAPI): Vector2f {
-        // Find intercept points of all hardpoints attacking the current target.
-        val hardpoints = ship.allWeapons.filter { it.slot.isHardpoint }.mapNotNull { it.customAI }
-        val aimedHardpoints = hardpoints.filter { it.targetShip != null && it.targetShip == attackTarget }
-        val interceptPoints = aimedHardpoints.mapNotNull { it.intercept }
+    /** Aim weapons with entire ship, if possible. */
+    private fun aimShip(attackTarget: ShipAPI, broadside: Broadside): Float {
+        val makePlot = fun(w: WeaponAPI): Pair<AutofireAI, Vector2f>? {
+            val ai = w.customAI ?: return null
+            val intercept = ai.plotIntercept(attackTarget) ?: return null
+            return Pair(ai, intercept)
+        }
 
-        if (interceptPoints.isEmpty()) return attackTarget.location
+        val solutions: Map<AutofireAI, Vector2f> = broadside.weapons.mapNotNull { makePlot(it) }.toMap()
+        val averageFacing: Float = solutions.values.sumOf { (it - ship.location).facing.toDouble() }.toFloat() / solutions.size
 
-        // Average the intercept points. This may cause poor aim if different hardpoints
-        // have weapons with significantly different projectile velocities.
-        val interceptSum = interceptPoints.fold(Vector2f()) { sum, intercept -> sum + intercept }
-        val aimPoint = interceptSum / interceptPoints.size.toFloat()
+        // Aim directly at target if no weapon firing solution is available.
+        if (solutions.isEmpty()) (attackTarget.location - ship.location).facing
 
-        return aimPoint
+        var offsetNegative: Float = 0f
+        var offsetPositive: Float = 0f
+        solutions.forEach {
+            val weapon = it.key.weapon
+            val intercept = it.value
+
+            // Assume ship is already facing along the average weapon firing solution.
+            val arcFacing = weapon.arcFacing + averageFacing
+            val interceptFacing = (intercept - ship.location).facing
+
+            // Check if firing solution is inside weapon arc.
+            val halfArc = weapon.arc / 2f
+            val angleToArc = MathUtils.getShortestRotation(arcFacing, interceptFacing)
+            if (abs(angleToArc) < halfArc) return@forEach
+
+            // Angle to nearest arc boundary.
+            val angleArc1 = MathUtils.getShortestRotation(arcFacing + halfArc, interceptFacing)
+            val angleArc2 = MathUtils.getShortestRotation(arcFacing - halfArc, interceptFacing)
+            val angleToIntercept = if (abs(angleArc1) > abs(angleArc2)) angleArc2
+            else angleArc1
+
+            // Calculate offset if firing solution is outside weapon firing arc.
+            when {
+                angleToIntercept < 0f -> offsetNegative = min(offsetNegative, angleToIntercept)
+                angleToIntercept > 0f -> offsetPositive = max(offsetPositive, angleToIntercept)
+            }
+        }
+
+        // Calculate ship facing offset from average firing solution facing.
+        val offset = when {
+            offsetPositive == 0f -> offsetNegative
+
+            offsetNegative == 0f -> offsetPositive
+
+            abs(offsetNegative) > abs(offsetPositive) -> offsetPositive
+
+            else -> offsetNegative
+        }
+
+//        debugPrint["avg"] = "avg ${averageFacing}"
+//        debugPrint["pos"] = "pos ${offsetPositive}"
+//        debugPrint["neg"] = "neg ${offsetNegative}"
+
+        return averageFacing + offset + 1f * offset.sign
     }
 
     private fun gatherSpeedLimits(dt: Float): List<EngineController.Limit> {
