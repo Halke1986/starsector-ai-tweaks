@@ -48,9 +48,13 @@ class UpdateTarget(
         return selectEntity<CombatAsteroidAPI>(asteroidGrid()) { inViewport(it.location) }
     }
 
-    private fun selectMissile() = selectEntity<MissileAPI>(missileGrid()) { !it.isFlare || !weapon.ignoresFlares }
+    private fun selectMissile(): CombatEntityAPI? {
+        return selectEntity<MissileAPI>(missileGrid()) { !it.isFlare || !weapon.ignoresFlares }
+    }
 
-    private fun selectFighter(): CombatEntityAPI? = selectEntity<ShipAPI>(shipGrid()) { it.isFighter }
+    private fun selectFighter(): CombatEntityAPI? {
+        return selectEntity<ShipAPI>(shipGrid()) { it.isFighter }
+    }
 
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
         // Estimate priority target.

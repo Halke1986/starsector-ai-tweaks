@@ -11,7 +11,6 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
@@ -105,15 +104,17 @@ class AI(val ship: ShipAPI) {
 
 //        drawTurnLines(ship)
 
-//        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
+        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
 //        drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 
 //        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
 //        drawLine(ship.location, ship.location + (maneuverTarget?.velocity ?: ship.location), Color.GREEN)
 //        drawLine(ship.location, movement.headingPoint, Color.YELLOW)
 
-//        drawLine(ship.location, ship.location + unitVector(ship.facing) * 700f, Color.GREEN)
+        drawLine(ship.location, ship.location + unitVector(ship.facing) * 700f, Color.GREEN)
 //        drawLine(ship.location, ship.location + unitVector(movement.expectedFacing) * 600f, Color.YELLOW)
+//        drawLine(ship.location, ship.location + (movement.expectedVelocity).resized(300f), Color.GREEN)
+//        drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
 //        drawLine(ship.location, ship.location + threatVector.resized(600f), Color.PINK)
     }
 

@@ -17,8 +17,8 @@ class ShipStats(private val ship: ShipAPI) {
     val broadsides: List<Broadside> = calculateBroadsides()
 
     private fun calculateThreatSearchRange(): Float {
-        val rangeEnvelope = 500f
-        val totalMaxRange = significantWeapons.minOfOrNull { it.slotRange } ?: 0f
+        val rangeEnvelope = 1000f
+        val totalMaxRange = significantWeapons.maxOfOrNull { it.slotRange } ?: 0f
         return max(Preset.threatEvalRadius, totalMaxRange + rangeEnvelope)
     }
 

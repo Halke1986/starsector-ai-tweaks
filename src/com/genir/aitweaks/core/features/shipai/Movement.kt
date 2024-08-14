@@ -118,7 +118,7 @@ class Movement(override val ai: AI) : Coordinable {
             }
 
             // Face the attack target.
-            currentAttackTarget != null && (currentAttackTarget.location - ship.location).length <= broadside.maxRange + 1000f -> {
+            currentAttackTarget != null && (currentAttackTarget.location - ship.location).length <= ai.stats.threatSearchRange -> {
                 // Average aim offset to avoid ship wobbling.
                 val aimPointThisFrame = unitVector(aimShip(currentAttackTarget, broadside)) * 100f + ship.location
                 val aimOffsetThisFrame = getShortestRotation(currentAttackTarget.location, ship.location, aimPointThisFrame)
@@ -133,7 +133,7 @@ class Movement(override val ai: AI) : Coordinable {
             }
 
             // Face expected velocity.
-            !expectedVelocity.isZeroVector() -> {
+            expectedVelocity.length > 5f -> {
                 expectedVelocity.facing
             }
 
@@ -213,8 +213,10 @@ class Movement(override val ai: AI) : Coordinable {
 
             offsetNegative == 0f -> offsetPositive
 
-            abs(offsetNegative) > abs(offsetPositive) -> offsetPositive
+//            abs(offsetNegative) > abs(offsetPositive) -> offsetPositive
 
+            // Return average facing when there are no offsets
+            // or there are conflicting offsets.
             else -> offsetNegative
         }
 

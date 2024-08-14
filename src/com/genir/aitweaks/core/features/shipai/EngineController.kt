@@ -58,6 +58,8 @@ class EngineController(val ship: ShipAPI) {
 
         // Maximum velocity towards target for both axis of movement.
         // Any higher velocity would lead to overshooting target location.
+        // Note: vmx and vmy are always integer multiples of respective
+        // acceleration values, without any fractional part.
         val vmx = if (d.x > 0) vMax(d.x, al) else -vMax(-d.x, al)
         val vmy = if (d.y > 0) vMax(d.y, ab) else -vMax(-d.y, af)
 
@@ -70,7 +72,10 @@ class EngineController(val ship: ShipAPI) {
         val vec = limitVelocity(dt, toShipFacing, ve, limits)
         val dv = vec - v
 
-        // Stop if expected velocity is smaller than half of minimum delta v.
+        // Stop if expected velocity is less than half of velocity
+        // change unit. Stop is applied regardless of distance to
+        // target in case the low velocity is the result of a
+        // collision avoidance speed limit.
         if (vec.length < af / 2f) return stop()
 
         // Proportional thrust required to achieve
