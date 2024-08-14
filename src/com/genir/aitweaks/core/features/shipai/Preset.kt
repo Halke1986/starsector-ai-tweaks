@@ -27,8 +27,8 @@ class Preset {
         // Collision avoidance
         const val collisionBuffer = 30f
 
-        // Broadside
-        const val validBroadsideDPSThreshold = 0.9f
+        // Weapon groups
+        const val validWeaponGroupDPSThreshold = 0.9f
 
         const val noWeaponsAttackRange = 2000f
         const val weaponMaxReloadTime = 12f

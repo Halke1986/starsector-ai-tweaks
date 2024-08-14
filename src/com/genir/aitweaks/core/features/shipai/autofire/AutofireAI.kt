@@ -181,8 +181,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     /** get current weapon attack parameters */
     private fun currentParams() = BallisticParams(
         getAccuracy(),
-        //Currently, the weapon attack delay time is disabled. It's not required for ship broadside weapons,
-        // since the ship rotating to face the target will compensate for the delay, at least for custom AI.
+        // TODO Currently, the weapon attack delay time is disabled.
         0f,
     )
 

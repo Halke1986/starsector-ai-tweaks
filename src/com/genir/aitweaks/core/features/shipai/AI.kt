@@ -48,11 +48,11 @@ class AI(val ship: ShipAPI) {
     // Keep attacking the previous target for the
     // duration or already started weapon bursts.
     var finishBurstTarget: ShipAPI? = null
-    var finishBurstBroadside: Broadside? = null
+    var finishBurstWeaponGroup: WeaponGroup? = null
 
     // AI State.
     var stats: ShipStats = ShipStats(ship)
-    var broadside: Broadside = stats.broadsides[0]
+    var attackingGroup: WeaponGroup = stats.weaponGroups[0]
     var isBackingOff: Boolean = false
     var isHoldingFire: Boolean = false
     var isAvoidingBorder: Boolean = false
@@ -97,11 +97,6 @@ class AI(val ship: ShipAPI) {
     }
 
     private fun debug() {
-//        debugPrint.clear()
-//        broadside.weapons.forEach {
-//            debugPrint[it] = it.id
-//        }
-
 //        drawTurnLines(ship)
 
         drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
@@ -191,23 +186,23 @@ class AI(val ship: ShipAPI) {
             systemAI?.holdTargets() == true -> false
 
             // Target is out of range.
-            range(currentTarget) > broadside.maxRange -> true
+            range(currentTarget) > attackingGroup.maxRange -> true
 
             else -> interval
         }
 
         if (updateTarget) {
-            val (newBroadside, newTarget) = findNewAttackTarget()
+            val (newWeaponGroup, newTarget) = findNewAttackTarget()
 
             // Keep track of previous target until weapon bursts subside.
             if (newTarget != attackTarget && attackTarget?.isValidTarget == true) {
                 finishBurstTarget = attackTarget
-                finishBurstBroadside = broadside
+                finishBurstWeaponGroup = attackingGroup
             }
 
             ship.shipTarget = newTarget
             attackTarget = newTarget
-            broadside = newBroadside
+            attackingGroup = newWeaponGroup
         }
     }
 
@@ -246,8 +241,8 @@ class AI(val ship: ShipAPI) {
     private fun updateShipStats() {
         stats = ShipStats(ship)
 
-        // Find the most similar broadside to the current one after ship stats have been updated.
-        broadside = stats.broadsides.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.facing, broadside.facing)) })!!
+        // Find the most similar weapon group to the current one after ship stats have been updated.
+        attackingGroup = stats.weaponGroups.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.facing, attackingGroup.facing)) })!!
     }
 
     private fun updateIdleTime(dt: Float) {
@@ -285,11 +280,11 @@ class AI(val ship: ShipAPI) {
     private fun updateFinishBurstTarget() {
         if (finishBurstTarget?.isValidTarget != true) {
             finishBurstTarget = null
-            finishBurstBroadside = null
+            finishBurstWeaponGroup = null
             return
         }
 
-        val continueBurst = finishBurstBroadside?.weapons?.any { it.isInFiringSequence && it.customAI?.targetShip == finishBurstTarget }
+        val continueBurst = finishBurstWeaponGroup?.weapons?.any { it.isInFiringSequence && it.customAI?.targetShip == finishBurstTarget }
         if (continueBurst != true) finishBurstTarget = null
     }
 
@@ -345,20 +340,20 @@ class AI(val ship: ShipAPI) {
         if (shouldVent) ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
     }
 
-    private fun findNewAttackTarget(): Pair<Broadside, ShipAPI?> {
-        // Find best attack opportunity for each possible broadside.
-        val broadsideTargets: Map<Broadside, ShipAPI> = stats.broadsides.associateWith { broadside ->
-            val opportunities = threats.filter { range(it) < broadside.maxRange }
+    private fun findNewAttackTarget(): Pair<WeaponGroup, ShipAPI?> {
+        // Find best attack opportunity for each weapon group.
+        val weaponGroupTargets: Map<WeaponGroup, ShipAPI> = stats.weaponGroups.associateWith { weaponGroup ->
+            val opportunities = threats.filter { range(it) < weaponGroup.maxRange }
 
             val foldInit: Pair<ShipAPI?, Float> = Pair(null, Float.MAX_VALUE)
             opportunities.fold(foldInit) { best, it ->
-                val eval = evaluateTarget(it, broadside)
+                val eval = evaluateTarget(it, weaponGroup)
                 if (eval < best.second) Pair(it, eval)
                 else best
             }.first
         }.filterValues { it != null }.mapValues { it.value!! }
 
-        val bestTarget = broadsideTargets.minOfWithOrNull(compareBy { evaluateTarget(it.value, it.key) }) { it }
+        val bestTarget = weaponGroupTargets.minOfWithOrNull(compareBy { evaluateTarget(it.value, it.key) }) { it }
         if (bestTarget != null) return bestTarget.toPair()
 
         // No good attack target found. Try alternatives.
@@ -372,20 +367,20 @@ class AI(val ship: ShipAPI) {
 
             else -> null
         }
-        return Pair(stats.broadsides[0], altTarget)
+        return Pair(stats.weaponGroups[0], altTarget)
     }
 
     /** Evaluate if target is worth attacking. The lower the score, the better the target. */
-    private fun evaluateTarget(target: ShipAPI, broadside: Broadside): Float {
+    private fun evaluateTarget(target: ShipAPI, weaponGroup: WeaponGroup): Float {
         // Prioritize targets closer to ship facing.
-        val angle = ship.shortestRotationToTarget(target.location, broadside.facing) * PI.toFloat() / 180.0f
+        val angle = ship.shortestRotationToTarget(target.location, weaponGroup.facing) * PI.toFloat() / 180.0f
         val angleWeight = 0.75f
         val evalAngle = abs(angle) * angleWeight
 
         // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
         val dist = range(target)
-        val distWeight = 1f / broadside.dpsFractionAtRange(dist)
-        val evalDist = (dist / broadside.maxRange) * distWeight
+        val distWeight = 1f / weaponGroup.dpsFractionAtRange(dist)
+        val evalDist = (dist / weaponGroup.maxRange) * distWeight
 
         // Prioritize targets high on flux. Avoid hunting low flux phase ships.
         val fluxLeft = (1f - target.fluxLevel)
@@ -403,7 +398,7 @@ class AI(val ship: ShipAPI) {
         val evalVent = if (target.fluxTracker.isOverloadedOrVenting) -2f else 0f
 
         // Try to stay on target.
-        val evalCurrentTarget = if (target == attackTarget && range(target) <= broadside.effectiveRange) -2f else 0f
+        val evalCurrentTarget = if (target == attackTarget && range(target) <= weaponGroup.effectiveRange) -2f else 0f
 
         // TODO avoid wrecks
 
@@ -419,7 +414,7 @@ class AI(val ship: ShipAPI) {
             flag != null -> flag
 
             // Default all-weapons attack range.
-            broadside.dps > 0f -> broadside.minRange
+            attackingGroup.dps > 0f -> attackingGroup.minRange
 
             // Range for ships with no weapons.
             else -> Preset.noWeaponsAttackRange

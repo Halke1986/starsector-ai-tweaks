@@ -75,7 +75,7 @@ class Movement(override val ai: AI) : Coordinable {
                 val vectorToThreat = if (!ai.threatVector.isZeroVector()) ai.threatVector else vectorToTarget
 
                 // Strafe the target randomly, when it's the only threat.
-                val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.broadside.effectiveRange
+                val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
                 val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
                 else vectorToThreat
 
@@ -108,8 +108,8 @@ class Movement(override val ai: AI) : Coordinable {
     private fun setFacing() {
         val systemOverride: Float? = ai.systemAI?.overrideFacing()
         val currentAttackTarget: ShipAPI? = ai.attackTarget ?: ai.finishBurstTarget
-        val broadside = if (currentAttackTarget == ai.attackTarget) ai.broadside
-        else ai.finishBurstBroadside!!
+        val weaponGroup = if (currentAttackTarget == ai.attackTarget) ai.attackingGroup
+        else ai.finishBurstWeaponGroup!!
 
         expectedFacing = when {
             // Let movement system determine ship facing.
@@ -120,7 +120,7 @@ class Movement(override val ai: AI) : Coordinable {
             // Face the attack target.
             currentAttackTarget != null && (currentAttackTarget.location - ship.location).length <= ai.stats.threatSearchRange -> {
                 // Average aim offset to avoid ship wobbling.
-                val aimPointThisFrame = unitVector(aimShip(currentAttackTarget, broadside)) * 100f + ship.location
+                val aimPointThisFrame = unitVector(aimShip(currentAttackTarget, weaponGroup)) * 100f + ship.location
                 val aimOffsetThisFrame = getShortestRotation(currentAttackTarget.location, ship.location, aimPointThisFrame)
                 val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
 
@@ -154,7 +154,7 @@ class Movement(override val ai: AI) : Coordinable {
             ShipSystemAiType.BURN_DRIVE -> {
                 // Prevent vanilla AI from jumping closer to target with
                 // BURN_DRIVE, if the target is already within weapons range.
-                if (ai.attackTarget != null && ai.range(ai.attackTarget!!) < ai.broadside.effectiveRange) {
+                if (ai.attackTarget != null && ai.range(ai.attackTarget!!) < ai.attackingGroup.effectiveRange) {
                     ship.blockCommandForOneFrame(USE_SYSTEM)
                 }
 
@@ -166,14 +166,14 @@ class Movement(override val ai: AI) : Coordinable {
     }
 
     /** Aim weapons with entire ship, if possible. */
-    private fun aimShip(attackTarget: ShipAPI, broadside: Broadside): Float {
+    private fun aimShip(attackTarget: ShipAPI, weaponGroup: WeaponGroup): Float {
         val makePlot = fun(w: WeaponAPI): Pair<AutofireAI, Vector2f>? {
             val ai = w.customAI ?: return null
             val intercept = ai.plotIntercept(attackTarget) ?: return null
             return Pair(ai, intercept)
         }
 
-        val solutions: Map<AutofireAI, Vector2f> = broadside.weapons.mapNotNull { makePlot(it) }.toMap()
+        val solutions: Map<AutofireAI, Vector2f> = weaponGroup.weapons.mapNotNull { makePlot(it) }.toMap()
         val averageFacing: Float = solutions.values.sumOf { (it - ship.location).facing.toDouble() }.toFloat() / solutions.size
 
         // Aim directly at target if no weapon firing solution is available.
@@ -292,7 +292,7 @@ class Movement(override val ai: AI) : Coordinable {
                 angleToVelocity.sign != angleToOtherLine.sign -> return@forEach
 
                 // Do not consider line of fire blocking if target is out of range, with 1.2 tolerance factor.
-                blocked.range(target) > blocked.broadside.maxRange * 1.2f -> return@forEach
+                blocked.range(target) > blocked.attackingGroup.maxRange * 1.2f -> return@forEach
             }
 
             val arcLength = distToTarget * abs(angleToOtherLine) * DEGREES_TO_RADIANS

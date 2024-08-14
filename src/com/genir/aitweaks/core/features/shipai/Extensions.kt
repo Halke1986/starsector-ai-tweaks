@@ -38,9 +38,9 @@ val WeaponAPI.reloadTimeRemaining: Float
         return max(reloadTime, cooldownRemaining)
     }
 
-fun ShipAPI.shortestRotationToTarget(target: Vector2f, broadsideFacing: Float): Float {
+fun ShipAPI.shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Float): Float {
     val facingToTarget = (target - location).getFacing()
-    return MathUtils.getShortestRotation(facing + broadsideFacing, facingToTarget)
+    return MathUtils.getShortestRotation(facing + weaponGroupFacing, facingToTarget)
 }
 
 val ShipAPI.strafeAcceleration: Float

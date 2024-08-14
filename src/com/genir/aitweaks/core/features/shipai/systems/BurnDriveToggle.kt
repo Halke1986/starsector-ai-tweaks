@@ -90,7 +90,7 @@ class BurnDriveToggle(ai: AI) : SystemAI(ai), Coordinable {
             ai.maneuverTarget != null -> {
                 val vectorToTarget = ai.maneuverTarget!!.location - ship.location
                 val distance = ai.vanilla.flags.get<Float>(AIFlags.MANEUVER_RANGE_FROM_TARGET)
-                    ?: (ai.broadside.minRange * approachToMinRangeFraction)
+                    ?: (ai.attackingGroup.minRange * approachToMinRangeFraction)
                 val approachVector = vectorToTarget.addLength(-distance)
 
                 // Let the attack coordinator review the calculated heading point.

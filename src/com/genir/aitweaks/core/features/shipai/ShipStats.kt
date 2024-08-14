@@ -14,7 +14,7 @@ class ShipStats(private val ship: ShipAPI) {
     val significantWeapons: List<WeaponAPI> = findSignificantWeapons()
     val threatSearchRange: Float = calculateThreatSearchRange()
     val totalCollisionRadius: Float = ship.totalCollisionRadius
-    val broadsides: List<Broadside> = calculateBroadsides()
+    val weaponGroups: List<WeaponGroup> = findWeaponGroups()
 
     private fun calculateThreatSearchRange(): Float {
         val rangeEnvelope = 1000f
@@ -44,11 +44,11 @@ class ShipStats(private val ship: ShipAPI) {
     private val WeaponAPI.isInLongReload: Boolean
         get() = maxReloadTime >= Preset.weaponMaxReloadTime && reloadTimeRemaining >= 2f && !isInFiringSequence
 
-    /** A ship can have multiple broadside configurations, not necessarily symmetrical. */
-    private fun calculateBroadsides(): List<Broadside> {
+    /** A ship can have multiple valid weapon groups. */
+    private fun findWeaponGroups(): List<WeaponGroup> {
         // Special case for front facing hardpoints.
         if (significantWeapons.any { it.slot.isHardpoint && it.arcFacing == 0f }) {
-            return listOf(Broadside(significantWeapons, 0f))
+            return listOf(WeaponGroup(significantWeapons, 0f))
         }
 
         // Find firing arc boundary closes to ship front for
@@ -80,9 +80,9 @@ class ShipStats(private val ship: ShipAPI) {
             AngleDPS(angle, dps.toFloat())
         }
 
-        // Find all broadside configurations with acceptable DPS.
-        val bestBroadside: AngleDPS = anglesDPS.maxWithOrNull(compareBy { it.dps })!!
-        val validBroadsides = anglesDPS.filter { it.dps >= bestBroadside.dps * Preset.validBroadsideDPSThreshold }
-        return validBroadsides.map { Broadside(significantWeapons, it.angle) }
+        // Find all weapon groups with acceptable DPS.
+        val bestWeaponGroup: AngleDPS = anglesDPS.maxWithOrNull(compareBy { it.dps })!!
+        val validWeaponGroups = anglesDPS.filter { it.dps >= bestWeaponGroup.dps * Preset.validWeaponGroupDPSThreshold }
+        return validWeaponGroups.map { WeaponGroup(significantWeapons, it.angle) }
     }
 }

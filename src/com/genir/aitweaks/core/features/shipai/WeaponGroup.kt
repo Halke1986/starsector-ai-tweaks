@@ -3,8 +3,8 @@ package com.genir.aitweaks.core.features.shipai
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.extensions.isAngleInArc
 
-/** Attack characteristics of an individual broadside configuration. */
-class Broadside(significantWeapons: List<WeaponAPI>, val facing: Float) {
+/** A group of weapons that can focus on a single attack angle. */
+class WeaponGroup(significantWeapons: List<WeaponAPI>, val facing: Float) {
     val weapons = significantWeapons.filter { it.isAngleInArc(facing) }
     val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)
     val minRange: Float = weapons.minOfOrNull { it.slotRange } ?: 0f
