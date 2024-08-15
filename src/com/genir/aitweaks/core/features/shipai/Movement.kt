@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
@@ -107,7 +108,7 @@ class Movement(override val ai: AI) : Coordinable {
 
     private fun setFacing() {
         val systemOverride: Float? = ai.systemAI?.overrideFacing()
-        val currentAttackTarget: ShipAPI? = ai.attackTarget ?: ai.finishBurstTarget
+        val currentAttackTarget: ShipAPI? = ai.finishBurstTarget ?: ai.attackTarget
         val weaponGroup = if (currentAttackTarget == ai.attackTarget) ai.attackingGroup
         else ai.finishBurstWeaponGroup!!
 
@@ -167,64 +168,70 @@ class Movement(override val ai: AI) : Coordinable {
 
     /** Aim weapons with entire ship, if possible. */
     private fun aimShip(attackTarget: ShipAPI, weaponGroup: WeaponGroup): Float {
-        val makePlot = fun(w: WeaponAPI): Pair<AutofireAI, Vector2f>? {
-            val ai = w.customAI ?: return null
-            val intercept = ai.plotIntercept(attackTarget) ?: return null
-            return Pair(ai, intercept)
+        // Prioritize hardpoints if there are any in the weapon group.
+        val weapons = weaponGroup.weapons.filter { it.slot.isHardpoint }.ifEmpty { weaponGroup.weapons }
+
+        val makeSolution = fun(weapon: WeaponAPI): Pair<AutofireAI, Float>? {
+            val ai = weapon.customAI ?: return null
+
+            val intercept: Vector2f? = if (ai.targetShip == attackTarget) ai.intercept
+            else ai.plotIntercept(attackTarget)
+            intercept ?: return null
+
+            return Pair(ai, (intercept - weapon.location).facing)
         }
 
-        val solutions: Map<AutofireAI, Vector2f> = weaponGroup.weapons.mapNotNull { makePlot(it) }.toMap()
-        val averageFacing: Float = solutions.values.sumOf { (it - ship.location).facing.toDouble() }.toFloat() / solutions.size
+        val solutions: Map<AutofireAI, Float> = weapons.mapNotNull { makeSolution(it) }.toMap()
 
         // Aim directly at target if no weapon firing solution is available.
-        if (solutions.isEmpty()) (attackTarget.location - ship.location).facing
+        if (solutions.isEmpty()) (attackTarget.location - ship.location).facing - weaponGroup.facing
 
-        var offsetNegative: Float = 0f
-        var offsetPositive: Float = 0f
+        // Start with aiming the weapon group at the average intercept point.
+        val averageIntercept: Float = averageFacing(solutions.values)
+        val defaultShipFacing: Float = averageIntercept - weaponGroup.facing
+
+        // Fine tune the facing to minimize the amount of weapons
+        // not able to aim at their calculated intercept point.
+        var offsetNegative = 0f
+        var offsetPositive = 0f
         solutions.forEach {
             val weapon = it.key.weapon
-            val intercept = it.value
-
-            // Assume ship is already facing along the average weapon firing solution.
-            val arcFacing = weapon.arcFacing + averageFacing
-            val interceptFacing = (intercept - ship.location).facing
-
-            // Check if firing solution is inside weapon arc.
-            val halfArc = weapon.arc / 2f
-            val angleToArc = MathUtils.getShortestRotation(arcFacing, interceptFacing)
-            if (abs(angleToArc) < halfArc) return@forEach
+            val localIntercept: Float = it.value - defaultShipFacing
+            if (weapon.isAngleInArc(localIntercept)) return@forEach
 
             // Angle to nearest arc boundary.
-            val angleArc1 = MathUtils.getShortestRotation(arcFacing + halfArc, interceptFacing)
-            val angleArc2 = MathUtils.getShortestRotation(arcFacing - halfArc, interceptFacing)
-            val angleToIntercept = if (abs(angleArc1) > abs(angleArc2)) angleArc2
-            else angleArc1
+            val halfArc = weapon.arc / 2f
+            val angleArc1 = MathUtils.getShortestRotation(weapon.arcFacing + halfArc, localIntercept)
+            val angleArc2 = MathUtils.getShortestRotation(weapon.arcFacing - halfArc, localIntercept)
+            val outOfArc = if (abs(angleArc1) > abs(angleArc2)) angleArc2 else angleArc1
 
             // Calculate offset if firing solution is outside weapon firing arc.
             when {
-                angleToIntercept < 0f -> offsetNegative = min(offsetNegative, angleToIntercept)
-                angleToIntercept > 0f -> offsetPositive = max(offsetPositive, angleToIntercept)
+                outOfArc < 0f -> offsetNegative = min(offsetNegative, outOfArc)
+                outOfArc > 0f -> offsetPositive = max(offsetPositive, outOfArc)
             }
         }
 
-        // Calculate ship facing offset from average firing solution facing.
-        val offset = when {
-            offsetPositive == 0f -> offsetNegative
-
-            offsetNegative == 0f -> offsetPositive
-
-//            abs(offsetNegative) > abs(offsetPositive) -> offsetPositive
-
-            // Return average facing when there are no offsets
-            // or there are conflicting offsets.
-            else -> offsetNegative
-        }
-
-//        debugPrint["avg"] = "avg ${averageFacing}"
+//        // Calculate ship facing offset from average firing solution facing.
+//        val offset = when {
+//            offsetPositive == 0f -> offsetNegative
+//
+//            offsetNegative == 0f -> offsetPositive
+//
+//            // Return average facing when there are no offsets
+//            // or there are conflicting offsets.
+//            else -> offsetNegative
+//        }
+//
+////        debugPrint["avg"] = "avg ${averageFacing}"
 //        debugPrint["pos"] = "pos ${offsetPositive}"
 //        debugPrint["neg"] = "neg ${offsetNegative}"
 
-        return averageFacing + offset + 1f * offset.sign
+        return defaultShipFacing + offsetNegative + offsetPositive
+    }
+
+    private fun averageFacing(facings: Collection<Float>): Float {
+        return facings.fold(Vector2f()) { sum, f -> sum + unitVector(f) }.facing
     }
 
     private fun gatherSpeedLimits(dt: Float): List<EngineController.Limit> {

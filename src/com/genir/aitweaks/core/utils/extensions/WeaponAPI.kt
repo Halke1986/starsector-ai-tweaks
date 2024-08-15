@@ -29,11 +29,12 @@ val WeaponAPI.ignoresFlares: Boolean
     get() = hasAIHint(IGNORES_FLARES) || ship.mutableStats.dynamic.getValue("pd_ignores_flares", 0f) >= 1f
 
 fun WeaponAPI.isAngleInArc(angle: Float): Boolean {
-    return abs(MathUtils.getShortestRotation(arcFacing, angle)) <= arc / 2f
+    val tolerance = 0.01f
+    return abs(MathUtils.getShortestRotation(arcFacing, angle)) <= (arc + tolerance) / 2f
 }
 
 val WeaponAPI.isFrontFacing: Boolean
-    get() = abs(MathUtils.getShortestRotation(arcFacing, 0f)) <= arc / 2f
+    get() = isAngleInArc(0f)
 
 /** weapon arc facing in absolute coordinates, instead of ship coordinates */
 val WeaponAPI.absoluteArcFacing: Float

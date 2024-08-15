@@ -8,7 +8,6 @@ import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.attack.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
@@ -143,7 +142,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // of predictive aiming.
         onTargetTime += dt
         if (!weapon.isPD && onTargetTime < min(2f, weapon.firingCycle.duration)) {
-            val angleToTarget = VectorUtils.getFacing(intercept!! - weapon.location)
+            val angleToTarget = (intercept!! - weapon.location).facing
             val inaccuracy = abs(MathUtils.getShortestRotation(weapon.currAngle, angleToTarget))
             if (inaccuracy > 1f) return STABILIZE_ON_TARGET
         }

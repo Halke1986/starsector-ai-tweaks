@@ -11,7 +11,6 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.debug.drawLine
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.features.shipai.vanilla.Vanilla
@@ -21,11 +20,9 @@ import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
 
-// TODO weird rotating heading point
 // TODO move to interval update
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -97,17 +94,25 @@ class AI(val ship: ShipAPI) {
     }
 
     private fun debug() {
+//        debugPrint.clear()
+
+//        stats.significantWeapons.filter { it.isInFiringSequence }.forEach {
+//            debugPrint[it] = it.id
+//        }
+
 //        drawTurnLines(ship)
 
-        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
+//        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
 //        drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 
 //        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
 //        drawLine(ship.location, ship.location + (maneuverTarget?.velocity ?: ship.location), Color.GREEN)
 //        drawLine(ship.location, movement.headingPoint, Color.YELLOW)
 
-        drawLine(ship.location, ship.location + unitVector(ship.facing) * 700f, Color.GREEN)
+//        drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, Color.GREEN)
 //        drawLine(ship.location, ship.location + unitVector(movement.expectedFacing) * 600f, Color.YELLOW)
+
+//        drawLine(ship.location, ship.location + unitVector(ship.facing + attackingGroup.facing) * 600f, Color.BLUE)
 //        drawLine(ship.location, ship.location + (movement.expectedVelocity).resized(300f), Color.GREEN)
 //        drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
 //        drawLine(ship.location, ship.location + threatVector.resized(600f), Color.PINK)
@@ -284,7 +289,7 @@ class AI(val ship: ShipAPI) {
             return
         }
 
-        val continueBurst = finishBurstWeaponGroup?.weapons?.any { it.isInFiringSequence && it.customAI?.targetShip == finishBurstTarget }
+        val continueBurst = finishBurstWeaponGroup?.weapons?.any { it.isInFiringSequence && it.target == finishBurstTarget }
         if (continueBurst != true) finishBurstTarget = null
     }
 
