@@ -6,10 +6,10 @@ import com.genir.aitweaks.core.utils.extensions.isAngleInArc
 /** A group of weapons that can focus on a single attack angle. */
 class WeaponGroup(significantWeapons: List<WeaponAPI>, val facing: Float) {
     val weapons = significantWeapons.filter { it.isAngleInArc(facing) }
+    val dps: Float = weapons.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
     val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)
     val minRange: Float = weapons.minOfOrNull { it.slotRange } ?: 0f
     val maxRange: Float = weapons.maxOfOrNull { it.slotRange } ?: 0f
-    val dps: Float = weapons.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
 
     /** Fraction of primary weapons DPS that can be delivered at the given range. */
     fun dpsFractionAtRange(range: Float): Float {

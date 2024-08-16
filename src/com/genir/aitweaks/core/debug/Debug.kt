@@ -30,6 +30,9 @@ internal fun debug(dt: Float) {
 
 //    val ship = Global.getCombatEngine().playerShip ?: return
 
+//    drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, Color.GREEN)
+//    drawLine(ship.location, ship.attackTarget?.location ?: ship.location, Color.RED)
+
 //    ship.allWeapons.forEach{it.autofirePlugin?.forceOff()}
 
 //    custom.forEach {

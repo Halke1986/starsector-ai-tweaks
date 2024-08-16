@@ -2,6 +2,7 @@
 - Fixed issue where autofire weapons in some cases were too accurate on ships with low Combat Readiness.
 - Fixed targeting priority for PD weapons with no ANTI_FTR hint. Now they prioritize missiles over fighters.
 - Fixed issue with PD weapons targeting friendly VIC Hungruf missile engine module. Reported by @alexgu812
+- Invictus and other ships using lidararray are controlled by the custom ship AI all the time, not only when lidar array is active.
 
 Version 1.7.4
 

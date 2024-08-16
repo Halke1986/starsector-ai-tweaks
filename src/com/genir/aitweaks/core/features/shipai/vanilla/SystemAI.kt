@@ -28,9 +28,9 @@ class SystemAI(private val systemAI: Any) {
     }
 
     companion object {
-        fun getIfExists(vanillaAI: BasicShipAI): SystemAI? {
-            val field: Field = vanillaAI::class.java.getDeclaredField("systemAI").also { it.setAccessible(true) }
-            return field.get(vanillaAI)?.let { SystemAI(it) }
+        fun getIfExists(basicShipAI: BasicShipAI): SystemAI? {
+            val field: Field = basicShipAI::class.java.getDeclaredField("systemAI").also { it.setAccessible(true) }
+            return field.get(basicShipAI)?.let { SystemAI(it) }
         }
     }
 }

@@ -9,8 +9,8 @@ import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodHandles.Lookup
 import java.lang.invoke.MethodType
 
-class FlockingAI(vanillaAI: BasicShipAI) {
-    private val flockingAI: Any = BasicShipAI::class.java.getMethod("getFlockingAI").invoke(vanillaAI)
+class FlockingAI(basicShipAI: BasicShipAI) {
+    private val flockingAI: Any = BasicShipAI::class.java.getMethod("getFlockingAI").invoke(basicShipAI)
 
     private val setDesiredHeading: MethodHandle
     private val setDesiredFacing: MethodHandle

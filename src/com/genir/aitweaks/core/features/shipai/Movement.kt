@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*

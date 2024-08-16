@@ -4,8 +4,8 @@ import com.fs.starfarer.combat.ai.BasicShipAI
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 
-class ThreatEvalAI(vanillaAI: BasicShipAI) {
-    val threatEvalAI: Any = BasicShipAI::class.java.getMethod("getThreatEvaluator").invoke(vanillaAI)
+class ThreatEvalAI(basicShipAI: BasicShipAI) {
+    val threatEvalAI: Any = BasicShipAI::class.java.getMethod("getThreatEvaluator").invoke(basicShipAI)
     private val advance: MethodHandle
 
     init {

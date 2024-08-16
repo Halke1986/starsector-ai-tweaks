@@ -32,6 +32,7 @@ class CustomAIManager {
             // Selected ships.
             ship.hullSpec.hullId.startsWith("guardian") -> true
             ship.hullSpec.hullId.startsWith("sr_melvillei") -> true
+            ship.hullSpec.shipSystemId == "lidararray" -> true
 
             // Player
             ship.isAlly -> false

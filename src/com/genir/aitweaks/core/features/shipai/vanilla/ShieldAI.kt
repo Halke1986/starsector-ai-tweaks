@@ -27,8 +27,8 @@ class ShieldAI(private val shieldAI: Any) {
     }
 
     companion object {
-        fun getIfExists(vanillaAI: BasicShipAI): ShieldAI? {
-            val shieldAI: Any? = BasicShipAI::class.java.getMethod("getShieldAI").invoke(vanillaAI)
+        fun getIfExists(basicShipAI: BasicShipAI): ShieldAI? {
+            val shieldAI: Any? = BasicShipAI::class.java.getMethod("getShieldAI").invoke(basicShipAI)
 
             return shieldAI?.let { ShieldAI(it) }
         }

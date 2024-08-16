@@ -7,13 +7,13 @@ import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.Field
 
-class VentModule(vanillaAI: BasicShipAI) {
+class VentModule(basicShipAI: BasicShipAI) {
     private val ventModule: Any
     private val advance: MethodHandle
 
     init {
-        val field: Field = vanillaAI::class.java.getDeclaredField("ventModule").also { it.setAccessible(true) }
-        ventModule = field.get(vanillaAI)
+        val field: Field = basicShipAI::class.java.getDeclaredField("ventModule").also { it.setAccessible(true) }
+        ventModule = field.get(basicShipAI)
 
         // Find advance method.
         // There's only one FighterPullbackModule method taking (Float, Ship) parameters.

@@ -24,9 +24,9 @@ class FighterPullbackModule(private val fighterPullbackModule: Any) {
     }
 
     companion object {
-        fun getIfExists(vanillaAI: BasicShipAI): FighterPullbackModule? {
+        fun getIfExists(basicShipAI: BasicShipAI): FighterPullbackModule? {
             val field: Field = BasicShipAI::class.java.getDeclaredField("fighterPullbackModule").also { it.setAccessible(true) }
-            val fighterPullbackModule: Any? = field.get(vanillaAI)
+            val fighterPullbackModule: Any? = field.get(basicShipAI)
 
             return fighterPullbackModule?.let { FighterPullbackModule(it) }
         }
