@@ -11,7 +11,6 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.features.shipai.vanilla.Vanilla
@@ -103,8 +102,6 @@ class AI(val ship: ShipAPI) {
 
     private fun debug() {
 //        debugPrint.clear()
-
-    debugPrint["s"] = ship.hullSpec.getShipSystemId()
 
 //        stats.significantWeapons.filter { it.isInFiringSequence }.forEach {
 //            debugPrint[it] = it.id
