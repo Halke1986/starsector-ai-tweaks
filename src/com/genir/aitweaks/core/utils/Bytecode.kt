@@ -6,7 +6,7 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /** Tools for obfuscated bytecode analysis. */
-class Bytecode() {
+class Bytecode {
     data class Method(val name: String, val desc: String)
 
     companion object {

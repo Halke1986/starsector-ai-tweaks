@@ -118,7 +118,7 @@ class Movement(override val ai: AI) : Coordinable {
             }
 
             // Face the attack target.
-            currentAttackTarget != null && (currentAttackTarget.location - ship.location).length <= ai.stats.threatSearchRange -> {
+            currentAttackTarget != null -> {
                 // Average aim offset to avoid ship wobbling.
                 val aimPointThisFrame = unitVector(aimShip(currentAttackTarget, weaponGroup)) * 100f + ship.location
                 val aimOffsetThisFrame = getShortestRotation(currentAttackTarget.location, ship.location, aimPointThisFrame)
@@ -132,9 +132,9 @@ class Movement(override val ai: AI) : Coordinable {
                 ai.threatVector.facing
             }
 
-            // Face expected velocity.
-            expectedVelocity.length > 5f -> {
-                expectedVelocity.facing
+            // Face movement target location.
+            ai.assignmentLocation != null -> {
+                (ai.assignmentLocation!! - ship.location).facing
             }
 
             // Nothing to do. Stop rotation.
@@ -210,21 +210,6 @@ class Movement(override val ai: AI) : Coordinable {
                 outOfArc > 0f -> offsetPositive = max(offsetPositive, outOfArc)
             }
         }
-
-//        // Calculate ship facing offset from average firing solution facing.
-//        val offset = when {
-//            offsetPositive == 0f -> offsetNegative
-//
-//            offsetNegative == 0f -> offsetPositive
-//
-//            // Return average facing when there are no offsets
-//            // or there are conflicting offsets.
-//            else -> offsetNegative
-//        }
-//
-////        debugPrint["avg"] = "avg ${averageFacing}"
-//        debugPrint["pos"] = "pos ${offsetPositive}"
-//        debugPrint["neg"] = "neg ${offsetNegative}"
 
         return defaultShipFacing + offsetNegative + offsetPositive
     }
