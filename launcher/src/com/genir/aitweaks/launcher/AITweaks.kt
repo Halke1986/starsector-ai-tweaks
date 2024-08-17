@@ -1,5 +1,6 @@
 package com.genir.aitweaks.launcher
 
+import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.PluginPick
 import com.fs.starfarer.api.campaign.CampaignPlugin.PickPriority
@@ -13,7 +14,7 @@ import com.genir.aitweaks.launcher.features.CryosleeperEncounter
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 
-class BaseModPlugin : MakeAITweaksRemovable() {
+class AITweaks : BaseModPlugin() {
     // Stinger-class Proximity Mine is classified as a ballistic weapon, but works like a missile.
     private val autofireBlacklist = setOf("fragbomb")
 
@@ -40,13 +41,20 @@ class BaseModPlugin : MakeAITweaksRemovable() {
         return PluginPick(customAI, PickPriority.MOD_GENERAL)
     }
 
+    override fun beforeGameSave() {
+        MakeAITweaksRemovable.beforeGameSave()
+    }
+
+    override fun afterGameSave() {
+        MakeAITweaksRemovable.afterGameSave()
+    }
+
     override fun onNewGame() {
-        super.onNewGame()
         onGameStart()
     }
 
     override fun onGameLoad(newGame: Boolean) {
-        super.onGameLoad(newGame)
+        MakeAITweaksRemovable.onGameLoad()
         onGameStart()
     }
 

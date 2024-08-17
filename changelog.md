@@ -1,3 +1,5 @@
+- Added System Shunt hullmod.
+
 Version 1.7.5
 
 - Autofire weapons with long bursts like Tachyon Lance or Plasma Cannon are even less likely to change targets mid-burst.
