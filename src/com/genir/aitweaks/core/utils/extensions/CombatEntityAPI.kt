@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.utils.extensions
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CombatAsteroidAPI
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
@@ -11,9 +12,11 @@ val CombatEntityAPI.isShip: Boolean
 
 val CombatEntityAPI.isValidTarget: Boolean
     get() = when {
-        owner == 100 -> false
-
         isExpired -> false
+
+        this is CombatAsteroidAPI -> true
+
+        owner == 100 -> false
 
         this is ShipAPI -> isHullDamageable && isAlive
 

@@ -1,3 +1,5 @@
+Version 1.7.5
+
 - Autofire weapons with long bursts like Tachyon Lance or Plasma Cannon are even less likely to change targets mid-burst.
 - Fixed issue where autofire weapons in some cases were too accurate on ships with low Combat Readiness.
 - Fixed targeting priority for PD weapons with no ANTI_FTR hint. Now they prioritize missiles over fighters.
