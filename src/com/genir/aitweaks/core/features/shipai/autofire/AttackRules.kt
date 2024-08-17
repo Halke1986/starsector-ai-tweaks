@@ -7,10 +7,6 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.LARGE
-import com.genir.aitweaks.core.utils.attack.BallisticParams
-import com.genir.aitweaks.core.utils.attack.Hit
-import com.genir.aitweaks.core.utils.attack.firingCycle
-import com.genir.aitweaks.core.utils.attack.willHitBounds
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import kotlin.math.min

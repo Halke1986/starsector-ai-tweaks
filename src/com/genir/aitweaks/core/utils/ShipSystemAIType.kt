@@ -1,8 +1,6 @@
 package com.genir.aitweaks.core.utils
 
-class ShipSystem
-
-enum class ShipSystemAiType {
+enum class ShipSystemAIType {
     FLARE,
     FLARE_JAMMER,
     CANISTER_FLAK,

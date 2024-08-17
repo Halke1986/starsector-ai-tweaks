@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.utils.attack
+package com.genir.aitweaks.core.features.shipai.autofire
 
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.BeamWeaponSpecAPI

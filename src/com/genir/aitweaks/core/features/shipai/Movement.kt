@@ -151,7 +151,7 @@ class Movement(override val ai: AI) : Coordinable {
     private fun manageMobilitySystems() {
         when (ship.system?.specAPI?.AIType) {
 
-            ShipSystemAiType.BURN_DRIVE -> {
+            ShipSystemAIType.BURN_DRIVE -> {
                 // Prevent vanilla AI from jumping closer to target with
                 // BURN_DRIVE, if the target is already within weapons range.
                 if (ai.attackTarget != null && ai.range(ai.attackTarget!!) < ai.attackingGroup.effectiveRange) {

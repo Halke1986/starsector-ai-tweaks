@@ -1,7 +1,7 @@
 package autofire
 
+import com.genir.aitweaks.core.features.shipai.autofire.*
 import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.attack.*
 import mocks.MockBoundsAPI
 import mocks.MockSegmentAPI
 import mocks.MockShipAPI

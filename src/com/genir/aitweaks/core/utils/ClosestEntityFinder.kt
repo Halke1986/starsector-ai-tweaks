@@ -5,10 +5,10 @@ import com.fs.starfarer.api.combat.CollisionGridAPI
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.utils.attack.BallisticParams
-import com.genir.aitweaks.core.utils.attack.Hit
-import com.genir.aitweaks.core.utils.attack.analyzeAllyHit
-import com.genir.aitweaks.core.utils.attack.analyzeHit
+import com.genir.aitweaks.core.features.shipai.autofire.BallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.Hit
+import com.genir.aitweaks.core.features.shipai.autofire.analyzeAllyHit
+import com.genir.aitweaks.core.features.shipai.autofire.analyzeHit
 import com.genir.aitweaks.core.utils.extensions.rootModule
 import com.genir.aitweaks.core.utils.extensions.totalRange
 import org.lazywizard.lazylib.ext.minus

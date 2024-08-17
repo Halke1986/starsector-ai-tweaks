@@ -9,10 +9,10 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.features.shipai.AI
+import com.genir.aitweaks.core.features.shipai.autofire.AttackTarget
+import com.genir.aitweaks.core.features.shipai.autofire.canTrack
+import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.command
-import com.genir.aitweaks.core.utils.attack.AttackTarget
-import com.genir.aitweaks.core.utils.attack.canTrack
-import com.genir.aitweaks.core.utils.attack.defaultBallisticParams
 import com.genir.aitweaks.core.utils.extensions.attackTarget
 import com.genir.aitweaks.core.utils.extensions.autofirePlugin
 import com.genir.aitweaks.core.utils.extensions.isHullDamageable

@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.utils.attack
+package com.genir.aitweaks.core.features.shipai.autofire
 
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.utils.extensions.isShip
