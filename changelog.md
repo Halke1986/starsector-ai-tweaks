@@ -1,3 +1,5 @@
+Version 1.7.6
+
 - Fixed crash caused by overriding automated fighter AI personality. Reported by @Hyperkayak
 
 Version 1.7.5
