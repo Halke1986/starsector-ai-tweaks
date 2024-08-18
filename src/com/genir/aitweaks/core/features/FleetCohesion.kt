@@ -88,7 +88,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
                 it.isAlly -> false
                 it.isStation -> false
                 it.isModule -> false
-                it.hasCustomAI -> false
+                it.hasCustomShipAI -> false
                 it == engine.playerShip && engine.isUIAutopilotOn -> false
                 else -> true
             }

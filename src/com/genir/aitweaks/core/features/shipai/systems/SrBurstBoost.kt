@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.features.shipai.AI
+import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
@@ -16,7 +16,7 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
-class SrBurstBoost(ai: AI) : SystemAI(ai) {
+class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
     private var burstVectors: List<BurstVector> = listOf()
     private var hardpoints: List<WeaponAPI> = listOf()
 

@@ -7,7 +7,7 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.utils.angularSize
-import com.genir.aitweaks.core.utils.extensions.customAI
+import com.genir.aitweaks.core.utils.extensions.customShipAI
 import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
@@ -20,7 +20,7 @@ import kotlin.math.abs
 interface Coordinable {
     var proposedHeadingPoint: Vector2f?
     var reviewedHeadingPoint: Vector2f?
-    val ai: AI
+    val ai: CustomShipAI
 }
 
 /**
@@ -32,8 +32,8 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         if (!combatState().customAIManager.customAIEnabled) return
 
         val ships = Global.getCombatEngine().ships.asSequence()
-        val movements = ships.mapNotNull { it.customAI?.movement }
-        val burnDrives = ships.mapNotNull { it.customAI?.systemAI as? Coordinable }
+        val movements = ships.mapNotNull { it.customShipAI?.movement }
+        val burnDrives = ships.mapNotNull { it.customShipAI?.systemAI as? Coordinable }
 
         buildTaskForces(movements).forEach { coordinateUnits(buildFormations(it.value)) }
         buildTaskForces(burnDrives).forEach { coordinateUnits(buildFormations(it.value)) }

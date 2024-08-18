@@ -8,11 +8,9 @@ import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
-import com.fs.starfarer.combat.ai.FighterAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
-import com.genir.aitweaks.core.features.shipai.AI
-import com.genir.aitweaks.core.features.shipai.AIPlugin
+import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
@@ -53,7 +51,7 @@ val ShipAPI.attackTarget: ShipAPI?
         isModule -> rootModule.attackTarget
 
         // Custom AI reliably sets shipTarget value.
-        customAI != null -> shipTarget
+        customShipAI != null -> shipTarget
 
         // For manually controlled ship, return R-selected target.
         this == Global.getCombatEngine().playerShip && Global.getCombatEngine().isUIAutopilotOn -> shipTarget
@@ -73,7 +71,10 @@ fun ShipAPI.angleFromFacing(p: Vector2f): Float {
     return MathUtils.getShortestRotation((p - location).getFacing(), facing)
 }
 
-fun ShipAPI.hasAIType(c: Class<*>?): Boolean {
+val ShipAPI.fluxLeft: Float
+    get() = fluxTracker.maxFlux - fluxTracker.currFlux
+
+private fun ShipAPI.hasAIClass(c: Class<*>?): Boolean {
     return when {
         c == null -> false
         c.isInstance(ai) -> true
@@ -82,14 +83,12 @@ fun ShipAPI.hasAIType(c: Class<*>?): Boolean {
     }
 }
 
-val ShipAPI.hasVanillaAI: Boolean
-    get() = hasAIType(BasicShipAI::class.java) || hasAIType(FighterAI::class.java)
+val ShipAPI.hasBasicShipAI: Boolean
+    get() = hasAIClass(BasicShipAI::class.java)
 
-val ShipAPI.hasCustomAI: Boolean
-    get() = hasAIType(AIPlugin::class.java)
+val ShipAPI.hasCustomShipAI: Boolean
+    get() = hasAIClass(CustomShipAI::class.java)
 
-val ShipAPI.customAI: AI?
-    get() = ((ai as? Ship.ShipAIWrapper)?.ai as? AIPlugin)?.ai
+val ShipAPI.customShipAI: CustomShipAI?
+    get() = (ai as? Ship.ShipAIWrapper)?.ai as? CustomShipAI
 
-val ShipAPI.fluxLeft: Float
-    get() = fluxTracker.maxFlux - fluxTracker.currFlux
