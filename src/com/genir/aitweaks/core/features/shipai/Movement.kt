@@ -21,7 +21,7 @@ import kotlin.math.min
 import kotlin.math.sign
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Movement(override val ai: AI) : Coordinable {
+class Movement(override val ai: CustomShipAI) : Coordinable {
     private val ship: ShipAPI = ai.ship
     private val engineController: EngineController = EngineController(ship)
 
@@ -263,7 +263,7 @@ class Movement(override val ai: AI) : Coordinable {
 
     private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {
         val target = ai.attackTarget ?: return null
-        val ais = allies.mapNotNull { it.customAI }
+        val ais = allies.mapNotNull { it.customShipAI }
 
         // Blocking line of fire occurs mostly among ships attacking the same target.
         // For simplicity, the AI will try to avoid only those cases of blocking.

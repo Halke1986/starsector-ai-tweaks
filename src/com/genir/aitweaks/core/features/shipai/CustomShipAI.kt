@@ -1,11 +1,8 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
-import com.fs.starfarer.api.combat.CombatFleetManagerAPI
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipCommand
-import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.BACKING_OFF
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
@@ -26,7 +23,7 @@ import kotlin.math.abs
 // TODO move to interval update
 
 @Suppress("MemberVisibilityCanBePrivate")
-class AI(val ship: ShipAPI) {
+class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     // Subsystems.
     val movement: Movement = Movement(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
@@ -58,7 +55,7 @@ class AI(val ship: ShipAPI) {
     var threats: List<ShipAPI> = listOf()
     var threatVector = Vector2f()
 
-    fun advance(dt: Float) {
+    override fun advance(dt: Float) {
         debug()
 
         // Cede the control to vanilla AI when the ship is retreating.
@@ -99,6 +96,18 @@ class AI(val ship: ShipAPI) {
 
         vanilla.flags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
     }
+
+    override fun setDoNotFireDelay(amount: Float) = Unit
+
+    override fun forceCircumstanceEvaluation() = Unit
+
+    override fun needsRefit(): Boolean = false
+
+    override fun getAIFlags(): ShipwideAIFlags = vanilla.flags
+
+    override fun cancelCurrentManeuver() = Unit
+
+    override fun getConfig(): ShipAIConfig = ShipAIConfig()
 
     private fun debug() {
 //        debugPrint.clear()

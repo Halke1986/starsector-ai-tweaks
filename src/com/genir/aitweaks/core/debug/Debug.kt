@@ -8,7 +8,7 @@ import com.genir.aitweaks.core.features.shipai.strafeAcceleration
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.boundsCollision
 import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.hasVanillaAI
+import com.genir.aitweaks.core.utils.extensions.hasCustomShipAI
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.times
@@ -88,7 +88,7 @@ private fun showBoundsCollision() {
 }
 
 internal fun highlightCustomAI() {
-    Global.getCombatEngine().ships.filter { it.ai != null && !it.hasVanillaAI }.forEach {
+    Global.getCombatEngine().ships.filter { it.hasCustomShipAI }.forEach {
         drawCircle(it.location, it.collisionRadius / 2f, RED)
     }
 }

@@ -1,13 +1,13 @@
 package com.genir.aitweaks.core.features.shipai.systems
 
-import com.genir.aitweaks.core.features.shipai.AI
+import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.ShipSystemAiType
 import com.genir.aitweaks.core.utils.ShipSystemAiType.*
 import com.genir.aitweaks.core.utils.extensions.AIType
 
 class SystemAIManager {
     companion object {
-        fun overrideVanillaSystem(ai: AI): SystemAI? {
+        fun overrideVanillaSystem(ai: CustomShipAI): SystemAI? {
             val aiType: ShipSystemAiType = ai.ship.system?.specAPI?.AIType ?: return null
 
             return when {

@@ -23,7 +23,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 /** Burn Drive AI. It replaces the vanilla implementation in ships with custom AI. */
-class BurnDriveToggle(ai: AI) : SystemAI(ai), Coordinable {
+class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), Coordinable {
     private var headingPoint: Vector2f = Vector2f()
     private var shouldBurn = false
 

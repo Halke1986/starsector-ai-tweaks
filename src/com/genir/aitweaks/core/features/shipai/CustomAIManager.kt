@@ -14,7 +14,7 @@ class CustomAIManager {
     private val devmode: Boolean = getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
 
     fun getCustomAIForShip(ship: ShipAPI): ShipAIPlugin? {
-        return if (shouldHaveCustomAI(ship)) AIPlugin(ship)
+        return if (shouldHaveCustomAI(ship)) CustomShipAI(ship)
         else null
     }
 
