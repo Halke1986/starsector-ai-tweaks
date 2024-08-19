@@ -22,43 +22,12 @@ import kotlin.math.abs
 import kotlin.math.ceil
 
 internal fun debug(dt: Float) {
-//    followMouse2(dt)
+    val asteroid = Global.getCombatEngine().asteroids.firstOrNull() ?: return
+    val ship = Global.getCombatEngine().playerShip ?: return
 
-
-//    val ships = Global.getCombatEngine().ships
-//    val custom = ships.mapNotNull { it.customAI }
-
-//    val ship = Global.getCombatEngine().playerShip ?: return
-
-//    drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, Color.GREEN)
-//    drawLine(ship.location, ship.attackTarget?.location ?: ship.location, Color.RED)
-
-//    ship.allWeapons.forEach{it.autofirePlugin?.forceOff()}
-
-//    custom.forEach {
-//        drawLine(it.ship.location, it.movement.headingPoint ?: it.ship.location, YELLOW)
-//        drawLine(it.ship.location, it.ship.location + it.ship.velocity * 2f, GREEN)
-//    }
-
-//    followRotation(dt)
-//    makeDroneFormation()
-
-//    showBoundsCollision()
+    debugPrint["asteroid"] = "asteroid ${asteroid.velocity.length}"
+    debugPrint["ship"] = "ship ${ship.velocity.length}"
 }
-
-//private fun brakeDist(dt: Float, velocity: Float, deceleration: Float): Float {
-//    val v = velocity * dt
-//    val a = deceleration * dt * dt
-//
-//    val t = ceil(v / a) - 1f
-//
-//    debugPrint["t"] = "t $t $v $a"
-//    debugPrint["k"] = "$velocity $deceleration $dt"
-//
-//    debugPrint["z"] = "${v * (t + 1f)} ${(-a * (t + (t * t)) / 2f)}"
-//
-//    return (v * (t + 1f) - a * (t + t * t) / 2f)
-//}
 
 private fun brakeDist(dt: Float, velocity: Float, deceleration: Float): Float {
     val v = velocity * dt

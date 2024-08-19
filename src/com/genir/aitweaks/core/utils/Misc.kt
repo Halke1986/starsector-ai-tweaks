@@ -109,8 +109,7 @@ class RollingAverageFloat(private val historySize: Int) {
 
 inline fun <reified T : Enum<T>> loadEnum(json: JSONObject, fieldName: String): T? {
     val value: String = json.optString(fieldName)
-    if (value == "")
-        return null
+    if (value == "") return null
 
     return try {
         enumValueOf<T>(value)
@@ -125,4 +124,11 @@ fun getShortestRotation(from: Vector2f, to: Vector2f): Float {
 
 fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Float {
     return getShortestRotation((from - pivot).getFacing(), (to - pivot).getFacing())
+}
+
+fun mousePosition(): Vector2f {
+    return Vector2f(
+        Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()),
+        Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()),
+    )
 }

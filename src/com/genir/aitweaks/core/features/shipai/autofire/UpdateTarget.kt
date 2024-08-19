@@ -73,7 +73,7 @@ class UpdateTarget(
             priorityTarget != null && weapon.slot.isHardpoint -> priorityTarget
 
             // Select priority target, if it can be tracked.
-            priorityTarget != null && canTrack(weapon, AttackTarget(priorityTarget), params) -> priorityTarget
+            priorityTarget != null && canTrack(weapon, BallisticTarget(priorityTarget), params) -> priorityTarget
 
             // Select alternative target.
             else -> selectEntity<ShipAPI>(shipGrid()) { !it.isFighter || alsoFighter }
@@ -84,7 +84,7 @@ class UpdateTarget(
         grid: CollisionGridAPI, crossinline isAcceptableTarget: (T) -> Boolean
     ): CombatEntityAPI? {
         // Try tracking current target.
-        if (current is T && isAcceptableTarget(current) && canTrack(weapon, AttackTarget(current), params)) return current
+        if (current is T && isAcceptableTarget(current) && canTrack(weapon, BallisticTarget(current), params)) return current
 
         // Find the closest enemy entity that can be tracked by the weapon.
         return closestEntityFinder(weapon.location, weapon.totalRange, grid) {
@@ -93,8 +93,8 @@ class UpdateTarget(
                 it.owner == weapon.ship.owner -> null
                 !it.isValidTarget -> null
                 !isAcceptableTarget(it) -> null
-                !canTrack(weapon, AttackTarget(it), params) -> null
-                else -> Hit(it, closestHitRange(weapon, AttackTarget(it), params)!!, false)
+                !canTrack(weapon, BallisticTarget(it), params) -> null
+                else -> Hit(it, closestHitRange(weapon, BallisticTarget(it), params)!!, false)
             }
         }?.target
     }

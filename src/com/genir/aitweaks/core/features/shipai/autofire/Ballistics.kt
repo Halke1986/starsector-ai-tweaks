@@ -24,13 +24,13 @@ private const val cos90 = 0f
 private const val cos180 = -1f
 
 /** Simplified representation of a circular, moving target. */
-data class AttackTarget(val location: Vector2f, val velocity: Vector2f, val radius: Float) {
+data class BallisticTarget(val location: Vector2f, val velocity: Vector2f, val radius: Float) {
     constructor(entity: CombatEntityAPI) : this(entity.location, entity.velocity, entity.collisionRadius)
 }
 
 /** Use ship shields as an approximation for its circumference */
-fun targetShield(ship: ShipAPI): AttackTarget {
-    return AttackTarget(ship.shieldCenterEvenIfNoShield, ship.velocity, ship.shieldRadiusEvenIfNoShield)
+fun targetShield(ship: ShipAPI): BallisticTarget {
+    return BallisticTarget(ship.shieldCenterEvenIfNoShield, ship.velocity, ship.shieldRadiusEvenIfNoShield)
 }
 
 /** Weapon attack parameters: accuracy and delay until attack. */
@@ -40,7 +40,7 @@ fun defaultBallisticParams() = BallisticParams(1f, 0f)
 
 /** Weapon aim location required to hit center point of a moving target.
  * Null if projectile is slower than the target. */
-fun intercept(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams): Vector2f? {
+fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f? {
     val pv = targetCoords(weapon, target, params)
     val range = solve(pv, 0f, 1f, 0f) ?: return null
     val offset = pv.second * range
@@ -49,7 +49,7 @@ fun intercept(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams):
 }
 
 /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
-fun canTrack(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams, rangeOverride: Float? = null): Boolean {
+fun canTrack(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams, rangeOverride: Float? = null): Boolean {
     val closestHit = closestHitRange(weapon, target, params) ?: return false
     if (closestHit > (rangeOverride ?: weapon.totalRange)) return false
 
@@ -59,7 +59,7 @@ fun canTrack(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams, r
 
 /** Closest possible range at which the projectile can collide with the target circumference,
  * for any weapon facing. Null if the target is faster than the projectile. */
-fun closestHitRange(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams): Float? {
+fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Float? {
     val pv = targetCoords(weapon, target, params)
     return if (targetAboveZero(pv.first, target.radius)) 0f
     else solve(pv, target.radius, 1f, cos180)
@@ -69,7 +69,7 @@ fun closestHitRange(weapon: WeaponAPI, target: AttackTarget, params: BallisticPa
  * the weapon projectile will collide with target circumference.
  * Similar to intercept point, but not restricted to target center point.
  * Null if projectile is slower than the target. */
-fun interceptArc(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams): Arc? {
+fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Arc? {
     val (p, v) = targetCoords(weapon, target, params)
     if (targetAboveZero(p, target.radius)) return Arc(360f, 0f)
 
@@ -82,7 +82,7 @@ fun interceptArc(weapon: WeaponAPI, target: AttackTarget, params: BallisticParam
 
 /** Calculates if projectile will collide with the target circumference,
  * given current weapon facing. Weapon range is ignored. */
-fun willHitCircumference(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams): Float? {
+fun willHitCircumference(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Float? {
     return solve(projectileCoords(weapon, target, params), target.radius)
 }
 
@@ -111,18 +111,18 @@ fun willHitShieldCautious(weapon: WeaponAPI, target: ShipAPI, params: BallisticP
 /** Calculates if a perfectly accurate projectile will collide with target bounds,
  * given current weapon facing. Collision range is returned, null if no collision. */
 fun willHitBounds(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): Float? {
-    val (p, v) = projectileCoords(weapon, AttackTarget(target), params)
+    val (p, v) = projectileCoords(weapon, BallisticTarget(target), params)
     return boundsCollision(p, v, target)
 }
 
 /** Target location and velocity in weapon frame of reference. */
-private fun targetCoords(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams) = Pair(
+private fun targetCoords(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams) = Pair(
     (target.location - weapon.location) + (target.velocity - weapon.ship.velocity) * params.delay,
     (target.velocity - weapon.ship.velocity) / (weapon.projectileSpeed * params.accuracy),
 )
 
 /** Projectile location and velocity in target frame of reference. */
-private fun projectileCoords(weapon: WeaponAPI, target: AttackTarget, params: BallisticParams) = Pair(
+private fun projectileCoords(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams) = Pair(
     (weapon.location - target.location) + (weapon.ship.velocity - target.velocity) * params.delay,
     unitVector(weapon.currAngle) + (weapon.ship.velocity - target.velocity) / (weapon.projectileSpeed * params.accuracy),
 )

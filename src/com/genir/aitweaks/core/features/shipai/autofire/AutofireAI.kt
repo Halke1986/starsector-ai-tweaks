@@ -86,7 +86,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
 
     fun plotIntercept(target: CombatEntityAPI): Vector2f? {
-        return intercept(weapon, AttackTarget(target), currentParams())
+        return intercept(weapon, BallisticTarget(target), currentParams())
     }
 
     private fun trackAttackTimes(dt: Float) {
@@ -108,7 +108,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             }
 
             // Target can no longer be tracked.
-            target != null && !canTrack(weapon, AttackTarget(target!!), currentParams()) -> {
+            target != null && !canTrack(weapon, BallisticTarget(target!!), currentParams()) -> {
                 target = null
                 true
             }

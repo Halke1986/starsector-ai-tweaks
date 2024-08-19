@@ -9,7 +9,7 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
-import com.genir.aitweaks.core.features.shipai.autofire.AttackTarget
+import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.canTrack
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.command
@@ -86,7 +86,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun weaponsOnTarget(target: ShipAPI): Boolean {
-        return lidarWeapons.firstOrNull { !canTrack(it, AttackTarget(target), defaultBallisticParams(), it.range * weaponRangeFraction) } == null
+        return lidarWeapons.firstOrNull { !canTrack(it, BallisticTarget(target), defaultBallisticParams(), it.range * weaponRangeFraction) } == null
     }
 
     private fun weaponsNotBlocked(): Boolean {
