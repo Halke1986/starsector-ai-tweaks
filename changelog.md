@@ -1,5 +1,7 @@
-- Added System Shunt hullmod.
-- 
+Version 1.8.0
+
+- Added System Shunt hullmod. System Shunt prevents AI from using the ship system.
+
 Version 1.7.6
 
 - Fixed crash caused by overriding automated fighter AI personality. Reported by @Hyperkayak
