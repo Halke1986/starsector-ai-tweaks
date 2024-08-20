@@ -1,6 +1,5 @@
 package com.genir.aitweaks.core.features.shipai.autofire
 
-import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.*
@@ -22,16 +21,6 @@ import org.lwjgl.util.vector.Vector2f
 
 private const val cos90 = 0f
 private const val cos180 = -1f
-
-/** Simplified representation of a circular, moving target. */
-data class BallisticTarget(val location: Vector2f, val velocity: Vector2f, val radius: Float) {
-    constructor(entity: CombatEntityAPI) : this(entity.location, entity.velocity, entity.collisionRadius)
-}
-
-/** Use ship shields as an approximation for its circumference */
-fun targetShield(ship: ShipAPI): BallisticTarget {
-    return BallisticTarget(ship.shieldCenterEvenIfNoShield, ship.velocity, ship.shieldRadiusEvenIfNoShield)
-}
 
 /** Weapon attack parameters: accuracy and delay until attack. */
 data class BallisticParams(val accuracy: Float, val delay: Float)
@@ -93,25 +82,24 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
     val shield = target.shield ?: return null
     if (shield.isOff) return null
 
-    val (p, v) = projectileCoords(weapon, targetShield(target), params)
+    val (p, v) = projectileCoords(weapon, BallisticTarget.shield(target), params)
     val range = solve(Pair(p, v), shield.radius) ?: return null
     val hitPoint = p + v * range
 
     return if (vectorInArc(hitPoint, Arc(shield.activeArc, shield.facing))) range else null
 }
 
-/** Calculates if an inaccurate projectile may collide with target shield,
- * given current weapon facing. Assumes shield is up and 360 degree.
- * Weapon range is ignored.  */
-fun willHitShieldCautious(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): Boolean {
-    val arc = interceptArc(weapon, targetShield(target), params) ?: return false
+/** Calculates if an inaccurate projectile may collide with target,
+ * given current weapon facing. Weapon range is ignored. */
+fun willHitCautious(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Boolean {
+    val arc = interceptArc(weapon, target, params) ?: return false
     return arcsOverlap(Arc(weapon.spec.maxSpread + 2f, weapon.currAngle), arc)
 }
 
 /** Calculates if a perfectly accurate projectile will collide with target bounds,
  * given current weapon facing. Collision range is returned, null if no collision. */
 fun willHitBounds(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): Float? {
-    val (p, v) = projectileCoords(weapon, BallisticTarget(target), params)
+    val (p, v) = projectileCoords(weapon, BallisticTarget.entity(target), params)
     return boundsCollision(p, v, target)
 }
 

@@ -5,14 +5,8 @@ import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.features.shipai.EngineController
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.features.shipai.strafeAcceleration
-import com.genir.aitweaks.core.utils.Rotation
-import com.genir.aitweaks.core.utils.boundsCollision
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.hasCustomShipAI
-import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.resized
-import com.genir.aitweaks.core.utils.times
-import com.genir.aitweaks.core.utils.unitVector
+import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -21,12 +15,60 @@ import java.awt.Color.*
 import kotlin.math.abs
 import kotlin.math.ceil
 
-internal fun debug(dt: Float) {
-    val asteroid = Global.getCombatEngine().asteroids.firstOrNull() ?: return
-    val ship = Global.getCombatEngine().playerShip ?: return
+//data class VelocityState(var location: Vector2f, var velocity: Vector2f)
 
-    debugPrint["asteroid"] = "asteroid ${asteroid.velocity.length}"
-    debugPrint["ship"] = "ship ${ship.velocity.length}"
+//var velocityTracker: MutableMap<ShipAPI, VelocityState> = mutableMapOf()
+
+internal fun debug(dt: Float) {
+    val ships = Global.getCombatEngine().ships
+
+//    ships.filter { it.isValidTarget }.forEach { ship ->
+//
+//        if (!velocityTracker.contains(ship)) {
+//            velocityTracker[ship] = VelocityState(ship.location.copy, ship.velocity)
+//        }
+//
+//        val state = velocityTracker[ship]!!
+//
+//        val r = ship.acceleration / 5f
+//        val p = state.location - ship.location
+//        val p2 = if (p.length > r) {
+//            p.resized(r)
+//        } else {
+//            p
+//        }
+//
+//        val v = (p2 - p) / dt
+//
+//        state.location = p2 + ship.location
+//        state.velocity = v
+//
+//        velocityTracker[ship] = state
+//
+//        drawLine(ship.location, ship.location + v, GREEN)
+//        drawLine(ship.location, ship.location + ship.velocity, BLUE)
+////        drawLine(ship.location, state.location, YELLOW)
+//
+////        debugPrint[ship] = "${ship.hullSpec.hullId} ${ship.acceleration} ${ship.collisionRadius}"
+//    }
+
+
+//    val asteroid = Global.getCombatEngine().asteroids.firstOrNull()
+//    val ship = Global.getCombatEngine().playerShip
+//    val enemy = Global.getCombatEngine().ships.firstOrNull { it.owner == 1 }
+//    val ally = Global.getCombatEngine().ships.firstOrNull { it.owner == 0 && it != ship }
+//
+//    debugPrint["asteroid"] = "asteroid ${asteroid?.velocity?.length}"
+//    debugPrint["ship"] = "ship ${ship?.velocity?.length}"
+//    debugPrint["enemy"] = "enemy ${enemy?.velocity?.length}"
+//    debugPrint["dt"] = "dt ${dt}"
+//
+//    ship ?: return
+//
+//    val dv = (ship.location - prevPos).length / dt
+//    prevPos = ship.location.copy
+//
+//    debugPrint["ship2"] = "ship2 $dv"
 }
 
 private fun brakeDist(dt: Float, velocity: Float, deceleration: Float): Float {

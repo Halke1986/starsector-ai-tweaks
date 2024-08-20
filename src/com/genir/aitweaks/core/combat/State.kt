@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.combat.trackers.AccelerationTracker
 import com.genir.aitweaks.core.combat.trackers.ManeuverTargetTracker
+import com.genir.aitweaks.core.combat.trackers.VelocityTracker
 import com.genir.aitweaks.core.features.FleetCohesion
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import lunalib.lunaSettings.LunaSettings
@@ -17,6 +18,8 @@ class State : BaseEveryFrameCombatPlugin() {
     val customAIManager: CustomAIManager = CustomAIManager()
 
     val fleetCohesion: Array<FleetCohesion>?
+
+    val velocityTracker: VelocityTracker = VelocityTracker()
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
     val maneuverTargetTracker: ManeuverTargetTracker = ManeuverTargetTracker()
 
@@ -35,13 +38,14 @@ class State : BaseEveryFrameCombatPlugin() {
 
         // Trackers.
         plugins.addAll(listOf(
+            velocityTracker,
             accelerationTracker,
             maneuverTargetTracker,
         ))
 
         // Features.
         plugins.addAll(listOf(
-            com.genir.aitweaks.core.features.AimAssist(),
+//            com.genir.aitweaks.core.features.AimAssist(),
             com.genir.aitweaks.core.features.AutoOmniShields(),
             com.genir.aitweaks.core.features.AutomatedShipAIManager(),
             com.genir.aitweaks.core.features.shipai.AttackCoord(),
