@@ -1,10 +1,11 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.ShipAIConfig
+import com.fs.starfarer.api.combat.ShipAIPlugin
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.features.shipai.EngineController
-import com.genir.aitweaks.core.features.shipai.command
-import com.genir.aitweaks.core.features.shipai.strafeAcceleration
 import com.genir.aitweaks.core.utils.boundsCollision
 import com.genir.aitweaks.core.utils.extensions.hasBasicShipAI
 import com.genir.aitweaks.core.utils.extensions.hasCustomShipAI
@@ -18,10 +19,10 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.*
-import kotlin.math.abs
-import kotlin.math.ceil
 
 internal fun debug(dt: Float) {
+    highlightCustomAI()
+
     val ships = Global.getCombatEngine().ships.filter { it != Global.getCombatEngine().playerShip }
 
 //    ships.forEach {
@@ -30,14 +31,6 @@ internal fun debug(dt: Float) {
 //    }
 
 //    followMouse()
-}
-
-private fun brakeDist(dt: Float, velocity: Float, deceleration: Float): Float {
-    val v = velocity * dt
-    val a = deceleration * dt * dt
-
-    val t = ceil(v / a)
-    return (v + a) * t * 0.5f
 }
 
 private fun showBoundsCollision() {
@@ -119,42 +112,6 @@ private fun speedupAsteroids() {
         a.mass = 0f
         a.velocity.set(VectorUtils.getDirectionalVector(Vector2f(), a.velocity) * 1200f)
     }
-}
-
-private fun followMouse2(dt: Float) {
-    val ship = Global.getCombatEngine().playerShip ?: return
-
-    val position = Vector2f(
-        Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()),
-        Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()),
-    )
-
-    val d = abs(ship.location.x - position.x) - ship.velocity.length * dt
-    val a = ship.strafeAcceleration
-    val b = brakeDist(dt, ship.velocity.length, a)
-
-//    debugPrint["d"] = "d $d"
-//    debugPrint["b"] = "b $b"
-
-    when {
-        ship.location.x < position.x -> {
-            when {
-                ship.velocity.x < 0 -> ship.command(ShipCommand.STRAFE_RIGHT)
-                b > d -> ship.command(ShipCommand.STRAFE_LEFT)
-                b < d -> ship.command(ShipCommand.STRAFE_RIGHT)
-            }
-        }
-
-        ship.location.x > position.x -> {
-            when {
-                ship.velocity.x > 0 -> ship.command(ShipCommand.STRAFE_LEFT)
-                b < d -> ship.command(ShipCommand.STRAFE_LEFT)
-                b > d -> ship.command(ShipCommand.STRAFE_RIGHT)
-            }
-        }
-    }
-
-    drawEngineLines(ship)
 }
 
 private fun followMouse() {
