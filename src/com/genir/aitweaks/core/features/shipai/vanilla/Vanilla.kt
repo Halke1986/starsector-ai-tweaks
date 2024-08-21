@@ -32,6 +32,7 @@ class Vanilla(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
         this.avoidMissiles = MethodHandles.lookup().unreflect(avoidMissiles)
     }
 
+    // TODO method handles are slow
     fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Float) {
         flags.advance(dt)
         threatEvalAI.advance(dt)

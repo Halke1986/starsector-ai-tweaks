@@ -1,3 +1,6 @@
+- Autofire weapons are less likely to get tricked by frigates twitching to evade incoming fire.
+- Fast-time ships (phase or temporal shell) speed increase is taken into account when calculating firing solution.
+
 Version 1.8.0
 
 - Added System Shunt hullmod. System Shunt prevents AI from using the ship system.

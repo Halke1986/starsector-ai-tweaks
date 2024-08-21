@@ -24,17 +24,26 @@ class ShipStats(private val ship: ShipAPI) {
 
     /** Weapons that can be used by the ship to conduct attacks, as opposed to PD, decoratives, etc. */
     private fun findSignificantWeapons(): List<WeaponAPI> {
-        return ship.allWeapons.filter { weapon ->
+        val weapons = ship.allWeapons.filter { weapon ->
             when {
                 weapon.slot.isHidden -> false
                 weapon.slot.isDecorative -> false
                 weapon.slot.isSystemSlot -> false
                 weapon.slot.isStationModule -> false
                 weapon.type == WeaponAPI.WeaponType.MISSILE -> false
-                weapon.isPD && !weapon.slot.isHardpoint -> false
+                weapon.derivedStats.dps == 0f -> false
+                else -> true
+            }
+        }
+
+        // Filter out PD weapons, but only if there are non PD weapons available.
+        val attackWeapons = weapons.filter { !it.isPD || it.slot.isHardpoint }.ifEmpty { weapons }
+
+        // Return active weapons.
+        return attackWeapons.filter { weapon ->
+            when {
                 weapon.isDisabled -> false
                 weapon.isPermanentlyDisabled -> false
-                weapon.derivedStats.dps == 0f -> false
                 weapon.isInLongReload -> false
                 else -> true
             }

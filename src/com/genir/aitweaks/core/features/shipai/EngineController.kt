@@ -1,6 +1,5 @@
 package com.genir.aitweaks.core.features.shipai
 
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.utils.*
@@ -27,10 +26,9 @@ class EngineController(val ship: ShipAPI) {
      * at 'target' location, it will match the target velocity. Limits are
      * used to restrict the velocity, e.g. for collision avoidance purposes.
      * Returns the calculated expected velocity. */
-    fun heading(heading: Vector2f, limits: List<Limit> = listOf()): Vector2f {
+    fun heading(dt: Float, heading: Vector2f, limits: List<Limit> = listOf()): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
-        val dt = Global.getCombatEngine().elapsedInLastFrame
         val af = ship.acceleration * dt * dt
         val ab = ship.deceleration * dt * dt
         val al = ship.strafeAcceleration * dt * dt
@@ -102,10 +100,9 @@ class EngineController(val ship: ShipAPI) {
     }
 
     /** Set ship facing. */
-    fun facing(facing: Float) {
+    fun facing(dt: Float, facing: Float) {
         // Change unit of time from second to
         // animation frame duration (* dt).
-        val dt = Global.getCombatEngine().elapsedInLastFrame
         val a = ship.turnAcceleration * dt * dt
         val w = ship.angularVelocity * dt
 

@@ -39,7 +39,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
     fun advance(dt: Float) {
         setHeading(dt, ai.maneuverTarget, ai.assignmentLocation)
-        setFacing()
+        setFacing(dt)
         manageMobilitySystems()
     }
 
@@ -98,14 +98,14 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
         if (newHeadingPoint != null) {
             headingPoint = newHeadingPoint.copy
-            expectedVelocity = engineController.heading(headingPoint, gatherSpeedLimits(dt))
+            expectedVelocity = engineController.heading(dt, headingPoint, gatherSpeedLimits(dt))
         } else {
             headingPoint = ship.location
             expectedVelocity = engineController.stop()
         }
     }
 
-    private fun setFacing() {
+    private fun setFacing(dt: Float) {
         val systemOverride: Float? = ai.systemAI?.overrideFacing()
         val currentAttackTarget: ShipAPI? = ai.finishBurstTarget ?: ai.attackTarget
         val weaponGroup = if (currentAttackTarget == ai.attackTarget) ai.attackingGroup
@@ -141,7 +141,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
             else -> expectedFacing
         }
 
-        engineController.facing(expectedFacing)
+        engineController.facing(dt, expectedFacing)
     }
 
     private fun shouldHeadToAssigment(location: Vector2f?): Boolean {

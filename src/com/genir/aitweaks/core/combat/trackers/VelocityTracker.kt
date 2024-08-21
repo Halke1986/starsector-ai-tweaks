@@ -18,7 +18,7 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
-/** Track ship actual velocity. The tracked velocity is smoothed,
+/** Track ship velocity. The tracked velocity is smoothed,
  * so that twitching ships do not spoof weapon tracking. */
 class VelocityTracker : BaseEveryFrameCombatPlugin() {
     private data class State(var location: Vector2f, var acceleration: Float, var velocity: Vector2f)
@@ -57,8 +57,8 @@ class VelocityTracker : BaseEveryFrameCombatPlugin() {
             shipState.velocity = (newLocation - shipState.location) / dt
             shipState.location = newLocation
 
-            drawLine(ship.location, ship.location + shipState.velocity, Color.GREEN)
-            drawLine(ship.location, ship.location + ship.velocity, Color.BLUE)
+//            drawLine(ship.location, ship.location + shipState.velocity, Color.GREEN)
+//            drawLine(ship.location, ship.location + ship.velocity, Color.BLUE)
         }
     }
 
