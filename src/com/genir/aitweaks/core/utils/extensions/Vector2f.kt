@@ -33,3 +33,6 @@ val Vector2f.facing: Float
 
 val Vector2f.length: Float
     get() = length()
+
+val Vector2f.lengthSquared: Float
+    get() = lengthSquared()

@@ -6,11 +6,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.systems.thissuper
-import com.genir.aitweaks.core.debug.missileIntercept
-import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.features.shipai.autofire.analyzeHit
-import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.features.shipai.autofire.intercept
+import com.genir.aitweaks.core.features.shipai.autofire.*
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.isAngleInArc
 import com.genir.aitweaks.core.utils.extensions.length
@@ -18,7 +14,7 @@ import com.genir.aitweaks.core.utils.mousePosition
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
-class AimAssist : BaseEveryFrameCombatPlugin() {
+class AimBot : BaseEveryFrameCombatPlugin() {
     private var isFiring: Boolean = false
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
@@ -114,7 +110,7 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
 
         val intercept: Vector2f = when {
             weapon.type == WeaponType.MISSILE -> {
-                missileIntercept(dt, weapon, ballisticTarget)
+                SimulateMissile.missileIntercept(dt, weapon, ballisticTarget)
             }
 
             else -> {
