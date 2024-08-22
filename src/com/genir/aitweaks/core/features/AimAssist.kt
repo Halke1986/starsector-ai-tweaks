@@ -3,18 +3,20 @@ package com.genir.aitweaks.core.features
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.debug.debugPrint
+import com.fs.starfarer.combat.systems.thissuper
+import com.genir.aitweaks.core.debug.missileIntercept
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.analyzeHit
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.intercept
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.isAngleInArc
+import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.mousePosition
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
-import com.fs.starfarer.combat.systems.thissuper
 
 class AimAssist : BaseEveryFrameCombatPlugin() {
     private var isFiring: Boolean = false
@@ -36,35 +38,47 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
         }
 
 
-        debugPrint["0"] = "0"
+//        debugPrint["0"] = "0"
 
         if (!Global.getCombatEngine().isUIAutopilotOn) return
 
         val group: WeaponGroupAPI = ship.selectedGroupAPI ?: return
 //        if (group.isAutofiring) return
 
-        debugPrint["1"] = "1"
+//        debugPrint["1"] = "1"
 
         val weapons: List<WeaponAPI> = group.weaponsCopy
         if (weapons.isEmpty()) return
-        if (weapons.any { it.type == WeaponAPI.WeaponType.MISSILE }) return
+//        if (weapons.any { it.type == WeaponAPI.WeaponType.MISSILE }) return
 
-        debugPrint["2"] = "2"
+//        debugPrint["2"] = "2"
         // Assist with aiming only when there's an R-selected target.
-        val target: CombatEntityAPI = ship.shipTarget ?: return
+//        val target: CombatEntityAPI = ship.shipTarget ?: return
 
-        debugPrint["3"] = "3"
+//        debugPrint["3"] = "3"
         // Prevent vanilla from deciding when to fire.
 //        ship.blockCommandForOneFrame(ShipCommand.FIRE)
-        debugPrint.clear()
+//        debugPrint.clear()
 
         val mousePosition: Vector2f = mousePosition()
+        var closestAsteroid: CombatEntityAPI = Global.getCombatEngine().asteroids.firstOrNull() ?: return
+        Global.getCombatEngine().asteroids.forEach {
+            if ((it.location - mousePosition).length < (closestAsteroid.location - mousePosition).length) {
+                closestAsteroid = it
+            }
+        }
+
+//        drawCollisionRadius(closestAsteroid)
+
         weapons.forEach { weapon ->
-            debugPrint[weapon] = weapon.id
+//            debugPrint[weapon] = weapon.id
 
 
-            val intercept: Vector2f = aimWeapon(weapon, target, mousePosition)
-            fireWeapon(weapon, target, intercept)
+//            val intercept: Vector2f = aimWeapon(dt, weapon, target, mousePosition)
+            val intercept: Vector2f = aimWeapon(dt, weapon, closestAsteroid, mousePosition)
+            fireWeapon(weapon, closestAsteroid, intercept)
+
+//            drawLine(weapon.location, intercept, Color.RED)
         }
 
 //
@@ -94,9 +108,19 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
 //        }
     }
 
-    private fun aimWeapon(weapon: WeaponAPI, target: CombatEntityAPI, mousePosition: Vector2f): Vector2f {
-        val ballisticTarget = BallisticTarget(mousePosition, target.velocity, 0f)
-        val intercept: Vector2f = intercept(weapon, ballisticTarget, defaultBallisticParams()) ?: target.location
+    private fun aimWeapon(dt: Float, weapon: WeaponAPI, target: CombatEntityAPI, mousePosition: Vector2f): Vector2f {
+//        val ballisticTarget = BallisticTarget(target.velocity, mousePosition, 0f)
+        val ballisticTarget = BallisticTarget(target.velocity, target.location, 0f)
+
+        val intercept: Vector2f = when {
+            weapon.type == WeaponType.MISSILE -> {
+                missileIntercept(dt, weapon, ballisticTarget)
+            }
+
+            else -> {
+                intercept(weapon, ballisticTarget, defaultBallisticParams()) ?: target.location
+            }
+        }
 
         val obfWeapon = weapon as thissuper
         obfWeapon.aimTracker.`new`(intercept)

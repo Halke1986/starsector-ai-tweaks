@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core.debug
 
+import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.utils.Rotation
@@ -62,10 +63,10 @@ fun drawTurnLines(ship: ShipAPI) {
     }
 }
 
-fun drawCollisionRadius(ship: ShipAPI) {
+fun drawCollisionRadius(entity: CombatEntityAPI) {
     if (debugRenderer == null) return
 
-    drawCircle(ship.location, ship.collisionRadius)
+    drawCircle(entity.location, entity.collisionRadius)
 }
 
 fun drawWeaponLines(ship: ShipAPI) {

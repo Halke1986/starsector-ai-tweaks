@@ -22,15 +22,6 @@ import java.awt.Color.*
 
 internal fun debug(dt: Float) {
     highlightCustomAI()
-
-    val ships = Global.getCombatEngine().ships.filter { it != Global.getCombatEngine().playerShip }
-
-//    ships.forEach {
-////        drawCollisionRadius(it)
-//        it.useSystem()
-//    }
-
-//    followMouse()
 }
 
 private fun showBoundsCollision() {

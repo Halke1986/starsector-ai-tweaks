@@ -7,6 +7,8 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 
+fun Vector2f.clampedLength(length: Float): Vector2f = VectorUtils.clampLength(this, length, Vector2f())
+
 fun Vector2f.resized(length: Float): Vector2f = VectorUtils.resize(this, length, Vector2f())
 
 fun Vector2f.rotated(r: Rotation): Vector2f = r.rotate(this)
@@ -21,7 +23,7 @@ val Vector2f.copy: Vector2f
 operator fun Vector2f.unaryMinus() = Vector2f(-x, -y)
 
 fun Vector2f.addLength(toAdd: Float): Vector2f {
-    val l = length()
+    val l = length
     val s = (l + toAdd) / l
     return Vector2f(x * s, y * s)
 }
