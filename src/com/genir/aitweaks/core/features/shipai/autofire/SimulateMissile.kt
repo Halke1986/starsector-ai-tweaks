@@ -1,8 +1,7 @@
 package com.genir.aitweaks.core.features.shipai.autofire
 
-import com.fs.starfarer.api.combat.ShipHullSpecAPI.EngineSpecAPI
+import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.length
@@ -15,9 +14,12 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
+import com.fs.starfarer.combat.entities.ship.OOoOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO as EngineStats
+import com.fs.starfarer.combat.entities.ship.`class` as MutableShipStats
+import com.fs.starfarer.loading.specs.o00o as MissileSpec
 
 class SimulateMissile {
-    private data class Frame(val velocity: Vector2f, val location: Vector2f)
+    data class Frame(val velocity: Vector2f, val location: Vector2f)
 
     companion object {
 
@@ -59,14 +61,20 @@ class SimulateMissile {
 
         /** Predict the entire path of a missile, given weapon facing,
          * starting from the weapon barrel location. */
-        private fun missilePath(dt: Float, weapon: WeaponAPI, facingVector: Vector2f): Sequence<Frame> {
-            val spec: MissileSpecAPI = weapon.spec.projectileSpec as MissileSpecAPI
-            val engineSpec: EngineSpecAPI = spec.hullSpec.engineSpec
+        fun missilePath(dt: Float, weapon: WeaponAPI, facingVector: Vector2f): Sequence<Frame> {
+            val projectileSpec: MissileSpec = weapon.spec.projectileSpec as MissileSpec
+            val shipStats: MutableShipStatsAPI = weapon.ship.mutableStats
+            val engineStats: EngineStats = MutableShipStats.create(projectileSpec)
+
+            engineStats.maxSpeed.applyMods(shipStats.missileMaxSpeedBonus);
+            engineStats.acceleration.applyMods(shipStats.missileAccelerationBonus);
+            engineStats.deceleration.applyMods(shipStats.missileAccelerationBonus);
+
             val p0: Vector2f = weapon.location + weapon.barrelOffset(facingVector)
-            val vMax: Float = spec.hullSpec.engineSpec.maxSpeed * dt
-            val v0: Vector2f = (weapon.ship.velocity + facingVector * spec.launchSpeed) * dt
-            val a: Vector2f = facingVector * engineSpec.acceleration * dt * dt
-            val decel: Float = max(engineSpec.acceleration, engineSpec.deceleration) * 2f * dt * dt
+            val vMax: Float = engineStats.maxSpeed.modifiedValue * dt
+            val v0: Vector2f = (weapon.ship.velocity + facingVector * projectileSpec.launchSpeed) * dt
+            val a: Vector2f = facingVector * engineStats.acceleration.modifiedValue * dt * dt
+            val decel: Float = max(engineStats.acceleration.modifiedValue, engineStats.deceleration.modifiedValue) * 2f * dt * dt
 
             return generateSequence(Frame(v0, p0)) {
                 val v2: Vector2f = it.velocity + a
@@ -75,7 +83,7 @@ class SimulateMissile {
                     if (speed <= vMax) v2 else v2.resized(max(vMax, speed - decel)),
                     it.location + it.velocity,
                 )
-            }.take((spec.maxFlightTime / dt).toInt())
+            }.take((projectileSpec.maxFlightTime / dt).toInt())
         }
 
         /** Calculate the barrel offset for the weapon, given weapon facing.

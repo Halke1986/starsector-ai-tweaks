@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.features.shipai.EngineController
+import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.utils.boundsCollision
 import com.genir.aitweaks.core.utils.extensions.hasBasicShipAI
 import com.genir.aitweaks.core.utils.extensions.hasCustomShipAI
@@ -22,6 +23,28 @@ import java.awt.Color.*
 
 internal fun debug(dt: Float) {
     highlightCustomAI()
+
+//    debugMissilePath(dt)
+}
+
+var trail: Sequence<SimulateMissile.Frame>? = null
+
+fun debugMissilePath(dt: Float) {
+    val ship = Global.getCombatEngine().playerShip ?: return
+    val weapon = ship.allWeapons.firstOrNull() ?: return
+
+    if (trail != null) {
+        var prev = trail!!.firstOrNull()!!.location
+        trail?.forEach { frame ->
+            drawLine(prev, frame.location, BLUE)
+            prev = frame.location
+        }
+    }
+
+    if (Global.getCombatEngine().missiles.isNotEmpty())
+        return
+
+    trail = SimulateMissile.missilePath(dt, weapon, unitVector(weapon.currAngle))
 }
 
 private fun showBoundsCollision() {
