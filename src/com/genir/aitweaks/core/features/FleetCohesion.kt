@@ -11,12 +11,15 @@ import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.slotRange
+import com.genir.aitweaks.core.utils.closestEntity
 import com.genir.aitweaks.core.utils.extensions.*
+import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 
 class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
+    private val enabled: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai") == true
     private val enemy: Int = side xor 1
 
     private val cohesionAssignments: MutableSet<AssignmentKey> = mutableSetOf()
@@ -35,6 +38,8 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
 
         val engine = Global.getCombatEngine()
         when {
+            !enabled -> return
+
             Global.getCurrentState() != GameState.COMBAT -> return
 
             engine.isSimulation -> return
@@ -89,7 +94,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
                 it.isStation -> false
                 it.isModule -> false
                 it.hasCustomShipAI -> false
-                it == engine.playerShip && engine.isUIAutopilotOn -> false
+                it.isUnderManualControl -> false
                 else -> true
             }
         }
@@ -111,16 +116,16 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             currentTarget != null && validGroups.any { it.contains(currentTarget) } && closeToEnemy(ship, currentTarget) -> currentTarget
 
             // Ship has wrong target. Find the closest valid target in the main enemy battle group.
-            else -> primaryBigTargets.minByOrNull { (it.location - ship.location).lengthSquared() } ?: currentTarget
+            else -> closestEntity(primaryBigTargets, ship.location) ?: currentTarget
         }
     }
 
     fun findClosestTarget(ship: ShipAPI): ShipAPI? {
-        val closestBigTarget: ShipAPI? = allBigTargets.minByOrNull { (it.location - ship.location).lengthSquared() }
+        val closestBigTarget: ShipAPI? = closestEntity(allBigTargets, ship.location)
         if (closestBigTarget != null && closeToEnemy(ship, closestBigTarget))
             return closestBigTarget
 
-        return primaryBigTargets.minByOrNull { (it.location - ship.location).lengthSquared() }
+        return closestEntity(primaryBigTargets, ship.location)
     }
 
     private fun manageAssignments(ship: ShipAPI) {

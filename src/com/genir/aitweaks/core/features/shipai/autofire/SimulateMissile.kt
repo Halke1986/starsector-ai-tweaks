@@ -19,6 +19,8 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 
+// TODO enable for AI (Perdition specifically)
+
 class SimulateMissile {
     data class Frame(val velocity: Vector2f, val location: Vector2f)
 

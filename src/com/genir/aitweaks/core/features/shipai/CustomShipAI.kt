@@ -37,11 +37,11 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     var assignment: CombatFleetManagerAPI.AssignmentInfo? = null
     var assignmentLocation: Vector2f? = null // Assignment takes priority over maneuver target.
     var maneuverTarget: ShipAPI? = null
-    var attackTarget: ShipAPI? = null
+    var attackTarget: CombatEntityAPI? = null
 
     // Keep attacking the previous target for the
     // duration or already started weapon bursts.
-    var finishBurstTarget: ShipAPI? = null
+    var finishBurstTarget: CombatEntityAPI? = null
     var finishBurstWeaponGroup: WeaponGroup? = null
 
     // AI State.
@@ -94,7 +94,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         holdFireIfOverfluxed()
 
         // Advance subsystems.
-        vanilla.advance(dt, attackTarget, movement.expectedVelocity, movement.expectedFacing)
+        vanilla.advance(dt, attackTarget as? ShipAPI, movement.expectedVelocity, movement.expectedFacing)
         systemAI?.advance(dt)
         movement.advance(dt)
 
@@ -177,8 +177,8 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         if (!needsUpdate) return
 
         // Try cohesion AI first.
-        val cohesionAI = combatState().fleetCohesion?.get(ship.owner)
-        cohesionAI?.findClosestTarget(ship)?.let {
+        val cohesionAI = combatState().fleetCohesion[ship.owner]
+        cohesionAI.findClosestTarget(ship)?.let {
             maneuverTarget = it
             return
         }
@@ -196,12 +196,17 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             }
         }
 
-        maneuverTarget = targets.minByOrNull { (it.location - ship.location).lengthSquared() }
+        maneuverTarget = closestEntity(targets, ship.location)
     }
 
     /** Select which enemy ship to attack. This may be different
      * from the maneuver target provided by the ShipAI. */
     private fun updateAttackTarget(interval: Boolean) {
+        if (ship.isUnderManualControl && combatState().aimBot.target != null) {
+            attackTarget = combatState().aimBot.target
+            return
+        }
+
         val currentTarget = attackTarget
 
         val updateTarget = when {
@@ -285,7 +290,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             isBackingOff -> false
             attackTarget == null -> false
             attackTarget != maneuverTarget -> false
-            attackTarget!!.isFrigate != ship.isFrigate -> false
+            (attackTarget as? ShipAPI)?.isFrigate != ship.isFrigate -> false
             threats.size > 1 -> false
             else -> true
         }
@@ -314,6 +319,9 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     }
 
     private fun ensureAutofire() {
+        // Let player decide about weapon groups configuration.
+        if (ship.isUnderManualControl) return
+
         (ship as Ship).setNoWeaponSelected()
         ship.weaponGroupsCopy.forEach { it.toggleOn() }
     }
@@ -450,7 +458,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         return target.owner != ship.owner && target.isAlive && !target.isExpired && target.isShip
     }
 
-    internal fun range(target: ShipAPI): Float {
+    internal fun range(target: CombatEntityAPI): Float {
         return (target.location - ship.location).length() - target.collisionRadius / 2f
     }
 }

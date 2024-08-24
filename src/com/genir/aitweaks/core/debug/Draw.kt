@@ -24,12 +24,12 @@ fun drawEngineLines(ship: ShipAPI) {
     drawTurnLines(ship)
 }
 
-fun drawBounds(ship: ShipAPI) {
-    val bounds = ship.exactBounds ?: return
-    bounds.update(ship.location, ship.facing)
+fun drawBounds(entity: CombatEntityAPI) {
+    val bounds = entity.exactBounds ?: return
+    bounds.update(entity.location, entity.facing)
 
     bounds.segments.forEach {
-        drawLine(it.p1, it.p2, Color.CYAN)
+        drawLine(it.p1, it.p2, Color.YELLOW)
     }
 }
 

@@ -54,7 +54,7 @@ val ShipAPI.attackTarget: ShipAPI?
         customShipAI != null -> shipTarget
 
         // For manually controlled ship, return R-selected target.
-        this == Global.getCombatEngine().playerShip && Global.getCombatEngine().isUIAutopilotOn -> shipTarget
+        isUnderManualControl -> shipTarget
 
         // Fall back to using vanilla AI maneuver target.
         else -> combatState().maneuverTargetTracker[this]
@@ -92,3 +92,5 @@ val ShipAPI.hasCustomShipAI: Boolean
 val ShipAPI.customShipAI: CustomShipAI?
     get() = (ai as? Ship.ShipAIWrapper)?.ai as? CustomShipAI
 
+val ShipAPI.isUnderManualControl: Boolean
+    get() = this == Global.getCombatEngine().playerShip && Global.getCombatEngine().isUIAutopilotOn

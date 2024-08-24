@@ -1,9 +1,11 @@
 package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import org.json.JSONObject
 import org.lazywizard.lazylib.MathUtils.getShortestRotation
 import org.lazywizard.lazylib.VectorUtils
@@ -131,4 +133,8 @@ fun mousePosition(): Vector2f {
         Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()),
         Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()),
     )
+}
+
+inline fun <reified T> closestEntity(entities: Collection<CombatEntityAPI>, p: Vector2f): T? {
+    return entities.minByOrNull { (it.location - p).lengthSquared } as? T
 }

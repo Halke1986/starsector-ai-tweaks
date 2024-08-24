@@ -6,16 +6,23 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.systems.thissuper
-import com.genir.aitweaks.core.features.shipai.autofire.*
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.isAngleInArc
-import com.genir.aitweaks.core.utils.extensions.length
+import com.genir.aitweaks.core.features.shipai.CustomShipAI
+import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
+import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
+import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.intercept
+import com.genir.aitweaks.core.utils.asteroidGrid
+import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.mousePosition
+import com.genir.aitweaks.core.utils.shipGrid
+import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
 class AimBot : BaseEveryFrameCombatPlugin() {
     private var isFiring: Boolean = false
+    private var shipAI: CustomShipAI? = null
+    var target: CombatEntityAPI? = null
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         if (Global.getCurrentState() != GameState.COMBAT) return
@@ -33,80 +40,39 @@ class AimBot : BaseEveryFrameCombatPlugin() {
             }
         }
 
+        // TODO remove
+        when (ship.isUnderManualControl) {
+            true -> {
+                val ai = shipAI ?: CustomShipAI(ship)
+                ai.advance(dt)
+                shipAI = ai
+            }
 
-//        debugPrint["0"] = "0"
-
-        if (!Global.getCombatEngine().isUIAutopilotOn) return
-
-        val group: WeaponGroupAPI = ship.selectedGroupAPI ?: return
-//        if (group.isAutofiring) return
-
-//        debugPrint["1"] = "1"
-
-        val weapons: List<WeaponAPI> = group.weaponsCopy
-        if (weapons.isEmpty()) return
-//        if (weapons.any { it.type == WeaponAPI.WeaponType.MISSILE }) return
-
-//        debugPrint["2"] = "2"
-        // Assist with aiming only when there's an R-selected target.
-//        val target: CombatEntityAPI = ship.shipTarget ?: return
-
-//        debugPrint["3"] = "3"
-        // Prevent vanilla from deciding when to fire.
-//        ship.blockCommandForOneFrame(ShipCommand.FIRE)
-//        debugPrint.clear()
-
-        val mousePosition: Vector2f = mousePosition()
-        var closestAsteroid: CombatEntityAPI = Global.getCombatEngine().asteroids.firstOrNull() ?: return
-        Global.getCombatEngine().asteroids.forEach {
-            if ((it.location - mousePosition).length < (closestAsteroid.location - mousePosition).length) {
-                closestAsteroid = it
+            false -> {
+                shipAI = null
             }
         }
 
-//        drawCollisionRadius(closestAsteroid)
+        val mouse: Vector2f = mousePosition()
+        val target: CombatEntityAPI = selectTarget(mouse) ?: return
+        this.target = target
 
-        weapons.forEach { weapon ->
-//            debugPrint[weapon] = weapon.id
-
-
-//            val intercept: Vector2f = aimWeapon(dt, weapon, target, mousePosition)
-            val intercept: Vector2f = aimWeapon(dt, weapon, closestAsteroid, mousePosition)
-            fireWeapon(weapon, closestAsteroid, intercept)
-
-//            drawLine(weapon.location, intercept, Color.RED)
+        // Aim all non-autofire weapons.
+        val manualWeapons: List<WeaponAPI> = ship.weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weaponsCopy }
+        manualWeapons.forEach { weapon ->
+            aimWeapon(weapon, target, mouse)
         }
 
-//
-//
-//        val groups = ship.weaponGroupsCopy
-//        var groupIdx = -1
-//
-//        groups.forEachIndexed { idx, it ->
-//            if (it == group) groupIdx = idx
-//        }
-//
-//        debugPrint["group"] = "group $groupIdx"
-//        debugPrint["is"] = isFiring
-//        debugPrint["c"] = commandMethod
-
-
-//        if (groupIdx != -1)
-//            ship.giveCommand(ShipCommand.FIRE, position, groupIdx)
-
-
-//        ship.selectedGroupAPI?.weaponsCopy?.forEach { weapon ->
-//            debugPrint[weapon] = "${weapon.id} ${weapon.location}"
-//
-//
-//
-//            drawLine(weapon.location, weapon.location + Vector2f(0f, 100f), RED)
-//        }
+        // Aim and fire weapons in selected group.
+        val selectedWeapons: List<WeaponAPI> = ship.selectedGroupAPI?.weaponsCopy ?: listOf()
+        selectedWeapons.forEach { weapon ->
+            val intercept: Vector2f = aimWeapon(weapon, target, mouse)
+            fireWeapon(weapon, target, intercept)
+        }
     }
 
-    private fun aimWeapon(dt: Float, weapon: WeaponAPI, target: CombatEntityAPI, mousePosition: Vector2f): Vector2f {
-//        val ballisticTarget = BallisticTarget(target.velocity, mousePosition, 0f)
-        val ballisticTarget = BallisticTarget(target.velocity, target.location, 0f)
+    private fun aimWeapon(weapon: WeaponAPI, target: CombatEntityAPI, mouse: Vector2f): Vector2f {
+        val ballisticTarget = BallisticTarget(target.velocity, mouse, 0f)
 
         val intercept: Vector2f = when {
             weapon.type == WeaponType.MISSILE -> {
@@ -131,16 +97,71 @@ class AimBot : BaseEveryFrameCombatPlugin() {
 
             // Fire if target is in arc, regardless if weapon is actually
             // pointed at the target. Same behavior as vanilla.
-            weapon.isAngleInArc(interceptFacing) -> true
-
-            // Fire at target if hit is predicted, even if intercept point
-            // is outside weapon firing arc.
-            analyzeHit(weapon, target, defaultBallisticParams()) != null -> true
-
-            else -> false
+            else -> weapon.isAngleInArc(interceptFacing)
         }
 
         if (shouldFire) weapon.setForceFireOneFrame(true)
         else weapon.setForceNoFireOneFrame(true)
+    }
+
+    private fun selectTarget(mouse: Vector2f): CombatEntityAPI? {
+        val searchRadius = 500f
+
+        val ships: Sequence<ShipAPI> = shipGrid().get<ShipAPI>(mouse, searchRadius).filter {
+            when {
+                !it.isValidTarget -> false
+                it.owner == 0 -> false
+                it.isFighter -> false
+
+                else -> true
+            }
+        }
+
+        closestTarget(mouse, ships)?.let { return it }
+
+        val hulks = shipGrid().get<ShipAPI>(mouse, searchRadius).filter {
+            when {
+                it.isExpired -> false
+                it.owner != 100 -> false
+                it.isFighter -> false
+
+                else -> true
+            }
+        }
+
+        closestTarget(mouse, hulks)?.let { return it }
+
+        val asteroids: Sequence<CombatAsteroidAPI> = asteroidGrid().get<CombatAsteroidAPI>(mouse, searchRadius).filter {
+            when {
+                it.isExpired -> false
+
+                else -> true
+            }
+        }
+
+        return closestTarget(mouse, asteroids)
+    }
+
+    private fun closestTarget(mouse: Vector2f, entities: Sequence<CombatEntityAPI>): CombatEntityAPI? {
+        val targetEnvelope = 150f
+        val closeEntities: Sequence<CombatEntityAPI> = entities.filter {
+            (it.location - mouse).length <= (it.collisionRadius + targetEnvelope)
+        }
+
+        var closestEntity: CombatEntityAPI? = null
+        var closestDist = Float.MAX_VALUE
+
+        closeEntities.forEach {
+            // If mouse is over ship bounds, consider it the target.
+            if (CollisionUtils.isPointWithinBounds(mouse, it)) return it
+
+            val dist = (it.location - mouse).lengthSquared
+            if (dist < closestDist) {
+                closestDist = dist
+                closestEntity = it
+            }
+        }
+
+        return closestEntity
     }
 }

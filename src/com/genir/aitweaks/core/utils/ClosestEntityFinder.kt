@@ -9,9 +9,9 @@ import com.genir.aitweaks.core.features.shipai.autofire.BallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.Hit
 import com.genir.aitweaks.core.features.shipai.autofire.analyzeAllyHit
 import com.genir.aitweaks.core.features.shipai.autofire.analyzeHit
+import com.genir.aitweaks.core.utils.extensions.get
 import com.genir.aitweaks.core.utils.extensions.rootModule
 import com.genir.aitweaks.core.utils.extensions.totalRange
-import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
 fun closestEntityFinder(
@@ -43,7 +43,4 @@ fun missileGrid(): CollisionGridAPI = Global.getCombatEngine().missileGrid
 
 fun asteroidGrid(): CollisionGridAPI = Global.getCombatEngine().asteroidGrid
 
-fun shipSequence(p: Vector2f, r: Float): Sequence<ShipAPI> {
-    val sequence = shipGrid().getCheckIterator(p, r + r, r + r).asSequence()
-    return sequence.filterIsInstance<ShipAPI>().filter { (it.location - p).lengthSquared() <= r * r }
-}
+fun shipSequence(p: Vector2f, r: Float): Sequence<ShipAPI> = shipGrid().get<ShipAPI>(p, r)

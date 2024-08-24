@@ -5,9 +5,9 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.combat.trackers.AccelerationTracker
 import com.genir.aitweaks.core.combat.trackers.ManeuverTargetTracker
 import com.genir.aitweaks.core.combat.trackers.VelocityTracker
+import com.genir.aitweaks.core.features.AimBot
 import com.genir.aitweaks.core.features.FleetCohesion
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
-import lunalib.lunaSettings.LunaSettings
 
 fun combatState(): State = combatState!!
 
@@ -17,42 +17,23 @@ private var combatState: State? = null
 class State : BaseEveryFrameCombatPlugin() {
     val customAIManager: CustomAIManager = CustomAIManager()
 
-    val fleetCohesion: Array<FleetCohesion>?
-
+    val fleetCohesion: Array<FleetCohesion> = arrayOf(FleetCohesion(0), FleetCohesion(1))
+    val aimBot: AimBot = AimBot()
     val velocityTracker: VelocityTracker = VelocityTracker()
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
     val maneuverTargetTracker: ManeuverTargetTracker = ManeuverTargetTracker()
 
-    private val plugins: List<BaseEveryFrameCombatPlugin>
-
-    init {
-        val plugins: MutableList<BaseEveryFrameCombatPlugin> = mutableListOf()
-
-        // Fleet cohesion.
-        if (LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai") == true) {
-            fleetCohesion = arrayOf(FleetCohesion(0), FleetCohesion(1))
-            plugins.addAll(fleetCohesion)
-        } else {
-            fleetCohesion = null
-        }
-
-        // Trackers.
-        plugins.addAll(listOf(
-            velocityTracker,
-            accelerationTracker,
-            maneuverTargetTracker,
-        ))
-
-        // Features.
-        plugins.addAll(listOf(
-            com.genir.aitweaks.core.features.AimBot(),
-            com.genir.aitweaks.core.features.AutoOmniShields(),
-            com.genir.aitweaks.core.features.AutomatedShipAIManager(),
-            com.genir.aitweaks.core.features.shipai.AttackCoord(),
-        ))
-
-        this.plugins = plugins
-    }
+    private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
+        fleetCohesion[0],
+        fleetCohesion[1],
+        aimBot,
+        velocityTracker,
+        accelerationTracker,
+        maneuverTargetTracker,
+        com.genir.aitweaks.core.features.AutoOmniShields(),
+        com.genir.aitweaks.core.features.AutomatedShipAIManager(),
+        com.genir.aitweaks.core.features.shipai.AttackCoord(),
+    )
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         combatState = this

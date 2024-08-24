@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
+import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.fs.starfarer.api.combat.WeaponAPI
@@ -107,7 +108,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
     private fun setFacing(dt: Float) {
         val systemOverride: Float? = ai.systemAI?.overrideFacing()
-        val currentAttackTarget: ShipAPI? = ai.finishBurstTarget ?: ai.attackTarget
+        val currentAttackTarget: CombatEntityAPI? = ai.finishBurstTarget ?: ai.attackTarget
         val weaponGroup = if (currentAttackTarget == ai.attackTarget) ai.attackingGroup
         else ai.finishBurstWeaponGroup!!
 
@@ -166,7 +167,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
     }
 
     /** Aim weapons with entire ship, if possible. */
-    private fun aimShip(attackTarget: ShipAPI, weaponGroup: WeaponGroup): Float {
+    private fun aimShip(attackTarget: CombatEntityAPI, weaponGroup: WeaponGroup): Float {
         // Prioritize hardpoints if there are any in the weapon group.
         val weapons = weaponGroup.weapons.filter { it.slot.isHardpoint }.ifEmpty { weaponGroup.weapons }
 
