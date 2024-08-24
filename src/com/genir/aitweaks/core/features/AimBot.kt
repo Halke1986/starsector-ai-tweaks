@@ -110,7 +110,7 @@ class AimBot : BaseEveryFrameCombatPlugin() {
 
         val intercept: Vector2f = when {
             weapon.type == WeaponType.MISSILE -> {
-                SimulateMissile.missileIntercept(dt, weapon, ballisticTarget)
+                SimulateMissile.missileIntercept(weapon, ballisticTarget)
             }
 
             else -> {

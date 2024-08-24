@@ -1,7 +1,11 @@
 package com.genir.aitweaks.core.features.shipai.autofire
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
+import com.fs.starfarer.api.combat.MutableStat
+import com.fs.starfarer.api.combat.ShipHullSpecAPI.EngineSpecAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.length
@@ -14,9 +18,6 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
-import com.fs.starfarer.combat.entities.ship.OOoOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO as EngineStats
-import com.fs.starfarer.combat.entities.ship.`class` as MutableShipStats
-import com.fs.starfarer.loading.specs.o00o as MissileSpec
 
 class SimulateMissile {
     data class Frame(val velocity: Vector2f, val location: Vector2f)
@@ -25,16 +26,25 @@ class SimulateMissile {
 
         /** Iteratively calculate the intercept point for dumb-fire missile weapon.
          * Note: the operation is computationally expensive. */
-        fun missileIntercept(dt: Float, weapon: WeaponAPI, target: BallisticTarget): Vector2f {
+        fun missileIntercept(weapon: WeaponAPI, target: BallisticTarget): Vector2f {
+            // Missile path is always computed using global time rate;
+            // make sure not to use ship-specific time rate.
+            val dt: Float = Global.getCombatEngine().elapsedInLastFrame
+            val missileStats = MissileStats(weapon)
             var facing: Float = (target.location - weapon.location).facing
 
             for (i in 0..3) {
-                val path: Sequence<Frame> = missilePath(dt, weapon, unitVector(facing))
+                val path: Sequence<Frame> = missilePath(dt, weapon, unitVector(facing), missileStats)
                 val error: Float = angularDistanceToPath(dt, weapon, target, path)
                 facing += error
             }
 
             return unitVector(facing) * (target.location - weapon.location).length + weapon.location
+        }
+
+        fun missilePath(weapon: WeaponAPI): Sequence<Frame> {
+            val dt: Float = Global.getCombatEngine().elapsedInLastFrame
+            return missilePath(dt, weapon, unitVector(weapon.currAngle), MissileStats(weapon))
         }
 
         /** Calculate the angular distance between missile path and
@@ -61,20 +71,12 @@ class SimulateMissile {
 
         /** Predict the entire path of a missile, given weapon facing,
          * starting from the weapon barrel location. */
-        fun missilePath(dt: Float, weapon: WeaponAPI, facingVector: Vector2f): Sequence<Frame> {
-            val projectileSpec: MissileSpec = weapon.spec.projectileSpec as MissileSpec
-            val shipStats: MutableShipStatsAPI = weapon.ship.mutableStats
-            val engineStats: EngineStats = MutableShipStats.create(projectileSpec)
-
-            engineStats.maxSpeed.applyMods(shipStats.missileMaxSpeedBonus);
-            engineStats.acceleration.applyMods(shipStats.missileAccelerationBonus);
-            engineStats.deceleration.applyMods(shipStats.missileAccelerationBonus);
-
+        private fun missilePath(dt: Float, weapon: WeaponAPI, facingVector: Vector2f, missileStats: MissileStats): Sequence<Frame> {
             val p0: Vector2f = weapon.location + weapon.barrelOffset(facingVector)
-            val vMax: Float = engineStats.maxSpeed.modifiedValue * dt
-            val v0: Vector2f = (weapon.ship.velocity + facingVector * projectileSpec.launchSpeed) * dt
-            val a: Vector2f = facingVector * engineStats.acceleration.modifiedValue * dt * dt
-            val decel: Float = max(engineStats.acceleration.modifiedValue, engineStats.deceleration.modifiedValue) * 2f * dt * dt
+            val vMax: Float = missileStats.maxSpeed * dt
+            val v0: Vector2f = (weapon.ship.velocity + facingVector * missileStats.launchSpeed) * dt
+            val a: Vector2f = facingVector * missileStats.acceleration * dt * dt
+            val decel: Float = max(missileStats.acceleration, missileStats.deceleration) * 2f * dt * dt
 
             return generateSequence(Frame(v0, p0)) {
                 val v2: Vector2f = it.velocity + a
@@ -83,7 +85,7 @@ class SimulateMissile {
                     if (speed <= vMax) v2 else v2.resized(max(vMax, speed - decel)),
                     it.location + it.velocity,
                 )
-            }.take((projectileSpec.maxFlightTime / dt).toInt())
+            }.take((missileStats.maxFlightTime / dt).toInt())
         }
 
         /** Calculate the barrel offset for the weapon, given weapon facing.
@@ -99,6 +101,36 @@ class SimulateMissile {
             val average: Vector2f = offsetSum / offsets.size.toFloat()
 
             return facingVector * average.length
+        }
+
+        /** Missile stats after applying ship bonuses. */
+        private class MissileStats(weapon: WeaponAPI) {
+            val maxSpeed: Float
+            val acceleration: Float
+            val deceleration: Float
+            val launchSpeed: Float
+            val maxFlightTime: Float
+
+            init {
+                val missileSpec: MissileSpecAPI = weapon.spec.projectileSpec as MissileSpecAPI
+                val engineSpec: EngineSpecAPI = missileSpec.hullSpec.engineSpec
+                val shipStats: MutableShipStatsAPI = weapon.ship.mutableStats
+
+                val maxSpeedStat = MutableStat(engineSpec.maxSpeed)
+                val accelerationStat = MutableStat(engineSpec.acceleration)
+                val decelerationStat = MutableStat(engineSpec.deceleration)
+
+                maxSpeedStat.applyMods(shipStats.missileMaxSpeedBonus)
+                accelerationStat.applyMods(shipStats.missileAccelerationBonus)
+                decelerationStat.applyMods(shipStats.missileAccelerationBonus)
+
+                maxSpeed = maxSpeedStat.modifiedValue
+                acceleration = accelerationStat.modifiedValue
+                deceleration = decelerationStat.modifiedValue
+
+                launchSpeed = missileSpec.launchSpeed
+                maxFlightTime = missileSpec.maxFlightTime
+            }
         }
     }
 }

@@ -44,7 +44,7 @@ fun debugMissilePath(dt: Float) {
     if (Global.getCombatEngine().missiles.isNotEmpty())
         return
 
-    trail = SimulateMissile.missilePath(dt, weapon, unitVector(weapon.currAngle))
+    trail = SimulateMissile.missilePath(weapon)
 }
 
 private fun showBoundsCollision() {
