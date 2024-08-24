@@ -4,7 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.extensions.isAngleInArc
 import com.genir.aitweaks.core.utils.extensions.isInFiringSequence
-import com.genir.aitweaks.core.utils.extensions.isPD
+import com.genir.aitweaks.core.utils.extensions.isPDSpec
 import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
 import kotlin.math.max
@@ -37,7 +37,8 @@ class ShipStats(private val ship: ShipAPI) {
         }
 
         // Filter out PD weapons, but only if there are non PD weapons available.
-        val attackWeapons = weapons.filter { !it.isPD || it.slot.isHardpoint }.ifEmpty { weapons }
+        // Do not count weapons made PD by S-modded Integrated Point Defense AI.
+        val attackWeapons = weapons.filter { !it.isPDSpec || it.slot.isHardpoint }.ifEmpty { weapons }
 
         // Return active weapons.
         return attackWeapons.filter { weapon ->

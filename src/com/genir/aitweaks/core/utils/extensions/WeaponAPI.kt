@@ -13,6 +13,11 @@ val WeaponAPI.isAntiArmor: Boolean
 val WeaponAPI.isPD: Boolean
     get() = hasAIHint(PD) || hasAIHint(PD_ONLY)
 
+/** Same as WeaponAPI.isPD, except it will ignore weapons that
+* were modified into PD by S-modded Integrated Point Defense AI. */
+val WeaponAPI.isPDSpec: Boolean
+    get() = spec.aiHints.contains(PD) || spec.aiHints.contains(PD_ONLY)
+
 val WeaponAPI.isStrictlyAntiShield: Boolean
     get() = spec.hasTag("aitweaks_anti_shield")
 
