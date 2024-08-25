@@ -8,8 +8,6 @@ import org.lazywizard.lazylib.ui.LazyFont
 import java.awt.Color
 import java.util.*
 
-const val ID = "com.genir.aitweaks.core.debug.DebugPlugin"
-
 val debugPrint = Print()
 
 class Print {
@@ -41,10 +39,11 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
         }
 
         // Initialize debug renderer.
+        val id = "aitweaks_debug_plugin"
         val engine = Global.getCombatEngine()
-        if (!engine.customData.containsKey(ID)) {
+        if (!engine.customData.containsKey(id)) {
             engine.addLayeredRenderingPlugin(Renderer())
-            engine.customData[ID] = true
+            engine.customData[id] = true
         }
 
         debug(dt)

@@ -15,6 +15,7 @@ import com.genir.aitweaks.core.utils.asteroidGrid
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.mousePosition
 import com.genir.aitweaks.core.utils.shipGrid
+import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
@@ -22,15 +23,23 @@ import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.Method
 
+// TODO make sure works only in manual control
+
 class AimBot : BaseEveryFrameCombatPlugin() {
     var target: CombatEntityAPI? = null
 
     private var isFiring: Boolean = false
     private var mouse: Vector2f = Vector2f()
     private var shipAI: CustomShipAI? = null
+    private var keybind: Int? = null
 
     private val getAimTracker: MethodHandle
     private val setTargetOverride: MethodHandle
+
+    private companion object {
+        var enabled = false
+        val statusKey = Object()
+    }
 
     init {
         // Get Weapon interface class from return type of Ship.getSelectedWeapon method.
@@ -52,6 +61,11 @@ class AimBot : BaseEveryFrameCombatPlugin() {
 
         val ship: ShipAPI = Global.getCombatEngine().playerShip ?: return
 
+        // Load keybind.
+        if (keybind == null) {
+            keybind = LunaSettings.getInt("aitweaks", "aitweaks_aim_bot_keybind") ?: return
+        }
+
         // Handle input.
         mouse = mousePosition()
         events?.forEach {
@@ -61,8 +75,17 @@ class AimBot : BaseEveryFrameCombatPlugin() {
                 it.isLMBDownEvent -> isFiring = true
 
                 it.isLMBUpEvent -> isFiring = false
+
+                it.isKeyDownEvent && it.eventValue == keybind -> enabled = !enabled
             }
         }
+
+        if (enabled) {
+            val icon = "graphics/icons/hullsys/interdictor_array.png"
+            Global.getCombatEngine().maintainStatusForPlayerShip(statusKey, icon, "aim assist", "automatic target leading", false)
+        }
+
+//        if (!enabled) return
 
         // TODO remove
         when (ship.isUnderManualControl) {
@@ -79,6 +102,8 @@ class AimBot : BaseEveryFrameCombatPlugin() {
 
         val target: CombatEntityAPI = selectTarget() ?: return
         this.target = target
+
+        if (!enabled) return
 
         // Aim all non-autofire weapons.
         val manualWeapons: List<WeaponAPI> = ship.weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weaponsCopy }
@@ -188,4 +213,15 @@ class AimBot : BaseEveryFrameCombatPlugin() {
 
         return closestEntity
     }
+
+    private val WeaponAPI.shouldOverride: Boolean
+        get() = when {
+            // Beams do not need target leading.
+            isBeam -> false
+
+            // Missiles in hardpoints are not aimable.
+            type == WeaponType.MISSILE && slot.isHardpoint -> false
+
+            else -> true
+        }
 }

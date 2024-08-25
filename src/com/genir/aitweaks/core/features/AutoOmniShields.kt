@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core.features
 
+import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.ShieldAPI.ShieldType
@@ -19,10 +20,12 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
     private var keybind: Int? = null
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
+        if (Global.getCurrentState() != GameState.COMBAT) return
+
         val engine = Global.getCombatEngine() ?: return
 
         // Initialize omni shield plugin.
-        val id = "com.genir.aitweaks.core.features.AutoOmniShields"
+        val id = "aitweaks_omni_shield"
         if (!engine.customData.containsKey(id)) {
             engine.addLayeredRenderingPlugin(RendererAutoShieldIndicator())
             engine.customData[id] = true
