@@ -26,14 +26,12 @@ import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.Method
 
-// TODO make sure works only in manual control
-
 class AimBot : BaseEveryFrameCombatPlugin() {
     var target: CombatEntityAPI? = null
 
+    private var debugShipAI: CustomShipAI? = null
     private var isFiring: Boolean = false
     private var mouse: Vector2f = Vector2f()
-    private var shipAI: CustomShipAI? = null
     private var keybind: Int? = null
 
     private val getAimTracker: MethodHandle
@@ -83,30 +81,26 @@ class AimBot : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        if (enabled) {
-            val icon = "graphics/icons/hullsys/interdictor_array.png"
-            Global.getCombatEngine().maintainStatusForPlayerShip(statusKey, icon, "aim assist", "automatic target leading", false)
-        }
+        if (!enabled) return
 
-//        if (!enabled) return
+//        // TODO remove
+//        when (ship.isUnderManualControl) {
+//            true -> {
+//                val ai = debugShipAI ?: CustomShipAI(ship)
+//                ai.advance(dt)
+//                debugShipAI = ai
+//            }
+//
+//            false -> debugShipAI = null
+//        }
 
-        // TODO remove
-        when (ship.isUnderManualControl) {
-            true -> {
-                val ai = shipAI ?: CustomShipAI(ship)
-                ai.advance(dt)
-                shipAI = ai
-            }
+        // Display status icon.
+        val icon = "graphics/icons/hullsys/interdictor_array.png"
+        Global.getCombatEngine().maintainStatusForPlayerShip(statusKey, icon, "aim assist", "automatic target leading", false)
 
-            false -> {
-                shipAI = null
-            }
-        }
-
+        // Select target.
         val target: CombatEntityAPI = selectTarget() ?: return
         this.target = target
-
-        if (!enabled) return
 
         // Aim all non-autofire weapons.
         val manualWeapons: List<WeaponAPI> = ship.weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weaponsCopy }
