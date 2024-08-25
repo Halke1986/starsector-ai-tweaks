@@ -5,6 +5,9 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.fs.starfarer.api.input.InputEventAPI
+import com.fs.starfarer.api.loading.MissileSpecAPI
+import com.fs.starfarer.api.loading.WeaponGroupType.ALTERNATING
+import com.fs.starfarer.api.loading.WeaponGroupType.LINKED
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
@@ -107,13 +110,13 @@ class AimBot : BaseEveryFrameCombatPlugin() {
 
         // Aim all non-autofire weapons.
         val manualWeapons: List<WeaponAPI> = ship.weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weaponsCopy }
-        manualWeapons.forEach { weapon ->
+        manualWeapons.filter { it.shouldOverride }.forEach { weapon ->
             aimWeapon(weapon, target)
         }
 
         // Aim and fire weapons in selected group.
         val selectedWeapons: List<WeaponAPI> = ship.selectedGroupAPI?.weaponsCopy ?: listOf()
-        selectedWeapons.forEach { weapon ->
+        selectedWeapons.filter { it.shouldOverride }.forEach { weapon ->
             val intercept: Vector2f = aimWeapon(weapon, target)
             fireWeapon(weapon, intercept)
         }
@@ -140,12 +143,18 @@ class AimBot : BaseEveryFrameCombatPlugin() {
 
     private fun fireWeapon(weapon: WeaponAPI, intercept: Vector2f) {
         val interceptFacing = (intercept - weapon.location).facing - weapon.ship.facing
+        val group = weapon.group
         val shouldFire: Boolean = when {
             !isFiring -> false
 
-            // Fire if target is in arc, regardless if weapon is actually
-            // pointed at the target. Same behavior as vanilla.
-            else -> weapon.isAngleInArc(interceptFacing)
+            // Fire active alternating group weapon. Same behavior as vanilla.
+            group.type == ALTERNATING && weapon == group.activeWeapon -> true
+
+            // Fire linked weapons if target is in arc, regardless if weapon
+            // is actually pointed at the target. Same behavior as vanilla.
+            group.type == LINKED && weapon.isAngleInArc(interceptFacing) -> true
+
+            else -> false
         }
 
         // Override the vanilla-computed should-fire decision.
@@ -219,8 +228,16 @@ class AimBot : BaseEveryFrameCombatPlugin() {
             // Beams do not need target leading.
             isBeam -> false
 
-            // Missiles in hardpoints are not aimable.
-            type == WeaponType.MISSILE && slot.isHardpoint -> false
+            type == WeaponType.MISSILE -> when {
+                // Missiles in hardpoints are not aimable.
+                slot.isHardpoint -> false
+
+                // Unguided missiles are aimable.
+                (spec.projectileSpec as? MissileSpecAPI)?.maneuverabilityDisplayName == "None" -> true
+
+                // Guided missiles do not need target leading.
+                else -> false
+            }
 
             else -> true
         }
