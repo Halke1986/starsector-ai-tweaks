@@ -5,7 +5,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.combat.systems.thissuper
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
@@ -18,11 +17,19 @@ import com.genir.aitweaks.core.utils.shipGrid
 import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
+import java.lang.reflect.Method
 
 class AimBot : BaseEveryFrameCombatPlugin() {
-    private var isFiring: Boolean = false
-    private var shipAI: CustomShipAI? = null
     var target: CombatEntityAPI? = null
+
+    private var isFiring: Boolean = false
+    private var mouse: Vector2f = Vector2f()
+    private var shipAI: CustomShipAI? = null
+
+    private var getAimTracker: MethodHandle? = null
+    private var setTargetVectorOverride: MethodHandle? = null
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         if (Global.getCurrentState() != GameState.COMBAT) return
@@ -30,6 +37,7 @@ class AimBot : BaseEveryFrameCombatPlugin() {
         val ship: ShipAPI = Global.getCombatEngine().playerShip ?: return
 
         // Handle input.
+        mouse = mousePosition()
         events?.forEach {
             when {
                 it.isConsumed -> Unit
@@ -53,25 +61,24 @@ class AimBot : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        val mouse: Vector2f = mousePosition()
-        val target: CombatEntityAPI = selectTarget(mouse) ?: return
+        val target: CombatEntityAPI = selectTarget() ?: return
         this.target = target
 
         // Aim all non-autofire weapons.
         val manualWeapons: List<WeaponAPI> = ship.weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weaponsCopy }
         manualWeapons.forEach { weapon ->
-            aimWeapon(weapon, target, mouse)
+            aimWeapon(weapon, target)
         }
 
         // Aim and fire weapons in selected group.
         val selectedWeapons: List<WeaponAPI> = ship.selectedGroupAPI?.weaponsCopy ?: listOf()
         selectedWeapons.forEach { weapon ->
-            val intercept: Vector2f = aimWeapon(weapon, target, mouse)
-            fireWeapon(weapon, target, intercept)
+            val intercept: Vector2f = aimWeapon(weapon, target)
+            fireWeapon(weapon, intercept)
         }
     }
 
-    private fun aimWeapon(weapon: WeaponAPI, target: CombatEntityAPI, mouse: Vector2f): Vector2f {
+    private fun aimWeapon(weapon: WeaponAPI, target: CombatEntityAPI): Vector2f {
         val ballisticTarget = BallisticTarget(target.velocity, mouse, 0f)
 
         val intercept: Vector2f = when {
@@ -84,13 +91,14 @@ class AimBot : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        val obfWeapon = weapon as thissuper
-        obfWeapon.aimTracker.`new`(intercept)
+        if (getAimTracker == null) initMethodHandlers(weapon)
+
+        setTargetVectorOverride!!(getAimTracker!!(weapon), intercept)
 
         return intercept
     }
 
-    private fun fireWeapon(weapon: WeaponAPI, target: CombatEntityAPI, intercept: Vector2f) {
+    private fun fireWeapon(weapon: WeaponAPI, intercept: Vector2f) {
         val interceptFacing = (intercept - weapon.location).facing - weapon.ship.facing
         val shouldFire: Boolean = when {
             !isFiring -> false
@@ -104,7 +112,7 @@ class AimBot : BaseEveryFrameCombatPlugin() {
         else weapon.setForceNoFireOneFrame(true)
     }
 
-    private fun selectTarget(mouse: Vector2f): CombatEntityAPI? {
+    private fun selectTarget(): CombatEntityAPI? {
         val searchRadius = 500f
 
         val ships: Sequence<ShipAPI> = shipGrid().get<ShipAPI>(mouse, searchRadius).filter {
@@ -117,7 +125,7 @@ class AimBot : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        closestTarget(mouse, ships)?.let { return it }
+        closestTarget(ships)?.let { return it }
 
         val hulks = shipGrid().get<ShipAPI>(mouse, searchRadius).filter {
             when {
@@ -129,7 +137,7 @@ class AimBot : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        closestTarget(mouse, hulks)?.let { return it }
+        closestTarget(hulks)?.let { return it }
 
         val asteroids: Sequence<CombatAsteroidAPI> = asteroidGrid().get<CombatAsteroidAPI>(mouse, searchRadius).filter {
             when {
@@ -139,10 +147,10 @@ class AimBot : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        return closestTarget(mouse, asteroids)
+        return closestTarget(asteroids)
     }
 
-    private fun closestTarget(mouse: Vector2f, entities: Sequence<CombatEntityAPI>): CombatEntityAPI? {
+    private fun closestTarget(entities: Sequence<CombatEntityAPI>): CombatEntityAPI? {
         val targetEnvelope = 150f
         val closeEntities: Sequence<CombatEntityAPI> = entities.filter {
             (it.location - mouse).length <= (it.collisionRadius + targetEnvelope)
@@ -163,5 +171,19 @@ class AimBot : BaseEveryFrameCombatPlugin() {
         }
 
         return closestEntity
+    }
+
+    private fun initMethodHandlers(weapon: WeaponAPI) {
+        val weaponMethods: Array<Method> = weapon::class.java.methods
+
+        val getAimTracker = weaponMethods.first { it.name == "getAimTracker" }
+        this.getAimTracker = MethodHandles.lookup().unreflect(getAimTracker)
+
+        val aimTrackerClass: Class<*> = getAimTracker.returnType
+        val aimTrackerMethods: Array<Method> = aimTrackerClass.methods
+
+        val params = arrayOf(Vector2f::class.java)
+        val setTargetVectorOverride = aimTrackerMethods.first { it.returnType == Void.TYPE && it.parameterTypes.contentEquals(params) }
+        this.setTargetVectorOverride = MethodHandles.lookup().unreflect(setTargetVectorOverride)
     }
 }
