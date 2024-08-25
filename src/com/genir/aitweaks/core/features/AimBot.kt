@@ -5,6 +5,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.fs.starfarer.api.input.InputEventAPI
+import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
@@ -28,8 +29,23 @@ class AimBot : BaseEveryFrameCombatPlugin() {
     private var mouse: Vector2f = Vector2f()
     private var shipAI: CustomShipAI? = null
 
-    private var getAimTracker: MethodHandle? = null
-    private var setTargetVectorOverride: MethodHandle? = null
+    private val getAimTracker: MethodHandle
+    private val setTargetOverride: MethodHandle
+
+    init {
+        // Get Weapon interface class from return type of Ship.getSelectedWeapon method.
+        val getSelectedWeapon: Method = Ship::class.java.methods.first { it.name == "getSelectedWeapon" }
+        val weaponClass: Class<*> = getSelectedWeapon.returnType
+
+        // Get AimTracker class from return type of Weapon.getAimTracker method.
+        val getAimTracker: Method = weaponClass.methods.first { it.name == "getAimTracker" }
+        val aimTrackerClass: Class<*> = getAimTracker.returnType
+
+        val setTargetOverride: Method = aimTrackerClass.methods.first { it.returnType == Void.TYPE && it.hasParameters(Vector2f::class.java) }
+
+        this.getAimTracker = MethodHandles.lookup().unreflect(getAimTracker)
+        this.setTargetOverride = MethodHandles.lookup().unreflect(setTargetOverride)
+    }
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         if (Global.getCurrentState() != GameState.COMBAT) return
@@ -91,9 +107,8 @@ class AimBot : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        if (getAimTracker == null) initMethodHandlers(weapon)
-
-        setTargetVectorOverride!!(getAimTracker!!(weapon), intercept)
+        // Override the vanilla-computed weapon facing.
+        setTargetOverride(getAimTracker(weapon), intercept)
 
         return intercept
     }
@@ -108,6 +123,7 @@ class AimBot : BaseEveryFrameCombatPlugin() {
             else -> weapon.isAngleInArc(interceptFacing)
         }
 
+        // Override the vanilla-computed should-fire decision.
         if (shouldFire) weapon.setForceFireOneFrame(true)
         else weapon.setForceNoFireOneFrame(true)
     }
@@ -171,19 +187,5 @@ class AimBot : BaseEveryFrameCombatPlugin() {
         }
 
         return closestEntity
-    }
-
-    private fun initMethodHandlers(weapon: WeaponAPI) {
-        val weaponMethods: Array<Method> = weapon::class.java.methods
-
-        val getAimTracker = weaponMethods.first { it.name == "getAimTracker" }
-        this.getAimTracker = MethodHandles.lookup().unreflect(getAimTracker)
-
-        val aimTrackerClass: Class<*> = getAimTracker.returnType
-        val aimTrackerMethods: Array<Method> = aimTrackerClass.methods
-
-        val params = arrayOf(Vector2f::class.java)
-        val setTargetVectorOverride = aimTrackerMethods.first { it.returnType == Void.TYPE && it.parameterTypes.contentEquals(params) }
-        this.setTargetVectorOverride = MethodHandles.lookup().unreflect(setTargetVectorOverride)
     }
 }
