@@ -1,5 +1,6 @@
-- Autofire weapons are less likely to get tricked by frigates twitching to evade incoming fire.
+- Added aim assist for manually controlled weapons. Aim assist automatically adjusts weapon position to account for target leading. Use "[" key to activate.
 - Fast-time ships (phase or temporal shell) speed increase is taken into account when calculating firing solution.
+- Finisher Beam Protocol hullmod has a new icon.
 
 Version 1.8.0
 
