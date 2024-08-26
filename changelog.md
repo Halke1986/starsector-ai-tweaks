@@ -1,3 +1,5 @@
+Version 1.9.0
+
 - Added aim assist for manually controlled weapons. Aim assist automatically adjusts weapon position to account for target leading. Use "[" key to activate.
 - Fast-time ships (phase or temporal shell) speed increase is taken into account when calculating firing solution.
 - Finisher Beam Protocol hullmod has a new icon.
