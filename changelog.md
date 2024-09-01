@@ -1,3 +1,7 @@
+Version 1.9.1
+
+- Fixed crash caused by aim assist trying to operate weapons on destroyed player ship. Reported by @Abyssal Phoenix 
+
 Version 1.9.0
 
 - Added aim assist for manually controlled weapons. Aim assist automatically adjusts weapon position to account for target leading. Use "[" key to activate.

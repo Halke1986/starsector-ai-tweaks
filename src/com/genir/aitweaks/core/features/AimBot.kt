@@ -62,6 +62,8 @@ class AimBot : BaseEveryFrameCombatPlugin() {
 
         val ship: ShipAPI = Global.getCombatEngine().playerShip ?: return
 
+        if (!ship.isAlive) return
+
         // Load keybind.
         if (keybind == null) {
             keybind = LunaSettings.getInt("aitweaks", "aitweaks_aim_bot_keybind") ?: return
@@ -137,7 +139,7 @@ class AimBot : BaseEveryFrameCombatPlugin() {
 
     private fun fireWeapon(weapon: WeaponAPI, intercept: Vector2f) {
         val interceptFacing = (intercept - weapon.location).facing - weapon.ship.facing
-        val group = weapon.group
+        val group: WeaponGroupAPI = weapon.group ?: return
         val shouldFire: Boolean = when {
             !isFiring -> false
 

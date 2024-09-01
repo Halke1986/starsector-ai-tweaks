@@ -90,7 +90,7 @@ val WeaponAPI.isInFiringSequence: Boolean
 val WeaponAPI.isInWarmup: Boolean
     get() = chargeLevel > 0f && chargeLevel < 1f && cooldownRemaining == 0f
 
-val WeaponAPI.group: WeaponGroupAPI
+val WeaponAPI.group: WeaponGroupAPI?
     get() = this.ship.getWeaponGroupFor(this)
 
 val WeaponAPI.target: CombatEntityAPI?
