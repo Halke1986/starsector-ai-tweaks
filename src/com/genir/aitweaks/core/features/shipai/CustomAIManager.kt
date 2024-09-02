@@ -18,7 +18,7 @@ class CustomAIManager {
         else null
     }
 
-    /** Currently, custom AI is enabled only for Guardian. */
+    /** Currently, custom AI is enabled only for selected ships. */
     private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
             !customAIEnabled -> false

@@ -55,12 +55,10 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     var threats: List<ShipAPI> = listOf()
     var threatVector = Vector2f()
 
-    override fun advance(amount: Float) {
+    override fun advance(dt: Float) {
         debug()
 
-        // Account for ship time-shift. For some reason vanilla
-        // runs AI of ships if fast-time at global time.
-        val dt = amount * ship.mutableStats.timeMult.modifiedValue
+        ship.useSystem()
 
         // Cede the control to vanilla AI when the ship is retreating.
         // This is irreversible, except on player ship.

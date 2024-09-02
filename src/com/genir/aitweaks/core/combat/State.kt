@@ -23,6 +23,8 @@ class State : BaseEveryFrameCombatPlugin() {
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
     val maneuverTargetTracker: ManeuverTargetTracker = ManeuverTargetTracker()
 
+    var frameCount: Int = 0
+
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
         fleetCohesion[0],
         fleetCohesion[1],
@@ -37,6 +39,7 @@ class State : BaseEveryFrameCombatPlugin() {
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         combatState = this
+        frameCount++
 
         plugins.forEach { it.advance(dt, events) }
     }

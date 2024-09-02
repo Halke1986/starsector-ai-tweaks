@@ -34,6 +34,9 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
     override var proposedHeadingPoint: Vector2f? = null
     override var reviewedHeadingPoint: Vector2f? = null
 
+    private val interpolateHeading = InterpolateValue()
+    private val interpolateFacing = InterpolateValue()
+
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
     private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
@@ -47,54 +50,56 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?, assignmentLocation: Vector2f?) {
         val systemOverride: Vector2f? = ai.systemAI?.overrideHeading()
 
-        val newHeadingPoint: Vector2f? = when {
-            // Let movement system determine ship heading.
-            systemOverride != null -> {
-                systemOverride
+        val newHeadingPoint: Vector2f? = interpolateHeading.advance(dt) {
+            when {
+                // Let movement system determine ship heading.
+                systemOverride != null -> {
+                    systemOverride
+                }
+
+                // For player ships the heading to assignment location takes priority.
+                ship.owner == 0 && !ship.isAlly && shouldHeadToAssigment(assignmentLocation) -> {
+                    assignmentLocation
+                }
+
+                // Move opposite to threat direction when backing off.
+                // If there's no threat, the ship will continue to coast.
+                ai.isBackingOff -> {
+                    val farAway = 2048f
+                    if (ai.threatVector.isZeroVector()) ship.location + ship.velocity.resized(farAway)
+                    else ship.location - ai.threatVector.resized(farAway)
+                }
+
+                // Orbit target at effective weapon range.
+                // Rotate away from threat if there are multiple enemy ships around.
+                // Chase the target if there are no other enemy ships around.
+                // Strafe target randomly if in range and no other threat.
+                maneuverTarget != null -> {
+                    // TODO will need syncing when interval tracking is introduced.
+                    val vectorToTarget = maneuverTarget.location - ship.location
+                    val vectorToThreat = if (!ai.threatVector.isZeroVector()) ai.threatVector else vectorToTarget
+
+                    // Strafe the target randomly, when it's the only threat.
+                    val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
+                    val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
+                    else vectorToThreat
+
+                    // Let the attack coordinator review the calculated heading point.
+                    proposedHeadingPoint = maneuverTarget.location - attackPositionOffset.resized(ai.calculateAttackRange())
+                    val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
+                    reviewedHeadingPoint = null
+
+                    headingPoint
+                }
+
+                // Move directly to assignment location.
+                assignmentLocation != null -> {
+                    assignmentLocation
+                }
+
+                // Nothing to do, stop the ship.
+                else -> null
             }
-
-            // For player ships the heading to assignment location takes priority.
-            ship.owner == 0 && !ship.isAlly && shouldHeadToAssigment(assignmentLocation) -> {
-                assignmentLocation
-            }
-
-            // Move opposite to threat direction when backing off.
-            // If there's no threat, the ship will continue to coast.
-            ai.isBackingOff -> {
-                val farAway = 2048f
-                if (ai.threatVector.isZeroVector()) ship.location + ship.velocity.resized(farAway)
-                else ship.location - ai.threatVector.resized(farAway)
-            }
-
-            // Orbit target at effective weapon range.
-            // Rotate away from threat if there are multiple enemy ships around.
-            // Chase the target if there are no other enemy ships around.
-            // Strafe target randomly if in range and no other threat.
-            maneuverTarget != null -> {
-                // TODO will need syncing when interval tracking is introduced.
-                val vectorToTarget = maneuverTarget.location - ship.location
-                val vectorToThreat = if (!ai.threatVector.isZeroVector()) ai.threatVector else vectorToTarget
-
-                // Strafe the target randomly, when it's the only threat.
-                val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
-                val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
-                else vectorToThreat
-
-                // Let the attack coordinator review the calculated heading point.
-                proposedHeadingPoint = maneuverTarget.location - attackPositionOffset.resized(ai.calculateAttackRange())
-                val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
-                reviewedHeadingPoint = null
-
-                headingPoint
-            }
-
-            // Move directly to assignment location.
-            assignmentLocation != null -> {
-                assignmentLocation
-            }
-
-            // Nothing to do, stop the ship.
-            else -> null
         }
 
         if (newHeadingPoint != null) {
@@ -112,35 +117,39 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         val weaponGroup = if (currentAttackTarget == ai.attackTarget) ai.attackingGroup
         else ai.finishBurstWeaponGroup!!
 
-        expectedFacing = when {
-            // Let movement system determine ship facing.
-            systemOverride != null -> {
-                systemOverride
+        expectedFacing = interpolateFacing.advance(dt) {
+            val newFacing: Float = when {
+                // Let movement system determine ship facing.
+                systemOverride != null -> {
+                    systemOverride
+                }
+
+                // Face the attack target.
+                currentAttackTarget != null -> {
+                    // Average aim offset to avoid ship wobbling.
+                    val aimPointThisFrame = unitVector(aimShip(currentAttackTarget, weaponGroup)) * 100f + ship.location
+                    val aimOffsetThisFrame = getShortestRotation(currentAttackTarget.location, ship.location, aimPointThisFrame)
+                    val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
+
+                    (currentAttackTarget.location - ship.location).facing + aimOffset
+                }
+
+                // Face threat direction when no target.
+                !ai.threatVector.isZeroVector() -> {
+                    ai.threatVector.facing
+                }
+
+                // Face movement target location.
+                ai.assignmentLocation != null -> {
+                    (ai.assignmentLocation!! - ship.location).facing
+                }
+
+                // Nothing to do. Stop rotation.
+                else -> expectedFacing
             }
 
-            // Face the attack target.
-            currentAttackTarget != null -> {
-                // Average aim offset to avoid ship wobbling.
-                val aimPointThisFrame = unitVector(aimShip(currentAttackTarget, weaponGroup)) * 100f + ship.location
-                val aimOffsetThisFrame = getShortestRotation(currentAttackTarget.location, ship.location, aimPointThisFrame)
-                val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
-
-                (currentAttackTarget.location - ship.location).facing + aimOffset
-            }
-
-            // Face threat direction when no target.
-            !ai.threatVector.isZeroVector() -> {
-                ai.threatVector.facing
-            }
-
-            // Face movement target location.
-            ai.assignmentLocation != null -> {
-                (ai.assignmentLocation!! - ship.location).facing
-            }
-
-            // Nothing to do. Stop rotation.
-            else -> expectedFacing
-        }
+            Vector2f(newFacing, 0f)
+        }!!.x
 
         engineController.facing(dt, expectedFacing)
     }
@@ -301,7 +310,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 // Already blocking.
                 EngineController.Limit(limitFacing, 0f)
             } else {
-                val obstacleV = obstacle.ship.velocity
+                val obstacleV = obstacle.ship.timeAdjustedVelocity
                 val obstacleAngularV = obstacleV - vectorProjection(obstacleV, obstacleLineOfFire)
 
                 val t = timeToOrigin(obstacle.ship.location - ship.location, obstacleAngularV)
@@ -364,7 +373,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         // Already colliding.
         if (distance <= 0f) return EngineController.Limit(dirFacing, 0f)
 
-        val vObstacle = vectorProjectionLength(obstacle.velocity, direction)
+        val vObstacle = vectorProjectionLength(obstacle.timeAdjustedVelocity, direction)
         val aObstacle = vectorProjectionLength(combatState().accelerationTracker[obstacle], direction)
         val decelShip = ship.collisionDeceleration(dirFacing)
 
@@ -400,6 +409,49 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
             angleFromBow < 30f -> deceleration
             angleFromBow < 150f -> strafeAcceleration
             else -> acceleration
+        }
+    }
+
+    /**
+     * The advance() method for fast-time ships is invoked multiple times per frame,
+     * whereas normal-time ships have their coordinates updated only once per frame.
+     *
+     * This discrepancy can cause fast-time ships to calculate their movement
+     * based on target coordinates that may appear to change erratically,
+     * resulting in imprecise movement commands.
+     *
+     * To address this issue, the movement of fast-time ships is also calculated
+     * once per frame. The resulting movement is then interpolated for any additional
+     * advance() calls within the same frame, ensuring smoother and more precise movement.
+     */
+    private inner class InterpolateValue {
+        private var prevValue: Vector2f? = null
+        private var value: Vector2f? = null
+
+        private var timestamp: Int = 0
+        private var dtSum: Float = 0f
+
+        fun advance(dt: Float, nextValue: () -> Vector2f?): Vector2f? {
+            val timeMult: Float = ship.mutableStats.timeMult.modifiedValue
+
+            if (combatState().frameCount > timestamp) {
+                timestamp = combatState().frameCount
+                dtSum = 0f
+
+                prevValue = value
+                value = nextValue()
+            }
+
+            // No need to interpolate for ships in normal time flow.
+            if (timeMult == 1f) return nextValue()
+
+            dtSum += dt
+
+            val prevValue = prevValue ?: return null
+            val value = value ?: return null
+
+            val delta = (value - prevValue) / timeMult
+            return prevValue + delta * (dtSum / Global.getCombatEngine().elapsedInLastFrame)
         }
     }
 }

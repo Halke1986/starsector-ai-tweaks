@@ -13,6 +13,12 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 import kotlin.random.Random
 
+/** Engine Controller controls the ship heading and facing
+ * by issuing appropriate engine commands.
+ *
+ * Note: Due to Starsector combat engine order of operations,
+ * the controller works better when called from ship AI, as
+ * opposed to every frame combat plugin. */
 class EngineController(val ship: ShipAPI) {
     private var prevFacing: Float = 0f
     private var prevHeading: Vector2f = Vector2f()
@@ -21,11 +27,11 @@ class EngineController(val ship: ShipAPI) {
      * max speed in a direction along a given heading. */
     data class Limit(val heading: Float, val speed: Float)
 
-    /** Set ship heading towards 'target' location. Appropriate target
-     * leading is calculated based on 'targetVelocity'. If ship is already
-     * at 'target' location, it will match the target velocity. Limits are
-     * used to restrict the velocity, e.g. for collision avoidance purposes.
-     * Returns the calculated expected velocity. */
+    /** Set ship heading towards selected location. Appropriate target
+     * leading is calculated based on estimated target velocity. If ship
+     * is already at 'heading' location, it will match the target velocity.
+     * Limits are used to restrict the velocity, e.g. for collision avoidance
+     * purposes. Returns the calculated expected velocity. */
     fun heading(dt: Float, heading: Vector2f, limits: List<Limit> = listOf()): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
@@ -40,19 +46,12 @@ class EngineController(val ship: ShipAPI) {
         val w = ship.angularVelocity * dt
         val toShipFacing = 90f - ship.facing - w
         val r = Rotation(toShipFacing)
-        val l = (heading - ship.location).rotated(r)
+        val d = (heading - ship.location).rotated(r)
         val v = (ship.velocity).rotated(r) * dt
 
-        // Calculate target position change in time,
-        // i.e. the target linear velocity.
+        // Estimate target linear velocity.
         val vt = (heading - prevHeading).rotated(r)
         prevHeading = heading.copy
-
-        // Distance to target location in next frame. Next frame
-        // is used because game engine apparently updates location
-        // before updating velocity, so it's only the next frame
-        // the current changes will take effect.
-        val d = l - v + vt
 
         // Maximum velocity towards target for both axis of movement.
         // Any higher velocity would lead to overshooting target location.
@@ -106,18 +105,14 @@ class EngineController(val ship: ShipAPI) {
         val a = ship.turnAcceleration * dt * dt
         val w = ship.angularVelocity * dt
 
-        // Calculate facing change in time,
-        // i.e. the target angular velocity.
+        // Estimate target angular velocity.
         val wt = MathUtils.getShortestRotation(prevFacing, facing)
         prevFacing = facing
 
-        // Angular distance between expected
-        // facing and ship facing the next frame.
-        val r = MathUtils.getShortestRotation(ship.facing + w, facing + wt)
+        // Angular distance between expected facing and ship facing.
+        val r = MathUtils.getShortestRotation(ship.facing, facing)
 
-        // Expected velocity change. Since rotation is
-        // 1-dimensional, as opposed to the 2-dimensional
-        // heading, the calculations can be simplified.
+        // Expected velocity change.
         val we = sign(r) * vMax(abs(r), a) + wt
         val dw = we - w
 
@@ -125,7 +120,17 @@ class EngineController(val ship: ShipAPI) {
         if (shouldAccelerate(-r, -dw / a, 0f)) ship.command(TURN_RIGHT)
     }
 
-    /** Maximum velocity in given direction to not overshoot target. */
+    /** Calculate the maximum velocity in a given direction to
+     * avoid overshooting the target.
+     *
+     * Note: The Starsector engine simulates motion in a discrete
+     * manner, where the distance covered during accelerated motion
+     * is calculated using the equation:
+     *
+     * s = (a * t^2 / 2) + (a * t * u / 2)
+     *
+     * where `a` is acceleration, `t` is time, and `u` is the duration
+     * of a single simulation frame. */
     private fun vMax(d: Float, a: Float): Float {
         val (q, _) = quad(0.5f, 0.5f, -d / a) ?: return 0f
         return floor(q) * a
