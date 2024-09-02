@@ -55,12 +55,8 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     var threats: List<ShipAPI> = listOf()
     var threatVector = Vector2f()
 
-    override fun advance(amount: Float) {
+    override fun advance(dt: Float) {
         debug()
-
-        // Account for ship time-shift. For some reason vanilla
-        // runs AI of ships if fast-time at global time.
-        val dt = amount * ship.mutableStats.timeMult.modifiedValue
 
         // Cede the control to vanilla AI when the ship is retreating.
         // This is irreversible, except on player ship.
@@ -290,7 +286,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             isBackingOff -> false
             attackTarget == null -> false
             attackTarget != maneuverTarget -> false
-            (attackTarget as? ShipAPI)?.isFrigate != ship.isFrigate -> false
+            (attackTarget as? ShipAPI)?.isFrigateShip != ship.isFrigateShip -> false
             threats.size > 1 -> false
             else -> true
         }
@@ -421,11 +417,11 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         val evalFlux = fluxLeft * fluxFactor
 
         // Avoid attacking bricks, especially Monitors.
-        val evalDamper = if (target.system?.id == "damper" && !target.isFrigate) 1f else 0f
-        val evalShunt = if (target.variant.hasHullMod("fluxshunt") && target.isFrigate) 256f else 0f
+        val evalDamper = if (target.system?.id == "damper" && !target.isFrigateShip) 1f else 0f
+        val evalShunt = if (target.variant.hasHullMod("fluxshunt") && target.isFrigateShip) 256f else 0f
 
         // Assign lower priority to frigates.
-        val evalType = if (target.isSmall) 1f else 0f
+        val evalType = if (!ship.shouldAttackFrigates && target.isFrigateShip) 1f else 0f
 
         // Finish helpless target.
         val evalVent = if (target.fluxTracker.isOverloadedOrVenting) -2f else 0f

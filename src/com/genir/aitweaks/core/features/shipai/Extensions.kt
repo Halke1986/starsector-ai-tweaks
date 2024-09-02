@@ -1,7 +1,9 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.core.utils.extensions.isFrigateShip
 import com.genir.aitweaks.core.utils.extensions.isModule
+import com.genir.aitweaks.core.utils.extensions.timeMult
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
@@ -70,3 +72,7 @@ fun ShipAPI.command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
 inline fun <reified T> ShipwideAIFlags.get(flag: ShipwideAIFlags.AIFlags): T? {
     return getCustom(flag) as? T
 }
+
+// TODO refine the speed threshold
+val ShipAPI.shouldAttackFrigates: Boolean
+    get() = isFrigateShip || isDestroyer || maxSpeed * timeMult > 150f

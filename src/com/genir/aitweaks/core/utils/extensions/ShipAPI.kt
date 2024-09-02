@@ -11,6 +11,7 @@ import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
+import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
@@ -23,8 +24,8 @@ val ShipAPI.isModule: Boolean
 val ShipAPI.rootModule: ShipAPI
     get() = if (isModule) parentStation else this
 
-val ShipAPI.isSmall: Boolean
-    get() = !isBig
+val ShipAPI.isFrigateShip: Boolean
+    get() = isFrigate && !isModule
 
 val ShipAPI.isBig: Boolean
     get() = isModule || isDestroyer || isCruiser || isCapital
@@ -70,6 +71,14 @@ val ShipAPI.deploymentPoints: Float
 fun ShipAPI.angleFromFacing(p: Vector2f): Float {
     return MathUtils.getShortestRotation((p - location).getFacing(), facing)
 }
+
+/** Calculates the effective ship velocity in the global frame
+ * of reference, taking into account the ship's time flow. */
+val ShipAPI.timeAdjustedVelocity: Vector2f
+    get() = velocity * timeMult
+
+val ShipAPI.timeMult: Float
+    get() = mutableStats.timeMult.modifiedValue
 
 val ShipAPI.fluxLeft: Float
     get() = fluxTracker.maxFlux - fluxTracker.currFlux
