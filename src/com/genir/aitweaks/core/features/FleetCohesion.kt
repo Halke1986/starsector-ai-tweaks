@@ -10,6 +10,7 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.features.shipai.Preset
+import com.genir.aitweaks.core.features.shipai.shouldAttackFrigates
 import com.genir.aitweaks.core.features.shipai.slotRange
 import com.genir.aitweaks.core.utils.closestEntity
 import com.genir.aitweaks.core.utils.extensions.*
@@ -27,7 +28,9 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
 
     private var validGroups: List<Set<ShipAPI>> = listOf()
     private var primaryBigTargets: List<ShipAPI> = listOf()
+    private var primaryTargets: List<ShipAPI> = listOf()
     private var allBigTargets: List<ShipAPI> = listOf()
+    private var allTargets: List<ShipAPI> = listOf()
 
     private val advanceInterval = IntervalUtil(0.75f, 1f)
 
@@ -52,7 +55,9 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         // Cleanup of previous iteration assignments and waypoints.
         validGroups = listOf()
         primaryBigTargets = listOf()
+        primaryTargets = listOf()
         allBigTargets = listOf()
+        allTargets = listOf()
         clearAssignments()
         clearWaypoints()
 
@@ -71,17 +76,20 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         }
 
         // Identify enemy battle groups.
-        val enemyFleet = engine.ships.filter { it.owner == enemy && it.isValidTarget }
+        val enemyFleet = engine.ships.filter { it.owner == enemy && it.isValidTarget && !it.isFighter }
         if (enemyFleet.isEmpty()) return
         val groups = segmentFleet(enemyFleet.toTypedArray())
         val groupsFromLargest = groups.sortedBy { it.dpSum }.reversed()
         validGroups = groupsFromLargest.filter { isValidGroup(it, groupsFromLargest.first().dpSum) }
 
         val fog = engine.getFogOfWar(side)
-        primaryBigTargets = validGroups.first().filter { it.isBig && fog.isVisible(it) }
-        allBigTargets = validGroups.flatten().filter { it.isBig && fog.isVisible(it) }
+        primaryTargets = validGroups.first().filter { fog.isVisible(it) }
+        primaryBigTargets = primaryTargets.filter { it.isBig }
+        allTargets = validGroups.flatten().filter { fog.isVisible(it) }
+        allBigTargets = allTargets.filter { it.isBig }
 
-        // Don't give orders to enemy side.
+        // Don't give orders to enemy side
+        // to not interfere with AdmiralAI.
         if (side == 1) return
 
         val ships = engine.ships.filter {
@@ -121,11 +129,13 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     }
 
     fun findClosestTarget(ship: ShipAPI): ShipAPI? {
-        val closestBigTarget: ShipAPI? = closestEntity(allBigTargets, ship.location)
+        val allTargets = if (ship.shouldAttackFrigates) allTargets else allBigTargets
+        val closestBigTarget: ShipAPI? = closestEntity(allTargets, ship.location)
         if (closestBigTarget != null && closeToEnemy(ship, closestBigTarget))
             return closestBigTarget
 
-        return closestEntity(primaryBigTargets, ship.location)
+        val primaryTargets = if (ship.shouldAttackFrigates) primaryTargets else primaryBigTargets
+        return closestEntity(primaryTargets, ship.location)
     }
 
     private fun manageAssignments(ship: ShipAPI) {
@@ -193,10 +203,10 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             for (j in fleet.indices) {
                 when {
                     // Cannot attach to battle group via frigate.
-                    fleet[j].isSmall -> continue
+                    fleet[j].isFrigateShip -> continue
 
                     // Frigate already attached to battle group.
-                    fleet[i].isSmall && groups[i] != i -> continue
+                    fleet[i].isFrigateShip && groups[i] != i -> continue
 
                     // Both targets already in same battle group.
                     groups[i] == groups[j] -> continue

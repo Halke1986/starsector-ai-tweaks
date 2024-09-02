@@ -24,8 +24,8 @@ val ShipAPI.isModule: Boolean
 val ShipAPI.rootModule: ShipAPI
     get() = if (isModule) parentStation else this
 
-val ShipAPI.isSmall: Boolean
-    get() = !isBig
+val ShipAPI.isFrigateShip: Boolean
+    get() = isFrigate && !isModule
 
 val ShipAPI.isBig: Boolean
     get() = isModule || isDestroyer || isCruiser || isCapital
@@ -75,7 +75,10 @@ fun ShipAPI.angleFromFacing(p: Vector2f): Float {
 /** Calculates the effective ship velocity in the global frame
  * of reference, taking into account the ship's time flow. */
 val ShipAPI.timeAdjustedVelocity: Vector2f
-    get() = velocity * mutableStats.timeMult.modifiedValue
+    get() = velocity * timeMult
+
+val ShipAPI.timeMult: Float
+    get() = mutableStats.timeMult.modifiedValue
 
 val ShipAPI.fluxLeft: Float
     get() = fluxTracker.maxFlux - fluxTracker.currFlux
