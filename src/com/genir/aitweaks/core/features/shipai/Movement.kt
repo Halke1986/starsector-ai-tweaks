@@ -50,7 +50,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?, assignmentLocation: Vector2f?) {
         val systemOverride: Vector2f? = ai.systemAI?.overrideHeading()
 
-        val newHeadingPoint: Vector2f? = interpolateHeading.advance(dt) {
+        headingPoint = interpolateHeading.advance(dt) {
             when {
                 // Let movement system determine ship heading.
                 systemOverride != null -> {
@@ -59,7 +59,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
                 // For player ships the heading to assignment location takes priority.
                 ship.owner == 0 && !ship.isAlly && shouldHeadToAssigment(assignmentLocation) -> {
-                    assignmentLocation
+                    assignmentLocation!!
                 }
 
                 // Move opposite to threat direction when backing off.
@@ -98,17 +98,12 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 }
 
                 // Nothing to do, stop the ship.
-                else -> null
-            }
+                else -> engineController.allStop
+
+            }.copy // Copy to avoid relying on changing value.
         }
 
-        if (newHeadingPoint != null) {
-            headingPoint = newHeadingPoint.copy
-            expectedVelocity = engineController.heading(dt, headingPoint, gatherSpeedLimits(dt))
-        } else {
-            headingPoint = ship.location
-            expectedVelocity = engineController.stop()
-        }
+        expectedVelocity = engineController.heading(dt, headingPoint, gatherSpeedLimits(dt))
     }
 
     private fun setFacing(dt: Float) {
@@ -149,7 +144,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
             }
 
             Vector2f(newFacing, 0f)
-        }!!.x
+        }.x
 
         engineController.facing(dt, expectedFacing)
     }
@@ -424,14 +419,14 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
      * once per frame. The resulting movement is then interpolated for any additional
      * advance() calls within the same frame, ensuring smoother and more precise movement.
      */
-    private inner class InterpolateValue {
-        private var prevValue: Vector2f? = null
-        private var value: Vector2f? = null
+    private inner class InterpolateValue() {
+        private var prevValue: Vector2f = Vector2f()
+        private var value: Vector2f = Vector2f()
 
         private var timestamp: Int = 0
         private var dtSum: Float = 0f
 
-        fun advance(dt: Float, nextValue: () -> Vector2f?): Vector2f? {
+        fun advance(dt: Float, nextValue: () -> Vector2f): Vector2f {
             val timeMult: Float = ship.mutableStats.timeMult.modifiedValue
 
             if (combatState().frameCount > timestamp) {
@@ -443,12 +438,9 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
             }
 
             // No need to interpolate for ships in normal time flow.
-            if (timeMult == 1f) return nextValue()
+            if (timeMult == 1f) return value
 
             dtSum += dt
-
-            val prevValue = prevValue ?: return null
-            val value = value ?: return null
 
             val delta = (value - prevValue) / timeMult
             return prevValue + delta * (dtSum / Global.getCombatEngine().elapsedInLastFrame)

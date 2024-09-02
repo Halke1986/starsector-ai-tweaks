@@ -27,12 +27,17 @@ class EngineController(val ship: ShipAPI) {
      * max speed in a direction along a given heading. */
     data class Limit(val heading: Float, val speed: Float)
 
+    /** Heading value used to decelerate the ship to standstill. */
+    val allStop: Vector2f = Vector2f(Float.MAX_VALUE, Float.MAX_VALUE)
+
     /** Set ship heading towards selected location. Appropriate target
      * leading is calculated based on estimated target velocity. If ship
      * is already at 'heading' location, it will match the target velocity.
      * Limits are used to restrict the velocity, e.g. for collision avoidance
      * purposes. Returns the calculated expected velocity. */
     fun heading(dt: Float, heading: Vector2f, limits: List<Limit> = listOf()): Vector2f {
+        if (heading == allStop) return stop()
+
         // Change unit of time from second to
         // animation frame duration (* dt).
         val af = ship.acceleration * dt * dt
@@ -52,6 +57,8 @@ class EngineController(val ship: ShipAPI) {
         // Estimate target linear velocity.
         val vt = (heading - prevHeading).rotated(r)
         prevHeading = heading.copy
+
+//        log(vt.length * 60)
 
         // Maximum velocity towards target for both axis of movement.
         // Any higher velocity would lead to overshooting target location.
@@ -92,12 +99,6 @@ class EngineController(val ship: ShipAPI) {
         return vec.rotatedReverse(r) / dt
     }
 
-    /** Decelerate the ship to standstill. */
-    fun stop(): Vector2f {
-        if (!ship.velocity.isZeroVector()) ship.command(DECELERATE)
-        return Vector2f()
-    }
-
     /** Set ship facing. */
     fun facing(dt: Float, facing: Float) {
         // Change unit of time from second to
@@ -118,6 +119,12 @@ class EngineController(val ship: ShipAPI) {
 
         if (shouldAccelerate(+r, +dw / a, 0f)) ship.command(TURN_LEFT)
         if (shouldAccelerate(-r, -dw / a, 0f)) ship.command(TURN_RIGHT)
+    }
+
+    /** Decelerate the ship to standstill. */
+    private fun stop(): Vector2f {
+        if (!ship.velocity.isZeroVector()) ship.command(DECELERATE)
+        return Vector2f()
     }
 
     /** Calculate the maximum velocity in a given direction to
