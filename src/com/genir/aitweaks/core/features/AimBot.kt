@@ -2,12 +2,14 @@ package com.genir.aitweaks.core.features
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.loading.WeaponGroupType.ALTERNATING
 import com.fs.starfarer.api.loading.WeaponGroupType.LINKED
+import com.fs.starfarer.campaign.CampaignEngine
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
@@ -33,12 +35,12 @@ class AimBot : BaseEveryFrameCombatPlugin() {
     private var isFiring: Boolean = false
     private var mouse: Vector2f = Vector2f()
     private var keybind: Int? = null
+    private var enableAimBot = false
 
     private val getAimTracker: MethodHandle
     private val setTargetOverride: MethodHandle
 
     private companion object {
-        var enabled = false
         val statusKey = Object()
     }
 
@@ -60,14 +62,17 @@ class AimBot : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         if (Global.getCurrentState() != GameState.COMBAT) return
 
+        // Finish initialization when SS classes are ready.
+        if (keybind == null) {
+            keybind = LunaSettings.getInt("aitweaks", "aitweaks_aim_bot_keybind") ?: return
+
+            val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
+            enableAimBot = memory.getBoolean("\$aitweaks_enableAimBot")
+        }
+
         val ship: ShipAPI = Global.getCombatEngine().playerShip ?: return
 
         if (!ship.isAlive) return
-
-        // Load keybind.
-        if (keybind == null) {
-            keybind = LunaSettings.getInt("aitweaks", "aitweaks_aim_bot_keybind") ?: return
-        }
 
         // Handle input.
         mouse = mousePosition()
@@ -79,13 +84,18 @@ class AimBot : BaseEveryFrameCombatPlugin() {
 
                 it.isLMBUpEvent -> isFiring = false
 
-                it.isKeyDownEvent && it.eventValue == keybind -> enabled = !enabled
+                // Toggle the aim bot and persist the setting to memory.
+                it.isKeyDownEvent && it.eventValue == keybind -> {
+                    enableAimBot = !enableAimBot
+                    val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
+                    memory.set("\$aitweaks_enableAimBot", enableAimBot)
+                }
             }
         }
 
-        if (!enabled) return
+        if (!enableAimBot) return
 
-//        // TODO remove
+        // debug
 //        when (ship.isUnderManualControl) {
 //            true -> {
 //                val ai = debugShipAI ?: CustomShipAI(ship)

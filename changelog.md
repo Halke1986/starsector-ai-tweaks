@@ -1,3 +1,7 @@
+Version 1.9.2
+
+- Automatic omni shield and aim assist on/off settings are now saved and persist between game sessions. Suggested by @Carkidd
+
 Version 1.9.1
 
 - Fixed crash caused by aim assist trying to operate weapons on destroyed player ship. Reported by @Abyssal Phoenix 

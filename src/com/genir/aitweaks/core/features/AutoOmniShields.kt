@@ -2,11 +2,13 @@ package com.genir.aitweaks.core.features
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.ShieldAPI.ShieldType
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.Misc
-import com.fs.starfarer.combat.CombatState
+import com.fs.starfarer.campaign.CampaignEngine
+import com.fs.starfarer.combat.CombatState.AUTO_OMNI_SHIELDS
 import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.opengl.DrawUtils.drawArc
 import org.lwjgl.opengl.GL11.*
@@ -24,16 +26,19 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
 
         val engine = Global.getCombatEngine() ?: return
 
+        // Finish initialization when SS classes are ready.
+        if (keybind == null) {
+            keybind = LunaSettings.getInt("aitweaks", "aitweaks_omni_shield_keybind") ?: return
+
+            val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
+            AUTO_OMNI_SHIELDS = memory.getBoolean("\$aitweaks_AUTO_OMNI_SHIELDS")
+        }
+
         // Initialize omni shield plugin.
         val id = "aitweaks_omni_shield"
         if (!engine.customData.containsKey(id)) {
             engine.addLayeredRenderingPlugin(RendererAutoShieldIndicator())
             engine.customData[id] = true
-        }
-
-        // Load keybind.
-        if (keybind == null) {
-            keybind = LunaSettings.getInt("aitweaks", "aitweaks_omni_shield_keybind") ?: return
         }
 
         // Player ship has changed.
@@ -50,8 +55,15 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
         events?.forEach {
             when {
                 it.isConsumed -> Unit
-                it.isRMBDownEvent && CombatState.AUTO_OMNI_SHIELDS -> doNotUseShields = shield.isOn
-                it.isKeyDownEvent && it.eventValue == keybind -> CombatState.AUTO_OMNI_SHIELDS = !CombatState.AUTO_OMNI_SHIELDS
+
+                it.isRMBDownEvent && AUTO_OMNI_SHIELDS -> doNotUseShields = shield.isOn
+
+                // Toggle auto omni shields and persist the setting to memory.
+                it.isKeyDownEvent && it.eventValue == keybind -> {
+                    AUTO_OMNI_SHIELDS = !AUTO_OMNI_SHIELDS
+                    val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
+                    memory.set("\$aitweaks_AUTO_OMNI_SHIELDS", AUTO_OMNI_SHIELDS)
+                }
             }
         }
     }
@@ -64,7 +76,7 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
 
             when {
                 shield.type != ShieldType.OMNI -> return
-                !CombatState.AUTO_OMNI_SHIELDS -> return
+                !AUTO_OMNI_SHIELDS -> return
                 !engine.isUIAutopilotOn -> return
                 doNotUseShields -> return
             }
