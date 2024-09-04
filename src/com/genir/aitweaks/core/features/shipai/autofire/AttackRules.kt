@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.features.shipai.autofire
 
 import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
-import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
@@ -17,7 +16,6 @@ enum class HoldFire {
     AVOID_PHASED,
     AVOID_SHIELDS,
     AVOID_EXPOSED_HULL,
-    AVOID_MISSING_HULL,
     AVOID_FF,
     AVOID_FF_JUNK,
     AVOID_FF_INERT,
@@ -54,8 +52,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     private fun avoidWrongDamageType(): HoldFire? = when {
         !hit.target.isShip -> fire
         weapon.isStrictlyAntiShield -> avoidExposedHull()
-        weapon.hasAIHint(USE_LESS_VS_SHIELDS) -> avoidShields() ?: aimAtHull()
-        weapon.damageType == HIGH_EXPLOSIVE -> aimAtHull()
+        weapon.hasAIHint(USE_LESS_VS_SHIELDS) -> avoidShields()
         else -> fire
     }
 
@@ -74,14 +71,6 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
         weapon.ship.system?.let { it.specAPI.id == "lidararray" && it.isOn } == true -> fire
         !hit.shieldHit -> HoldFire.AVOID_EXPOSED_HULL
         shieldUptime(hit.target.shield) < min(0.8f, weapon.firingCycle.duration) -> HoldFire.AVOID_EXPOSED_HULL // avoid shield flicker
-        else -> fire
-    }
-
-    /** Ensure projectile will hit hull. Shields are ignored. */
-    private fun aimAtHull(): HoldFire? = when {
-        !hit.target.isShip -> fire
-        !hit.shieldHit -> fire // hit on hull was already predicted
-        willHitBounds(weapon, hit.target as ShipAPI, params).let { it == null || it > weapon.totalRange } -> HoldFire.AVOID_MISSING_HULL // ensure hull is in range, underneath the shields
         else -> fire
     }
 }

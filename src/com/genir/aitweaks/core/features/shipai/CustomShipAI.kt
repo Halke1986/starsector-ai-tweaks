@@ -112,16 +112,21 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     private fun debug() {
 //        debugPrint.clear()
 
-//        stats.significantWeapons.filter { it.isInFiringSequence }.forEach {
-//            debugPrint[it] = it.id
-//        }
-
 //        drawTurnLines(ship)
 
+//        attackingGroup.weapons.forEachIndexed { idx, w ->
+//            debugPrint[idx] = "${w.id} ${w.customAI!!.shouldHoldFire}"
+//
+//            w.customAI!!.predictedHit?.let {
+//                drawBounds(it.target)
+//                drawCollisionRadius(it.target)
+//            }
+//        }
+//
 //        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
+//        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
 //        drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 
-//        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
 //        drawLine(ship.location, ship.location + (maneuverTarget?.velocity ?: ship.location), Color.GREEN)
 //        drawLine(ship.location, movement.headingPoint, Color.YELLOW)
 
@@ -370,12 +375,14 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     }
 
     private fun findNewAttackTarget(): Pair<WeaponGroup, ShipAPI?> {
+        val opportunities: Set<ShipAPI> = threats.map { selectModuleToAttack(it) }.toSet()
+
         // Find best attack opportunity for each weapon group.
         val weaponGroupTargets: Map<WeaponGroup, ShipAPI> = stats.weaponGroups.associateWith { weaponGroup ->
-            val opportunities = threats.filter { range(it) < weaponGroup.maxRange }
+            val groupOpportunities = opportunities.filter { range(it) < weaponGroup.maxRange }
 
             val foldInit: Pair<ShipAPI?, Float> = Pair(null, Float.MAX_VALUE)
-            opportunities.fold(foldInit) { best, it ->
+            groupOpportunities.fold(foldInit) { best, it ->
                 val eval = evaluateTarget(it, weaponGroup)
                 if (eval < best.second) Pair(it, eval)
                 else best
@@ -397,6 +404,19 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             else -> null
         }
         return Pair(stats.weaponGroups[0], altTarget)
+    }
+
+    /** If attacking a modular ship, select a module to attack. The main purpose of this
+     * method is avoiding situations when a ship tries to attack a module occluded by
+     * station vast bulk. */
+    private fun selectModuleToAttack(target: ShipAPI): ShipAPI {
+        val modules: List<ShipAPI> = target.rootModule.childModulesCopy.ifEmpty { return target } + target
+
+        // If ship is maneuvering around one of the modules, select it as attack the target.
+        modules.firstOrNull { it == maneuverTarget }?.let { return it }
+
+        // Attack the closest module.
+        return modules.minOfWithOrNull(compareBy { (it.location - ship.location).lengthSquared }) { it }!!
     }
 
     /** Evaluate if target is worth attacking. The lower the score, the better the target. */

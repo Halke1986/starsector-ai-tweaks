@@ -31,6 +31,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     // Fields accessed by custom ship AI
     var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons
     var shouldHoldFire: HoldFire? = NO_TARGET
+    var predictedHit: Hit? = null
 
     private val debugIdx = autofireAICount++
 
@@ -122,6 +123,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     private fun calculateShouldFire(dt: Float): HoldFire? {
+        predictedHit = null
+
         if (target == null) return NO_TARGET
         if (intercept == null) return NO_HIT_EXPECTED
 
@@ -133,6 +136,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             onTargetTime = 0f
             return NO_HIT_EXPECTED
         }
+
+        predictedHit = expectedHit
 
         // Hold fire for a period of time after initially acquiring
         // the target to increase first volley accuracy. PD weapons
@@ -148,15 +153,16 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, ballisticParams)
-        avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
-
-        // Rest of the should-fire decisioning will be based on the actual hit.
         val hit = when {
             actualHit == null -> expectedHit
             actualHit.range > expectedHit.range -> expectedHit
             else -> actualHit
         }
+        predictedHit = hit
 
+        avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
+
+        // Rest of the should-fire decisioning will be based on the actual hit.
         when {
             hit.shieldHit && hit.range > weapon.range -> return OUT_OF_RANGE
             !hit.shieldHit && hit.range > weapon.totalRange -> return OUT_OF_RANGE
