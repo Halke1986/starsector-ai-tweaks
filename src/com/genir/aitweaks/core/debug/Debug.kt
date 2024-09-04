@@ -14,6 +14,7 @@ import com.genir.aitweaks.core.utils.extensions.hasCustomShipAI
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.resized
 import org.lazywizard.lazylib.VectorUtils
+import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -24,17 +25,17 @@ import kotlin.math.sign
 internal fun debug(dt: Float) {
     highlightCustomAI()
 
+    // Override player ship AI.
 //    val ship = Global.getCombatEngine().playerShip ?: return
 //    if (ship.ai != null && (ship.ai as? Ship.ShipAIWrapper)?.ai !is EngineControllerAI) {
 //        (ship as Ship).shipAI = EngineControllerAI(ship)
 //    }
 
+    // Override non-player ship AI.
 //    val ship = Global.getCombatEngine().ships.firstOrNull { it != Global.getCombatEngine().playerShip } ?: return
 //    if ((ship.ai as? Ship.ShipAIWrapper)?.ai !is EngineControllerAI) {
 //        (ship as Ship).shipAI = EngineControllerAI(ship)
 //    }
-//
-//    debugPrint["speed"] = ship.velocity.length
 
 
 //    if (ship.ai == null) {
@@ -96,7 +97,7 @@ class EngineControllerAI(val ship: ShipAPI) : ShipAIPlugin {
     private var facing = 0f
 
     override fun advance(dt: Float) {
-        ship.useSystem()
+//        ship.useSystem()
 
         facing = interpolateFacing.advance(dt) {
 //            drawLine(ship.location, ship.location + unitVector(facing) * 600f, GREEN)
@@ -109,22 +110,18 @@ class EngineControllerAI(val ship: ShipAPI) : ShipAIPlugin {
                 (mousePosition() - ship.location).facing
             } else this.facing
 
-//            debugPrint["facing"] = facing
-
             Vector2f(facing, 0f)
         }.x
-
-//        log(facing)
 
         heading = interpolateHeading.advance(dt) {
             mousePosition()
         }
 
-//        if (!ship.velocity.isZeroVector())
-//            controller.stop()
+        if (!ship.velocity.isZeroVector())
+            controller.heading(dt, controller.allStop)
 
         controller.facing(dt, facing)
-        controller.heading(dt, heading)
+//        controller.heading(dt, heading)
     }
 
     override fun setDoNotFireDelay(amount: Float) = Unit

@@ -1,3 +1,5 @@
+- Fixed an incompatibility with Advanced Gunnery Control that caused ships controlled by AI Tweaks' custom AI to tilt 90 degrees while attacking. Reported by Kothyxaan.
+
 Version 1.9.2
 
 - Automatic omni shield and aim assist on/off settings are now saved and persist between game sessions. Suggested by @Carkidd

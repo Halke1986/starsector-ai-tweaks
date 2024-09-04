@@ -178,6 +178,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         val makeSolution = fun(weapon: WeaponAPI): Pair<AutofireAI, Float>? {
             val ai = weapon.customAI ?: return null
 
+            // Use weapon intercept point instead of target vector,
+            // as they may not be the same for hardpoints.
             val intercept: Vector2f? = if (ai.targetShip == attackTarget) ai.intercept
             else ai.plotIntercept(attackTarget)
             intercept ?: return null
@@ -188,7 +190,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         val solutions: Map<AutofireAI, Float> = weapons.mapNotNull { makeSolution(it) }.toMap()
 
         // Aim directly at target if no weapon firing solution is available.
-        if (solutions.isEmpty()) (attackTarget.location - ship.location).facing - weaponGroup.facing
+        if (solutions.isEmpty())
+            return (attackTarget.location - ship.location).facing - weaponGroup.facing
 
         // Start with aiming the weapon group at the average intercept point.
         val averageIntercept: Float = averageFacing(solutions.values)
@@ -419,7 +422,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
      * once per frame. The resulting movement is then interpolated for any additional
      * advance() calls within the same frame, ensuring smoother and more precise movement.
      */
-    private inner class InterpolateValue() {
+    private inner class InterpolateValue {
         private var prevValue: Vector2f = Vector2f()
         private var value: Vector2f = Vector2f()
 
