@@ -4,8 +4,11 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.IntervalTracker
 import com.genir.aitweaks.core.utils.extensions.*
+import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
+import com.genir.aitweaks.core.utils.rotateAroundPivot
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
@@ -207,7 +210,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private fun aimHardpoint(intercept: Vector2f, target: CombatEntityAPI): Vector2f {
         // Weapon is already facing the target. Return the
         // original intercept location to not overcompensate.
-        if (vectorInArc(intercept - weapon.location, Arc(weapon.arc, weapon.absoluteArcFacing))) return intercept
+        if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(intercept - weapon.location)) return intercept
 
         val expectedFacing = ship.customShipAI?.movement?.expectedFacing ?: (target.location - ship.location).facing
         val angleToTarget = MathUtils.getShortestRotation(ship.facing, expectedFacing)

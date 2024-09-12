@@ -89,7 +89,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                     val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
                     reviewedHeadingPoint = null
 
-                    headingPoint
+                    avoidHulks(maneuverTarget, headingPoint) ?: headingPoint
                 }
 
                 // Move directly to assignment location.
@@ -153,6 +153,51 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         return location != null && (location - ship.location).length > Preset.arrivedAtLocationRadius
     }
 
+    private fun avoidHulks(maneuverTarget: CombatEntityAPI, proposedHeading: Vector2f): Vector2f? {
+        val toHeadingVector = proposedHeading - maneuverTarget.location
+        val toHeadingAngle = toHeadingVector.facing
+        val dist = toHeadingVector.length
+
+        val allShips: List<ShipAPI> = shipGrid().get<ShipAPI>(maneuverTarget.location, dist).toList()
+        val hulks = allShips.filter {
+            when {
+                !it.isHulk -> false
+
+                it.isFighter -> false
+
+                abs(getShortestRotation(it.location, maneuverTarget.location, proposedHeading)) > 90f -> false
+
+                (maneuverTarget.location - it.location).length > dist -> false
+
+                else -> true
+            }
+        }
+
+        val arcs: List<Arc> = hulks.map { hulk ->
+            val toHulk: Vector2f = hulk.location - maneuverTarget.location
+            val shipSize = angularSize(toHulk.lengthSquared, ship.collisionRadius)
+            val arc: Float = angularSize(toHulk.lengthSquared, hulk.collisionRadius + shipSize / 2f)
+
+            val facing: Float = toHulk.facing
+            Arc(min(arc, 90f), facing)
+        }.toList()
+
+        val mergedArcs = Arc.merge(arcs)
+        val obstacle = mergedArcs.firstOrNull { it.contains(toHeadingAngle) } ?: return null
+
+        val angle1 = obstacle.facing - (obstacle.arc / 2f)
+        val angle2 = obstacle.facing + (obstacle.arc / 2f)
+
+        val toShipAngle = (ship.location - maneuverTarget.location).facing
+        val offset1 = abs(MathUtils.getShortestRotation(toShipAngle, angle1))
+        val offset2 = abs(MathUtils.getShortestRotation(toShipAngle, angle2))
+
+        val newAngle = if (offset1 < offset2) angle1 else angle2
+
+        val newHeadingPoint = unitVector(newAngle).resized(dist) + maneuverTarget.location
+        return newHeadingPoint
+    }
+
     private fun manageMobilitySystems() {
         when (ship.system?.specAPI?.AIType) {
 
@@ -170,7 +215,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         }
     }
 
-    /** Aim weapons with entire ship, if possible. */
+    /** Aim weapons with the entire ship, if possible. */
     private fun aimShip(attackTarget: CombatEntityAPI, weaponGroup: WeaponGroup): Float {
         // Prioritize hardpoints if there are any in the weapon group.
         val weapons = weaponGroup.weapons.filter { it.slot.isHardpoint }.ifEmpty { weaponGroup.weapons }
@@ -190,8 +235,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         val solutions: Map<AutofireAI, Float> = weapons.mapNotNull { makeSolution(it) }.toMap()
 
         // Aim directly at target if no weapon firing solution is available.
-        if (solutions.isEmpty())
-            return (attackTarget.location - ship.location).facing - weaponGroup.facing
+        if (solutions.isEmpty()) return (attackTarget.location - ship.location).facing - weaponGroup.facing
 
         // Start with aiming the weapon group at the average intercept point.
         val averageIntercept: Float = averageFacing(solutions.values)

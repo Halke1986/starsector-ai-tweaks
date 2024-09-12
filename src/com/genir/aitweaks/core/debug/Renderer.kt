@@ -16,16 +16,18 @@ var debugRenderer: Renderer? = null
 class Renderer : BaseCombatLayeredRenderingPlugin() {
     data class Line(val a: Vector2f, val b: Vector2f, val color: Color)
     data class Circle(val pos: Vector2f, val r: Float, val color: Color)
+    data class Arc(val pos: Vector2f, val r: Float, val a: com.genir.aitweaks.core.utils.Arc, val color: Color)
 
     internal val lines: MutableList<Line> = mutableListOf()
     internal val circles: MutableList<Circle> = mutableListOf()
+    internal val arcs: MutableList<Arc> = mutableListOf()
 
     override fun advance(dt: Float) {
         debugRenderer = this
     }
 
     override fun render(layer: CombatEngineLayers?, viewport: ViewportAPI?) {
-        if (lines.isEmpty() && circles.isEmpty()) return
+        if (lines.isEmpty() && circles.isEmpty() && arcs.isEmpty()) return
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
@@ -56,10 +58,24 @@ class Renderer : BaseCombatLayeredRenderingPlugin() {
             )
         }
 
+        arcs.forEach {
+            Misc.setColor(it.color)
+            DrawUtils.drawArc(
+                it.pos.x,
+                it.pos.y,
+                it.r,
+                it.a.facing - it.a.arc / 2f,
+                it.a.arc,
+                64,
+                false,
+            )
+        }
+
         GL11.glPopAttrib()
 
         lines.clear()
         circles.clear()
+        arcs.clear()
     }
 
     override fun getRenderRadius(): Float = 1e6f

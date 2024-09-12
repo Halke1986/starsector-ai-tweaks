@@ -52,6 +52,8 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             !advanceInterval.intervalElapsed() -> return
         }
 
+        identifyBattleGroups()
+
         // Cleanup of previous iteration assignments and waypoints.
         validGroups = listOf()
         primaryBigTargets = listOf()
@@ -74,19 +76,6 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             // Battle is already won.
             engine.getFleetManager(enemy).getTaskManager(false).isInFullRetreat -> return
         }
-
-        // Identify enemy battle groups.
-        val enemyFleet = engine.ships.filter { it.owner == enemy && it.isValidTarget && !it.isFighter }
-        if (enemyFleet.isEmpty()) return
-        val groups = segmentFleet(enemyFleet.toTypedArray())
-        val groupsFromLargest = groups.sortedBy { it.dpSum }.reversed()
-        validGroups = groupsFromLargest.filter { isValidGroup(it, groupsFromLargest.first().dpSum) }
-
-        val fog = engine.getFogOfWar(side)
-        primaryTargets = validGroups.first().filter { fog.isVisible(it) }
-        primaryBigTargets = primaryTargets.filter { it.isBig }
-        allTargets = validGroups.flatten().filter { fog.isVisible(it) }
-        allBigTargets = allTargets.filter { it.isBig }
 
         // Don't give orders to enemy side
         // to not interfere with AdmiralAI.
@@ -113,6 +102,22 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         if (!channelWasOpen && taskManager.isCommChannelOpen) taskManager.closeCommChannel()
     }
 
+    private fun identifyBattleGroups() {
+        val engine = Global.getCombatEngine()
+
+        val enemyFleet = engine.ships.filter { it.owner == enemy && it.isValidTarget && !it.isFighter }
+        if (enemyFleet.isEmpty()) return
+        val groups = segmentFleet(enemyFleet.toTypedArray())
+        val groupsFromLargest = groups.sortedBy { it.dpSum }.reversed()
+        validGroups = groupsFromLargest.filter { isValidGroup(it, groupsFromLargest.first().dpSum) }
+
+        val fog = engine.getFogOfWar(side)
+        primaryTargets = validGroups.first().filter { fog.isVisible(it) }
+        primaryBigTargets = primaryTargets.filter { it.isBig }
+        allTargets = validGroups.flatten().filter { fog.isVisible(it) }
+        allBigTargets = allTargets.filter { it.isBig }
+    }
+
     private fun findValidTarget(ship: ShipAPI, currentTarget: ShipAPI?): ShipAPI? {
         return when {
             validGroups.isEmpty() -> currentTarget
@@ -130,12 +135,29 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
 
     fun findClosestTarget(ship: ShipAPI): ShipAPI? {
         val allTargets = if (ship.shouldAttackFrigates) allTargets else allBigTargets
-        val closestBigTarget: ShipAPI? = closestEntity(allTargets, ship.location)
-        if (closestBigTarget != null && closeToEnemy(ship, closestBigTarget))
-            return closestBigTarget
+        val closestTarget: ShipAPI? = closestEntity(allTargets, ship.location)
+        if (closestTarget != null) {
+            // Targets are out of date.
+            if (!closestTarget.isValidTarget) {
+                identifyBattleGroups()
+                return findClosestTarget(ship)
+            }
+
+            if (closeToEnemy(ship, closestTarget))
+                return closestTarget
+        }
 
         val primaryTargets = if (ship.shouldAttackFrigates) primaryTargets else primaryBigTargets
-        return closestEntity(primaryTargets, ship.location)
+        val primaryTarget: ShipAPI? = closestEntity(primaryTargets, ship.location)
+        if (primaryTarget != null) {
+            // Targets are out of date.
+            if (!primaryTarget.isValidTarget) {
+                identifyBattleGroups()
+                return findClosestTarget(ship)
+            }
+        }
+
+        return primaryTarget
     }
 
     private fun manageAssignments(ship: ShipAPI) {

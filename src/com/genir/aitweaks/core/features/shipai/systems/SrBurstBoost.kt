@@ -7,8 +7,11 @@ import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.command
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.extensions.*
+import com.genir.aitweaks.core.utils.solve
+import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.minus
@@ -241,7 +244,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
         val time = solve(Pair(position, velocity), shield.radius) ?: return null
         val hitPoint = position + velocity * time
-        val willHitShield = vectorInArc(hitPoint, Arc(shield.activeArc, shield.facing))
+        val willHitShield = Arc(shield.activeArc, shield.facing).contains(hitPoint)
 
         return if (willHitShield) (velocity * time).length else null
     }

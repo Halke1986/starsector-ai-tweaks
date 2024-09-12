@@ -65,14 +65,6 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             return
         }
 
-        updateInterval.advance(dt)
-        val interval: Boolean = updateInterval.intervalElapsed()
-        if (interval) {
-            updateInterval.reset()
-            updateShipStats()
-            ensureAutofire()
-        }
-
         // Update state.
         damageTracker.advance()
         updateThreats()
@@ -80,9 +72,20 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         updateBackoffStatus()
         update1v1Status()
 
+        updateInterval.advance(dt)
+        val interval: Boolean = updateInterval.intervalElapsed()
+        if (interval) {
+            updateInterval.reset()
+
+            updateShipStats()
+            ensureAutofire()
+
+            // Update targets.
+            updateManeuverTarget()
+        }
+
         // Update targets.
         updateAssignment(interval)
-        updateManeuverTarget(interval)
         updateAttackTarget(interval)
         updateFinishBurstTarget()
 
@@ -164,18 +167,9 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         assignmentLocation = assignment.target?.location
     }
 
-    private fun updateManeuverTarget(interval: Boolean) {
-        val needsUpdate = when {
-            // Current target is no longer valid.
-            maneuverTarget?.isValidTarget == false -> true
-
-            // Don't change target when movement system is on.
-            systemAI?.holdTargets() == true -> false
-
-            else -> interval
-        }
-
-        if (!needsUpdate) return
+    private fun updateManeuverTarget() {
+        // Don't change target when movement system is on.
+        if (systemAI?.holdTargets() == true) return
 
         // Try cohesion AI first.
         val cohesionAI = combatState().fleetCohesion[ship.owner]

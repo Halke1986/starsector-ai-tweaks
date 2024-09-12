@@ -2,17 +2,14 @@ package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.impl.campaign.AICoreOfficerPluginImpl
 import com.fs.starfarer.api.util.Misc
-import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.EngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.hasCustomShipAI
-import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.resized
+import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
@@ -24,6 +21,28 @@ import kotlin.math.sign
 
 internal fun debug(dt: Float) {
     highlightCustomAI()
+
+    AICoreOfficerPluginImpl.ALPHA_MULT = 0.1f
+
+    val ship = Global.getCombatEngine().playerShip ?: return
+
+    if (!ship.isAutomated) return
+
+    ship.captain?.memoryWithoutUpdate?.set(AICoreOfficerPluginImpl.AUTOMATED_POINTS_MULT, 0.1f)
+    ship.fleetMember.captain?.memoryWithoutUpdate?.set(AICoreOfficerPluginImpl.AUTOMATED_POINTS_MULT, 0.1f)
+
+//    debugPrint["m"] = "m ${ship.mutableStats.suppliesPerMonth.modifiedValue}"
+//    debugPrint["r"] = "r ${ship.mutableStats.suppliesToRecover.modifiedValue}"
+
+//    debugPrint["rc"]  = "rc ${LogisticsModule.getRecoverySupplyUsePerDay(ship.fleetMember as FleetMember)}"
+//    debugPrint["c"] = "c ${ship.fleetMember.deploymentCostSupplies} ${ship.fleetMember.deployCost} ${ship.fleetMember.repairTracker.recoveryRate}"
+
+
+//    val target = Global.getCombatEngine().ships.firstOrNull { it != Global.getCombatEngine().playerShip } ?: return
+//
+//    val arc = angularSize((ship.location - target.location).lengthSquared, target.collisionRadius)
+//
+//    drawArc(target.location, (ship.location - target.location).length / 2f, Arc(arc, (ship.location - target.location).facing))
 
     // Override player ship AI.
 //    val ship = Global.getCombatEngine().playerShip ?: return

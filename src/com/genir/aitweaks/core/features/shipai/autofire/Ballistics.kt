@@ -42,8 +42,8 @@ fun canTrack(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams
     val closestHit = closestHitRange(weapon, target, params) ?: return false
     if (closestHit > (rangeOverride ?: weapon.totalRange)) return false
 
-    val arc = interceptArc(weapon, target, params) ?: return false
-    return arcsOverlap(Arc(weapon.arc, weapon.absoluteArcFacing), arc)
+    val interceptArc = interceptArc(weapon, target, params) ?: return false
+    return Arc(weapon.arc, weapon.absoluteArcFacing).overlaps(interceptArc)
 }
 
 /** Closest possible range at which the projectile can collide with the target circumference,
@@ -86,14 +86,14 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
     val range = solve(Pair(p, v), shield.radius) ?: return null
     val hitPoint = p + v * range
 
-    return if (vectorInArc(hitPoint, Arc(shield.activeArc, shield.facing))) range else null
+    return if (Arc(shield.activeArc, shield.facing).contains(hitPoint)) range else null
 }
 
 /** Calculates if an inaccurate projectile may collide with target,
  * given current weapon facing. Weapon range is ignored. */
 fun willHitCautious(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Boolean {
-    val arc = interceptArc(weapon, target, params) ?: return false
-    return arcsOverlap(Arc(weapon.spec.maxSpread + 2f, weapon.currAngle), arc)
+    val interceptArc = interceptArc(weapon, target, params) ?: return false
+    return Arc(weapon.spec.maxSpread + 2f, weapon.currAngle).overlaps(interceptArc)
 }
 
 /** Calculates if a perfectly accurate projectile will collide with target bounds,
