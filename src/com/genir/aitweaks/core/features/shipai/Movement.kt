@@ -294,8 +294,10 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         return limits.filterNotNull()
     }
 
+    /** Do not ram friendly ships and the current maneuver target. */
     private fun avoidCollisions(dt: Float, friendlies: List<ShipAPI>): List<EngineController.Limit?> {
-        return friendlies.map { obstacle -> vMaxToObstacle(dt, obstacle) }
+        val obstacles: List<ShipAPI> = ai.maneuverTarget?.let { friendlies + it } ?: friendlies
+        return obstacles.map { obstacle -> vMaxToObstacle(dt, obstacle) }
     }
 
     private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {

@@ -21,6 +21,7 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.max
 
 // TODO move to interval update
 
@@ -70,6 +71,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         // Update state.
         damageTracker.advance()
         updateIdleTime(dt)
+        updateThreatVector()
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
@@ -132,10 +134,6 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 //        drawLine(ship.location, ship.location + (movement.expectedVelocity).resized(300f), Color.GREEN)
 //        drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
 //        drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
-
-//        combatState().fleetCohesion[0].allTargets.forEach{
-//            drawCollisionRadius(it)
-//        }
     }
 
     private fun updateAssignment() {
@@ -268,11 +266,22 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 
     private fun updateThreats() {
         threats = shipSequence(ship.location, stats.threatSearchRange).filter { isThreat(it) }.toList()
+    }
 
-        threatVector = threats.fold(Vector2f()) { sum, it ->
-            val dp = it.deploymentPoints
-            val dir = (it.location - ship.location).resized(1f)
-            sum + dir * dp * dp
+    /** The threat vector should be updated every frame, as it is used
+     * in movement calculations. Values involved in these calculations
+     * should change smoothly to avoid erratic velocity changes. */
+    private fun updateThreatVector() {
+        val maxDistSqr = stats.threatSearchRange * stats.threatSearchRange
+
+        threatVector = threats.fold(Vector2f()) { sum, threat ->
+            val dp = threat.deploymentPoints
+            val toThreat = threat.location - ship.location
+            val weight = max(maxDistSqr - toThreat.lengthSquared, 0f) / maxDistSqr
+
+
+            val dir = toThreat.resized(1f)
+            sum + dir * dp * dp * weight
         }
     }
 

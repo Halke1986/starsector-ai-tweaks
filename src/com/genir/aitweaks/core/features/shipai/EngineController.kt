@@ -58,8 +58,6 @@ class EngineController(val ship: ShipAPI) {
         val vt = (heading - prevHeading).rotated(r)
         prevHeading = heading.copy
 
-//        log(vt.length * 60)
-
         // Maximum velocity towards target for both axis of movement.
         // Any higher velocity would lead to overshooting target location.
         // Note: vmx and vmy are always integer multiples of respective
