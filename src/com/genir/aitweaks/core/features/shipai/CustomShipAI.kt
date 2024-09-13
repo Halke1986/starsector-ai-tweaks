@@ -69,16 +69,17 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         damageTracker.advance()
         updateThreats()
         updateIdleTime(dt)
-        updateBackoffStatus()
-        update1v1Status()
 
         updateInterval.advance(dt)
-        val interval: Boolean = updateInterval.intervalElapsed()
-        if (interval) {
+        if (updateInterval.intervalElapsed()) {
             updateInterval.reset()
 
             updateShipStats()
             ensureAutofire()
+            updateBackoffStatus()
+            update1v1Status()
+            ventIfNeeded()
+            holdFireIfOverfluxed()
 
             // Update targets.
             updateAssignment()
@@ -86,9 +87,6 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             updateAttackTarget()
             updateFinishBurstTarget()
         }
-
-        ventIfNeeded()
-        holdFireIfOverfluxed()
 
         // Advance subsystems.
         vanilla.advance(dt, attackTarget as? ShipAPI, movement.expectedVelocity, movement.expectedFacing)
