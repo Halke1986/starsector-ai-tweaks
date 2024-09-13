@@ -59,7 +59,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         debug()
 
         // Cede the control to vanilla AI when the ship is retreating.
-        // This is irreversible, except on player ship.
+        // This is irreversible, except for player ship.
         if (ship.assignment?.type == RETREAT) {
             ship.shipAI = vanilla.basicShipAI
             return
@@ -81,13 +81,11 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             ensureAutofire()
 
             // Update targets.
+            updateAssignment()
             updateManeuverTarget()
+            updateAttackTarget()
+            updateFinishBurstTarget()
         }
-
-        // Update targets.
-        updateAssignment(interval)
-        updateAttackTarget(interval)
-        updateFinishBurstTarget()
 
         ventIfNeeded()
         holdFireIfOverfluxed()
@@ -142,17 +140,14 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 //        drawLine(ship.location, ship.location + threatVector.resized(600f), Color.PINK)
     }
 
-    private fun updateAssignment(interval: Boolean) {
-        // Update assignment location only when assignment
-        // was changed or when interval has elapsed.
-        if (ship.assignment == assignment && !interval) return
+    private fun updateAssignment() {
+        this.assignment = ship.assignment
 
-        assignment = ship.assignment
-        assignmentLocation = null
-
-        if (assignment == null) return
-
-        val assignment = assignment!!
+        val assignment = ship.assignment
+        if (assignment == null) {
+            assignmentLocation = null
+            return
+        }
 
         when (assignment.type) {
             RECON, AVOID, RETREAT, REPAIR_AND_REFIT, SEARCH_AND_DESTROY -> return
@@ -169,7 +164,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 
     private fun updateManeuverTarget() {
         // Don't change target when movement system is on.
-        if (systemAI?.holdTargets() == true) return
+        if (maneuverTarget?.isValidTarget == true && systemAI?.holdTargets() == true) return
 
         // Try cohesion AI first.
         val cohesionAI = combatState().fleetCohesion[ship.owner]
@@ -196,39 +191,21 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 
     /** Select which enemy ship to attack. This may be different
      * from the maneuver target provided by the ShipAI. */
-    private fun updateAttackTarget(interval: Boolean) {
-        if (ship.isUnderManualControl && combatState().aimBot.target != null) {
-            attackTarget = combatState().aimBot.target
-            return
+    private fun updateAttackTarget() {
+        // Don't change target when movement system is on.
+        if (attackTarget?.isValidTarget == true && systemAI?.holdTargets() == true) return
+
+        val (newWeaponGroup, newTarget) = findNewAttackTarget()
+
+        // Keep track of previous target until weapon bursts subside.
+        if (newTarget != attackTarget && attackTarget?.isValidTarget == true) {
+            finishBurstTarget = attackTarget
+            finishBurstWeaponGroup = attackingGroup
         }
 
-        val currentTarget = attackTarget
-
-        val updateTarget = when {
-            currentTarget?.isValidTarget != true -> true
-
-            // Don't change target when movement system is on.
-            systemAI?.holdTargets() == true -> false
-
-            // Target is out of range.
-            range(currentTarget) > attackingGroup.maxRange -> true
-
-            else -> interval
-        }
-
-        if (updateTarget) {
-            val (newWeaponGroup, newTarget) = findNewAttackTarget()
-
-            // Keep track of previous target until weapon bursts subside.
-            if (newTarget != attackTarget && attackTarget?.isValidTarget == true) {
-                finishBurstTarget = attackTarget
-                finishBurstWeaponGroup = attackingGroup
-            }
-
-            ship.shipTarget = newTarget
-            attackTarget = newTarget
-            attackingGroup = newWeaponGroup
-        }
+        ship.shipTarget = newTarget
+        attackTarget = newTarget
+        attackingGroup = newWeaponGroup
     }
 
     /** Decide if ships needs to back off due to high flux level */
