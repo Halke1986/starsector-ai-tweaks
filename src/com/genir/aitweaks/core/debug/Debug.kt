@@ -19,8 +19,6 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.*
 
 internal fun debug(dt: Float) {
-    highlightCustomAI()
-
     AICoreOfficerPluginImpl.ALPHA_MULT = 0.1f
 
     val ship = Global.getCombatEngine().playerShip ?: return
@@ -192,12 +190,6 @@ private fun showBoundsCollision() {
     debugPrint["dist"] = dist
 
     drawLine(position, dir.resized(dir.length * dist) + position, YELLOW)
-}
-
-internal fun highlightCustomAI() {
-    Global.getCombatEngine().ships.filter { it.hasCustomShipAI }.forEach {
-        drawCircle(it.location, it.collisionRadius / 2f, RED)
-    }
 }
 
 private fun makeDroneFormation(dt: Float) {

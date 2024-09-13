@@ -30,15 +30,13 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     private var primaryBigTargets: List<ShipAPI> = listOf()
     private var primaryTargets: List<ShipAPI> = listOf()
     private var allBigTargets: List<ShipAPI> = listOf()
-    private var allTargets: List<ShipAPI> = listOf()
+    var allTargets: List<ShipAPI> = listOf()
 
     private val advanceInterval = IntervalUtil(0.75f, 1f)
 
     private data class AssignmentKey(val ship: ShipAPI, val location: Vector2f?, val type: CombatAssignmentType)
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        advanceInterval.advance(dt)
-
         val engine = Global.getCombatEngine()
         when {
             !enabled -> return
@@ -48,11 +46,12 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             engine.isSimulation -> return
 
             engine.isPaused -> return
-
-            !advanceInterval.intervalElapsed() -> return
         }
 
+        advanceInterval.advance(dt)
         identifyBattleGroups()
+
+        if (!advanceInterval.intervalElapsed()) return
 
         // Cleanup of previous iteration assignments and waypoints.
         validGroups = listOf()
@@ -136,27 +135,11 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     fun findClosestTarget(ship: ShipAPI): ShipAPI? {
         val allTargets = if (ship.shouldAttackFrigates) allTargets else allBigTargets
         val closestTarget: ShipAPI? = closestEntity(allTargets, ship.location)
-        if (closestTarget != null) {
-            // Targets are out of date.
-            if (!closestTarget.isValidTarget) {
-                identifyBattleGroups()
-                return findClosestTarget(ship)
-            }
-
-            if (closeToEnemy(ship, closestTarget))
-                return closestTarget
-        }
+        if (closestTarget != null && closeToEnemy(ship, closestTarget))
+            return closestTarget
 
         val primaryTargets = if (ship.shouldAttackFrigates) primaryTargets else primaryBigTargets
         val primaryTarget: ShipAPI? = closestEntity(primaryTargets, ship.location)
-        if (primaryTarget != null) {
-            // Targets are out of date.
-            if (!primaryTarget.isValidTarget) {
-                identifyBattleGroups()
-                return findClosestTarget(ship)
-            }
-        }
-
         return primaryTarget
     }
 

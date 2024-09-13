@@ -8,6 +8,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.debug.drawCircle
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.features.shipai.vanilla.Vanilla
@@ -17,6 +18,7 @@ import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
 
@@ -67,13 +69,13 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 
         // Update state.
         damageTracker.advance()
-        updateThreats()
         updateIdleTime(dt)
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
             updateInterval.reset()
 
+            updateThreats()
             updateShipStats()
             ensureAutofire()
             updateBackoffStatus()
@@ -109,21 +111,15 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     override fun getConfig(): ShipAIConfig = ShipAIConfig()
 
     private fun debug() {
+        drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
 //        debugPrint.clear()
 
 //        drawTurnLines(ship)
 
-//        attackingGroup.weapons.forEachIndexed { idx, w ->
-//            debugPrint[idx] = "${w.id} ${w.customAI!!.shouldHoldFire}"
-//
-//            w.customAI!!.predictedHit?.let {
-//                drawBounds(it.target)
-//                drawCollisionRadius(it.target)
-//            }
-//        }
-//
+//        drawCircle(ship.location, stats.threatSearchRange)
+
 //        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
-//        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
+//        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.CYAN)
 //        drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 
 //        drawLine(ship.location, ship.location + (maneuverTarget?.velocity ?: ship.location), Color.GREEN)
@@ -135,7 +131,11 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 //        drawLine(ship.location, ship.location + unitVector(ship.facing + attackingGroup.facing) * 600f, Color.BLUE)
 //        drawLine(ship.location, ship.location + (movement.expectedVelocity).resized(300f), Color.GREEN)
 //        drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
-//        drawLine(ship.location, ship.location + threatVector.resized(600f), Color.PINK)
+//        drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
+
+//        combatState().fleetCohesion[0].allTargets.forEach{
+//            drawCollisionRadius(it)
+//        }
     }
 
     private fun updateAssignment() {
