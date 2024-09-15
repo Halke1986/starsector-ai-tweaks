@@ -56,7 +56,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     var is1v1: Boolean = false
     var idleTime = 0f
     var threats: List<ShipAPI> = listOf()
-    var threatVector = Vector2f()
+    var strafeVector = Vector2f()
 
     override fun advance(dt: Float) {
         debug()
@@ -71,7 +71,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         // Update state.
         damageTracker.advance()
         updateIdleTime(dt)
-        updateThreatVector()
+        updateStrafeVector()
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
@@ -268,21 +268,28 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         threats = shipSequence(ship.location, stats.threatSearchRange).filter { isThreat(it) }.toList()
     }
 
-    /** The threat vector should be updated every frame, as it is used
+    /** The strafe vector should be updated every frame, as it is used
      * in movement calculations. Values involved in these calculations
      * should change smoothly to avoid erratic velocity changes. */
-    private fun updateThreatVector() {
-        val maxDistSqr = stats.threatSearchRange * stats.threatSearchRange
-
-        threatVector = threats.fold(Vector2f()) { sum, threat ->
+    private fun updateStrafeVector() {
+        // Strafe away from enemy threat.
+        val maxThreatDistSqr = stats.threatSearchRange * stats.threatSearchRange
+        val threatVector = threats.fold(Vector2f()) { sum, threat ->
             val dp = threat.deploymentPoints
             val toThreat = threat.location - ship.location
-            val weight = max(maxDistSqr - toThreat.lengthSquared, 0f) / maxDistSqr
-
+            val weight = max(maxThreatDistSqr - toThreat.lengthSquared, 0f) / maxThreatDistSqr
 
             val dir = toThreat.resized(1f)
             sum + dir * dp * dp * weight
-        }
+        }.resized(1f)
+
+        // Strafe away from map border, prefer the map center.
+        val engine = Global.getCombatEngine()
+        val borderDistX = (ship.location.x * ship.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
+        val borderDistY = (ship.location.y * ship.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
+        val borderWeight = max(borderDistX, borderDistY) * 2f
+
+        strafeVector = -(threatVector + ship.location.resized(borderWeight))
     }
 
     // Keep track of previous target until weapon bursts subside.

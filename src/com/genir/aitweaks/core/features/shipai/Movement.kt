@@ -62,12 +62,12 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                     assignmentLocation!!
                 }
 
-                // Move opposite to threat direction when backing off.
+                // Move opposite to strafe direction when backing off.
                 // If there's no threat, the ship will continue to coast.
                 ai.isBackingOff -> {
                     val farAway = 2048f
-                    if (ai.threatVector.isZeroVector()) ship.location + ship.velocity.resized(farAway)
-                    else ship.location - ai.threatVector.resized(farAway)
+                    if (ai.strafeVector.isZeroVector()) ship.location + ship.velocity.resized(farAway)
+                    else ship.location + ai.strafeVector.resized(farAway)
                 }
 
                 // Orbit target at effective weapon range.
@@ -75,17 +75,16 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 // Chase the target if there are no other enemy ships around.
                 // Strafe target randomly if in range and no other threat.
                 maneuverTarget != null -> {
-                    // TODO will need syncing when interval tracking is introduced.
-                    val vectorToTarget = maneuverTarget.location - ship.location
-                    val vectorToThreat = if (!ai.threatVector.isZeroVector()) ai.threatVector else vectorToTarget
+                    val vectorFromTarget = ship.location - maneuverTarget.location
+                    val strafeVector = if (!ai.strafeVector.isZeroVector()) ai.strafeVector else vectorFromTarget
 
                     // Strafe the target randomly, when it's the only threat.
                     val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
-                    val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
-                    else vectorToThreat
+                    val attackPositionOffset = if (shouldStrafe) strafeVector.rotated(strafeRotation)
+                    else strafeVector
 
                     // Let the attack coordinator review the calculated heading point.
-                    proposedHeadingPoint = maneuverTarget.location - attackPositionOffset.resized(ai.calculateAttackRange())
+                    proposedHeadingPoint = maneuverTarget.location + attackPositionOffset.resized(ai.calculateAttackRange())
                     val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
                     reviewedHeadingPoint = null
 
@@ -129,9 +128,9 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                     (currentAttackTarget.location - ship.location).facing + aimOffset
                 }
 
-                // Face threat direction when no target.
-                !ai.threatVector.isZeroVector() -> {
-                    ai.threatVector.facing
+                // Face opposite from strafe direction when no target.
+                !ai.strafeVector.isZeroVector() -> {
+                    (-ai.strafeVector).facing
                 }
 
                 // Face movement target location.
