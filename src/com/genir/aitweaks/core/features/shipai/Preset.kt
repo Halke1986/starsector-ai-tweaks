@@ -10,7 +10,8 @@ class Preset {
 
         // Flux management
         const val backoffUpperThreshold = 0.75f
-        const val backoffLowerThreshold = backoffUpperThreshold * 0.6f // will force vent
+        const val forceVentThreshold = backoffUpperThreshold * 0.6f // will force vent
+        const val backoffLowerThreshold = 0.1f
         const val holdFireThreshold = 0.9f
         const val damageHistoryDuration = 4f
 

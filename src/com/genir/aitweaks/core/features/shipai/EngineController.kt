@@ -27,8 +27,9 @@ class EngineController(val ship: ShipAPI) {
      * max speed in a direction along a given heading. */
     data class Limit(val heading: Float, val speed: Float)
 
-    /** Heading value used to decelerate the ship to standstill. */
+    /** Values used to decelerate the ship to standstill. */
     val allStop: Vector2f = Vector2f(Float.MAX_VALUE, Float.MAX_VALUE)
+    val rotationStop: Float = Float.MAX_VALUE
 
     /** Set ship heading towards selected location. Appropriate target
      * leading is calculated based on estimated target velocity. If ship
@@ -99,6 +100,8 @@ class EngineController(val ship: ShipAPI) {
 
     /** Set ship facing. */
     fun facing(dt: Float, facing: Float) {
+        if (facing == rotationStop && ship.angularVelocity == 0f) return
+
         // Change unit of time from second to
         // animation frame duration (* dt).
         val a = ship.turnAcceleration * dt * dt
@@ -112,7 +115,7 @@ class EngineController(val ship: ShipAPI) {
         val r = MathUtils.getShortestRotation(ship.facing, facing)
 
         // Expected velocity change.
-        val we = sign(r) * vMax(abs(r), a) + wt
+        val we = if (facing == rotationStop) 0f else sign(r) * vMax(abs(r), a) + wt
         val dw = we - w
 
         if (shouldAccelerate(+r, +dw / a, 0f)) ship.command(TURN_LEFT)

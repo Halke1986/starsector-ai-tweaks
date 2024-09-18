@@ -62,12 +62,12 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                     assignmentLocation!!
                 }
 
-                // Move opposite to strafe direction when backing off.
+                // Move opposite to threat direction when backing off.
                 // If there's no threat, the ship will continue to coast.
                 ai.isBackingOff -> {
                     val farAway = 2048f
-                    if (ai.strafeVector.isZeroVector()) ship.location + ship.velocity.resized(farAway)
-                    else ship.location + ai.strafeVector.resized(farAway)
+                    if (ai.threatVector.isZeroVector()) ship.location + ship.velocity.resized(farAway)
+                    else ship.location - ai.threatVector.resized(farAway)
                 }
 
                 // Orbit target at effective weapon range.
@@ -75,16 +75,15 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 // Chase the target if there are no other enemy ships around.
                 // Strafe target randomly if in range and no other threat.
                 maneuverTarget != null -> {
-                    val vectorFromTarget = ship.location - maneuverTarget.location
-                    val strafeVector = if (!ai.strafeVector.isZeroVector()) ai.strafeVector else vectorFromTarget
-
                     // Strafe the target randomly, when it's the only threat.
+                    val strafeVector = calculateStrafeVector()
                     val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
                     val attackPositionOffset = if (shouldStrafe) strafeVector.rotated(strafeRotation)
                     else strafeVector
 
                     // Let the attack coordinator review the calculated heading point.
-                    proposedHeadingPoint = maneuverTarget.location + attackPositionOffset.resized(ai.calculateAttackRange())
+                    proposedHeadingPoint = maneuverTarget.location + attackPositionOffset.resized(ai.attackRange)
+
                     val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
                     reviewedHeadingPoint = null
 
@@ -128,9 +127,9 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                     (currentAttackTarget.location - ship.location).facing + aimOffset
                 }
 
-                // Face opposite from strafe direction when no target.
-                !ai.strafeVector.isZeroVector() -> {
-                    (-ai.strafeVector).facing
+                // Face threat vector when no target.
+                !ai.threatVector.isZeroVector() -> {
+                    (-ai.threatVector).facing
                 }
 
                 // Face movement target location.
@@ -139,13 +138,23 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 }
 
                 // Nothing to do. Stop rotation.
-                else -> expectedFacing
+                else -> engineController.rotationStop
             }
 
             Vector2f(newFacing, 0f)
         }.x
 
         engineController.facing(dt, expectedFacing)
+    }
+
+    private fun calculateStrafeVector(): Vector2f {
+        // Strafe away from map border, prefer the map center.
+        val engine = Global.getCombatEngine()
+        val borderDistX = (ship.location.x * ship.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
+        val borderDistY = (ship.location.y * ship.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
+        val borderWeight = max(borderDistX, borderDistY) * 2f
+
+        return -(ai.threatVector + ship.location.resized(borderWeight))
     }
 
     private fun shouldHeadToAssigment(location: Vector2f?): Boolean {
@@ -288,6 +297,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
         limits.add(avoidBlockingLineOfFire(dt, friendlies))
         limits.add(avoidBorder())
+        limits.add(avoidTargetCollision(dt))
         limits.addAll(avoidCollisions(dt, friendlies))
 
         return limits.filterNotNull()
@@ -295,8 +305,15 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
     /** Do not ram friendly ships and the current maneuver target. */
     private fun avoidCollisions(dt: Float, friendlies: List<ShipAPI>): List<EngineController.Limit?> {
-        val obstacles: List<ShipAPI> = ai.maneuverTarget?.let { friendlies + it } ?: friendlies
-        return obstacles.map { obstacle -> vMaxToObstacle(dt, obstacle) }
+        return friendlies.map { obstacle -> vMaxToObstacle(dt, obstacle, obstacle.totalCollisionRadius) }
+    }
+
+    private fun avoidTargetCollision(dt: Float): EngineController.Limit? {
+        // Do not be paralyzed by frigates when trying to backoff.
+        if (ai.isBackingOff) return null
+
+        val target = ai.maneuverTarget ?: return null
+        return vMaxToObstacle(dt, target, max(target.totalCollisionRadius, ai.attackRange * 0.8f))
     }
 
     private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {
@@ -408,10 +425,10 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         return EngineController.Limit(borderIntrusion.getFacing(), ship.maxSpeed * (1f - avoidForce))
     }
 
-    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI): EngineController.Limit? {
+    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, radius: Float): EngineController.Limit? {
         val direction = obstacle.location - ship.location
         val dirFacing = direction.facing
-        val distance = direction.length - (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer)
+        val distance = direction.length - (ai.stats.totalCollisionRadius + radius + Preset.collisionBuffer)
 
         // Already colliding.
         if (distance <= 0f) return EngineController.Limit(dirFacing, 0f)
