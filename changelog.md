@@ -1,3 +1,8 @@
+Version 1.9.4
+
+- Fixed regression in autofire accuracy, especially when attacking frigates.
+- Various improvements in Custom ship AI.
+
 Version 1.9.3
 
 - Fixed an incompatibility with Advanced Gunnery Control that caused ships controlled by AI Tweaks' custom AI to tilt 90 degrees while attacking. Reported by Kothyxaan and albinobigfoot.
