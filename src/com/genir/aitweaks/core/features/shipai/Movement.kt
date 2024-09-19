@@ -305,7 +305,10 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
     /** Do not ram friendly ships and the current maneuver target. */
     private fun avoidCollisions(dt: Float, friendlies: List<ShipAPI>): List<EngineController.Limit?> {
-        return friendlies.map { obstacle -> vMaxToObstacle(dt, obstacle, obstacle.totalCollisionRadius) }
+        return friendlies.map { obstacle ->
+            val distance = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
+            vMaxToObstacle(dt, obstacle, distance)
+        }
     }
 
     private fun avoidTargetCollision(dt: Float): EngineController.Limit? {
@@ -313,7 +316,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         if (ai.isBackingOff) return null
 
         val target = ai.maneuverTarget ?: return null
-        return vMaxToObstacle(dt, target, max(target.totalCollisionRadius, ai.attackRange * 0.8f))
+        val distance = max(ai.stats.totalCollisionRadius + target.totalCollisionRadius + Preset.collisionBuffer, ai.attackRange * 0.8f)
+        return vMaxToObstacle(dt, target, distance)
     }
 
     private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {
@@ -425,13 +429,13 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         return EngineController.Limit(borderIntrusion.getFacing(), ship.maxSpeed * (1f - avoidForce))
     }
 
-    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, radius: Float): EngineController.Limit? {
+    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, distance: Float): EngineController.Limit? {
         val direction = obstacle.location - ship.location
         val dirFacing = direction.facing
-        val distance = direction.length - (ai.stats.totalCollisionRadius + radius + Preset.collisionBuffer)
+        val distanceLeft = direction.length - distance
 
         // Already colliding.
-        if (distance <= 0f) return EngineController.Limit(dirFacing, 0f)
+        if (distanceLeft <= 0f) return EngineController.Limit(dirFacing, 0f)
 
         val vObstacle = vectorProjectionLength(obstacle.timeAdjustedVelocity, direction)
         val aObstacle = vectorProjectionLength(combatState().accelerationTracker[obstacle], direction)
@@ -442,7 +446,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
             // The acceleration is approximated as total velocity loss. Including actual
             // acceleration (shipAcc + aAbs) in calculations leads to erratic behavior.
             vObstacle > 0f && aObstacle < 0f -> {
-                vMax(dt, distance, decelShip)
+                vMax(dt, distanceLeft, decelShip)
             }
 
             // Obstacle is moving towards the ship. If the obstacle is a friendly,
@@ -451,11 +455,11 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 val decelObstacle = obstacle.collisionDeceleration(-dirFacing)
                 val decelDistObstacle = decelerationDist(dt, -vObstacle, decelObstacle)
 
-                vMax(dt, distance - decelDistObstacle, decelShip)
+                vMax(dt, distanceLeft - decelDistObstacle, decelShip)
             }
 
             // Maximum velocity that will not lead to collision with inert obstacle.
-            else -> vMax(dt, distance, decelShip) + vObstacle
+            else -> vMax(dt, distanceLeft, decelShip) + vObstacle
         }
 
         return if (vMax > ship.maxSpeed) null
