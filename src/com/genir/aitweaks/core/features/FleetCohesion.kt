@@ -30,15 +30,13 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     private var primaryBigTargets: List<ShipAPI> = listOf()
     private var primaryTargets: List<ShipAPI> = listOf()
     private var allBigTargets: List<ShipAPI> = listOf()
-    private var allTargets: List<ShipAPI> = listOf()
+    var allTargets: List<ShipAPI> = listOf()
 
     private val advanceInterval = IntervalUtil(0.75f, 1f)
 
     private data class AssignmentKey(val ship: ShipAPI, val location: Vector2f?, val type: CombatAssignmentType)
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        advanceInterval.advance(dt)
-
         val engine = Global.getCombatEngine()
         when {
             !enabled -> return
@@ -48,9 +46,12 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             engine.isSimulation -> return
 
             engine.isPaused -> return
-
-            !advanceInterval.intervalElapsed() -> return
         }
+
+        advanceInterval.advance(dt)
+        identifyBattleGroups()
+
+        if (!advanceInterval.intervalElapsed()) return
 
         // Cleanup of previous iteration assignments and waypoints.
         validGroups = listOf()
@@ -74,19 +75,6 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             // Battle is already won.
             engine.getFleetManager(enemy).getTaskManager(false).isInFullRetreat -> return
         }
-
-        // Identify enemy battle groups.
-        val enemyFleet = engine.ships.filter { it.owner == enemy && it.isValidTarget && !it.isFighter }
-        if (enemyFleet.isEmpty()) return
-        val groups = segmentFleet(enemyFleet.toTypedArray())
-        val groupsFromLargest = groups.sortedBy { it.dpSum }.reversed()
-        validGroups = groupsFromLargest.filter { isValidGroup(it, groupsFromLargest.first().dpSum) }
-
-        val fog = engine.getFogOfWar(side)
-        primaryTargets = validGroups.first().filter { fog.isVisible(it) }
-        primaryBigTargets = primaryTargets.filter { it.isBig }
-        allTargets = validGroups.flatten().filter { fog.isVisible(it) }
-        allBigTargets = allTargets.filter { it.isBig }
 
         // Don't give orders to enemy side
         // to not interfere with AdmiralAI.
@@ -113,6 +101,22 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         if (!channelWasOpen && taskManager.isCommChannelOpen) taskManager.closeCommChannel()
     }
 
+    private fun identifyBattleGroups() {
+        val engine = Global.getCombatEngine()
+
+        val enemyFleet = engine.ships.filter { it.owner == enemy && it.isValidTarget && !it.isFighter }
+        if (enemyFleet.isEmpty()) return
+        val groups = segmentFleet(enemyFleet.toTypedArray())
+        val groupsFromLargest = groups.sortedBy { it.dpSum }.reversed()
+        validGroups = groupsFromLargest.filter { isValidGroup(it, groupsFromLargest.first().dpSum) }
+
+        val fog = engine.getFogOfWar(side)
+        primaryTargets = validGroups.first().filter { fog.isVisible(it) }
+        primaryBigTargets = primaryTargets.filter { it.isBig }
+        allTargets = validGroups.flatten().filter { fog.isVisible(it) }
+        allBigTargets = allTargets.filter { it.isBig }
+    }
+
     private fun findValidTarget(ship: ShipAPI, currentTarget: ShipAPI?): ShipAPI? {
         return when {
             validGroups.isEmpty() -> currentTarget
@@ -130,12 +134,13 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
 
     fun findClosestTarget(ship: ShipAPI): ShipAPI? {
         val allTargets = if (ship.shouldAttackFrigates) allTargets else allBigTargets
-        val closestBigTarget: ShipAPI? = closestEntity(allTargets, ship.location)
-        if (closestBigTarget != null && closeToEnemy(ship, closestBigTarget))
-            return closestBigTarget
+        val closestTarget: ShipAPI? = closestEntity(allTargets, ship.location)
+        if (closestTarget != null && closeToEnemy(ship, closestTarget))
+            return closestTarget
 
         val primaryTargets = if (ship.shouldAttackFrigates) primaryTargets else primaryBigTargets
-        return closestEntity(primaryTargets, ship.location)
+        val primaryTarget: ShipAPI? = closestEntity(primaryTargets, ship.location)
+        return primaryTarget
     }
 
     private fun manageAssignments(ship: ShipAPI) {

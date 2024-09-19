@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.debug
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
+import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.extensions.isPD
 import com.genir.aitweaks.core.utils.times
@@ -13,6 +14,10 @@ import java.awt.Color
 
 fun drawCircle(pos: Vector2f, r: Float, color: Color = Color.CYAN) {
     debugRenderer?.circles?.add(Renderer.Circle(pos, r, color))
+}
+
+fun drawArc(pos: Vector2f, r: Float, a: Arc, color: Color = Color.CYAN) {
+    debugRenderer?.arcs?.add(Renderer.Arc(pos, r, a, color))
 }
 
 fun drawLine(a: Vector2f, b: Vector2f, color: Color = Color.YELLOW) {

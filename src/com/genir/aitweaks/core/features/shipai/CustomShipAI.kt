@@ -8,6 +8,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.debug.drawCircle
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.features.shipai.vanilla.Vanilla
@@ -17,10 +18,12 @@ import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.max
 
-// TODO move to interval update
+// TODO coord around stations
 
 @Suppress("MemberVisibilityCanBePrivate")
 class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
@@ -47,47 +50,49 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     // AI State.
     var stats: ShipStats = ShipStats(ship)
     var attackingGroup: WeaponGroup = stats.weaponGroups[0]
+    var attackRange: Float = 0f
     var isBackingOff: Boolean = false
     var isHoldingFire: Boolean = false
     var isAvoidingBorder: Boolean = false
     var is1v1: Boolean = false
     var idleTime = 0f
-    var threats: List<ShipAPI> = listOf()
+    var threats: Set<ShipAPI> = setOf()
     var threatVector = Vector2f()
 
     override fun advance(dt: Float) {
         debug()
 
         // Cede the control to vanilla AI when the ship is retreating.
-        // This is irreversible, except on player ship.
+        // This is irreversible, except for player ship.
         if (ship.assignment?.type == RETREAT) {
             ship.shipAI = vanilla.basicShipAI
             return
         }
 
-        updateInterval.advance(dt)
-        val interval: Boolean = updateInterval.intervalElapsed()
-        if (interval) {
-            updateInterval.reset()
-            updateShipStats()
-            ensureAutofire()
-        }
-
         // Update state.
         damageTracker.advance()
-        updateThreats()
         updateIdleTime(dt)
-        updateBackoffStatus()
-        update1v1Status()
+        updateThreatVector()
 
-        // Update targets.
-        updateAssignment(interval)
-        updateManeuverTarget(interval)
-        updateAttackTarget(interval)
-        updateFinishBurstTarget()
+        updateInterval.advance(dt)
+        if (updateInterval.intervalElapsed()) {
+            updateInterval.reset()
 
-        ventIfNeeded()
-        holdFireIfOverfluxed()
+            updateThreats()
+            updateShipStats()
+            updateAttackRange()
+            ensureAutofire()
+            updateBackoffStatus()
+            update1v1Status()
+            ventIfNeeded()
+            holdFireIfOverfluxed()
+
+            // Update targets.
+            updateAssignment()
+            updateManeuverTarget()
+            updateAttackTarget()
+            updateFinishBurstTarget()
+        }
 
         // Advance subsystems.
         vanilla.advance(dt, attackTarget as? ShipAPI, movement.expectedVelocity, movement.expectedFacing)
@@ -110,19 +115,14 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     override fun getConfig(): ShipAIConfig = ShipAIConfig()
 
     private fun debug() {
+        drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
 //        debugPrint.clear()
 
 //        drawTurnLines(ship)
+//        drawCircle(movement.headingPoint, ship.collisionRadius)
 
-//        attackingGroup.weapons.forEachIndexed { idx, w ->
-//            debugPrint[idx] = "${w.id} ${w.customAI!!.shouldHoldFire}"
-//
-//            w.customAI!!.predictedHit?.let {
-//                drawBounds(it.target)
-//                drawCollisionRadius(it.target)
-//            }
-//        }
-//
+//        drawCircle(ship.location, stats.threatSearchRange)
+
 //        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
 //        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
 //        drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
@@ -136,20 +136,17 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 //        drawLine(ship.location, ship.location + unitVector(ship.facing + attackingGroup.facing) * 600f, Color.BLUE)
 //        drawLine(ship.location, ship.location + (movement.expectedVelocity).resized(300f), Color.GREEN)
 //        drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
-//        drawLine(ship.location, ship.location + threatVector.resized(600f), Color.PINK)
+//        drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
     }
 
-    private fun updateAssignment(interval: Boolean) {
-        // Update assignment location only when assignment
-        // was changed or when interval has elapsed.
-        if (ship.assignment == assignment && !interval) return
+    private fun updateAssignment() {
+        this.assignment = ship.assignment
 
-        assignment = ship.assignment
-        assignmentLocation = null
-
-        if (assignment == null) return
-
-        val assignment = assignment!!
+        val assignment = ship.assignment
+        if (assignment == null) {
+            assignmentLocation = null
+            return
+        }
 
         when (assignment.type) {
             RECON, AVOID, RETREAT, REPAIR_AND_REFIT, SEARCH_AND_DESTROY -> return
@@ -164,18 +161,9 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         assignmentLocation = assignment.target?.location
     }
 
-    private fun updateManeuverTarget(interval: Boolean) {
-        val needsUpdate = when {
-            // Current target is no longer valid.
-            maneuverTarget?.isValidTarget == false -> true
-
-            // Don't change target when movement system is on.
-            systemAI?.holdTargets() == true -> false
-
-            else -> interval
-        }
-
-        if (!needsUpdate) return
+    private fun updateManeuverTarget() {
+        // Don't change target when movement system is on.
+        if (maneuverTarget?.isValidTarget == true && systemAI?.holdTargets() == true) return
 
         // Try cohesion AI first.
         val cohesionAI = combatState().fleetCohesion[ship.owner]
@@ -202,39 +190,21 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 
     /** Select which enemy ship to attack. This may be different
      * from the maneuver target provided by the ShipAI. */
-    private fun updateAttackTarget(interval: Boolean) {
-        if (ship.isUnderManualControl && combatState().aimBot.target != null) {
-            attackTarget = combatState().aimBot.target
-            return
+    private fun updateAttackTarget() {
+        // Don't change target when movement system is on.
+        if (attackTarget?.isValidTarget == true && systemAI?.holdTargets() == true) return
+
+        val (newWeaponGroup, newTarget) = findNewAttackTarget()
+
+        // Keep track of previous target until weapon bursts subside.
+        if (newTarget != attackTarget && attackTarget?.isValidTarget == true) {
+            finishBurstTarget = attackTarget
+            finishBurstWeaponGroup = attackingGroup
         }
 
-        val currentTarget = attackTarget
-
-        val updateTarget = when {
-            currentTarget?.isValidTarget != true -> true
-
-            // Don't change target when movement system is on.
-            systemAI?.holdTargets() == true -> false
-
-            // Target is out of range.
-            range(currentTarget) > attackingGroup.maxRange -> true
-
-            else -> interval
-        }
-
-        if (updateTarget) {
-            val (newWeaponGroup, newTarget) = findNewAttackTarget()
-
-            // Keep track of previous target until weapon bursts subside.
-            if (newTarget != attackTarget && attackTarget?.isValidTarget == true) {
-                finishBurstTarget = attackTarget
-                finishBurstWeaponGroup = attackingGroup
-            }
-
-            ship.shipTarget = newTarget
-            attackTarget = newTarget
-            attackingGroup = newWeaponGroup
-        }
+        ship.shipTarget = newTarget
+        attackTarget = newTarget
+        attackingGroup = newWeaponGroup
     }
 
     /** Decide if ships needs to back off due to high flux level */
@@ -259,7 +229,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             underFire && ship.fluxTracker.isVenting -> true
 
             // Stop backing off.
-            fluxLevel <= 0.01f -> false
+            fluxLevel <= Preset.backoffLowerThreshold -> false
 
             // Continue current backoff status.
             else -> isBackingOff
@@ -298,13 +268,28 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     }
 
     private fun updateThreats() {
-        threats = shipSequence(ship.location, stats.threatSearchRange).filter { isThreat(it) }.toList()
+        threats = shipSequence(ship.location, stats.threatSearchRange).filter { isThreat(it) }.toSet()
+    }
 
-        threatVector = threats.fold(Vector2f()) { sum, it ->
-            val dp = it.deploymentPoints
-            val dir = (it.location - ship.location).resized(1f)
+    /** The threat vector should be updated every frame, as it is used
+     * in movement calculations. Values involved in these calculations
+     * should change smoothly to avoid erratic velocity changes. */
+    private fun updateThreatVector() {
+        val maxThreatDistSqr = stats.threatSearchRange * stats.threatSearchRange
+        threatVector = (threats + maneuverTarget).asSequence().filterNotNull().fold(Vector2f()) { sum, threat ->
+            val dp = threat.deploymentPoints
+            val toThreat = threat.location - ship.location
+
+            // Threats are assigned decreasing weights as they approach the maximum
+            // threat radius, eventually reaching a weight of 0 when they leave the radius.
+            // This ensures smooth transitions in threat vectors, avoiding sudden changes
+            // when a threat exits the radius. The maneuver target is always assigned
+            // a weight of 1, preventing situations where the threat vector becomes undefined.
+            val weight = max(maxThreatDistSqr - toThreat.lengthSquared, 0f) / maxThreatDistSqr
+
+            val dir = toThreat.resized(if (threat == maneuverTarget) 1f else weight)
             sum + dir * dp * dp
-        }
+        }.resized(1f)
     }
 
     // Keep track of previous target until weapon bursts subside.
@@ -352,7 +337,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             ship.fluxTracker.isVenting -> false
 
             // No need to vent.
-            ship.fluxLevel < 0.01f -> false
+            ship.fluxLevel < Preset.backoffLowerThreshold -> false
 
             // Don't interrupt the ship system.
             ship.system?.isOn == true -> false
@@ -361,7 +346,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 
             // Vent regardless of situation when already passively
             // dissipated below Preset.backoffLowerThreshold
-            ship.fluxLevel < Preset.backoffLowerThreshold -> true
+            ship.fluxLevel < Preset.forceVentThreshold -> true
 
             idleTime < Preset.shieldDownVentTime -> false
 
@@ -371,7 +356,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             else -> true
         }
 
-        if (shouldVent) ship.giveCommand(ShipCommand.VENT_FLUX, null, 0)
+        if (shouldVent) ship.command(ShipCommand.VENT_FLUX)
     }
 
     private fun findNewAttackTarget(): Pair<WeaponGroup, ShipAPI?> {
@@ -455,10 +440,10 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     }
 
     /** Range from which ship should attack its target. */
-    fun calculateAttackRange(): Float {
+    fun updateAttackRange() {
         val flag = vanilla.flags.get<Float>(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)
 
-        return when {
+        attackRange = when {
             // Range overriden by ai flag.
             flag != null -> flag
 

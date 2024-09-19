@@ -1,29 +1,45 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.util.Misc
-import com.fs.starfarer.combat.entities.Ship
+import com.fs.starfarer.api.combat.ShipAIConfig
+import com.fs.starfarer.api.combat.ShipAIPlugin
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipwideAIFlags
+import com.fs.starfarer.api.impl.campaign.AICoreOfficerPluginImpl
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.EngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
-import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.hasCustomShipAI
-import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.resized
+import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.*
-import kotlin.math.abs
-import kotlin.math.sign
 
 internal fun debug(dt: Float) {
-    highlightCustomAI()
+    AICoreOfficerPluginImpl.ALPHA_MULT = 0.1f
+
+    val ship = Global.getCombatEngine().playerShip ?: return
+
+    if (!ship.isAutomated) return
+
+    ship.captain?.memoryWithoutUpdate?.set(AICoreOfficerPluginImpl.AUTOMATED_POINTS_MULT, 0.1f)
+    ship.fleetMember.captain?.memoryWithoutUpdate?.set(AICoreOfficerPluginImpl.AUTOMATED_POINTS_MULT, 0.1f)
+
+//    debugPrint["m"] = "m ${ship.mutableStats.suppliesPerMonth.modifiedValue}"
+//    debugPrint["r"] = "r ${ship.mutableStats.suppliesToRecover.modifiedValue}"
+
+//    debugPrint["rc"]  = "rc ${LogisticsModule.getRecoverySupplyUsePerDay(ship.fleetMember as FleetMember)}"
+//    debugPrint["c"] = "c ${ship.fleetMember.deploymentCostSupplies} ${ship.fleetMember.deployCost} ${ship.fleetMember.repairTracker.recoveryRate}"
+
+
+//    val target = Global.getCombatEngine().ships.firstOrNull { it != Global.getCombatEngine().playerShip } ?: return
+//
+//    val arc = angularSize((ship.location - target.location).lengthSquared, target.collisionRadius)
+//
+//    drawArc(target.location, (ship.location - target.location).length / 2f, Arc(arc, (ship.location - target.location).facing))
 
     // Override player ship AI.
 //    val ship = Global.getCombatEngine().playerShip ?: return
@@ -176,23 +192,6 @@ private fun showBoundsCollision() {
     drawLine(position, dir.resized(dir.length * dist) + position, YELLOW)
 }
 
-internal fun highlightCustomAI() {
-    Global.getCombatEngine().ships.filter { it.hasCustomShipAI }.forEach {
-        drawCircle(it.location, it.collisionRadius / 2f, RED)
-    }
-}
-
-
-//private fun setRotation(dt: Float) {
-//    val ship = Global.getCombatEngine().playerShip ?: return
-//
-//    drawLine(ship.location, ship.location + unitVector(facing) * 600f, GREEN)
-//    drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, YELLOW)
-//
-//    facing += df * dt
-////    facing = (mousePosition() - ship.location).facing
-//}
-
 private fun makeDroneFormation(dt: Float) {
     val ship = Global.getCombatEngine().playerShip ?: return
     val drones = Global.getCombatEngine().ships.filter { it.isFighter }
@@ -253,7 +252,6 @@ private fun followMouse(dt: Float) {
 //    debugPrint["facing"] = facing
 }
 
-
 //private fun followPlayerShip() {
 //    val target = Global.getCombatEngine().playerShip ?: return
 //    val ship = Global.getCombatEngine().ships.firstOrNull { it != target } ?: return
@@ -266,35 +264,3 @@ private fun followMouse(dt: Float) {
 //
 //    drawEngineLines(ship)
 //}
-
-fun turnTowardsFacingV2(ship: ShipAPI, desiredFacing: Float, relativeAngVel: Float): Boolean {
-    val turnVel = ship.angularVelocity - relativeAngVel
-    val absTurnVel = abs(turnVel.toDouble()).toFloat()
-
-    val turnDecel = ship.engineController.turnDeceleration
-    // v t - 0.5 a t t = dist
-    // dv = a t;  t = v / a
-    val decelTime = absTurnVel / turnDecel
-    val decelDistance = absTurnVel * decelTime - 0.5f * turnDecel * decelTime * decelTime
-
-    val facingAfterNaturalDecel = (ship.facing + sign(turnVel.toDouble()) * decelDistance).toFloat()
-    val diffWithEventualFacing = Misc.getAngleDiff(facingAfterNaturalDecel, desiredFacing)
-    val diffWithCurrFacing = Misc.getAngleDiff(ship.facing, desiredFacing)
-
-    if (diffWithEventualFacing > 1f) {
-        var turnDir = Misc.getClosestTurnDirection(ship.facing, desiredFacing)
-        if (sign(turnVel.toDouble()) == sign(turnDir.toDouble())) {
-            if (decelDistance > diffWithCurrFacing) {
-                turnDir = -turnDir
-            }
-        }
-        if (turnDir < 0) {
-            ship.command(ShipCommand.TURN_RIGHT)
-        } else if (turnDir >= 0) {
-            ship.command(ShipCommand.TURN_LEFT)
-        } else {
-            return false
-        }
-    }
-    return false
-}

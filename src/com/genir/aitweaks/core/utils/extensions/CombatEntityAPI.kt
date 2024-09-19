@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.CombatAsteroidAPI
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import org.lwjgl.util.vector.Vector2f
 
 /** Is the entity a true ship, not a missile or fighter. */
 val CombatEntityAPI.isShip: Boolean
@@ -27,3 +28,6 @@ val CombatEntityAPI.isValidTarget: Boolean
 
 val CombatEntityAPI.isSupportFighter: Boolean
     get() = (this is ShipAPI) && wing?.spec?.isSupport == true
+
+val CombatEntityAPI.timeAdjustedVelocity: Vector2f
+    get() = (this as? ShipAPI)?.timeAdjustedVelocity ?: velocity

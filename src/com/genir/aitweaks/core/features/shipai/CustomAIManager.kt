@@ -2,10 +2,12 @@ package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CombatAssignmentType.RETREAT
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
+import com.genir.aitweaks.core.utils.extensions.assignment
 import lunalib.lunaSettings.LunaSettings.getBoolean
 
 class CustomAIManager {
@@ -28,6 +30,7 @@ class CustomAIManager {
             ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
             ship.isStation -> false
             !ship.isDestroyer && !ship.isCruiser && !ship.isCapital -> false
+            ship.assignment?.type == RETREAT -> false
 
             // Selected ships.
             ship.hullSpec.hullId.startsWith("guardian") -> true

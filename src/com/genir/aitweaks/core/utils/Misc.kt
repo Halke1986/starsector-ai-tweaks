@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import org.json.JSONObject
 import org.lazywizard.lazylib.MathUtils.getShortestRotation
@@ -15,6 +16,7 @@ import org.lazywizard.lazylib.ext.plusAssign
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.sign
 
 // TODO remove and use ballistics implementation
 fun willHitShield(weapon: WeaponAPI, target: ShipAPI?) = when {
@@ -45,11 +47,7 @@ fun rotateAroundPivot(toRotate: Vector2f, pivot: Vector2f, angle: Float): Vector
 
 fun unitVector(angle: Float): Vector2f = VectorUtils.rotate(Vector2f(1f, 0f), angle)
 
-data class Arc(val arc: Float, val facing: Float)
 
-fun vectorInArc(v: Vector2f, a: Arc): Boolean = abs(getShortestRotation(VectorUtils.getFacing(v), a.facing)) <= a.arc / 2f
-
-fun arcsOverlap(a: Arc, b: Arc): Boolean = abs(getShortestRotation(a.facing, b.facing)) <= (a.arc + b.arc) / 2f
 
 class Log
 
@@ -65,7 +63,7 @@ class Rotation(angle: Float) {
     fun reverse(v: Vector2f) = Vector2f(v.x * cos + v.y * sin, -v.x * sin + v.y * cos)
 }
 
-fun defaultAIInterval() = IntervalTracker(0.25f, 0.50f)
+fun defaultAIInterval() = IntervalTracker(0.25f, 0.33f)
 
 class RollingAverageVector(private val historySize: Int) {
     private var history: MutableList<Vector2f> = mutableListOf()
@@ -137,4 +135,29 @@ fun mousePosition(): Vector2f {
 
 inline fun <reified T> closestEntity(entities: Collection<CombatEntityAPI>, p: Vector2f): T? {
     return entities.minByOrNull { (it.location - p).lengthSquared } as? T
+}
+
+interface CanOverlap {
+    fun overlaps(second: CanOverlap): Boolean
+
+    fun merge(second: CanOverlap)
+}
+
+fun mergeOverlapping(l: List<CanOverlap>): List<CanOverlap> {
+    if (l.size <= 1) return l
+
+    val l2: MutableList<CanOverlap> = mutableListOf(l.first())
+    for (i in 1 until l.size) {
+        if (l2.last().overlaps(l[i])) l2.last().merge(l[i])
+        else l2.add(l[i])
+    }
+
+    if (l2.size == 1) return l2
+    if (l2.first().overlaps(l2.last())) {
+        l2.first().merge(l2.last())
+        l2.removeLast()
+    }
+
+    return if (l.size == l2.size) l2
+    else mergeOverlapping(l2)
 }

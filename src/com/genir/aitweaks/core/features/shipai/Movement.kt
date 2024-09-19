@@ -75,21 +75,19 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 // Chase the target if there are no other enemy ships around.
                 // Strafe target randomly if in range and no other threat.
                 maneuverTarget != null -> {
-                    // TODO will need syncing when interval tracking is introduced.
-                    val vectorToTarget = maneuverTarget.location - ship.location
-                    val vectorToThreat = if (!ai.threatVector.isZeroVector()) ai.threatVector else vectorToTarget
-
                     // Strafe the target randomly, when it's the only threat.
+                    val strafeVector = calculateStrafeVector()
                     val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
-                    val attackPositionOffset = if (shouldStrafe) vectorToThreat.rotated(strafeRotation)
-                    else vectorToThreat
+                    val attackPositionOffset = if (shouldStrafe) strafeVector.rotated(strafeRotation)
+                    else strafeVector
 
                     // Let the attack coordinator review the calculated heading point.
-                    proposedHeadingPoint = maneuverTarget.location - attackPositionOffset.resized(ai.calculateAttackRange())
+                    proposedHeadingPoint = maneuverTarget.location + attackPositionOffset.resized(ai.attackRange)
+
                     val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
                     reviewedHeadingPoint = null
 
-                    headingPoint
+                    avoidHulks(maneuverTarget, headingPoint) ?: headingPoint
                 }
 
                 // Move directly to assignment location.
@@ -129,9 +127,9 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                     (currentAttackTarget.location - ship.location).facing + aimOffset
                 }
 
-                // Face threat direction when no target.
+                // Face threat vector when no target.
                 !ai.threatVector.isZeroVector() -> {
-                    ai.threatVector.facing
+                    (-ai.threatVector).facing
                 }
 
                 // Face movement target location.
@@ -140,7 +138,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 }
 
                 // Nothing to do. Stop rotation.
-                else -> expectedFacing
+                else -> engineController.rotationStop
             }
 
             Vector2f(newFacing, 0f)
@@ -149,8 +147,63 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         engineController.facing(dt, expectedFacing)
     }
 
+    private fun calculateStrafeVector(): Vector2f {
+        // Strafe away from map border, prefer the map center.
+        val engine = Global.getCombatEngine()
+        val borderDistX = (ship.location.x * ship.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
+        val borderDistY = (ship.location.y * ship.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
+        val borderWeight = max(borderDistX, borderDistY) * 2f
+
+        return -(ai.threatVector + ship.location.resized(borderWeight))
+    }
+
     private fun shouldHeadToAssigment(location: Vector2f?): Boolean {
         return location != null && (location - ship.location).length > Preset.arrivedAtLocationRadius
+    }
+
+    private fun avoidHulks(maneuverTarget: CombatEntityAPI, proposedHeading: Vector2f): Vector2f? {
+        val toHeadingVector = proposedHeading - maneuverTarget.location
+        val toHeadingAngle = toHeadingVector.facing
+        val dist = toHeadingVector.length
+
+        val allShips: List<ShipAPI> = shipGrid().get<ShipAPI>(maneuverTarget.location, dist).toList()
+        val hulks = allShips.filter {
+            when {
+                !it.isHulk -> false
+
+                it.isFighter -> false
+
+                abs(getShortestRotation(it.location, maneuverTarget.location, proposedHeading)) > 90f -> false
+
+                (maneuverTarget.location - it.location).length > dist -> false
+
+                else -> true
+            }
+        }
+
+        val arcs: List<Arc> = hulks.map { hulk ->
+            val toHulk: Vector2f = hulk.location - maneuverTarget.location
+            val shipSize = angularSize(toHulk.lengthSquared, ship.collisionRadius)
+            val arc: Float = angularSize(toHulk.lengthSquared, hulk.collisionRadius + shipSize / 2f)
+
+            val facing: Float = toHulk.facing
+            Arc(min(arc, 90f), facing)
+        }.toList()
+
+        val mergedArcs = Arc.merge(arcs)
+        val obstacle = mergedArcs.firstOrNull { it.contains(toHeadingAngle) } ?: return null
+
+        val angle1 = obstacle.facing - (obstacle.arc / 2f)
+        val angle2 = obstacle.facing + (obstacle.arc / 2f)
+
+        val toShipAngle = (ship.location - maneuverTarget.location).facing
+        val offset1 = abs(MathUtils.getShortestRotation(toShipAngle, angle1))
+        val offset2 = abs(MathUtils.getShortestRotation(toShipAngle, angle2))
+
+        val newAngle = if (offset1 < offset2) angle1 else angle2
+
+        val newHeadingPoint = unitVector(newAngle).resized(dist) + maneuverTarget.location
+        return newHeadingPoint
     }
 
     private fun manageMobilitySystems() {
@@ -170,7 +223,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         }
     }
 
-    /** Aim weapons with entire ship, if possible. */
+    /** Aim weapons with the entire ship, if possible. */
     private fun aimShip(attackTarget: CombatEntityAPI, weaponGroup: WeaponGroup): Float {
         // Prioritize hardpoints if there are any in the weapon group.
         val weapons = weaponGroup.weapons.filter { it.slot.isHardpoint }.ifEmpty { weaponGroup.weapons }
@@ -190,8 +243,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         val solutions: Map<AutofireAI, Float> = weapons.mapNotNull { makeSolution(it) }.toMap()
 
         // Aim directly at target if no weapon firing solution is available.
-        if (solutions.isEmpty())
-            return (attackTarget.location - ship.location).facing - weaponGroup.facing
+        if (solutions.isEmpty()) return (attackTarget.location - ship.location).facing - weaponGroup.facing
 
         // Start with aiming the weapon group at the average intercept point.
         val averageIntercept: Float = averageFacing(solutions.values)
@@ -245,13 +297,27 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
         limits.add(avoidBlockingLineOfFire(dt, friendlies))
         limits.add(avoidBorder())
+        limits.add(avoidTargetCollision(dt))
         limits.addAll(avoidCollisions(dt, friendlies))
 
         return limits.filterNotNull()
     }
 
+    /** Do not ram friendly ships and the current maneuver target. */
     private fun avoidCollisions(dt: Float, friendlies: List<ShipAPI>): List<EngineController.Limit?> {
-        return friendlies.map { obstacle -> vMaxToObstacle(dt, obstacle) }
+        return friendlies.map { obstacle ->
+            val distance = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
+            vMaxToObstacle(dt, obstacle, distance)
+        }
+    }
+
+    private fun avoidTargetCollision(dt: Float): EngineController.Limit? {
+        // Do not be paralyzed by frigates when trying to backoff.
+        if (ai.isBackingOff) return null
+
+        val target = ai.maneuverTarget ?: return null
+        val distance = max(ai.stats.totalCollisionRadius + target.totalCollisionRadius + Preset.collisionBuffer, ai.attackRange * 0.8f)
+        return vMaxToObstacle(dt, target, distance)
     }
 
     private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {
@@ -363,13 +429,13 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         return EngineController.Limit(borderIntrusion.getFacing(), ship.maxSpeed * (1f - avoidForce))
     }
 
-    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI): EngineController.Limit? {
+    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, distance: Float): EngineController.Limit? {
         val direction = obstacle.location - ship.location
         val dirFacing = direction.facing
-        val distance = direction.length - (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer)
+        val distanceLeft = direction.length - distance
 
         // Already colliding.
-        if (distance <= 0f) return EngineController.Limit(dirFacing, 0f)
+        if (distanceLeft <= 0f) return EngineController.Limit(dirFacing, 0f)
 
         val vObstacle = vectorProjectionLength(obstacle.timeAdjustedVelocity, direction)
         val aObstacle = vectorProjectionLength(combatState().accelerationTracker[obstacle], direction)
@@ -380,7 +446,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
             // The acceleration is approximated as total velocity loss. Including actual
             // acceleration (shipAcc + aAbs) in calculations leads to erratic behavior.
             vObstacle > 0f && aObstacle < 0f -> {
-                vMax(dt, distance, decelShip)
+                vMax(dt, distanceLeft, decelShip)
             }
 
             // Obstacle is moving towards the ship. If the obstacle is a friendly,
@@ -389,11 +455,11 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 val decelObstacle = obstacle.collisionDeceleration(-dirFacing)
                 val decelDistObstacle = decelerationDist(dt, -vObstacle, decelObstacle)
 
-                vMax(dt, distance - decelDistObstacle, decelShip)
+                vMax(dt, distanceLeft - decelDistObstacle, decelShip)
             }
 
             // Maximum velocity that will not lead to collision with inert obstacle.
-            else -> vMax(dt, distance, decelShip) + vObstacle
+            else -> vMax(dt, distanceLeft, decelShip) + vObstacle
         }
 
         return if (vMax > ship.maxSpeed) null
