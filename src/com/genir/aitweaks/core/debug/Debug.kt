@@ -5,12 +5,13 @@ import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.fs.starfarer.api.impl.campaign.AICoreOfficerPluginImpl
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.EngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.extensions.*
+import com.genir.aitweaks.core.utils.extensions.facing
+import com.genir.aitweaks.core.utils.extensions.length
+import com.genir.aitweaks.core.utils.extensions.resized
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
@@ -19,14 +20,35 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.*
 
 internal fun debug(dt: Float) {
-    AICoreOfficerPluginImpl.ALPHA_MULT = 0.1f
+//    Global.getCombatEngine().ships.filter { it.hullSpec.hullId == "TAR_meatshipHT" }.forEach {
+//        it.useSystem()
+//    }
 
-    val ship = Global.getCombatEngine().playerShip ?: return
+//    Global.getCombatEngine().ships.filter { !it.isFighter }.forEachIndexed { idx, ship ->
+//        val mods = ship.hullSpec.hints.joinToString { it.name }
+//
+////        (ship as Ship).isSetModuleFacings = false
+//
+//        debugPrint[idx] = "${ship.hullSpec.hullId} ${mods} "
+//    }
 
-    if (!ship.isAutomated) return
+//    Global.getCombatEngine().ships.filter { it.isStation }.forEach {
+//        debugPrint["ai"] = it.shipAI
+//        if (!it.hasCustomShipAI)
+//            it.shipAI = CustomShipAI(it)
+////        it.command(ShipCommand.ACCELERATE)
+//    }
 
-    ship.captain?.memoryWithoutUpdate?.set(AICoreOfficerPluginImpl.AUTOMATED_POINTS_MULT, 0.1f)
-    ship.fleetMember.captain?.memoryWithoutUpdate?.set(AICoreOfficerPluginImpl.AUTOMATED_POINTS_MULT, 0.1f)
+
+//    AICoreOfficerPluginImpl.ALPHA_MULT = 0.1f
+
+//    val ship = Global.getCombatEngine().playerShip ?: return
+
+//    if (!ship.isAutomated) return
+
+//    ship.captain?.memoryWithoutUpdate?.set(AICoreOfficerPluginImpl.AUTOMATED_POINTS_MULT, 0.1f)
+//    ship.fleetMember.captain?.memoryWithoutUpdate?.set(AICoreOfficerPluginImpl.AUTOMATED_POINTS_MULT, 0.1f)
+
 
 //    debugPrint["m"] = "m ${ship.mutableStats.suppliesPerMonth.modifiedValue}"
 //    debugPrint["r"] = "r ${ship.mutableStats.suppliesToRecover.modifiedValue}"
@@ -186,8 +208,6 @@ private fun showBoundsCollision() {
     val dir = ship.location - position
 
     val dist = boundsCollision(position - ship.location, dir, ship) ?: return
-
-    debugPrint["dist"] = dist
 
     drawLine(position, dir.resized(dir.length * dist) + position, YELLOW)
 }

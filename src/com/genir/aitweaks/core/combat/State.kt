@@ -4,7 +4,6 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.combat.trackers.AccelerationTracker
 import com.genir.aitweaks.core.combat.trackers.ManeuverTargetTracker
-import com.genir.aitweaks.core.features.AimBot
 import com.genir.aitweaks.core.features.FleetCohesion
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 
@@ -17,7 +16,6 @@ class State : BaseEveryFrameCombatPlugin() {
     val customAIManager: CustomAIManager = CustomAIManager()
 
     val fleetCohesion: Array<FleetCohesion> = arrayOf(FleetCohesion(0), FleetCohesion(1))
-    val aimBot: AimBot = AimBot()
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
     val maneuverTargetTracker: ManeuverTargetTracker = ManeuverTargetTracker()
 
@@ -26,9 +24,9 @@ class State : BaseEveryFrameCombatPlugin() {
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
         fleetCohesion[0],
         fleetCohesion[1],
-        aimBot,
         accelerationTracker,
         maneuverTargetTracker,
+        com.genir.aitweaks.core.features.AimBot(),
         com.genir.aitweaks.core.features.AutoOmniShields(),
         com.genir.aitweaks.core.features.AutomatedShipAIManager(),
         com.genir.aitweaks.core.features.shipai.AttackCoord(),

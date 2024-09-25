@@ -1,3 +1,5 @@
+- Ships with Custom AI now fire projectile weapons in staggered firing mode. In this mode, all weapons of the same type fire at a constant interval. This feature is currently not available for vanilla ships.
+
 Version 1.9.4
 
 - Fixed regression in autofire accuracy, especially when attacking frigates.

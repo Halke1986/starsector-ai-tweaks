@@ -15,8 +15,6 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
 
-private var autofireAICount = 0
-
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
 
@@ -36,7 +34,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     var shouldHoldFire: HoldFire? = NO_TARGET
     var predictedHit: Hit? = null
 
-    private val debugIdx = autofireAICount++
+    var syncState: SyncState? = null
 
     override fun advance(dt: Float) {
         when {
@@ -70,14 +68,27 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Calculate if weapon should fire at current target.
         if (shouldFireInterval.intervalElapsed()) {
             shouldFireInterval.reset()
-            shouldHoldFire = calculateShouldFire(dt)
+            shouldHoldFire = calculateShouldFire()
         }
     }
 
     override fun shouldFire(): Boolean {
-        val off = isForcedOff
-        isForcedOff = false
-        return !off && shouldHoldFire == null
+        val syncState = syncState
+        return when {
+            isForcedOff -> {
+                isForcedOff = false
+                false
+            }
+
+            shouldHoldFire != null -> false
+
+            // Already firing, continue the attack.
+            weapon.isFiring -> true
+
+            syncState != null -> syncFire(syncState)
+
+            else -> true
+        }
     }
 
     override fun forceOff() {
@@ -93,39 +104,75 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return intercept(weapon, BallisticTarget.entity(target), currentParams())
     }
 
+    /** Make weapons sync fire in staggered firing mode. */
+    private fun syncFire(syncState: SyncState): Boolean {
+        val cycleDuration = weapon.firingCycle.duration
+        val timestamp = Global.getCombatEngine().getTotalElapsedTime(false)
+        val sinceLastAttack = timestamp - syncState.lastAttack
+
+        // Weapons of same type didn't attack for at least entire firing cycle,
+        // meaning all of them are ready to attack. The weapon may fire immediately.
+        if (sinceLastAttack > cycleDuration) {
+            syncState.lastAttack = timestamp
+            return true
+        }
+
+        val stagger = cycleDuration / syncState.weapons
+        val dt = Global.getCombatEngine().elapsedInLastFrame
+
+        // Wait for opportunity to attack aligned with staggered attack cycle.
+        if (sinceLastAttack >= stagger && sinceLastAttack % stagger <= dt) {
+            syncState.lastAttack = timestamp
+            return true
+        }
+
+        return false
+    }
+
     private fun trackAttackTimes(dt: Float) {
+        // Update attack time, used by vanilla accuracy increase mechanism.
         if (weapon.isFiring) {
             attackTime += dt
             idleTime = 0f
-        } else idleTime += dt
+        } else {
+            idleTime += dt
+        }
 
         if (idleTime >= 3f) attackTime = 0f
+
+        // Update time on target, used by STABILIZE_ON_TARGET firing rule.
+        if (shouldHoldFire == NO_TARGET || shouldHoldFire == NO_HIT_EXPECTED) onTargetTime = 0f
+        else onTargetTime += dt
     }
 
     private fun shouldUpdateTarget(): Boolean {
+        val currentTarget: CombatEntityAPI? = target
+
         return when {
+            currentTarget == null -> selectTargetInterval.intervalElapsed()
+
             // Target became invalid last frame, update immediately.
             // This is important for PD weapons defending against swarms of missiles.
-            target?.isValidTarget == false -> {
+            !currentTarget.isValidTarget -> {
                 target = null
                 true
             }
 
-            // Target can no longer be tracked.
-            target != null && !canTrack(weapon, BallisticTarget.entity(target!!), currentParams()) -> {
+            // Target can no longer be tracked. This does not apply to hardpoint weapons tracking ship attack target.
+            (currentTarget != ship.attackTarget || weapon.slot.isTurret) && !canTrack(weapon, BallisticTarget.entity(target!!), currentParams()) -> {
                 target = null
                 true
             }
 
             // Do not interrupt firing sequence.
-            target != null && weapon.isInFiringSequence -> false
+            weapon.isInFiringSequence -> false
 
             // Outside above special circumstances, refresh target periodically.
             else -> selectTargetInterval.intervalElapsed()
         }
     }
 
-    private fun calculateShouldFire(dt: Float): HoldFire? {
+    private fun calculateShouldFire(): HoldFire? {
         predictedHit = null
 
         if (target == null) return NO_TARGET
@@ -135,10 +182,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // on targets that are only briefly in the line of sight, when the weapon is turning.
         val ballisticParams = currentParams()
         val expectedHit = target?.let { analyzeHit(weapon, target!!, ballisticParams) }
-        if (expectedHit == null) {
-            onTargetTime = 0f
-            return NO_HIT_EXPECTED
-        }
+
+        if (expectedHit == null) return NO_HIT_EXPECTED
 
         predictedHit = expectedHit
 
@@ -147,7 +192,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // should fire with no delay. Use intercept point instead
         // aim point for hardpoints, to not get false accuracy because
         // of predictive aiming.
-        onTargetTime += dt
         if (!weapon.isPD && onTargetTime < min(2f, weapon.firingCycle.duration)) {
             val angleToTarget = (intercept!! - weapon.location).facing
             val inaccuracy = abs(MathUtils.getShortestRotation(weapon.currAngle, angleToTarget))
