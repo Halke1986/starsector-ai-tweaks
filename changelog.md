@@ -1,4 +1,5 @@
-- Ships with Custom AI now fire projectile weapons in staggered firing mode. In this mode, all weapons of the same type fire at a constant interval. This feature is currently not available for vanilla ships.
+- Ships with Custom AI now fire projectile weapons in staggered firing mode. In this mode, all weapons of the same type fire at a constant interval. This feature is not yet available for vanilla ships.
+- Fixed "Fatal: Illegal character in path at index" crash during game startup. Reported by LuckyBitch and 暮淅
 
 Version 1.9.4
 
