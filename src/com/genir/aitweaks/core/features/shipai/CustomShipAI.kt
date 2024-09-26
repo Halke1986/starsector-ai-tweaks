@@ -313,7 +313,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         // Let player decide about weapon groups configuration.
         if (ship.isUnderManualControl) return
 
-//        (ship as Ship).setNoWeaponSelected()
+        (ship as Ship).setNoWeaponSelected()
         ship.weaponGroupsCopy.forEach { it.toggleOn() }
     }
 

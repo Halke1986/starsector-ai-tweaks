@@ -107,6 +107,9 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // No need to sync a single weapon.
         if (syncState.weapons == 1) return true
 
+        // Weapon is the middle of firing cycle, it won't stop now.
+        if (weapon.isInFiringCycle) return true
+
         val timestamp = Global.getCombatEngine().getTotalElapsedTime(false)
         val cycleDuration = weapon.firingCycle.duration
         val sinceLastAttack = timestamp - syncState.lastAttack
@@ -117,11 +120,12 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             // Combined rate of fire is too fast to sync.
             stagger < dt * 2f -> true
 
-            // Weapon is already firing. Assume it's in sync. Idle frames are used
-            // instead of weapon.isInFiringCycle, because the weapon spends always
-            // one frame idling between firing cycles, even if trigger is pressed
-            // continuously. NOTE: there's also an idle frame between shots in a burst.
-            idleFrames <= 1 -> true
+            // Weapon finished its firing cycle. Assume it's not yet out of
+            // sync and continue attack, unless another weapon attacked the
+            // same frame. NOTE: there's also an idle frame between shots in
+            // a burst, but that case if handled by 'if (weapon.isInFiringCycle)
+            // return true' case.
+            sinceLastAttack >= stagger && idleFrames == 1 -> true
 
             // Weapons of same type didn't attack for at least entire firing cycle,
             // meaning all of them are ready to attack. The weapon may fire immediately.
@@ -131,7 +135,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             else -> sinceLastAttack >= stagger && sinceLastAttack % stagger <= dt
         }
 
-        if (shouldFire && !weapon.isInFiringCycle) syncState.lastAttack = timestamp
+        if (shouldFire) syncState.lastAttack = timestamp
 
         return shouldFire
     }
