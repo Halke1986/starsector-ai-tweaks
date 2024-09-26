@@ -9,6 +9,7 @@ import com.genir.aitweaks.core.utils.IntervalTracker
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.rotateAroundPivot
+import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
@@ -16,6 +17,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
+    private val enabledStaggeredFire: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_staggered_fire") == true
     private val ship: ShipAPI = weapon.ship
 
     private var target: CombatEntityAPI? = null
@@ -83,7 +85,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             shouldHoldFire != null -> false
 
-            syncState != null -> syncFire(syncState)
+            enabledStaggeredFire && syncState != null -> syncFire(syncState)
 
             else -> true
         }

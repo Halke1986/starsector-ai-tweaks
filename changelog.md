@@ -1,3 +1,6 @@
+- Staggered firing mode bugfixes.
+- Staggered firing mode can be disabled in LunaLib settings.
+
 Version 1.9.5
 
 - Ships with Custom AI now fire projectile weapons in staggered firing mode. In this mode, all weapons of the same type fire at a constant interval. This feature is not yet available for vanilla ships.
