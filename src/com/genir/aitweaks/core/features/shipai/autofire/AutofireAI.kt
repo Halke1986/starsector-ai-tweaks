@@ -23,6 +23,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
+    private var idleFrames: Int = 0
     private var onTargetTime: Float = 0f
     private var isForcedOff: Boolean = false
 
@@ -82,9 +83,6 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             shouldHoldFire != null -> false
 
-            // Already firing, continue the attack.
-            weapon.isFiring -> true
-
             syncState != null -> syncFire(syncState)
 
             else -> true
@@ -106,27 +104,36 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     /** Make weapons sync fire in staggered firing mode. */
     private fun syncFire(syncState: SyncState): Boolean {
-        val cycleDuration = weapon.firingCycle.duration
+        // No need to sync a single weapon.
+        if (syncState.weapons == 1) return true
+
         val timestamp = Global.getCombatEngine().getTotalElapsedTime(false)
+        val cycleDuration = weapon.firingCycle.duration
         val sinceLastAttack = timestamp - syncState.lastAttack
-
-        // Weapons of same type didn't attack for at least entire firing cycle,
-        // meaning all of them are ready to attack. The weapon may fire immediately.
-        if (sinceLastAttack > cycleDuration) {
-            syncState.lastAttack = timestamp
-            return true
-        }
-
         val stagger = cycleDuration / syncState.weapons
         val dt = Global.getCombatEngine().elapsedInLastFrame
 
-        // Wait for opportunity to attack aligned with staggered attack cycle.
-        if (sinceLastAttack >= stagger && sinceLastAttack % stagger <= dt) {
-            syncState.lastAttack = timestamp
-            return true
+        val shouldFire = when {
+            // Combined rate of fire is too fast to sync.
+            stagger < dt * 2f -> true
+
+            // Weapon is already firing. Assume it's in sync. Idle frames are used
+            // instead of weapon.isInFiringCycle, because the weapon spends always
+            // one frame idling between firing cycles, even if trigger is pressed
+            // continuously. NOTE: there's also an idle frame between shots in a burst.
+            idleFrames <= 1 -> true
+
+            // Weapons of same type didn't attack for at least entire firing cycle,
+            // meaning all of them are ready to attack. The weapon may fire immediately.
+            sinceLastAttack > cycleDuration -> true
+
+            // Wait for opportunity to attack aligned with staggered attack cycle.
+            else -> sinceLastAttack >= stagger && sinceLastAttack % stagger <= dt
         }
 
-        return false
+        if (shouldFire && !weapon.isInFiringCycle) syncState.lastAttack = timestamp
+
+        return shouldFire
     }
 
     private fun trackAttackTimes(dt: Float) {
@@ -134,8 +141,10 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (weapon.isFiring) {
             attackTime += dt
             idleTime = 0f
+            idleFrames = 0
         } else {
             idleTime += dt
+            idleFrames++
         }
 
         if (idleTime >= 3f) attackTime = 0f

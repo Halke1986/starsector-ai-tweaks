@@ -120,7 +120,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     override fun getConfig(): ShipAIConfig = ShipAIConfig()
 
     private fun debug() {
-        drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
+//        drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
 //        debugPrint.clear()
 
 //        drawTurnLines(ship)
@@ -313,7 +313,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         // Let player decide about weapon groups configuration.
         if (ship.isUnderManualControl) return
 
-        (ship as Ship).setNoWeaponSelected()
+//        (ship as Ship).setNoWeaponSelected()
         ship.weaponGroupsCopy.forEach { it.toggleOn() }
     }
 

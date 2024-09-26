@@ -14,7 +14,7 @@ val WeaponAPI.isPD: Boolean
     get() = hasAIHint(PD) || hasAIHint(PD_ONLY)
 
 /** Same as WeaponAPI.isPD, except it will ignore weapons that
-* were modified into PD by S-modded Integrated Point Defense AI. */
+ * were modified into PD by S-modded Integrated Point Defense AI. */
 val WeaponAPI.isPDSpec: Boolean
     get() = spec.aiHints.contains(PD) || spec.aiHints.contains(PD_ONLY)
 
@@ -76,6 +76,10 @@ val WeaponAPI.isBurstWeapon: Boolean
         else -> false
     }
 
+/** Warmup is the first phase of weapon firing sequence, preceding the first shot. */
+val WeaponAPI.isInWarmup: Boolean
+    get() = chargeLevel > 0f && chargeLevel < 1f && cooldownRemaining == 0f
+
 /** Weapon is assumed to be in a firing sequence if it will
  * emit projectile or beam even after trigger is let go. */
 val WeaponAPI.isInFiringSequence: Boolean
@@ -86,9 +90,10 @@ val WeaponAPI.isInFiringSequence: Boolean
         else -> false
     }
 
-/** Warmup is the first phase of weapon firing sequence, preceding the first shot. */
-val WeaponAPI.isInWarmup: Boolean
-    get() = chargeLevel > 0f && chargeLevel < 1f && cooldownRemaining == 0f
+/** Similar to WeaponAPI.isFiring, except returns true for the entire firing cycle.
+ * WeaponAPI.isFiring returns false between individual burst attacks. */
+val WeaponAPI.isInFiringCycle: Boolean
+    get() = chargeLevel != 0f || cooldownRemaining != 0f
 
 val WeaponAPI.group: WeaponGroupAPI?
     get() = this.ship.getWeaponGroupFor(this)
