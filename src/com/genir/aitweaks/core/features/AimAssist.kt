@@ -28,14 +28,14 @@ import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.Method
 
-class AimBot : BaseEveryFrameCombatPlugin() {
+class AimAssist : BaseEveryFrameCombatPlugin() {
     var target: CombatEntityAPI? = null
 
     private var debugShipAI: CustomShipAI? = null
     private var isFiring: Boolean = false
     private var mouse: Vector2f = Vector2f()
     private var keybind: Int? = null
-    private var enableAimBot = false
+    private var enableAimAssist = false
 
     private val getAimTracker: MethodHandle
     private val setTargetOverride: MethodHandle
@@ -67,7 +67,7 @@ class AimBot : BaseEveryFrameCombatPlugin() {
             keybind = LunaSettings.getInt("aitweaks", "aitweaks_aim_bot_keybind") ?: return
 
             val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
-            enableAimBot = memory.getBoolean("\$aitweaks_enableAimBot")
+            enableAimAssist = memory.getBoolean("\$aitweaks_enableAimBot")
         }
 
         val ship: ShipAPI = Global.getCombatEngine().playerShip ?: return
@@ -86,14 +86,14 @@ class AimBot : BaseEveryFrameCombatPlugin() {
 
                 // Toggle the aim bot and persist the setting to memory.
                 it.isKeyDownEvent && it.eventValue == keybind -> {
-                    enableAimBot = !enableAimBot
+                    enableAimAssist = !enableAimAssist
                     val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
-                    memory.set("\$aitweaks_enableAimBot", enableAimBot)
+                    memory.set("\$aitweaks_enableAimBot", enableAimAssist)
                 }
             }
         }
 
-        if (!enableAimBot) return
+        if (!enableAimAssist) return
 
         // debug
 //        when (ship.isUnderManualControl) {
