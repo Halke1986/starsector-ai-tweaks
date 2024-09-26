@@ -1,3 +1,5 @@
+Version 1.9.6
+
 - Staggered firing mode bugfixes.
 - Staggered firing mode can be disabled in LunaLib settings.
 
