@@ -85,7 +85,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             updateThreats()
             updateShipStats()
             updateAttackRange()
-            ensureAutofire()
+//            ensureAutofire()
             updateWeaponSync()
             updateBackoffStatus()
             update1v1Status()

@@ -1,8 +1,8 @@
 package com.genir.aitweaks.core.features.shipai.vanilla
 
 import com.fs.starfarer.combat.ai.BasicShipAI
-import com.genir.aitweaks.core.utils.Bytecode
-import com.genir.aitweaks.core.utils.Bytecode.Companion.getMethodsInOrder
+import com.genir.aitweaks.core.utils.loading.Bytecode
+import com.genir.aitweaks.core.utils.loading.Bytecode.getMethodsInOrder
 import org.lwjgl.util.vector.Vector2f
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles

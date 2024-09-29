@@ -16,7 +16,7 @@ class VentModule(basicShipAI: BasicShipAI) {
         ventModule = field.get(basicShipAI)
 
         // Find advance method.
-        // There's only one FighterPullbackModule method taking (Float, Ship) parameters.
+        // There's only one VentModule method taking (Float, Ship) parameters.
         val methods = ventModule::class.java.methods
         val advanceParams = arrayOf(Float::class.java, Ship::class.java)
         val advance = methods.first { it.parameterTypes.contentEquals(advanceParams) }

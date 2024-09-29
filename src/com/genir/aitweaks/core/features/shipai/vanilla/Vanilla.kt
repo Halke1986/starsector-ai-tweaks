@@ -22,6 +22,7 @@ class Vanilla(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     private val shieldAI: ShieldAI? = ShieldAI.getIfExists(basicShipAI)
     private val systemAI: SystemAI? = if (overrideVanillaSystem) null else SystemAI.getIfExists(basicShipAI)
     private val fighterPullbackModule: FighterPullbackModule? = FighterPullbackModule.getIfExists(basicShipAI)
+    private val attackModule: AttackModule = AttackModule(basicShipAI, threatEvalAI)
 
     private val avoidMissiles: MethodHandle
 
@@ -52,5 +53,6 @@ class Vanilla(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
         fighterPullbackModule?.advance(dt, attackTarget)
         shieldAI?.advance(dt, threatEvalAI, missileDangerDir, collisionDangerDir, attackTarget)
         systemAI?.advance(dt, missileDangerDir, collisionDangerDir, attackTarget)
+        attackModule.advance(dt, threatEvalAI, missileDangerDir)
     }
 }
