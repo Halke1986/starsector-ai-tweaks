@@ -48,7 +48,4 @@ object Bytecode {
 
         return classData
     }
-
-    val Class<*>.classPath: String
-        get() = this::class.java.canonicalName.replace('.', '/')
 }
