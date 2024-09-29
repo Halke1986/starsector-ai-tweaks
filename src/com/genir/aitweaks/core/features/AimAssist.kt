@@ -60,8 +60,6 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
     }
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        if (Global.getCurrentState() != GameState.COMBAT) return
-
         // Finish initialization when SS classes are ready.
         if (keybind == null) {
             keybind = LunaSettings.getInt("aitweaks", "aitweaks_aim_bot_keybind") ?: return

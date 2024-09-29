@@ -22,8 +22,6 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
     private var keybind: Int? = null
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
-        if (Global.getCurrentState() != GameState.COMBAT) return
-
         val engine = Global.getCombatEngine() ?: return
 
         // Finish initialization when SS classes are ready.

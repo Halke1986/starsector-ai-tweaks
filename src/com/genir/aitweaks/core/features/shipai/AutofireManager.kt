@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.features.shipai.autofire.SyncState
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.defaultAIInterval
@@ -17,8 +18,15 @@ class AutofireManager(val ship: ShipAPI) {
         if (updateInterval.elapsed()) {
             updateInterval.reset()
 
+            ensureAutofire()
             updateWeaponSync()
         }
+    }
+
+    private fun ensureAutofire() {
+        // Ensure autofire on all groups.
+        (ship as Ship).setNoWeaponSelected()
+        ship.weaponGroupsCopy.forEach { it.toggleOn() }
     }
 
     /** Ensure all weapons that are to fire in staggered mode share an up-to date state. */

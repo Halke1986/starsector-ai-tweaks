@@ -81,7 +81,6 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             updateThreats()
             updateShipStats()
             updateAttackRange()
-            ensureAutofire()
             updateBackoffStatus()
             update1v1Status()
             ventIfNeeded()
@@ -303,16 +302,6 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         val continueBurst = finishBurstWeaponGroup?.weapons?.any { it.isInFiringSequence && it.target == finishBurstTarget }
         if (continueBurst != true) finishBurstTarget = null
     }
-
-    private fun ensureAutofire() {
-        // Let player decide about weapon groups configuration.
-        if (ship.isUnderManualControl) return
-
-        (ship as Ship).setNoWeaponSelected()
-        ship.weaponGroupsCopy.forEach { it.toggleOn() }
-    }
-
-
 
     private fun holdFireIfOverfluxed() {
         isHoldingFire = when {

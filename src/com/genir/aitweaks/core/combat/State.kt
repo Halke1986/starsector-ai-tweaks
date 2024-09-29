@@ -1,5 +1,7 @@
 package com.genir.aitweaks.core.combat
 
+import com.fs.starfarer.api.GameState
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.combat.trackers.AccelerationTracker
@@ -29,6 +31,7 @@ class State : BaseEveryFrameCombatPlugin() {
         com.genir.aitweaks.core.features.AimAssist(),
         com.genir.aitweaks.core.features.AutoOmniShields(),
         com.genir.aitweaks.core.features.AutomatedShipAIManager(),
+        com.genir.aitweaks.core.features.OverrideAutofire(),
         com.genir.aitweaks.core.features.shipai.AttackCoord(),
     )
 
@@ -36,6 +39,8 @@ class State : BaseEveryFrameCombatPlugin() {
         combatState = this
         frameCount++
 
-        plugins.forEach { it.advance(dt, events) }
+        // Advance plugins only in combat.
+        if (Global.getCurrentState() == GameState.COMBAT)
+            plugins.forEach { it.advance(dt, events) }
     }
 }

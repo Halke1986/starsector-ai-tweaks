@@ -41,8 +41,6 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         when {
             !enabled -> return
 
-            Global.getCurrentState() != GameState.COMBAT -> return
-
             engine.isSimulation -> return
 
             engine.isPaused -> return
