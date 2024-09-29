@@ -69,7 +69,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         updateAimLocation()
 
         // Calculate if weapon should fire at current target.
-        if (shouldFireInterval.intervalElapsed()) {
+        if (shouldFireInterval.elapsed()) {
             shouldFireInterval.reset()
             shouldHoldFire = calculateShouldFire()
         }
@@ -164,7 +164,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val currentTarget: CombatEntityAPI? = target
 
         return when {
-            currentTarget == null -> selectTargetInterval.intervalElapsed()
+            currentTarget == null -> selectTargetInterval.elapsed()
 
             // Target became invalid last frame, update immediately.
             // This is important for PD weapons defending against swarms of missiles.
@@ -183,7 +183,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             weapon.isInFiringSequence -> false
 
             // Outside above special circumstances, refresh target periodically.
-            else -> selectTargetInterval.intervalElapsed()
+            else -> selectTargetInterval.elapsed()
         }
     }
 

@@ -38,7 +38,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
         // Use weapons only during lidar burst, to preserve zero flux boost.
         if (zeroFluxBoostMode && !system.isOn) lidarWeapons.forEach { it.autofirePlugin?.forceOff() }
 
-        if (updateInterval.intervalElapsed()) {
+        if (updateInterval.elapsed()) {
             updateInterval.reset()
             lidarWeapons = getLidarWeapons()
 

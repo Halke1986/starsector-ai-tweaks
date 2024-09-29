@@ -51,7 +51,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         identifyBattleGroups()
 
         advanceInterval.advance(dt)
-        if (!advanceInterval.intervalElapsed()) return
+        if (!advanceInterval.elapsed()) return
         advanceInterval.reset()
 
         // Cleanup of previous iteration assignments and waypoints.

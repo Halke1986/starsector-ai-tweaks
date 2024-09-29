@@ -17,7 +17,7 @@ class Interval(private val min: Float, private val max: Float) {
         timeLeft -= dt
     }
 
-    fun intervalElapsed(): Boolean {
+    fun elapsed(): Boolean {
         return timeLeft <= 0f
     }
 

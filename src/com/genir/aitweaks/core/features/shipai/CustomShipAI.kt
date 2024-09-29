@@ -79,7 +79,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         updateThreatVector()
 
         updateInterval.advance(dt)
-        if (updateInterval.intervalElapsed()) {
+        if (updateInterval.elapsed()) {
             updateInterval.reset()
 
             updateThreats()
