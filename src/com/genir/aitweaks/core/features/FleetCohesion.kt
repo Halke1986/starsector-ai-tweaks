@@ -7,11 +7,11 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.CombatAssignmentType
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.shouldAttackFrigates
 import com.genir.aitweaks.core.features.shipai.slotRange
+import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.closestEntity
 import com.genir.aitweaks.core.utils.extensions.*
 import lunalib.lunaSettings.LunaSettings
@@ -32,7 +32,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     private var allBigTargets: List<ShipAPI> = listOf()
     var allTargets: List<ShipAPI> = listOf()
 
-    private val advanceInterval = IntervalUtil(0.75f, 1f)
+    private val advanceInterval = Interval(0.75f, 1f)
 
     private data class AssignmentKey(val ship: ShipAPI, val location: Vector2f?, val type: CombatAssignmentType)
 
@@ -48,10 +48,11 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             engine.isPaused -> return
         }
 
-        advanceInterval.advance(dt)
         identifyBattleGroups()
 
+        advanceInterval.advance(dt)
         if (!advanceInterval.intervalElapsed()) return
+        advanceInterval.reset()
 
         // Cleanup of previous iteration assignments and waypoints.
         validGroups = listOf()

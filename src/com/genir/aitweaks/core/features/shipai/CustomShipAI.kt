@@ -35,7 +35,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 
     // Helper classes.
     private val damageTracker: DamageTracker = DamageTracker(ship)
-    private val updateInterval: IntervalTracker = defaultAIInterval()
+    private val updateInterval: Interval = defaultAIInterval()
 
     // Standing orders.
     var assignment: CombatFleetManagerAPI.AssignmentInfo? = null

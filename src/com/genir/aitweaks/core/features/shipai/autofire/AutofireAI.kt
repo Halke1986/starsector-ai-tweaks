@@ -5,7 +5,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.IntervalTracker
+import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.rotateAroundPivot
@@ -29,8 +29,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var onTargetTime: Float = 0f
     private var isForcedOff: Boolean = false
 
-    private var selectTargetInterval = IntervalTracker(0.25F, 0.50F)
-    private var shouldFireInterval = IntervalTracker(0.1F, 0.2F)
+    private var selectTargetInterval = Interval(0.25F, 0.50F)
+    private var shouldFireInterval = Interval(0.1F, 0.2F)
 
     // Fields accessed by custom ship AI
     var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons

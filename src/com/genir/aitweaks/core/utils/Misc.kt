@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import org.json.JSONObject
 import org.lazywizard.lazylib.MathUtils.getShortestRotation
@@ -16,7 +15,6 @@ import org.lazywizard.lazylib.ext.plusAssign
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.sign
 
 // TODO remove and use ballistics implementation
 fun willHitShield(weapon: WeaponAPI, target: ShipAPI?) = when {
@@ -48,7 +46,6 @@ fun rotateAroundPivot(toRotate: Vector2f, pivot: Vector2f, angle: Float): Vector
 fun unitVector(angle: Float): Vector2f = VectorUtils.rotate(Vector2f(1f, 0f), angle)
 
 
-
 class Log
 
 fun log(message: Any) = Global.getLogger(Log().javaClass).info(message)
@@ -63,7 +60,7 @@ class Rotation(angle: Float) {
     fun reverse(v: Vector2f) = Vector2f(v.x * cos + v.y * sin, -v.x * sin + v.y * cos)
 }
 
-fun defaultAIInterval() = IntervalTracker(0.25f, 0.33f)
+fun defaultAIInterval() = Interval(0.25f, 0.33f)
 
 class RollingAverageVector(private val historySize: Int) {
     private var history: MutableList<Vector2f> = mutableListOf()
