@@ -7,6 +7,6 @@ class Obfuscated {
     class ThreatEvalAI
 
     interface AutofireManagerInterface {
-        fun advance(p0: Float, p1: ThreatEvalAI, p2: Vector2f?)
+        fun advance(dt: Float, threatEvalAI: ThreatEvalAI, missileDangerDir: Vector2f?)
     }
 }

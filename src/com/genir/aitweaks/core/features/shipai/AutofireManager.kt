@@ -1,75 +1,52 @@
 package com.genir.aitweaks.core.features.shipai
 
-import com.fs.starfarer.combat.ai.BasicShipAI
-import com.fs.starfarer.combat.ai.attack.AttackAIModule
-import com.genir.aitweaks.core.features.shipai.vanilla.Obfuscated
-import com.genir.aitweaks.core.utils.extensions.classPath
-import com.genir.aitweaks.core.utils.loading.ByteClassLoader
-import com.genir.aitweaks.core.utils.loading.Bytecode
-import org.lwjgl.util.vector.Vector2f
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
-import java.lang.reflect.Field
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.core.features.shipai.autofire.SyncState
+import com.genir.aitweaks.core.utils.Interval
+import com.genir.aitweaks.core.utils.defaultAIInterval
+import com.genir.aitweaks.core.utils.extensions.customAI
+import com.genir.aitweaks.core.utils.extensions.isPD
 
-class AutofireManager : Obfuscated.AutofireManagerInterface {
-    override fun advance(p0: Float, p1: Obfuscated.ThreatEvalAI, p2: Vector2f?) {
+class AutofireManager(val ship: ShipAPI) {
+    private val updateInterval: Interval = defaultAIInterval()
+    private val weaponSyncMap: MutableMap<String, SyncState> = mutableMapOf()
+
+    fun advance(dt: Float) {
+        updateInterval.advance(dt)
+        if (updateInterval.elapsed()) {
+            updateInterval.reset()
+
+            updateWeaponSync()
+        }
     }
 
-    companion object {
-        private var obfuscated: Class<*>? = null
+    /** Ensure all weapons that are to fire in staggered mode share an up-to date state. */
+    private fun updateWeaponSync() {
+        val weapons: Sequence<WeaponAPI> = ship.weaponGroupsCopy.flatMap { it.weaponsCopy }.asSequence()
+        val syncWeapons = weapons.filter {
+            when {
+                it.isBeam -> false
 
-        /** Replace vanilla autofire manager with AI Tweaks implementation. */
-        fun inject(attackModule: AttackAIModule) {
-            val f = findAutofireManagerField().also { it.setAccessible(true) }
-            if (f.get(attackModule)::class.java.isInstance(getObfuscatedClass())) return
+                it.isPD -> false
 
-            f.set(attackModule, getObfuscatedClass().newInstance())
-        }
+                it.type == WeaponAPI.WeaponType.MISSILE -> false
 
-        /** Find obfuscated AttackAIModule.autofireManager field. */
-        private fun findAutofireManagerField(): Field {
-            val fields: Array<Field> = AttackAIModule::class.java.declaredFields
-            return fields.first { it.type.isInterface && it.type.methods.size == 1 }
-        }
-
-        private fun getObfuscatedClass(): Class<*> {
-            obfuscated?.let { return it }
-
-            val cl = ByteClassLoader(this::class.java.classLoader)
-            cl.addClass(AutofireManager::class.java.name, obfuscate())
-            obfuscated = cl.loadClass(AutofireManager::class.java.name)
-
-            return obfuscated!!
-        }
-
-        private fun obfuscate(): ByteArray {
-            // Find vanilla types.
-            val obfAutofireManager: Class<*> = findAutofireManagerField().type
-            val obfThreatEvalAI: Class<*> = BasicShipAI::class.java.getMethod("getThreatEvaluator").returnType
-
-            // Build obfuscated autofire manager.
-            return Bytecode.transformClass(AutofireManager::class.java) {
-                object : ClassVisitor(Opcodes.ASM4, it) {
-
-                    // Replace implemented interface.
-                    override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
-                        val obfInterface = arrayOf(obfAutofireManager.classPath)
-
-                        super.visit(version, access, name, signature, superName, obfInterface)
-                    }
-
-                    // Replace advance method name and description.
-                    override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-                        if (name != "advance") return super.visitMethod(access, name, desc, signature, exceptions)
-
-                        val obfName = obfAutofireManager.methods.first().name
-                        val obfDesc = desc.replace(Obfuscated.ThreatEvalAI::class.java.classPath, obfThreatEvalAI.classPath)
-
-                        return super.visitMethod(access, obfName, obfDesc, signature, exceptions)
-                    }
-                }
+                else -> true
             }
+        }.mapNotNull { it.customAI }
+
+        weaponSyncMap.forEach { it.value.weapons = 0 }
+
+        syncWeapons.forEach { autofireAI ->
+            val state: SyncState = weaponSyncMap[autofireAI.weapon.id] ?: run {
+                val newState = SyncState(0, 0f)
+                weaponSyncMap[autofireAI.weapon.id] = newState
+                newState
+            }
+
+            state.weapons++
+            autofireAI.syncState = state
         }
     }
 }

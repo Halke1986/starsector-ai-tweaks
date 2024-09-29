@@ -9,7 +9,6 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.debug.drawCircle
-import com.genir.aitweaks.core.features.shipai.autofire.SyncState
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.features.shipai.vanilla.Vanilla
@@ -60,9 +59,6 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     var threats: Set<ShipAPI> = setOf()
     var threatVector = Vector2f()
 
-    // Autofire management.
-    val weaponSyncMap: MutableMap<String, SyncState> = mutableMapOf()
-
     override fun advance(dt: Float) {
         debug()
 
@@ -85,8 +81,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             updateThreats()
             updateShipStats()
             updateAttackRange()
-//            ensureAutofire()
-            updateWeaponSync()
+            ensureAutofire()
             updateBackoffStatus()
             update1v1Status()
             ventIfNeeded()
@@ -317,33 +312,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         ship.weaponGroupsCopy.forEach { it.toggleOn() }
     }
 
-    /** Ensure all weapons that are to fire in staggered mode share an up-to date state. */
-    private fun updateWeaponSync() {
-        val syncWeapons = stats.significantWeapons.asSequence().filter {
-            when {
-                it.isBeam -> false
 
-                it.isPD -> false
-
-                it.type == WeaponAPI.WeaponType.MISSILE -> false
-
-                else -> true
-            }
-        }.mapNotNull { it.customAI }
-
-        weaponSyncMap.forEach { it.value.weapons = 0 }
-
-        syncWeapons.forEach { autofireAI ->
-            val state: SyncState = weaponSyncMap[autofireAI.weapon.id] ?: run {
-                val newState = SyncState(0, 0f)
-                weaponSyncMap[autofireAI.weapon.id] = newState
-                newState
-            }
-
-            state.weapons++
-            autofireAI.syncState = state
-        }
-    }
 
     private fun holdFireIfOverfluxed() {
         isHoldingFire = when {

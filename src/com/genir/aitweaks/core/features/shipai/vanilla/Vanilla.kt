@@ -31,6 +31,9 @@ class Vanilla(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
         val avoidMissiles = methods.first { it.name == "avoidMissiles" }
         avoidMissiles.setAccessible(true)
         this.avoidMissiles = MethodHandles.lookup().unreflect(avoidMissiles)
+
+        // Ensure AI Tweaks is in control of autofire management.
+        AutofireManagerAdapter.inject(ship, basicShipAI.attackAI)
     }
 
     // TODO method handles are slow
