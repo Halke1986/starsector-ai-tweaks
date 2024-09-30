@@ -18,6 +18,9 @@ val WeaponAPI.isPD: Boolean
 val WeaponAPI.isPDSpec: Boolean
     get() = spec.aiHints.contains(PD) || spec.aiHints.contains(PD_ONLY)
 
+val WeaponAPI.isMissile: Boolean
+    get() = type == WeaponAPI.WeaponType.MISSILE
+
 val WeaponAPI.isStrictlyAntiShield: Boolean
     get() = spec.hasTag("aitweaks_anti_shield")
 

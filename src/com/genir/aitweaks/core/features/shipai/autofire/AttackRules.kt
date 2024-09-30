@@ -23,7 +23,8 @@ enum class HoldFire {
     NO_HIT_EXPECTED,
     STABILIZE_ON_TARGET,
     OUT_OF_RANGE,
-    CONSERVE_AMMO
+    CONSERVE_AMMO,
+    SAVE_FLUX
 }
 
 class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private val params: BallisticParams) {

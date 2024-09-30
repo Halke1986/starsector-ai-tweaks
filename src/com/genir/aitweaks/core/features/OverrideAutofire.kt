@@ -8,6 +8,7 @@ import com.genir.aitweaks.core.features.shipai.vanilla.AutofireManagerAdapter
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.extensions.hasBasicShipAI
 
+/** Plugin for replacing vanilla AutofireManager with AI Tweaks implementation. */
 class OverrideAutofire : BaseEveryFrameCombatPlugin() {
     private val updateInterval = Interval(0.75f, 1f)
 
@@ -24,8 +25,6 @@ class OverrideAutofire : BaseEveryFrameCombatPlugin() {
                 it.isFighter -> false
 
                 !it.hasBasicShipAI -> false
-
-                it.owner != 0 -> false
 
                 else -> true
             }

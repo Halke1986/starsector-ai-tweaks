@@ -3,13 +3,13 @@ package com.genir.aitweaks.core.features.shipai.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.rotateAroundPivot
-import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
@@ -17,7 +17,6 @@ import kotlin.math.abs
 import kotlin.math.min
 
 class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
-    private val enabledStaggeredFire: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_staggered_fire") == true
     private val ship: ShipAPI = weapon.ship
 
     private var target: CombatEntityAPI? = null
@@ -85,7 +84,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             shouldHoldFire != null -> false
 
-            enabledStaggeredFire && syncState != null -> syncFire(syncState)
+            syncState != null -> syncFire(syncState)
 
             else -> true
         }
@@ -193,6 +192,8 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (target == null) return NO_TARGET
         if (intercept == null) return NO_HIT_EXPECTED
 
+        holdFireIfOverfluxed()?.let { return it }
+
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
         val ballisticParams = currentParams()
@@ -231,6 +232,24 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         return AttackRules(weapon, hit, ballisticParams).shouldHoldFire
+    }
+
+    private fun holdFireIfOverfluxed(): HoldFire? {
+        return when {
+            // Ships with no shields don't need to preserve flux.
+            ship.shield == null -> null
+
+            weapon.isPD -> null
+
+            weapon.fluxCostToFire == 0f -> null
+
+            weapon.ship.isUnderManualControl -> null
+
+            // Ship will be overfluxed after the attack.
+            ship.fluxTracker.currFlux + weapon.fluxCostToFire >= ship.fluxTracker.maxFlux * Preset.holdFireThreshold -> SAVE_FLUX
+
+            else -> null
+        }
     }
 
     private fun updateAimLocation() {

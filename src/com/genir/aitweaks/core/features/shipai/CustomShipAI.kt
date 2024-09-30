@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.BACKING_OFF
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
-import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.debug.drawCircle
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
@@ -84,7 +83,6 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
             updateBackoffStatus()
             update1v1Status()
             ventIfNeeded()
-            holdFireIfOverfluxed()
 
             // Update targets.
             updateAssignment()
@@ -301,23 +299,6 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 
         val continueBurst = finishBurstWeaponGroup?.weapons?.any { it.isInFiringSequence && it.target == finishBurstTarget }
         if (continueBurst != true) finishBurstTarget = null
-    }
-
-    private fun holdFireIfOverfluxed() {
-        isHoldingFire = when {
-            // Ships with no shields don't need to preserve flux.
-            ship.shield == null -> false
-
-            // Ship is overfluxed.
-            ship.fluxTracker.fluxLevel > Preset.holdFireThreshold -> true
-
-            else -> false
-        }
-
-        if (isHoldingFire) {
-            val fluxWeapons = ship.allWeapons.filter { !it.isPD && it.fluxCostToFire != 0f }
-            fluxWeapons.mapNotNull { it.autofirePlugin }.forEach { it.forceOff() }
-        }
     }
 
     /** Force vent when the ship is backing off,

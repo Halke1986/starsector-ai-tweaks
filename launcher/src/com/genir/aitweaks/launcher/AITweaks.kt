@@ -16,13 +16,13 @@ import java.lang.invoke.MethodType
 
 class AITweaks : BaseModPlugin() {
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
-        val autofireManagerClass: Class<*> = coreLoader.loadClass("com.genir.aitweaks.core.features.shipai.autofire.AutofireManager")
-        val autofireManager: Any = autofireManagerClass.newInstance()
+        val autofirePickerClass: Class<*> = coreLoader.loadClass("com.genir.aitweaks.core.features.shipai.autofire.AutofirePicker")
+        val autofirePicker: Any = autofirePickerClass.newInstance()
 
         val pickWeaponType: MethodType = MethodType.methodType(PluginPick::class.java, WeaponAPI::class.java)
-        val pickWeapon: MethodHandle = MethodHandles.lookup().findVirtual(autofireManagerClass, "pickWeaponAutofireAI", pickWeaponType)
+        val pickWeapon: MethodHandle = MethodHandles.lookup().findVirtual(autofirePickerClass, "pickWeaponAutofireAI", pickWeaponType)
 
-        return pickWeapon(autofireManager, weapon) as PluginPick<AutofireAIPlugin>
+        return pickWeapon(autofirePicker, weapon) as PluginPick<AutofireAIPlugin>
     }
 
     override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin> {
