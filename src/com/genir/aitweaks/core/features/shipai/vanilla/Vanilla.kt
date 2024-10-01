@@ -37,25 +37,27 @@ class Vanilla(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     }
 
     // TODO method handles are slow
+    /** Advance AI subsystems carried over from the vanilla BasicShipAI. To work
+     * correctly, the subsystems should be called in same order as in BasicShipAI. */
     fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Float) {
         flags.advance(dt)
         threatEvalAI.advance(dt)
+        avoidMissiles.invoke(basicShipAI)
+
+        ventModule.advance(dt, attackTarget)
+        fighterPullbackModule?.advance(dt, attackTarget)
 
         // Vanilla ship systems read maneuvers planned by ship AI through the flockingAI.
         flockingAI.setDesiredHeading(if (expectedVelocity.isZeroVector()) Float.MAX_VALUE else expectedVelocity.getFacing())
         flockingAI.setDesiredSpeed(expectedVelocity.length())
         flockingAI.setDesiredFacing(expectedFacing)
-
-        avoidMissiles.invoke(basicShipAI)
         flockingAI.advanceCollisionAnalysisModule(dt)
 
         val missileDangerDir: Vector2f? = flockingAI.getMissileDangerDir()
         val collisionDangerDir: Vector2f? = null // TODO maybe implement?
 
-        ventModule.advance(dt, attackTarget)
-        fighterPullbackModule?.advance(dt, attackTarget)
+        attackModule.advance(dt, threatEvalAI, missileDangerDir)
         shieldAI?.advance(dt, threatEvalAI, missileDangerDir, collisionDangerDir, attackTarget)
         systemAI?.advance(dt, missileDangerDir, collisionDangerDir, attackTarget)
-        attackModule.advance(dt, threatEvalAI, missileDangerDir)
     }
 }

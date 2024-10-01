@@ -1,5 +1,6 @@
 - Vanilla ship AI no longer takes "manual" control of weapon groups, except groups with missiles. This ensures AI Tweaks controls almost all weapons.
-- Staggered firing mode is enabled for ships with vanilla AI.
+- Staggered firing mode is now enabled for ships with vanilla AI.
+- Custom ship AI no longer autofires missiles; instead, it now uses vanilla logic to manage them.
 
 Version 1.9.6
 
