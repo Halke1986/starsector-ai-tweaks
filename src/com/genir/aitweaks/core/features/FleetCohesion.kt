@@ -1,6 +1,5 @@
 package com.genir.aitweaks.core.features
 
-import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.AssignmentTargetAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
@@ -88,7 +87,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
                 it.isAlly -> false
                 it.isStation -> false
                 it.isModule -> false
-                it.hasCustomShipAI -> false
+                it.basicShipAI == null -> false
                 it.isUnderManualControl -> false
                 else -> true
             }

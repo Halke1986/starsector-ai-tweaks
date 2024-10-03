@@ -1,16 +1,14 @@
 package com.genir.aitweaks.core.utils.extensions
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
-import com.fs.starfarer.api.combat.CombatFleetManagerAPI
-import com.fs.starfarer.api.combat.CombatTaskManagerAPI
-import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
+import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
@@ -83,23 +81,14 @@ val ShipAPI.timeMult: Float
 val ShipAPI.fluxLeft: Float
     get() = fluxTracker.maxFlux - fluxTracker.currFlux
 
-private fun ShipAPI.hasAIClass(c: Class<*>?): Boolean {
-    return when {
-        c == null -> false
-        c.isInstance(ai) -> true
-        c.isInstance((ai as? Ship.ShipAIWrapper)?.ai) -> true
-        else -> false
-    }
-}
-
-val ShipAPI.hasBasicShipAI: Boolean
-    get() = hasAIClass(BasicShipAI::class.java)
-
-val ShipAPI.hasCustomShipAI: Boolean
-    get() = hasAIClass(CustomShipAI::class.java)
-
 val ShipAPI.customShipAI: CustomShipAI?
-    get() = (ai as? Ship.ShipAIWrapper)?.ai as? CustomShipAI
+    get() = unwrapAI as? CustomShipAI
+
+val ShipAPI.basicShipAI: BasicShipAI?
+    get() = (ai as? BasicShipAI) ?: (unwrapAI as? WrapperShipAI)?.basicShipAI
+
+private val ShipAPI.unwrapAI: ShipAIPlugin?
+    get() = (ai as? Ship.ShipAIWrapper)?.ai
 
 val ShipAPI.isUnderManualControl: Boolean
     get() = this == Global.getCombatEngine().playerShip && Global.getCombatEngine().isUIAutopilotOn
