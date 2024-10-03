@@ -8,7 +8,6 @@ import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
-import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
@@ -85,7 +84,7 @@ val ShipAPI.customShipAI: CustomShipAI?
     get() = unwrapAI as? CustomShipAI
 
 val ShipAPI.basicShipAI: BasicShipAI?
-    get() = (ai as? BasicShipAI) ?: (unwrapAI as? WrapperShipAI)?.basicShipAI
+    get() = (ai as? BasicShipAI) ?: (unwrapAI as? BasicShipAI)
 
 private val ShipAPI.unwrapAI: ShipAIPlugin?
     get() = (ai as? Ship.ShipAIWrapper)?.ai

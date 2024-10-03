@@ -8,6 +8,8 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
 import com.genir.aitweaks.core.utils.extensions.assignment
+import com.genir.aitweaks.core.utils.extensions.isFrigateShip
+import com.genir.aitweaks.core.utils.extensions.isMissile
 import lunalib.lunaSettings.LunaSettings.getBoolean
 
 class CustomAIManager {
@@ -16,8 +18,24 @@ class CustomAIManager {
     private val devmode: Boolean = getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
 
     fun getCustomAIForShip(ship: ShipAPI): ShipAIPlugin? {
-        return if (shouldHaveCustomAI(ship)) CustomShipAI(ship)
-        else null
+        return when {
+            shouldHaveCustomAI(ship) -> CustomShipAI(ship)
+
+            shouldHaveWrapperAI(ship) -> WrapperShipAI(ship)
+
+            else -> null
+        }
+    }
+
+    private fun shouldHaveWrapperAI(ship: ShipAPI): Boolean {
+        return when {
+            !customAIEnabled -> false
+            Global.getCurrentState() != GameState.COMBAT -> false
+
+            !ship.isFrigateShip -> false
+
+            else -> ship.allWeapons.any { !it.isMissile && !it.isBeam && it.slot.isHardpoint }
+        }
     }
 
     /** Currently, custom AI is enabled only for selected ships. */
