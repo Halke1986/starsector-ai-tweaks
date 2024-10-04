@@ -8,6 +8,7 @@ import com.genir.aitweaks.core.combat.trackers.AccelerationTracker
 import com.genir.aitweaks.core.combat.trackers.ManeuverTargetTracker
 import com.genir.aitweaks.core.features.FleetCohesion
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
+import lunalib.lunaSettings.LunaSettings
 
 fun combatState(): State = combatState
 
@@ -16,12 +17,12 @@ private var combatState: State = State()
 
 class State : BaseEveryFrameCombatPlugin() {
     val customAIManager: CustomAIManager = CustomAIManager()
+    var frameCount: Int = 0
+    val devmode: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
 
     val fleetCohesion: Array<FleetCohesion> = arrayOf(FleetCohesion(0), FleetCohesion(1))
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
     val maneuverTargetTracker: ManeuverTargetTracker = ManeuverTargetTracker()
-
-    var frameCount: Int = 0
 
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
         fleetCohesion[0],

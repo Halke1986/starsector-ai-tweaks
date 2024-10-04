@@ -91,3 +91,6 @@ private val ShipAPI.unwrapAI: ShipAIPlugin?
 
 val ShipAPI.isUnderManualControl: Boolean
     get() = this == Global.getCombatEngine().playerShip && Global.getCombatEngine().isUIAutopilotOn
+
+val ShipAPI.allGroupedWeapons: List<WeaponAPI>
+    get() = weaponGroupsCopy.flatMap { it.weaponsCopy }

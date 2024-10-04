@@ -274,10 +274,6 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         return defaultShipFacing + offsetNegative + offsetPositive
     }
 
-    private fun averageFacing(facings: Collection<Float>): Float {
-        return facings.fold(Vector2f()) { sum, f -> sum + unitVector(f) }.facing
-    }
-
     private fun gatherSpeedLimits(dt: Float): List<EngineController.Limit> {
         val friendlies = Global.getCombatEngine().ships.filter {
             when {

@@ -5,13 +5,14 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import org.json.JSONObject
 import org.lazywizard.lazylib.MathUtils.getShortestRotation
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plusAssign
+import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.PI
 import kotlin.math.abs
@@ -68,7 +69,7 @@ class RollingAverageVector(private val historySize: Int) {
 
     fun update(v: Vector2f): Vector2f {
         history.add(Vector2f(v))
-        sum += v
+        sum = sum + v
         if (history.size > historySize) {
             sum -= history.first()
             history.removeFirst()
@@ -134,27 +135,11 @@ inline fun <reified T> closestEntity(entities: Collection<CombatEntityAPI>, p: V
     return entities.minByOrNull { (it.location - p).lengthSquared } as? T
 }
 
-interface CanOverlap {
-    fun overlaps(second: CanOverlap): Boolean
-
-    fun merge(second: CanOverlap)
-}
-
-fun mergeOverlapping(l: List<CanOverlap>): List<CanOverlap> {
-    if (l.size <= 1) return l
-
-    val l2: MutableList<CanOverlap> = mutableListOf(l.first())
-    for (i in 1 until l.size) {
-        if (l2.last().overlaps(l[i])) l2.last().merge(l[i])
-        else l2.add(l[i])
-    }
-
-    if (l2.size == 1) return l2
-    if (l2.first().overlaps(l2.last())) {
-        l2.first().merge(l2.last())
-        l2.removeLast()
-    }
-
-    return if (l.size == l2.size) l2
-    else mergeOverlapping(l2)
+/**
+ * Calculates the average facing direction by converting facings into unit vectors
+ * and averaging the resulting vectors. Returns the facing of the average vector.
+ * This approach avoids issues with angles behaving as modular values in Starsector.
+ */
+fun averageFacing(facings: Collection<Float>): Float {
+    return facings.fold(Vector2f()) { sum, f -> sum + unitVector(f) }.facing
 }

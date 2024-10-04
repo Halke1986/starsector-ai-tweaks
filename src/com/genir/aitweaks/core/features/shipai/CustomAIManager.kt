@@ -7,15 +7,14 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
+import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.utils.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.utils.extensions.assignment
 import com.genir.aitweaks.core.utils.extensions.isFrigateShip
-import com.genir.aitweaks.core.utils.extensions.isMissile
 import lunalib.lunaSettings.LunaSettings.getBoolean
 
 class CustomAIManager {
     val customAIEnabled: Boolean = getBoolean("aitweaks", "aitweaks_enable_custom_ship_ai") ?: false
-
-    private val devmode: Boolean = getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
 
     fun getCustomAIForShip(ship: ShipAPI): ShipAIPlugin? {
         return when {
@@ -34,7 +33,9 @@ class CustomAIManager {
 
             !ship.isFrigateShip -> false
 
-            else -> ship.allWeapons.any { !it.isMissile && !it.isBeam && it.slot.isHardpoint }
+            ship.owner != 0 -> false
+
+            else -> ship.allGroupedWeapons.any { WrapperShipAI.shouldAim(it) }
         }
     }
 
@@ -57,7 +58,7 @@ class CustomAIManager {
 
             // Player
             ship.isAlly -> false
-            ship.owner == 0 && devmode -> true
+            ship.owner == 0 && combatState().devmode -> true
 
             else -> false
         }
