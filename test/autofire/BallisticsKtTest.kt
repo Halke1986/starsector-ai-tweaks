@@ -2,6 +2,7 @@ package autofire
 
 import com.genir.aitweaks.core.features.shipai.autofire.*
 import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.extensions.length
 import mocks.MockBoundsAPI
 import mocks.MockSegmentAPI
 import mocks.MockShipAPI
@@ -72,7 +73,9 @@ class BallisticsKtTest {
             radius = 3f,
         )
 
-        assertNull(intercept(weapon, target, BallisticParams(1f, 0f)))
+        val approachesInfinity = 1e6f
+
+        assertTrue(intercept(weapon, target, BallisticParams(1f, 0f)).length > approachesInfinity)
         assertNull(interceptArc(weapon, target, BallisticParams(1f, 0f)))
         assertNull(closestHitRange(weapon, target, BallisticParams(1f, 0f)))
         assertNull(willHitCircumference(weapon, target, BallisticParams(1f, 0f)))

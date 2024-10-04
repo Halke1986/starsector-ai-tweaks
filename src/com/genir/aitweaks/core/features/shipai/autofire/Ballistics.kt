@@ -28,10 +28,12 @@ data class BallisticParams(val accuracy: Float, val delay: Float)
 fun defaultBallisticParams() = BallisticParams(1f, 0f)
 
 /** Weapon aim location required to hit center point of a moving target.
- * Null if projectile is slower than the target. */
-fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f? {
+ * When the target's speed approaches the speed of the projectile, the intercept
+ * time and location approach infinity. In such cases, the function assumes an
+ * arbitrary long time period to approximate the target location. */
+fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f {
     val pv = targetCoords(weapon, target, params)
-    val range = solve(pv, 0f, 1f, 0f) ?: return null
+    val range = solve(pv, 0f, 1f, 0f) ?: 1e6f
     val offset = pv.second * range
 
     return target.location + (target.velocity - weapon.ship.velocity) * params.delay + offset

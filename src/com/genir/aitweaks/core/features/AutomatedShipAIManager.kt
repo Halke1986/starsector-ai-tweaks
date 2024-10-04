@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.features
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
+import com.fs.starfarer.combat.ai.BasicShipAI
 import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.utils.extensions.basicShipAI
 import com.genir.aitweaks.core.utils.extensions.customShipAI
@@ -31,7 +32,7 @@ class AutomatedShipAIManager : BaseEveryFrameCombatPlugin() {
         // Replace vanilla AI for eligible ships. This should happen
         // in BaseModPlugin.pickShipAI, but vanilla overrides the choice
         // with high priority.
-        automatedShips.filter { it.basicShipAI != null }.forEach { ship ->
+        automatedShips.filter { it.ai is BasicShipAI }.forEach { ship ->
             combatState().customAIManager.getCustomAIForShip(ship)?.let { ship.shipAI = it }
         }
 
@@ -49,7 +50,7 @@ class AutomatedShipAIManager : BaseEveryFrameCombatPlugin() {
 
                 // Custom AI needs captain personality change,
                 // because it ignores configured personality override.
-                ship.customShipAI != null-> {
+                ship.customShipAI != null -> {
                     ship.captain.setPersonality(expectedPersonality)
                 }
             }

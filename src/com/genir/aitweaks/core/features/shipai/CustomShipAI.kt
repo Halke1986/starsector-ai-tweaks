@@ -51,7 +51,6 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     var attackingGroup: WeaponGroup = stats.weaponGroups[0]
     var attackRange: Float = 0f
     var isBackingOff: Boolean = false
-    var isHoldingFire: Boolean = false
     var isAvoidingBorder: Boolean = false
     var is1v1: Boolean = false
     var idleTime = 0f

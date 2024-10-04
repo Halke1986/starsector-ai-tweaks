@@ -99,7 +99,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getWeapon(): WeaponAPI = weapon
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
 
-    fun plotIntercept(target: CombatEntityAPI): Vector2f? {
+    fun plotIntercept(target: CombatEntityAPI): Vector2f {
         return intercept(weapon, BallisticTarget.entity(target), currentParams())
     }
 
@@ -258,7 +258,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         if (target == null) return
 
-        intercept = plotIntercept(target!!) ?: return
+        intercept = plotIntercept(target!!)
         aimPoint = if (weapon.slot.isTurret) intercept
         else aimHardpoint(intercept!!, target!!)
     }
