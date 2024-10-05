@@ -56,7 +56,7 @@ class CustomAIManager {
 
             // Player
             ship.isAlly -> false
-            ship.owner == 0 && combatState.devmode -> true
+            ship.owner == 0 && combatState.devMode -> true
 
             else -> false
         }
