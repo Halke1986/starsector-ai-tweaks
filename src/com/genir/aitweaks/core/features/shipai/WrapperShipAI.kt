@@ -8,8 +8,8 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
 import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.debug.drawCircle
+import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.averageFacing
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
@@ -52,7 +52,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
     }
 
     private fun debug() {
-        if (combatState().devmode)
+        if (combatState.devmode)
             drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
     }
 

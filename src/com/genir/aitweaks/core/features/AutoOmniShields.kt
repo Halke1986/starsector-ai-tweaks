@@ -1,6 +1,5 @@
 package com.genir.aitweaks.core.features
 
-import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.*

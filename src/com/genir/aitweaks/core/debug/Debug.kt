@@ -5,9 +5,9 @@ import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.EngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
+import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.length
@@ -38,8 +38,8 @@ class Interpolate(private val ship: ShipAPI) {
         // No need to interpolate for ships in normal time flow.
         if (timeMult == 1f) return nextValue()
 
-        if (combatState().frameCount > timestamp) {
-            timestamp = combatState().frameCount
+        if (combatState.frameCount > timestamp) {
+            timestamp = combatState.frameCount
             dtSum = 0f
 
             prevValue = value

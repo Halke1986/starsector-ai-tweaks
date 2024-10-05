@@ -1,19 +1,15 @@
-package com.genir.aitweaks.core.combat
+package com.genir.aitweaks.core.state
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.combat.trackers.AccelerationTracker
-import com.genir.aitweaks.core.combat.trackers.ManeuverTargetTracker
 import com.genir.aitweaks.core.features.FleetCohesion
 import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import lunalib.lunaSettings.LunaSettings
 
-fun combatState(): State = combatState
-
 // Global combat state.
-private var combatState: State = State()
+var combatState: State = State()
 
 class State : BaseEveryFrameCombatPlugin() {
     val customAIManager: CustomAIManager = CustomAIManager()

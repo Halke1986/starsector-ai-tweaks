@@ -4,7 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
-import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.extensions.basicShipAI
 import com.genir.aitweaks.core.utils.extensions.customShipAI
 import com.genir.aitweaks.core.utils.extensions.isAutomated
@@ -33,7 +33,7 @@ class AutomatedShipAIManager : BaseEveryFrameCombatPlugin() {
         // in BaseModPlugin.pickShipAI, but vanilla overrides the choice
         // with high priority.
         automatedShips.filter { it.ai is BasicShipAI }.forEach { ship ->
-            combatState().customAIManager.getCustomAIForShip(ship)?.let { ship.shipAI = it }
+            combatState.customAIManager.getCustomAIForShip(ship)?.let { ship.shipAI = it }
         }
 
         // Replace only vanilla AI with incorrect personality

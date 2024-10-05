@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
-import com.genir.aitweaks.core.combat.combatState
+import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.utils.extensions.assignment
 import com.genir.aitweaks.core.utils.extensions.isFrigateShip
@@ -56,7 +56,7 @@ class CustomAIManager {
 
             // Player
             ship.isAlly -> false
-            ship.owner == 0 && combatState().devmode -> true
+            ship.owner == 0 && combatState.devmode -> true
 
             else -> false
         }

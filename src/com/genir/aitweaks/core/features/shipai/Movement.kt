@@ -6,8 +6,8 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
+import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
@@ -434,7 +434,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         if (distanceLeft <= 0f) return EngineController.Limit(dirFacing, 0f)
 
         val vObstacle = vectorProjectionLength(obstacle.timeAdjustedVelocity, direction)
-        val aObstacle = vectorProjectionLength(combatState().accelerationTracker[obstacle], direction)
+        val aObstacle = vectorProjectionLength(combatState.accelerationTracker[obstacle], direction)
         val decelShip = ship.collisionDeceleration(dirFacing)
 
         val vMax: Float = when {
@@ -494,8 +494,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         fun advance(dt: Float, nextValue: () -> Vector2f): Vector2f {
             val timeMult: Float = ship.mutableStats.timeMult.modifiedValue
 
-            if (combatState().frameCount > timestamp) {
-                timestamp = combatState().frameCount
+            if (combatState.frameCount > timestamp) {
+                timestamp = combatState.frameCount
                 dtSum = 0f
 
                 prevValue = value

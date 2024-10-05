@@ -6,8 +6,8 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
+import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
@@ -55,7 +55,7 @@ val ShipAPI.attackTarget: ShipAPI?
         isUnderManualControl -> shipTarget
 
         // Fall back to using vanilla AI maneuver target.
-        else -> combatState().maneuverTargetTracker[this]
+        else -> combatState.maneuverTargetTracker[this]
     }
 
 val ShipAPI.isAutomated: Boolean

@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.combat.trackers
+package com.genir.aitweaks.core.state
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin

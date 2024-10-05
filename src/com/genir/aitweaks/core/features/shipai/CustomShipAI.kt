@@ -6,11 +6,11 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.BACKING_OFF
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
-import com.genir.aitweaks.core.combat.combatState
 import com.genir.aitweaks.core.debug.drawCircle
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.features.shipai.vanilla.Vanilla
+import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
@@ -162,7 +162,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         if (maneuverTarget?.isValidTarget == true && systemAI?.holdTargets() == true) return
 
         // Try cohesion AI first.
-        val cohesionAI = combatState().fleetCohesion[ship.owner]
+        val cohesionAI = combatState.fleetCohesion[ship.owner]
         cohesionAI.findClosestTarget(ship)?.let {
             maneuverTarget = it
             return
