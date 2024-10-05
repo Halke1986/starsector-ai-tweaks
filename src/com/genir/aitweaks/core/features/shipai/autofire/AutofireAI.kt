@@ -14,10 +14,10 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
 
-class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
+open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
 
-    private var target: CombatEntityAPI? = null
+    protected var target: CombatEntityAPI? = null
     private var aimPoint: Vector2f? = null
 
     private var attackTime: Float = 0f
@@ -184,10 +184,10 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
     }
 
-    private fun calculateShouldFire(): HoldFire? {
+    protected open fun calculateShouldFire(): HoldFire? {
         predictedHit = null
 
-        if (target == null) return NO_TARGET
+        if (target?.isValidTarget != true) return NO_TARGET
         if (intercept == null) return NO_HIT_EXPECTED
 
         holdFireIfOverfluxed()?.let { return it }
@@ -223,7 +223,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return AttackRules(weapon, hit, ballisticParams).shouldHoldFire
     }
 
-    private fun holdFireIfOverfluxed(): HoldFire? {
+    protected fun holdFireIfOverfluxed(): HoldFire? {
         return when {
             // Ships with no shields don't need to preserve flux.
             ship.shield == null -> null
@@ -270,7 +270,7 @@ class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     /** get current weapon attack parameters */
-    private fun currentParams() = BallisticParams(
+    protected fun currentParams() = BallisticParams(
         getAccuracy(),
         // TODO Currently, the weapon attack delay time is disabled.
         0f,

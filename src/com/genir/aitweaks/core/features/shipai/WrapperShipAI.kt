@@ -17,10 +17,10 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import com.fs.starfarer.combat.ai.movement.maneuvers.B as ApproachManeuver
 
-// TODO staggered fire issue
-// TODO Override autofire for flamer
 // TODO deobfuscate
 
+/** Ship AI implementation that wraps around vanilla BasicShipAI and overrides certain decisions.
+ * Currently, it is used to aim hardpoint weapons on frigates. */
 class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings().createDefaultShipAI(ship, ShipAIConfig())) {
     private val basicShipAI: BasicShipAI = super.getAI() as BasicShipAI
     private val engineController: EngineController = EngineController(ship)

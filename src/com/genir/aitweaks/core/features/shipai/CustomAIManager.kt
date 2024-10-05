@@ -33,8 +33,6 @@ class CustomAIManager {
 
             !ship.isFrigateShip -> false
 
-            ship.owner != 0 -> false
-
             else -> ship.allGroupedWeapons.any { WrapperShipAI.shouldAim(it) }
         }
     }

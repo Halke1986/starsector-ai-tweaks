@@ -79,9 +79,9 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
 /** Avoiding friendly fire works under the assumption that the provided
  * actual hit is the first non-fighter, non-phased ship or phased friendly
  * ship along the line of fire. */
-fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire? = when {
+fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit?, actual: Hit?): HoldFire? = when {
     actual == null -> fire
-    allowPDFriendlyFire(weapon, expected, actual) -> fire
+    expected != null && allowPDFriendlyFire(weapon, expected, actual) -> fire
     actual.target !is ShipAPI -> fire
     !actual.target.isAlive -> HoldFire.AVOID_FF_JUNK
     !actual.target.isHullDamageable -> HoldFire.AVOID_FF_INERT

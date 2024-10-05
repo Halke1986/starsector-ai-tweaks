@@ -30,7 +30,7 @@ class AutofireManagerAdapter(val ship: ShipAPI) : Obfuscated.AutofireManagerInte
             val autofireManagerClass = getObfuscatedClass()
 
             val f = findAutofireManagerField().also { it.setAccessible(true) }
-            if (f.get(attackModule)::class.java.isInstance(autofireManagerClass)) return
+            if (autofireManagerClass.isInstance(f.get(attackModule))) return
 
             val ctor = autofireManagerClass.getConstructor(ShipAPI::class.java)
             f.set(attackModule, ctor.newInstance(ship))

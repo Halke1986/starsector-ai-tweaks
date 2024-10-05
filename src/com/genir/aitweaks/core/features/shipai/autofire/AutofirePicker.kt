@@ -12,15 +12,16 @@ class AutofirePicker {
     )
 
     fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
-        val shouldHaveCustomAI = when {
-            weapon.type == WeaponAPI.WeaponType.MISSILE -> false
+        val ai = when {
+            weapon.type == WeaponAPI.WeaponType.MISSILE -> null
 
-            autofireBlacklist.contains(weapon.id) -> false
+            autofireBlacklist.contains(weapon.id) -> null
 
-            else -> true
+            weapon.id == "TADA_plasma" || weapon.id == "TS_plasma" -> TadaPlasmaAI(weapon)
+
+            else -> AutofireAI(weapon)
         }
 
-        val ai: AutofireAIPlugin? = if (shouldHaveCustomAI) AutofireAI(weapon) else null
         return PluginPick(ai, CampaignPlugin.PickPriority.MOD_GENERAL)
     }
 }
