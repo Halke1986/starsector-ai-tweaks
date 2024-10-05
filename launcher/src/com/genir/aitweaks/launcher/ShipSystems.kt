@@ -1,6 +1,7 @@
 package com.genir.aitweaks.launcher
 
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.launcher.AITweaks.Companion.coreLoader
 import org.lwjgl.util.vector.Vector2f
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles

@@ -10,11 +10,17 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.genir.aitweaks.launcher.features.CryosleeperEncounter
+import com.genir.aitweaks.launcher.loading.CoreLoaderManagerHandler
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 
 class AITweaks : BaseModPlugin() {
+    companion object {
+        val coreLoaderManager = CoreLoaderManagerHandler()
+        var coreLoader: ClassLoader = coreLoaderManager.getCoreLoader()
+    }
+
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
         val autofirePickerClass: Class<*> = coreLoader.loadClass("com.genir.aitweaks.core.features.shipai.autofire.AutofirePicker")
         val autofirePicker: Any = autofirePickerClass.newInstance()
