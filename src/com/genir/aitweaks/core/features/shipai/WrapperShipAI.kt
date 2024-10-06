@@ -8,6 +8,7 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
 import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.drawCircle
 import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.averageFacing
@@ -15,14 +16,11 @@ import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-import com.fs.starfarer.combat.ai.movement.maneuvers.B as ApproachManeuver
-
-// TODO deobfuscate
 
 /** Ship AI implementation that wraps around vanilla BasicShipAI and overrides certain decisions.
  * Currently, it is used to aim hardpoint weapons on frigates. */
 class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings().createDefaultShipAI(ship, ShipAIConfig())) {
-    private val basicShipAI: BasicShipAI = super.getAI() as BasicShipAI
+    private val basicShipAI: Obfuscated.BasicShipAI = super.getAI() as Obfuscated.BasicShipAI
     private val engineController: EngineController = EngineController(ship)
 
     var expectedFacing: Float? = null
@@ -34,26 +32,28 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         expectedFacing = null
 
         // Override only attack-related maneuvers.
-        val currentManeuver = basicShipAI.currentManeuver
-        if (currentManeuver !is StrafeTargetManeuverV2 && currentManeuver !is ApproachManeuver) return
+        val currentManeuver: Obfuscated.Maneuver? = basicShipAI.currentManeuver
+        if (currentManeuver !is StrafeTargetManeuverV2 && currentManeuver !is Obfuscated.ApproachManeuver) return
 
         expectedFacing = ship.attackTarget?.let { aimShip(it) } ?: return
 
         // Remove vanilla turn commands.
-        val commandWrappers = (ship as Ship).commands.iterator()
-        while (commandWrappers.hasNext()) {
-            val command = commandWrappers.next().new
-            if (command.ordinal == 0 || command.ordinal == 1)
-                commandWrappers.remove()
-        }
+        clearTurnCommands(ship)
 
         // Control the ship rotation.
         engineController.facing(dt, expectedFacing!!)
     }
 
     private fun debug() {
-        if (combatState.devMode)
-            drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
+        if (combatState.devMode) drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
+    }
+
+    private fun clearTurnCommands(ship: Any) {
+        val commandWrappers: MutableIterator<Obfuscated.ShipCommandWrapper> = (ship as Obfuscated.Ship).commands.iterator()
+        while (commandWrappers.hasNext()) {
+            val command: Obfuscated.ShipCommand = commandWrappers.next().command_ShipCommandWrapper
+            if (command.ordinal == 0 || command.ordinal == 1) commandWrappers.remove()
+        }
     }
 
     private fun aimShip(attackTarget: CombatEntityAPI): Float? {

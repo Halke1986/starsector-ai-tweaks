@@ -1,23 +1,32 @@
 package com.genir.aitweaks.launcher.loading
 
 import com.fs.starfarer.api.Global
+import com.genir.aitweaks.launcher.loading.Symbols.Companion.classPath
 import java.net.URL
 import java.net.URLClassLoader
 
 class CoreLoader(urLs: Array<URL>) : URLClassLoader(urLs) {
     private val cache: MutableMap<String, Class<*>> = mutableMapOf()
-
+    private val symbols = Symbols()
     private val obfuscator = Transformer(listOf(
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$AutofireManager", "com/fs/starfarer/combat/ai/attack/D"),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ThreatEvalAI", "com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ApproachManeuver", symbols.approachManeuver.classPath),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$AutofireManager", symbols.autofireManager.classPath),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$BasicShipAI", "com/fs/starfarer/combat/ai/BasicShipAI"),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Maneuver", symbols.maneuver.classPath),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ShipCommandWrapper", symbols.shipCommandWrapper.classPath),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ShipCommand", symbols.shipCommand.classPath),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Ship", "com/fs/starfarer/combat/entities/Ship"),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ThreatEvalAI", symbols.threatEvalAI.classPath),
 
-        Transformer.newTransform("advance_AutofireManager", "o00000"),
-        ))
+        Transformer.newTransform("advance_AutofireManager", symbols.advanceAutofireManager),
+        Transformer.newTransform("command_ShipCommandWrapper", symbols.commandShipCommandWrapper),
+    ))
 
     override fun loadClass(name: String): Class<*> {
         when {
             !name.startsWith("com.genir.aitweaks.core") -> return super.loadClass(name)
 
+            // Don't modify Obfuscated classes - they will not be used anyway.
             name.startsWith("com.genir.aitweaks.core.Obfuscated") -> return super.loadClass(name)
         }
 
@@ -34,43 +43,3 @@ class CoreLoader(urLs: Array<URL>) : URLClassLoader(urLs) {
         return c
     }
 }
-
-
-//        private fun getObfuscatedClass(): Class<*> {
-//            obfuscated?.let { return it }
-//
-//            val cl = ByteClassLoader(this::class.java.classLoader)
-//            cl.addClass(AutofireManagerAdapter::class.java.name, obfuscate())
-//            obfuscated = cl.loadClass(AutofireManagerAdapter::class.java.name)
-//
-//            return obfuscated!!
-//        }
-//
-//        private fun obfuscate(): ByteArray {
-//            // Find vanilla types.
-//            val obfAutofireManager: Class<*> = findAutofireManagerField().type
-//            val obfThreatEvalAI: Class<*> = BasicShipAI::class.java.getMethod("getThreatEvaluator").returnType
-//
-//            // Build obfuscated autofire manager.
-//            return Bytecode.transformClass(AutofireManagerAdapter::class.java) {
-//                object : ClassVisitor(Opcodes.ASM4, it) {
-//
-//                    // Replace implemented interface.
-//                    override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
-//                        val obfInterface = arrayOf(obfAutofireManager.classPath)
-//
-//                        super.visit(version, access, name, signature, superName, obfInterface)
-//                    }
-//
-//                    // Replace advance method name and description.
-//                    override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-//                        if (name != "advance") return super.visitMethod(access, name, desc, signature, exceptions)
-//
-//                        val obfName = obfAutofireManager.methods.first().name
-//                        val obfDesc = desc.replace(Obfuscated.ThreatEvalAI::class.java.classPath, obfThreatEvalAI.classPath)
-//
-//                        return super.visitMethod(access, obfName, obfDesc, signature, exceptions)
-//                    }
-//                }
-//            }
-//        }

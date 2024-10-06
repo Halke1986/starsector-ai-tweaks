@@ -13,5 +13,6 @@
     <orderEntry type="library" name="LazyLib" level="project" />
     <orderEntry type="library" name="starsector-core" level="project" />
     <orderEntry type="library" name="LunaLib" level="project" />
+    <orderEntry type="library" name="asm-4.0" level="project" />
   </component>
 </module>
