@@ -6,6 +6,8 @@ import java.net.URL
 import java.net.URLClassLoader
 import kotlin.io.path.Path
 
+/** CoreLoaderManager finds AI Tweaks core logic jar
+ * and returns ClassLoader that can load the logic. */
 class CoreLoaderManager {
     private var coreURL: URL? = null
     private var coreLoader: ClassLoader? = null
@@ -16,7 +18,7 @@ class CoreLoaderManager {
 
         if (coreURL?.sameFile(currentCoreURL) != true) {
             val urLs: Array<URL> = (this::class.java.classLoader as URLClassLoader).urLs
-            coreLoader = URLClassLoader(arrayOf(*urLs, currentCoreURL))
+            coreLoader = CoreLoader(arrayOf(*urLs, currentCoreURL))
             coreURL = currentCoreURL
         }
 

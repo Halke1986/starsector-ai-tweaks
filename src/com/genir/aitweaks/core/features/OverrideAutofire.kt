@@ -3,7 +3,7 @@ package com.genir.aitweaks.core.features
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.features.shipai.vanilla.AutofireManagerAdapter
+import com.genir.aitweaks.core.features.shipai.AutofireManager
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.extensions.basicShipAI
 
@@ -31,7 +31,7 @@ class OverrideAutofire : BaseEveryFrameCombatPlugin() {
         }.asSequence()
 
         ships.forEach {
-            AutofireManagerAdapter.inject(it, it.basicShipAI!!.attackAI)
+            AutofireManager.inject(it, it.basicShipAI!!.attackAI)
         }
     }
 }

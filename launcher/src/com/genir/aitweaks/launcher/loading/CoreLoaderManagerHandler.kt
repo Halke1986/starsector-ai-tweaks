@@ -6,12 +6,14 @@ import java.lang.invoke.MethodType
 import java.net.URL
 import java.net.URLClassLoader
 
+/** CoreLoaderManager uses reflection and file access, both of which are restricted by Starsector.
+ * CoreLoaderManagerHandler bypasses those restrictions by loading CoreLoaderManager using a custom
+ * class loader and invoking it through method handles. */
 class CoreLoaderManagerHandler {
     private val manager: Any
     private val getCoreLoader: MethodHandle
 
     init {
-        // Class loader to circumvent Starsector file access restrictions.
         val urLs: Array<URL> = (this::class.java.classLoader as URLClassLoader).urLs
         val managerLoader: ClassLoader = URLClassLoader(urLs)
 
