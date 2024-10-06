@@ -7,8 +7,8 @@ import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
 import java.lang.reflect.Method
+import java.lang.reflect.ParameterizedType
 
 class Symbols {
     private val ship: Class<*> = Ship::class.java
@@ -31,7 +31,7 @@ class Symbols {
     }
 
     private fun Method.genericReturnTypeArgument(idx: Int): Class<*> {
-        return (genericReturnType as ParameterizedTypeImpl).actualTypeArguments[idx] as Class<*>
+        return (genericReturnType as ParameterizedType).actualTypeArguments[idx] as Class<*>
     }
 
     private fun findApproachManeuver(): Class<*> {
