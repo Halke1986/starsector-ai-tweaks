@@ -1,3 +1,7 @@
+- Frigates will now rotate to properly aim hardpoint weapons. Currently, works only for projectile weapons, not missiles.
+- Pest Cutter from Torchships has a specialized, very trigger-happy AI for operating the Catalyzed Chemical Torch.
+- Fixed another case of "Fatal: Illegal character in path at index" crash during game startup.
+
 Version 1.10.0
 
 - Vanilla ship AI no longer takes "manual" control of weapon groups, except groups with missiles. This ensures AI Tweaks controls almost all weapons.

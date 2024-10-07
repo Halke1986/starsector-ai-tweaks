@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
@@ -30,6 +29,8 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
 
         basicShipAI.advance(dt)
         expectedFacing = null
+
+        if (ship.fluxTracker.isOverloadedOrVenting) return
 
         // Override only attack-related maneuvers.
         val currentManeuver: Obfuscated.Maneuver? = basicShipAI.currentManeuver
@@ -82,7 +83,16 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
 
     companion object {
         fun shouldAim(weapon: WeaponAPI): Boolean {
-            return !weapon.isMissile && !weapon.isBeam && weapon.slot.isHardpoint && weapon.isFrontFacing
+            return when {
+                weapon.isMissile -> false
+                weapon.isBeam -> false
+                !weapon.slot.isHardpoint -> false
+                !weapon.isFrontFacing -> false
+                weapon.isDisabled -> false
+                weapon.isPermanentlyDisabled -> false
+
+                else -> true
+            }
         }
     }
 }
