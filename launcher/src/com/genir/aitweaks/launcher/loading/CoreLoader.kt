@@ -5,7 +5,7 @@ import com.genir.aitweaks.launcher.loading.Symbols.Companion.classPath
 import java.net.URL
 import java.net.URLClassLoader
 
-class CoreLoader(urLs: Array<URL>) : URLClassLoader(urLs) {
+class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
     private val cache: MutableMap<String, Class<*>> = mutableMapOf()
     private val symbols = Symbols()
     private val obfuscator = Transformer(listOf(
@@ -23,23 +23,32 @@ class CoreLoader(urLs: Array<URL>) : URLClassLoader(urLs) {
     ))
 
     override fun loadClass(name: String): Class<*> {
-        when {
-            !name.startsWith("com.genir.aitweaks.core") -> return super.loadClass(name)
-
-            // Don't modify Obfuscated classes - they will not be used anyway.
-            name.startsWith("com.genir.aitweaks.core.Obfuscated") -> return super.loadClass(name)
-        }
-
         cache[name]?.let { return it }
 
-        val classBuffer = Transformer.readClassBuffer(this, name)
-        val obfuscated = obfuscator.apply(classBuffer)
+        var c: Class<*>?
 
-        val c = defineClass(name, obfuscated, 0, obfuscated.size)
-        cache[name] = c
+        try {
+            // Try to load the class using default Starsector script loader.
+            // This ensures that AI Tweaks' core logic uses the same class
+            // definitions as the rest of the application, including AI Tweaks
+            // launcher. Using the same class definitions is important, when
+            // sharing state through static fields, as is the case in LunaLib
+            // settings.
+            c = Global.getSettings().scriptClassLoader.loadClass(name)
+            Global.getLogger(this::class.java).info("default    $name")
+        } catch (_: SecurityException) {
+            // Load classes restricted by Starsector reflect/IO ban.
+            c = ClassLoader.getSystemClassLoader().loadClass(name)
+            Global.getLogger(this::class.java).info("restricted $name")
+        } catch (_: ClassNotFoundException) {
+            // Load and transform AI Tweaks core logic classes.
+            val classBuffer = Transformer.readClassBuffer(this, name)
+            val obfuscated = obfuscator.apply(classBuffer)
+            c = defineClass(name, obfuscated, 0, obfuscated.size)
+            Global.getLogger(this::class.java).info("aitweaks   $name")
+        }
 
-        Global.getLogger(this::class.java).info(name)
-
+        cache[name] = c!!
         return c
     }
 }
