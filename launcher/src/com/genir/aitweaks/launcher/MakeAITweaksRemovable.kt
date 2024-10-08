@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipVariantAPI
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.fs.starfarer.campaign.CampaignEngine
 
-open class MakeAITweaksRemovable {
+class MakeAITweaksRemovable {
     companion object {
         private data class Hullmod(val name: String, val key: String)
 

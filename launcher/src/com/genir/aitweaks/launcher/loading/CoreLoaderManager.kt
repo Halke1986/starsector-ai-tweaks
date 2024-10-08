@@ -17,8 +17,7 @@ class CoreLoaderManager {
         val currentCoreURL = if (devMode) latestCoreURL() else defaultCoreURL()
 
         if (coreURL?.sameFile(currentCoreURL) != true) {
-            val urLs: Array<URL> = (this::class.java.classLoader as URLClassLoader).urLs
-            coreLoader = CoreLoader(arrayOf(*urLs, currentCoreURL))
+            coreLoader = CoreLoader(currentCoreURL)
             coreURL = currentCoreURL
         }
 

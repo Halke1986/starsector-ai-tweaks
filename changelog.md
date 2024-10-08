@@ -1,3 +1,5 @@
+- Fixed a bug where AI Tweaks did not register LunaLib settings changes until Starsector was restarted.
+
 Version 1.10.1
 
 - Frigates will now rotate to properly aim hardpoint weapons. Currently, works only for projectile weapons, not missiles.

@@ -1,6 +1,9 @@
 package com.genir.aitweaks.core.utils.loading
 
-import org.objectweb.asm.*
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
 /** Tools for obfuscated bytecode analysis. */
 object Bytecode {
@@ -18,17 +21,6 @@ object Bytecode {
         }, 0)
 
         return methods
-    }
-
-    fun transformClass(c: Class<*>, transformerFactory: (ClassVisitor) -> ClassVisitor): ByteArray {
-        val reader = ClassReader(readClassBuffer(c))
-        val writer = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
-        val transformer = transformerFactory(writer)
-
-        reader.accept(transformer, 0)
-        val bytes = writer.toByteArray()
-
-        return bytes
     }
 
     private fun readClassBuffer(c: Class<*>): ByteArray {
