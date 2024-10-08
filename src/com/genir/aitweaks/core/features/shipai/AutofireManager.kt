@@ -82,17 +82,13 @@ class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
     companion object {
         /** Replace vanilla autofire manager with AI Tweaks adapter. */
         fun inject(ship: ShipAPI, attackModule: AttackAIModule) {
-            // TODO replace with compiled code.
-            val f = findAutofireManagerField().also { it.setAccessible(true) }
-            if (AutofireManager::class.java.isInstance(f.get(attackModule))) return
-
-            f.set(attackModule, AutofireManager(ship))
-        }
-
-        /** Find obfuscated AttackAIModule.autofireManager field. */
-        private fun findAutofireManagerField(): Field {
+            // Find the obfuscated AttackAIModule.autofireManager field.
             val fields: Array<Field> = AttackAIModule::class.java.declaredFields
-            return fields.first { it.type.isInterface && it.type.methods.size == 1 }
+            val field = fields.first { it.type.isInterface && it.type.methods.size == 1 }
+            field.setAccessible(true)
+
+            if (AutofireManager::class.java.isInstance(field.get(attackModule))) return
+            field.set(attackModule, AutofireManager(ship))
         }
     }
 }
