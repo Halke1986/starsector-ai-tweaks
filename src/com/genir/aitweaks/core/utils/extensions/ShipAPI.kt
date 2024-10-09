@@ -6,8 +6,8 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
-import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.getFacing
@@ -54,8 +54,15 @@ val ShipAPI.attackTarget: ShipAPI?
         // For manually controlled ship, return R-selected target.
         isUnderManualControl -> shipTarget
 
-        // Fall back to using vanilla AI maneuver target.
-        else -> combatState.maneuverTargetTracker[this]
+        basicShipAI != null -> {
+            val ai = basicShipAI!! as Obfuscated.BasicShipAI
+            val maneuver: Obfuscated.Maneuver? = ai.currentManeuver
+
+            maneuver?.target_Maneuver as? ShipAPI
+        }
+
+        // Fall back to using vanilla maneuver target flag.
+        else -> aiFlags?.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET) as? ShipAPI
     }
 
 val ShipAPI.isAutomated: Boolean

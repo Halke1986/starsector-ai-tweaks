@@ -9,6 +9,7 @@ import com.genir.aitweaks.core.features.shipai.EngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.extensions.attackTarget
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.resized
@@ -20,6 +21,11 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.*
 
 internal fun debug(dt: Float) {
+    val ships = Global.getCombatEngine().ships
+
+    ships.forEach {
+        debugPrint[it] = "${it.hullSpec.hullId} ${it.attackTarget}"
+    }
 }
 
 var facingGoal = 90f

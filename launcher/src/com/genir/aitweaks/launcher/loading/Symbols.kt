@@ -7,9 +7,11 @@ import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
 
+@Suppress("PropertyName")
 class Symbols {
     private val ship: Class<*> = Ship::class.java
     private val basicShipAI: Class<*> = BasicShipAI::class.java
@@ -21,9 +23,11 @@ class Symbols {
     val shipCommandWrapper: Class<*> = ship.getMethod("getCommands").genericReturnTypeArgument(0)
     val shipCommand: Class<*> = ship.getMethod("getBlockedCommands").genericReturnTypeArgument(0)
     val threatEvalAI: Class<*> = basicShipAI.getMethod("getThreatEvaluator").returnType
+    val combatEntity: Class<*> = ship.getMethod("getEntity").returnType
 
-    val advanceAutofireManager: String = autofireManager.methods.first { it.name != "<init>" }.name
-    val commandShipCommandWrapper: String = shipCommandWrapper.fields.first { it.type.isEnum }.name
+    val advance_AutofireManager: Method = autofireManager.methods.first { it.name != "<init>" }
+    val command_ShipCommandWrapper: Field = shipCommandWrapper.fields.first { it.type.isEnum }
+    val getTarget_Maneuver: Method = maneuver.methods.first { it.returnType == combatEntity }
 
     companion object {
         val Class<*>.classPath: String

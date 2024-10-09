@@ -28,7 +28,6 @@ class CustomAIManager {
 
     private fun shouldHaveWrapperAI(ship: ShipAPI): Boolean {
         return when {
-            !customAIEnabled -> false
             Global.getCurrentState() != GameState.COMBAT -> false
 
             !ship.isFrigateShip -> false

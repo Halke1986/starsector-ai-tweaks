@@ -15,7 +15,11 @@ public class Obfuscated {
         void advance_AutofireManager(float dt, ThreatEvalAI threatEvalAI, Vector2f missileDangerDir);
     }
 
+    public interface CombatEntity {
+    }
+
     public interface Maneuver {
+        CombatEntity getTarget_Maneuver();
     }
 
     public static class ApproachManeuver {

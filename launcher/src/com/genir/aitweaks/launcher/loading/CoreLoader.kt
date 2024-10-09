@@ -12,14 +12,16 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ApproachManeuver", symbols.approachManeuver.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$AutofireManager", symbols.autofireManager.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$BasicShipAI", "com/fs/starfarer/combat/ai/BasicShipAI"),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$CombatEntity", symbols.combatEntity.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Maneuver", symbols.maneuver.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ShipCommandWrapper", symbols.shipCommandWrapper.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ShipCommand", symbols.shipCommand.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Ship", "com/fs/starfarer/combat/entities/Ship"),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ThreatEvalAI", symbols.threatEvalAI.classPath),
 
-        Transformer.newTransform("advance_AutofireManager", symbols.advanceAutofireManager),
-        Transformer.newTransform("command_ShipCommandWrapper", symbols.commandShipCommandWrapper),
+        Transformer.newTransform("advance_AutofireManager", symbols.advance_AutofireManager.name),
+        Transformer.newTransform("command_ShipCommandWrapper", symbols.command_ShipCommandWrapper.name),
+        Transformer.newTransform("getTarget_Maneuver", symbols.getTarget_Maneuver.name),
     ))
 
     override fun loadClass(name: String): Class<*> {
@@ -31,8 +33,8 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
             // Try to load the class using default Starsector script loader.
             // This ensures that AI Tweaks' core logic uses the same class
             // definitions as the rest of the application, including AI Tweaks
-            // launcher. Using the same class definitions is important, when
-            // sharing state through static fields, as is the case in LunaLib
+            // launcher. Using the same class definitions is important when
+            // sharing state through static fields, as in the case of LunaLib
             // settings.
             c = Global.getSettings().scriptClassLoader.loadClass(name)
             Global.getLogger(this::class.java).info("default    $name")
