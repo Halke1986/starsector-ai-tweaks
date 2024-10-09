@@ -9,6 +9,7 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
     private val cache: MutableMap<String, Class<*>> = mutableMapOf()
     private val symbols = Symbols()
     private val obfuscator = Transformer(listOf(
+        // Classes.
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ApproachManeuver", symbols.approachManeuver.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$AutofireManager", symbols.autofireManager.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$BasicShipAI", "com/fs/starfarer/combat/ai/BasicShipAI"),
@@ -19,6 +20,7 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Ship", "com/fs/starfarer/combat/entities/Ship"),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ThreatEvalAI", symbols.threatEvalAI.classPath),
 
+        // Fields and methods.
         Transformer.newTransform("advance_AutofireManager", symbols.advance_AutofireManager.name),
         Transformer.newTransform("command_ShipCommandWrapper", symbols.command_ShipCommandWrapper.name),
         Transformer.newTransform("getTarget_Maneuver", symbols.getTarget_Maneuver.name),
@@ -37,17 +39,14 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
             // sharing state through static fields, as in the case of LunaLib
             // settings.
             c = Global.getSettings().scriptClassLoader.loadClass(name)
-            Global.getLogger(this::class.java).info("default    $name")
         } catch (_: SecurityException) {
             // Load classes restricted by Starsector reflect/IO ban.
             c = ClassLoader.getSystemClassLoader().loadClass(name)
-            Global.getLogger(this::class.java).info("restricted $name")
         } catch (_: ClassNotFoundException) {
             // Load and transform AI Tweaks core logic classes.
             val classBuffer = Transformer.readClassBuffer(this, name)
             val obfuscated = obfuscator.apply(classBuffer)
             c = defineClass(name, obfuscated, 0, obfuscated.size)
-            Global.getLogger(this::class.java).info("aitweaks   $name")
         }
 
         cache[name] = c!!

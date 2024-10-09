@@ -1,6 +1,5 @@
 package com.genir.aitweaks.launcher.loading
 
-import com.fs.starfarer.api.Global
 import java.io.IOException
 import java.lang.instrument.IllegalClassFormatException
 import java.nio.charset.StandardCharsets
@@ -31,7 +30,6 @@ class Transformer(transforms: List<Transform>) {
                         for (transform in transforms) {
                             val match = indexOf(data, transform.fromBytes, fromIdx, toIdx)
                             if (match != -1) {
-                                Global.getLogger(this::class.java).info(String(data, fromIdx, len, StandardCharsets.UTF_8))
                                 val newBytes = if (match == 0 && len == transform.fromBytes.size) {
                                     transform.toBytes
                                 } else {
