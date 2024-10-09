@@ -1,4 +1,5 @@
 - Fixed a bug where AI Tweaks did not register LunaLib settings changes until Starsector was restarted.
+- Fixed a crash that happened when personality of an automated ship without a captain was overridden. Reported by Kalos
 
 Version 1.10.1
 
