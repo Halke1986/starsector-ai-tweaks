@@ -23,6 +23,7 @@ import java.awt.Color.*
 internal fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
 
+    debugPrint.clear()
     ships.forEach {
         debugPrint[it] = "${it.hullSpec.hullId} ${it.attackTarget}"
     }

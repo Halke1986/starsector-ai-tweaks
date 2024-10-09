@@ -244,8 +244,13 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     /** Hold fire for a period of time after initially acquiring
      * the target to increase first volley accuracy. */
     private fun stabilizeOnTarget(): HoldFire? {
-        // PD weapons should fire with no delay.
-        if (weapon.isPD || onTargetTime >= min(2f, weapon.firingCycle.duration)) return null
+        when {
+            // PD weapons should fire with no delay.
+            weapon.isPD || !target!!.isShip -> return null
+
+            // Weapon is on target for long enough already.
+            onTargetTime >= min(2f, weapon.firingCycle.duration) -> return null
+        }
 
         // Use intercept point instead aim point for hardpoints,
         // to not get false accuracy because of predictive aiming.

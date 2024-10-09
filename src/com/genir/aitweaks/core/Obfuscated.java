@@ -46,5 +46,8 @@ public class Obfuscated {
         public Maneuver getCurrentManeuver() {
             return null;
         }
+
+        public void cancelCurrentManeuver() {
+        }
     }
 }

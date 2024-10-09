@@ -36,7 +36,13 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         val currentManeuver: Obfuscated.Maneuver? = basicShipAI.currentManeuver
         if (currentManeuver !is StrafeTargetManeuverV2 && currentManeuver !is Obfuscated.ApproachManeuver) return
 
-        expectedFacing = ship.attackTarget?.let { aimShip(it) } ?: return
+        val attackTarget: ShipAPI = currentManeuver.target_Maneuver as? ShipAPI ?: return
+        if (!attackTarget.isValidTarget) {
+            basicShipAI.cancelCurrentManeuver()
+            return
+        }
+
+        expectedFacing = aimShip(attackTarget) ?: return
 
         // Remove vanilla turn commands.
         clearTurnCommands(ship)

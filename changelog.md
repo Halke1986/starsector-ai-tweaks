@@ -1,3 +1,5 @@
+- AI-controlled frigates no longer briefly freeze after destroying their current target; they now immediately proceed to attack a new target.
+
 Version 1.10.2
 
 - Fixed a bug where AI Tweaks did not register LunaLib settings changes until Starsector was restarted.
