@@ -5,109 +5,83 @@ import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.genir.aitweaks.core.features.shipai.EngineController
+import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
+import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
-import com.genir.aitweaks.core.state.combatState
-import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.extensions.attackTarget
+import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.extensions.facing
+import com.genir.aitweaks.core.utils.extensions.isUnderManualControl
 import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.resized
+import com.genir.aitweaks.core.utils.extensions.rotated
+import com.genir.aitweaks.core.utils.mousePosition
+import com.genir.aitweaks.core.utils.times
+import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.VectorUtils
-import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.*
+import java.awt.Color.BLUE
+import java.awt.Color.GREEN
 
 internal fun debug(dt: Float) {
-    val ships = Global.getCombatEngine().ships
+//    val ships = Global.getCombatEngine().ships
+    val ship = Global.getCombatEngine().playerShip ?: return
 
-    debugPrint.clear()
-    ships.forEach {
-        debugPrint[it] = "${it.hullSpec.hullId} ${it.attackTarget}"
-    }
+//    FollowMouseAI.install(ship)
+
+
+//    makeDroneFormation()
+
+//    if (!ship.isUnderManualControl && ((ship.ai as? ShipAIWrapper)?.ai !is RotateEngineControllerAI)) {
+//        ship.shipAI = RotateEngineControllerAI(ship)
+//    }
+//    if (ship.isUnderManualControl) {
+//        facingGoal += df * dt
+//        drawLine(ship.location, ship.location + unitVector(facingGoal) * 400f, GREEN)
+//    }
+
+
+//    drawLine(ship.location, ship.location + unitVector(ship.facing) * 400f, RED)
+//    debugPrint["err"] = abs(err)
+//    drawEngineLines(ship)
 }
 
 var facingGoal = 90f
 const val df = -1f * 60f
 
-class Interpolate(private val ship: ShipAPI) {
-    private var prevValue = Vector2f()
-    private var value = Vector2f()
+class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
+    private val controller: BasicEngineController = BasicEngineController(ship)
 
-    private var timestamp: Int = 0
-    private var dtSum: Float = 0f
+    override fun advance(dt: Float) {
+        facingGoal += df * dt
+        drawLine(ship.location, ship.location + unitVector(facingGoal) * 400f, GREEN)
 
-    fun advance(dt: Float, nextValue: () -> Vector2f): Vector2f {
-        val timeMult: Float = ship.mutableStats.timeMult.modifiedValue
-
-        // No need to interpolate for ships in normal time flow.
-        if (timeMult == 1f) return nextValue()
-
-        if (combatState.frameCount > timestamp) {
-            timestamp = combatState.frameCount
-            dtSum = 0f
-
-            prevValue = value
-            value = nextValue()
-        }
-
-        dtSum += dt
-
-        val delta = (value - prevValue) / timeMult
-        return prevValue + delta * (dtSum / Global.getCombatEngine().elapsedInLastFrame)
+        controller.facing(dt, facingGoal)
     }
 }
 
-class EngineControllerAI(val ship: ShipAPI) : ShipAIPlugin {
-    private val controller: EngineController = EngineController(ship)
-
-    private val interpolateHeading = Interpolate(ship)
-    private val interpolateFacing = Interpolate(ship)
-
-    private var heading = Vector2f()
-    private var facing = 0f
+class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
+    private val controller: BasicEngineController = BasicEngineController(ship)
 
     override fun advance(dt: Float) {
-//        ship.useSystem()
+        val toMouse = mousePosition() - ship.location
 
-        facing = interpolateFacing.advance(dt) {
-//            drawLine(ship.location, ship.location + unitVector(facing) * 600f, GREEN)
-//            drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, YELLOW)
-//            drawEngineLines(ship)
-
-//            facingGoal += df * Global.getCombatEngine().elapsedInLastFrame
-
-            val facing = if ((mousePosition() - ship.location).length > 30f) {
-                (mousePosition() - ship.location).facing
-            } else this.facing
-
-            Vector2f(facing, 0f)
-        }.x
-
-        heading = interpolateHeading.advance(dt) {
-            mousePosition()
-        }
-
-        if (!ship.velocity.isZeroVector())
-            controller.heading(dt, controller.allStop)
+        val facing = if (toMouse.length > ship.collisionRadius / 2f) toMouse.facing
+        else controller.rotationStop
 
         controller.facing(dt, facing)
-//        controller.heading(dt, heading)
+        controller.heading(dt, mousePosition())
+
+        drawEngineLines(ship)
     }
 
-    override fun setDoNotFireDelay(amount: Float) = Unit
-
-    override fun forceCircumstanceEvaluation() = Unit
-
-    override fun needsRefit(): Boolean = false
-
-    override fun getAIFlags(): ShipwideAIFlags = ShipwideAIFlags()
-
-    override fun cancelCurrentManeuver() = Unit
-
-    override fun getConfig(): ShipAIConfig = ShipAIConfig()
+    companion object {
+        fun install(ship: ShipAPI) {
+            if (((ship.ai as? ShipAIWrapper)?.ai !is FollowMouseAI)) {
+                ship.shipAI = FollowMouseAI(ship)
+            }
+        }
+    }
 }
 
 var trail: Sequence<SimulateMissile.Frame>? = null
@@ -130,24 +104,20 @@ fun debugMissilePath(dt: Float) {
     trail = SimulateMissile.missilePath(weapon)
 }
 
-private fun showBoundsCollision() {
-    val ship = Global.getCombatEngine().playerShip ?: return
+class DroneFormationAI(private val drone: ShipAPI, val ship: ShipAPI, private val offset: Vector2f) : BaseEngineControllerAI() {
+    private val controller: BasicEngineController = BasicEngineController(drone)
 
-    val position = Vector2f(
-        Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()),
-        Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()),
-    )
+    override fun advance(dt: Float) {
+        val currentOffset = offset.rotated(Rotation(ship.facing))
 
-    drawBounds(ship)
-
-    val dir = ship.location - position
-
-    val dist = boundsCollision(position - ship.location, dir, ship) ?: return
-
-    drawLine(position, dir.resized(dir.length * dist) + position, YELLOW)
+        controller.heading(dt, ship.location + currentOffset)
+        controller.facing(dt, currentOffset.facing)
+    }
 }
 
-private fun makeDroneFormation(dt: Float) {
+private fun makeDroneFormation() {
+    if (Global.getCombatEngine().getTotalElapsedTime(false) < 8f) return
+
     val ship = Global.getCombatEngine().playerShip ?: return
     val drones = Global.getCombatEngine().ships.filter { it.isFighter }
 
@@ -156,22 +126,13 @@ private fun makeDroneFormation(dt: Float) {
     for (i in drones.indices) {
         val drone = drones[i]
 
-        if (drone.customData["controller"] == null)
-            drone.setCustomData("controller", EngineController(drone))
-        val c = drone.customData["controller"] as EngineController
+        if (((drone.ai as? ShipAIWrapper)?.ai !is DroneFormationAI)) {
+            val offset = Rotation(angle * i).rotate(Vector2f(0f, 300f))
+            drone.shipAI = DroneFormationAI(drone, ship, offset)
+        }
 
-        drone.shipAI = null
-
-        val offset = Rotation(angle * i + ship.facing).rotate(Vector2f(0f, 300f))
-        val position = ship.location + offset
-
-        c.heading(dt, position)
-        c.facing(dt, offset.facing)
-
-//        drawEngineLines(drone)
+        drawEngineLines(drone)
     }
-
-    drones.forEach { it.shipAI = null }
 }
 
 private fun removeAsteroids() {
@@ -190,32 +151,16 @@ private fun speedupAsteroids() {
     }
 }
 
-private fun followMouse(dt: Float) {
-    val engine = Global.getCombatEngine()
-    val ship = engine.ships.firstOrNull { it == engine.playerShip } ?: return
+abstract class BaseEngineControllerAI : ShipAIPlugin {
+    override fun setDoNotFireDelay(amount: Float) = Unit
 
-    if (ship.customData["controller"] == null)
-        ship.setCustomData("controller", EngineController(ship))
-    val c = ship.customData["controller"] as EngineController
+    override fun forceCircumstanceEvaluation() = Unit
 
-    val facing = (mousePosition() - ship.location).facing
-    c.facing(dt, facing)
+    override fun needsRefit(): Boolean = false
 
-    drawLine(ship.location, ship.location + unitVector(facing) * 600f, GREEN)
-    drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, YELLOW)
+    override fun getAIFlags(): ShipwideAIFlags = ShipwideAIFlags()
 
-//    debugPrint["facing"] = facing
+    override fun cancelCurrentManeuver() = Unit
+
+    override fun getConfig(): ShipAIConfig = ShipAIConfig()
 }
-
-//private fun followPlayerShip() {
-//    val target = Global.getCombatEngine().playerShip ?: return
-//    val ship = Global.getCombatEngine().ships.firstOrNull { it != target } ?: return
-//
-//    ship.shipAI = null
-//
-//    val c = EngineController(ship)
-//    c.heading(target.location + Vector2f(250f, 250f), target.velocity)
-//    c.facing(target.location, target.velocity)
-//
-//    drawEngineLines(ship)
-//}

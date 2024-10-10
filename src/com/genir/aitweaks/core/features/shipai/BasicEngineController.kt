@@ -16,7 +16,10 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sign
 import kotlin.random.Random
 
 /** Engine Controller controls the ship heading and facing
@@ -38,7 +41,7 @@ open class BasicEngineController(val ship: ShipAPI) {
      * is already at 'heading' location, it will match the target velocity.
      * limitVelocity lambda is used to restrict the velocity, e.g. for collision
      * avoidance purposes. Returns the calculated expected velocity. */
-    fun heading(dt: Float, heading: Vector2f, limitVelocity: ((Float, Vector2f) -> Vector2f)?): Vector2f {
+    fun heading(dt: Float, heading: Vector2f, limitVelocity: ((Float, Vector2f) -> Vector2f)? = null): Vector2f {
         if (heading == allStop) return stop()
 
         // Change unit of time from second to
@@ -106,8 +109,9 @@ open class BasicEngineController(val ship: ShipAPI) {
 
         // Change unit of time from second to
         // animation frame duration (* dt).
-        val a = ship.turnAcceleration * dt * dt
         val w = ship.angularVelocity * dt
+        val a = ship.turnAcceleration * dt * dt
+        val d = min(abs(w), ship.turnDeceleration * dt * dt) * -sign(w)
 
         // Estimate target angular velocity.
         val wt = MathUtils.getShortestRotation(prevFacing, facing)
@@ -120,8 +124,17 @@ open class BasicEngineController(val ship: ShipAPI) {
         val we = if (facing == rotationStop) 0f else sign(r) * vMax(abs(r), a) + wt
         val dw = we - w
 
-        if (shouldAccelerate(+r, +dw / a, 0f)) ship.command(TURN_LEFT)
-        if (shouldAccelerate(-r, -dw / a, 0f)) ship.command(TURN_RIGHT)
+        // Compare each possible movement option
+        // with the expected velocity change.
+        val er = abs(dw + a)
+        val ed = abs(dw - d)
+        val el = abs(dw - a)
+
+        when {
+            er < el && er < ed -> ship.command(TURN_RIGHT)
+            el < ed -> ship.command(TURN_LEFT)
+            else -> Unit // Let the ship decelerate.
+        }
     }
 
     /** Decelerate the ship to standstill. */
@@ -133,17 +146,20 @@ open class BasicEngineController(val ship: ShipAPI) {
     /** Calculate the maximum velocity in a given direction to
      * avoid overshooting the target.
      *
-     * Note: The Starsector engine simulates motion in a discrete
-     * manner, where the distance covered during accelerated motion
-     * is calculated using the equation:
+     * The Starsector engine simulates motion in a discrete manner,
+     * where the distance covered during accelerated motion is
+     * calculated using the equation:
      *
-     * s = (a * t^2 / 2) + (a * t * u / 2)
+     * 2 s = a t t + a t u
      *
      * where `a` is acceleration, `t` is time, and `u` is the duration
-     * of a single simulation frame. */
-    private fun vMax(d: Float, a: Float): Float {
-        val (q, _) = quad(0.5f, 0.5f, -d / a) ?: return 0f
-        return floor(q) * a
+     * of a single simulation frame, here normalized to 1. This gives
+     * the following quadratic equation for velocity:
+     *
+     * 0 = v v / a + v - 2 s
+     */
+    private fun vMax(s: Float, a: Float): Float {
+        return quad(1f / a, 1f, -s * 2f)?.first ?: 0f
     }
 
     /** Decide if the ship should accelerate in the given
