@@ -21,7 +21,7 @@ so you can expect frame-perfect reactions from the AI.
 ### Installation ###
 
 Requires [LazyLib](https://fractalsoftworks.com/forum/index.php?topic=5444.0)
-and [LunaLib](https://fractalsoftworks.com/forum/index.php?topic=25658.0). The mod can be safely added to exisiting
+and [LunaLib](https://fractalsoftworks.com/forum/index.php?topic=25658.0). The mod can be safely added to existing
 saves.
 
 To install AI Tweaks, just unzip the downloaded archive into Starsector mods folder.
@@ -30,7 +30,7 @@ To install AI Tweaks, just unzip the downloaded archive into Starsector mods fol
 
 AI Tweaks can be safely removed from the game without breaking existing saves.
 
-**NOTE:** There are mods incompatible with AI Tweaks, which may make it impossible to remove AI Tweaks from a savegame
+**NOTE:** There are mods incompatible with AI Tweaks, which may make it impossible to remove AI Tweaks from a save game
 without causing corruption.
 
 The only known incompatible mod is [Starship Legends](https://fractalsoftworks.com/forum/index.php?topic=15321.0).
@@ -47,7 +47,7 @@ AI Improvements
 
 ### Autofire AI ###
 
-AI Tweaks providees weapon AI implemented from scratch. It aims at fixing various vanilla AI deficiencies. The most
+AI Tweaks provides weapon AI implemented from scratch. It aims at fixing various vanilla AI deficiencies. The most
 noticeable differences from vanilla autofire AI are:
 
 #### Improved target leading algorithm ####
@@ -56,7 +56,7 @@ Vulcan cannons are finally able to reliably shoot down Salamanders!
 
 Vanilla target leading algorithm calculates only approximate intercept point, even for ships that are supposed to have
 excellent autofire accuracy. AI Tweaks replaces the vanilla algorithm with an improved one. The improved algorithm
-calculates exact intercept point by solving quadratic equations. Accuracy bonus machanism is respected, so ships with
+calculates exact intercept point by solving quadratic equations. Accuracy bonus mechanism is respected, so ships with
 low combat readiness will still have difficulties with target tracking. The difference is most noticeable for ship PD
 weapons tracking missiles aimed at different allied ships.
 
@@ -117,7 +117,7 @@ intentional. In no specific order:
   is above 80; vanilla AI does that to avoid "wasting" recharges
 * phased ships are targeted only by beams and PD weapons, but only if the weapon is not ammo- or burst-based
 * non-PD weapons attack fighters only when there are no bigger hulls in range
-* shield hits are corretly predicted even for modular ships like stations, improving behavior of weapons that are
+* shield hits are correctly predicted even for modular ships like stations, improving behavior of weapons that are
   supposed to attack shields only, or avoid shields
 
 ### Fleet Cohesion AI ###
@@ -148,7 +148,7 @@ doesn't seem to work.
 Other deficiencies are backing off too far from the attacked target and loosing it from weapons range and poor flux
 management.
 
-AI Tweaks fixes all of the above and turns Invictus into a truly overpowerd - unbalanced even - brick of a ship.
+AI Tweaks fixes all of the above and turns Invictus into a truly overpowered - unbalanced even - brick of a ship.
 
 Invictus aiming hardpoint weapons with the entire ship, note the aim is not centered at the target:
 
@@ -192,7 +192,7 @@ ships will default to aggressive behavior, instead of the vanilla reckless.
 
 ### Finisher Beam Protocol hull mod ###
 
-A hull mod that changes how ship AI uses several beam wepons:
+A hull mod that changes how ship AI uses several beam weapons:
 
 ![finisher beam protocol](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/finisher_beam_protocol.png)
 
@@ -204,7 +204,7 @@ for weapons in autofire mode and does not affect point defense beams."
 
 Details
 
-The hull mod prevents selected beam wepons from firing at shields by adding USE_LESS_VS_SHIELDS tag. Additionally, the
+The hull mod prevents selected beam weapons from firing at shields by adding USE_LESS_VS_SHIELDS tag. Additionally, the
 weapons are prevented from shooting at fighters.
 
 Which weapons are affected by the hull mod is defined in weapon_data.scv file. For a weapon to be subject to Finisher
@@ -231,7 +231,7 @@ Now, with AI Tweaks it's possible to pilot ship manually while leaving omni shie
 According to playtesters the feature may be a bit too powerful. Still, "it's not so OP that it's unusable" as playtester
 snark said.
 
-Automatic omni shields are toggled with `]` (right bracket) key by default. Keybind can be configured via LunaLib
+Automatic omni shields are toggled with `]` (right bracket) key by default. Keybinding can be configured via LunaLib
 settings. When AI is in control, a circular indicator is displayed around the ship. The player can override AI and force
 the shields to drop with right mouse button.
 
@@ -257,5 +257,5 @@ WIP
 ### Custom ship AI ###
 
 A reworked ship AI, replacing a significant part of vanilla logic with custom implementation. It's still work in
-progress, and will probably remain so for a long time. Currently the custom AI is enabled only for the Guardian and
+progress, and will probably remain so for a long time. Currently, the custom AI is enabled only for the Guardian and
 ships with Lidar Array system. The Guardian also has a better build, for even more challenge.
