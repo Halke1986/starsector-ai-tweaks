@@ -45,7 +45,7 @@ even more customizable weapon behavior, AdvancedGunneryControl has it!
 AI Improvements
 ---------------
 
-### Autofire AI ###
+### 1. Autofire AI ###
 
 AI Tweaks provides weapon AI implemented from scratch. It aims at fixing various vanilla AI deficiencies. The most
 noticeable differences from vanilla autofire AI are:
@@ -120,7 +120,7 @@ intentional. In no specific order:
 * shield hits are correctly predicted even for modular ships like stations, improving behavior of weapons that are
   supposed to attack shields only, or avoid shields
 
-### Fleet Cohesion AI ###
+### 2. Fleet Cohesion AI ###
 
 Fleet Cohesion AI fixes one of the more frustrating aspects of vanilla AI: cruisers and capital ships leaving the main
 battle line and chasing lone frigates and destroyers to the edge of the map. With the fixed AI the fleet stays together
@@ -133,7 +133,7 @@ Additional details:
 * Fleet Cohesion AI applies only to player fleet. Enemy fleet keeps the vanilla Admiral AI.
 * Fleet Cohesion AI is disabled during full assault and when at least one AVOID order is issued.
 
-### Fixed Invictus and Lidar Array AI ###
+### 3. Fixed Invictus and Lidar Array AI ###
 
 "Cuz my problem with ai invictus is it just wastes it’s system 9/10 times" - niceman121454 on Discord.
 
@@ -154,7 +154,7 @@ Invictus aiming hardpoint weapons with the entire ship, note the aim is not cent
 
 ![target lead](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/target_lead.png)
 
-### Improved High Energy Focus ship system AI ###
+### 4. Improved High Energy Focus ship system AI ###
 
 This mod changes the way AI controlled ships use their High Energy Focus system. AI will no longer be tempted to
 activate HEF just because there's a fighter or missile in range of PD beams or because an enemy ship can barely be
@@ -180,7 +180,7 @@ small weapons. Additionally:
 AI Configuration
 ----------------
 
-### Changing the personality of automated ships ###
+### 1. Changing the personality of automated ships ###
 
 Vanilla AI forces reckless behavior on all automated ships in the player's fleet, with AI core captains and without,
 presumably to maintain game balance. This results in automated ships rushing headlong into enemy deathball and getting
@@ -190,7 +190,7 @@ AI Tweaks allows to configure the personality of automated ships. The configurat
 is global, affecting all automated ship in the player's fleet. If no specific personality is configured, the automated
 ships will default to aggressive behavior, instead of the vanilla reckless.
 
-### Finisher Beam Protocol hull mod ###
+### 2. Finisher Beam Protocol hull mod ###
 
 A hull mod that changes how ship AI uses several beam weapons:
 
@@ -210,7 +210,7 @@ weapons are prevented from shooting at fighters.
 Which weapons are affected by the hull mod is defined in weapon_data.scv file. For a weapon to be subject to Finisher
 Beam Protocol, it needs to have "aitweaks_finisher_beam" tag. And, of course, it needs to be a beam weapon.
 
-### System Shunt hull mod ###
+### 3. System Shunt hull mod ###
 
 System Shunt prevents AI from using the ship system:
 
@@ -223,7 +223,7 @@ detrimental to the ship's performance in combat."
 Player Assist
 -------------
 
-### Automatic omni shields for player ship ###
+### 1. Automatic omni shields for player ship ###
 
 Vanilla AI is notoriously good at controlling omni shields, often better than the player himself.
 
@@ -237,7 +237,7 @@ the shields to drop with right mouse button.
 
 ![auto omni shields](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/autoomni.jpg)
 
-### Aim Assist ###
+### 2. Aim Assist ###
 
 With aim assist you can point the mouse at enemy ship and fire without worrying about target leading. AI will
 automatically offset each manually controlled weapon to account for ship velocity, greatly increasing accuracy. Aim
@@ -254,7 +254,7 @@ There's an AIM ASSIST status icon displayed when the system is active:
 WIP
 ---
 
-### Custom ship AI ###
+### 1. Custom ship AI ###
 
 A reworked ship AI, replacing a significant part of vanilla logic with custom implementation. It's still work in
 progress, and will probably remain so for a long time. Currently, the custom AI is enabled only for the Guardian and
