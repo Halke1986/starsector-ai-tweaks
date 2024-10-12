@@ -4,10 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.div
-import com.genir.aitweaks.core.utils.extensions.copy
-import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.rotated
-import com.genir.aitweaks.core.utils.extensions.rotatedReverse
+import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.quad
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
@@ -37,7 +34,7 @@ open class BasicEngineController(val ship: ShipAPI) {
     val rotationStop: Float = Float.MAX_VALUE
 
     /** Set ship heading towards selected location. Appropriate target
-     * leading is calculated based on estimated target velocity. If ship
+     * leading is calculated based on estimated target velocity. If the ship
      * is already at 'heading' location, it will match the target velocity.
      * limitVelocity lambda is used to restrict the velocity, e.g. for collision
      * avoidance purposes. Returns the calculated expected velocity. */
@@ -103,7 +100,26 @@ open class BasicEngineController(val ship: ShipAPI) {
         return vec.rotatedReverse(r) / dt
     }
 
-    /** Set ship facing. */
+    fun facing(dt: Float, facingNextFrame: Vector2f) {
+        facing(dt, (facingNextFrame - ship.location).facing)
+    }
+
+    /**
+     * Set ship facing.
+     *
+     * The provided facing parameter should represent the expected ship facing
+     * for the current frame, as long as the method if called from within
+     * ShipAIPlugin.advance.
+     *
+     * Due to how Starsector combat engine works, the actual change in ship facing
+     * takes effect in the following frame, when the provided facing is already
+     * obsolete. However, the engine controller matches the ship angular velocity
+     * with changing facing values, effectively extrapolating the expected ship
+     * facing to the next frame.
+     *
+     * This is important when using ship facing to aim hardpoints: facing value
+     * should be calculated based on current frame target leading solution.
+     */
     fun facing(dt: Float, facing: Float) {
         if (facing == rotationStop && ship.angularVelocity == 0f) return
 
@@ -125,7 +141,7 @@ open class BasicEngineController(val ship: ShipAPI) {
         val dw = we - w
 
         // Compare each possible movement option
-        // with the expected velocity change.
+        // against the expected velocity change.
         val er = abs(dw + a)
         val ed = abs(dw - d)
         val el = abs(dw - a)
@@ -148,13 +164,13 @@ open class BasicEngineController(val ship: ShipAPI) {
      *
      * The Starsector engine simulates motion in a discrete manner,
      * where the distance covered during accelerated motion is
-     * calculated using the equation:
+     * calculated using the following non-Newtonian equation:
      *
      * 2 s = a t t + a t u
      *
      * where `a` is acceleration, `t` is time, and `u` is the duration
      * of a single simulation frame, here normalized to 1. This gives
-     * the following quadratic equation for velocity:
+     * the following equation for velocity:
      *
      * 0 = v v / a + v - 2 s
      */

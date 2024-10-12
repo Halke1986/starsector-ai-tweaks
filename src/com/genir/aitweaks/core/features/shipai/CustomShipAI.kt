@@ -23,6 +23,7 @@ import kotlin.math.abs
 import kotlin.math.max
 
 // TODO coord around stations
+// TODO ships freeze when issued search and destroy assignment
 
 @Suppress("MemberVisibilityCanBePrivate")
 class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {

@@ -8,22 +8,41 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.isUnderManualControl
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.rotated
-import com.genir.aitweaks.core.utils.mousePosition
-import com.genir.aitweaks.core.utils.times
-import com.genir.aitweaks.core.utils.unitVector
+import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
 import java.awt.Color.GREEN
+import kotlin.math.abs
+
+/**
+ *
+ * FRAME UPDATE ORDER
+ *
+ * ship movement
+ * AI
+ * ship advance:
+ *   engine controller process commands
+ *   weapons:
+ *      fire projectile
+ *      update aim
+ * (ship movement, AI, ship advance LOOP for fast time ships)
+ *
+ * EFSs
+ *
+ */
 
 internal fun debug(dt: Float) {
+    targetTest(dt)
+    return
+
 //    val ships = Global.getCombatEngine().ships
     val ship = Global.getCombatEngine().playerShip ?: return
 
@@ -32,31 +51,37 @@ internal fun debug(dt: Float) {
 
 //    makeDroneFormation()
 
-//    if (!ship.isUnderManualControl && ((ship.ai as? ShipAIWrapper)?.ai !is RotateEngineControllerAI)) {
-//        ship.shipAI = RotateEngineControllerAI(ship)
-//    }
-//    if (ship.isUnderManualControl) {
-//        facingGoal += df * dt
-//        drawLine(ship.location, ship.location + unitVector(facingGoal) * 400f, GREEN)
-//    }
+    if (!ship.isUnderManualControl && ((ship.ai as? ShipAIWrapper)?.ai !is RotateEngineControllerAI)) {
+        ship.shipAI = RotateEngineControllerAI(ship)
+    }
+    if (ship.isUnderManualControl) {
+        expectedFacing += df * dt
+        drawLine(ship.location, ship.location + unitVector(expectedFacing) * 400f, GREEN)
+    }
 
 
+
+    log("EFS ${ship.facing} ${expectedFacing} ${abs(MathUtils.getShortestRotation(ship.facing, expectedFacing))}")
+    log("------------")
 //    drawLine(ship.location, ship.location + unitVector(ship.facing) * 400f, RED)
 //    debugPrint["err"] = abs(err)
 //    drawEngineLines(ship)
 }
 
-var facingGoal = 90f
+var expectedFacing = 90f
 const val df = -1f * 60f
 
 class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     private val controller: BasicEngineController = BasicEngineController(ship)
 
     override fun advance(dt: Float) {
-        facingGoal += df * dt
-        drawLine(ship.location, ship.location + unitVector(facingGoal) * 400f, GREEN)
+        expectedFacing += df * dt
 
-        controller.facing(dt, facingGoal)
+        drawLine(ship.location, ship.location + unitVector(expectedFacing) * 400f, GREEN)
+        drawLine(ship.location, ship.location + unitVector(ship.facing) * 400f, BLUE)
+        debugPrint["f"] = abs(MathUtils.getShortestRotation(ship.facing, expectedFacing))
+
+        controller.facing(dt, expectedFacing)
     }
 }
 
@@ -135,7 +160,7 @@ private fun makeDroneFormation() {
     }
 }
 
-private fun removeAsteroids() {
+fun removeAsteroids() {
     val engine = Global.getCombatEngine()
     engine.asteroids.forEach {
         engine.removeEntity(it)
@@ -163,4 +188,10 @@ abstract class BaseEngineControllerAI : ShipAIPlugin {
     override fun cancelCurrentManeuver() = Unit
 
     override fun getConfig(): ShipAIConfig = ShipAIConfig()
+}
+
+inline fun <reified T : ShipAIPlugin> installAI(ship: ShipAPI, aiFactory: () -> T) {
+    if (((ship.ai as? ShipAIWrapper)?.ai !is T)) {
+        ship.shipAI = aiFactory()
+    }
 }
