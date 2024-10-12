@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.absoluteArcFacing
+import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.totalRange
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -67,7 +68,7 @@ fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticPa
     val tangentDistance = solve(Pair(p, v), target.radius, 1f, cos90) ?: return null
     return Arc(
         arc = atan(target.radius / tangentDistance) * RADIANS_TO_DEGREES * 2f,
-        facing = VectorUtils.getFacing(p + v * tangentDistance),
+        facing = (p + v * tangentDistance).facing,
     )
 }
 

@@ -73,7 +73,7 @@ val ShipAPI.deploymentPoints: Float
 
 /** Angle between ship facing and direction from ship to point p. */
 fun ShipAPI.angleFromFacing(p: Vector2f): Float {
-    return MathUtils.getShortestRotation((p - location).getFacing(), facing)
+    return MathUtils.getShortestRotation((p - location).facing, facing)
 }
 
 /** Calculates the effective ship velocity in the global frame

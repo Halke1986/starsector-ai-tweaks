@@ -27,7 +27,7 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI?) = when {
 
 // TODO remove and use ballistics implementation
 fun willHitActiveShieldArc(weapon: WeaponAPI, shield: ShieldAPI): Boolean {
-    val tgtFacing = (weapon.location - shield.location).getFacing()
+    val tgtFacing = (weapon.location - shield.location).facing
     val attackAngle = getShortestRotation(tgtFacing, shield.facing)
     return abs(attackAngle) < (shield.activeArc / 2)
 }
@@ -117,11 +117,11 @@ inline fun <reified T : Enum<T>> loadEnum(json: JSONObject, fieldName: String): 
 }
 
 fun getShortestRotation(from: Vector2f, to: Vector2f): Float {
-    return getShortestRotation(from.getFacing(), to.getFacing())
+    return getShortestRotation(from.facing, to.facing)
 }
 
 fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Float {
-    return getShortestRotation((from - pivot).getFacing(), (to - pivot).getFacing())
+    return getShortestRotation((from - pivot).facing, (to - pivot).facing)
 }
 
 fun mousePosition(): Vector2f {

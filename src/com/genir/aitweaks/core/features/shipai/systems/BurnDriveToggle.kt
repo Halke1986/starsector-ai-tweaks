@@ -106,7 +106,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), Coordinable {
             val toDestination = newDestination - ship.location
             headingPoint = toDestination + ship.location
             destinationDist = toDestination.length()
-            destinationFacing = abs(MathUtils.getShortestRotation(toDestination.getFacing(), ship.facing))
+            destinationFacing = abs(MathUtils.getShortestRotation(toDestination.facing, ship.facing))
         } else {
             headingPoint = Vector2f()
             destinationDist = 0f
