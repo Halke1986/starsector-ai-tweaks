@@ -20,7 +20,7 @@ fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
 
 /** Time after which point P travelling with velocity V
  * will find itself at R distance from (0,0). */
-fun solve(pv: Pair<Vector2f, Vector2f>, r: Float) = solve(pv, r, 0f, 0f)
+fun solve(pv: Pair<Vector2f, Vector2f>, r: Float) = solve(pv, 0f, 0f, r, 0f)
 
 /**
  * Solve the following cosine law equation for t:
@@ -30,23 +30,23 @@ fun solve(pv: Pair<Vector2f, Vector2f>, r: Float) = solve(pv, r, 0f, 0f)
  * where
  *
  * a(t) = |P + V * t|
- * b(t) = w * t
+ * b(t) =  q + w * t
  *
  * The smaller positive solutions is returned.
  * If no positive solution exists, null is returned.
  *
  * Equation can be expanded in the following way:
- * (|P + V * t|)^2 = (w * t)^2 + r^2 - 2(w * t * r * cosA)
- * (Px + Vx * t)^2 + (Py + Vy * t)^2 = = w^2 * t^2 + r^2 - 2(w * t * r * cosA)
- * (Vx^2 + Vy^2 - w^2)*t^2 + 2(Px*Vx + Py*Vy + r*w*cosA)*t + (Px^2 + Py^2 - r^2) = 0
+ * (Px + Vx * t)^2            + (Py + Vy * t)^2            = (q + w * t)^2          + r^2 - 2((q + w * t) * r * cosA)
+ * Px^2 + 2Px*Vx*t + Vx^2*t^2 + Py^2 + 2Py*Vy*t + Vy^2*t^2 = q^2 + 2q*w*t + w^2*t^2 + r^2 - 2q*r*cosA - 2w*t*r*cosA
+ * 0 = (Vx^2 + Vy^2 - w^2)*t^2 + 2(Px*Vx + Py*Vy - w*q + r*w*cosA)*t + (Px^2 + Py^2 - q^2 - r^2 + 2q*r*cosA)
  */
-fun solve(pv: Pair<Vector2f, Vector2f>, r: Float, w: Float, cosA: Float): Float? {
+fun solve(pv: Pair<Vector2f, Vector2f>, q: Float, w: Float, r: Float, cosA: Float): Float? {
     val (p, v) = pv
-    val a = v.lengthSquared() - w * w
-    val b = 2f * (p.x * v.x + p.y * v.y + r * w * cosA)
-    val c = p.lengthSquared() - r * r
+    val a = (v.x * v.x) + (v.y * v.y) - (w * w)
+    val b = (p.x * v.x) + (p.y * v.y) - (w * q) + (w * r * cosA)
+    val c = (p.x * p.x) + (p.y * p.y) - (r * r) - (q * q) + (2 * q * r * cosA)
 
-    val (t1, t2) = quad(a, b, c) ?: return null
+    val (t1, t2) = quad(a, 2f * b, c) ?: return null
     return when {
         t1 >= 0 && t2 >= 0 -> min(t1, t2)
         t1 <= 0 != t2 <= 0 -> max(t1, t2)

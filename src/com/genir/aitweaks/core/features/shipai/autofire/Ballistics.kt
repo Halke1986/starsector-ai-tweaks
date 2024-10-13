@@ -6,7 +6,6 @@ import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.absoluteArcFacing
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.totalRange
-import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -34,7 +33,7 @@ fun defaultBallisticParams() = BallisticParams(1f, 0f)
  * arbitrary long time period to approximate the target location. */
 fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f {
     val pv = targetCoords(weapon, target, params)
-    val range = solve(pv, 0f, 1f, 0f) ?: 1e6f
+    val range = solve(pv, 0f, 1f, 0f, 0f) ?: 1e6f
     val offset = pv.second * range
 
     return target.location + (target.velocity - weapon.ship.velocity) * params.delay + offset
@@ -54,7 +53,7 @@ fun canTrack(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams
 fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Float? {
     val pv = targetCoords(weapon, target, params)
     return if (targetAboveZero(pv.first, target.radius)) 0f
-    else solve(pv, target.radius, 1f, cos180)
+    else solve(pv, 0f, 1f, target.radius, cos180)
 }
 
 /** Calculates the target intercept arc. If weapon facing is within this arc,
@@ -65,7 +64,7 @@ fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticPa
     val (p, v) = targetCoords(weapon, target, params)
     if (targetAboveZero(p, target.radius)) return Arc(360f, 0f)
 
-    val tangentDistance = solve(Pair(p, v), target.radius, 1f, cos90) ?: return null
+    val tangentDistance = solve(Pair(p, v), 0f, 1f, target.radius, cos90) ?: return null
     return Arc(
         arc = atan(target.radius / tangentDistance) * RADIANS_TO_DEGREES * 2f,
         facing = (p + v * tangentDistance).facing,

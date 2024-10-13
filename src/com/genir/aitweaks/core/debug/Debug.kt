@@ -40,7 +40,7 @@ import kotlin.math.abs
  */
 
 internal fun debug(dt: Float) {
-    targetTest(dt)
+//    targetTest(dt)
     return
 
 //    val ships = Global.getCombatEngine().ships
