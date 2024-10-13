@@ -106,16 +106,46 @@ fun willHitBounds(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
 }
 
 /** Target location and velocity in weapon frame of reference. */
-private fun targetCoords(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams) = Pair(
-    (target.location - weapon.location) + (target.velocity - weapon.ship.velocity) * params.delay,
-    (target.velocity - weapon.ship.velocity) / (weapon.projectileSpeed * params.accuracy),
-)
+private fun targetCoords(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Vector2f> {
+    val vAbs = (target.velocity - weapon.ship.velocity)
+    val pAbs = (target.location - weapon.location)
+
+    val p = pAbs + vAbs * (params.delay - weapon.barrelOffsetToTime)
+    val v = vAbs / (weapon.projectileSpeed * params.accuracy)
+
+    return Pair(p, v)
+}
+
+private fun targetCoordsOld(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Vector2f> {
+    val vAbs = (target.velocity - weapon.ship.velocity)
+    val pAbs = (target.location - weapon.location)
+
+    val p = pAbs + vAbs * (params.delay)
+    val v = vAbs / (weapon.projectileSpeed * params.accuracy)
+
+    return Pair(p, v)
+}
 
 /** Projectile location and velocity in target frame of reference. */
-private fun projectileCoords(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams) = Pair(
-    (weapon.location - target.location) + (weapon.ship.velocity - target.velocity) * params.delay,
-    unitVector(weapon.currAngle) + (weapon.ship.velocity - target.velocity) / (weapon.projectileSpeed * params.accuracy),
-)
+private fun projectileCoords(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Vector2f> {
+    val vAbs = (weapon.ship.velocity - target.velocity)
+    val pAbs = (weapon.location - target.location)
+    val vProj = unitVector(weapon.currAngle)
+
+    val p = pAbs + vAbs * params.delay + vProj * weapon.barrelOffsetToTime
+    val v = vProj + vAbs / (weapon.projectileSpeed * params.accuracy)
+
+    return Pair(p, v)
+}
 
 /** True if coordinate system zero point is within entity radius */
 private fun targetAboveZero(p: Vector2f, r: Float) = p.lengthSquared() <= r * r
+
+/** Time it would take the projectile to travel distance equal to weapon barrel offset. */
+private val WeaponAPI.barrelOffsetToTime: Float
+    get() {
+        val offsets = if (slot.isHardpoint) spec.hardpointFireOffsets
+        else spec.turretFireOffsets
+        val offset = offsets[0]?.x ?: return 0f
+        return offset / projectileSpeed
+    }
