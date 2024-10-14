@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.absoluteArcFacing
 import com.genir.aitweaks.core.utils.extensions.facing
+import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import com.genir.aitweaks.core.utils.extensions.totalRange
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -33,7 +34,9 @@ fun defaultBallisticParams() = BallisticParams(1f, 0f)
  * arbitrary long time period to approximate the target location. */
 fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f {
     val pv = targetCoords(weapon, target, params)
-    val range = solve(pv, 0f, 1f, 0f, 0f) ?: 1e6f
+    if (targetAboveWeapon(pv.first, weapon, target)) return target.location
+
+    val range = solve(pv, weapon.barrelOffset, 1f, 0f, 0f) ?: 1e6f
     val offset = pv.second * range
 
     return target.location + (target.velocity - weapon.ship.velocity) * params.delay + offset
@@ -52,8 +55,8 @@ fun canTrack(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams
  * for any weapon facing. Null if the target is faster than the projectile. */
 fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Float? {
     val pv = targetCoords(weapon, target, params)
-    return if (targetAboveZero(pv.first, target.radius)) 0f
-    else solve(pv, 0f, 1f, target.radius, cos180)
+    return if (targetAboveWeapon(pv.first, weapon, target)) 0f
+    else solve(pv, weapon.barrelOffset, 1f, target.radius, cos180)
 }
 
 /** Calculates the target intercept arc. If weapon facing is within this arc,
@@ -62,9 +65,9 @@ fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: Ballisti
  * Null if projectile is slower than the target. */
 fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Arc? {
     val (p, v) = targetCoords(weapon, target, params)
-    if (targetAboveZero(p, target.radius)) return Arc(360f, 0f)
+    if (targetAboveWeapon(p, weapon, target)) return Arc(360f, 0f)
 
-    val tangentDistance = solve(Pair(p, v), 0f, 1f, target.radius, cos90) ?: return null
+    val tangentDistance = solve(Pair(p, v), weapon.barrelOffset, 1f, target.radius, cos90) ?: return null
     return Arc(
         arc = atan(target.radius / tangentDistance) * RADIANS_TO_DEGREES * 2f,
         facing = (p + v * tangentDistance).facing,
@@ -110,16 +113,6 @@ private fun targetCoords(weapon: WeaponAPI, target: BallisticTarget, params: Bal
     val vAbs = (target.velocity - weapon.ship.velocity)
     val pAbs = (target.location - weapon.location)
 
-    val p = pAbs + vAbs * (params.delay - weapon.barrelOffsetToTime)
-    val v = vAbs / (weapon.projectileSpeed * params.accuracy)
-
-    return Pair(p, v)
-}
-
-private fun targetCoordsOld(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Vector2f> {
-    val vAbs = (target.velocity - weapon.ship.velocity)
-    val pAbs = (target.location - weapon.location)
-
     val p = pAbs + vAbs * (params.delay)
     val v = vAbs / (weapon.projectileSpeed * params.accuracy)
 
@@ -132,20 +125,22 @@ private fun projectileCoords(weapon: WeaponAPI, target: BallisticTarget, params:
     val pAbs = (weapon.location - target.location)
     val vProj = unitVector(weapon.currAngle)
 
-    val p = pAbs + vAbs * params.delay + vProj * weapon.barrelOffsetToTime
+    val p = pAbs + vAbs * params.delay + vProj * weapon.barrelOffset
     val v = vProj + vAbs / (weapon.projectileSpeed * params.accuracy)
 
     return Pair(p, v)
 }
 
-/** True if coordinate system zero point is within entity radius */
-private fun targetAboveZero(p: Vector2f, r: Float) = p.lengthSquared() <= r * r
+/** True if target collision radius is above weapon barrel radius.  */
+private fun targetAboveWeapon(locationRelative: Vector2f, weapon: WeaponAPI, target: BallisticTarget): Boolean {
+    val d2 = locationRelative.lengthSquared
+    val r = weapon.barrelOffset + target.radius
+    return d2 < r * r
+}
 
-/** Time it would take the projectile to travel distance equal to weapon barrel offset. */
-private val WeaponAPI.barrelOffsetToTime: Float
+private val WeaponAPI.barrelOffset: Float
     get() {
         val offsets = if (slot.isHardpoint) spec.hardpointFireOffsets
         else spec.turretFireOffsets
-        val offset = offsets[0]?.x ?: return 0f
-        return offset / projectileSpeed
+        return offsets[0]?.x ?: 0f
     }
