@@ -8,11 +8,13 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.isUnderManualControl
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.rotated
+import com.genir.aitweaks.core.utils.mousePosition
+import com.genir.aitweaks.core.utils.times
+import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
@@ -42,30 +44,6 @@ import kotlin.math.abs
 internal fun debug(dt: Float) {
 //    targetTest(dt)
     return
-
-//    val ships = Global.getCombatEngine().ships
-    val ship = Global.getCombatEngine().playerShip ?: return
-
-//    FollowMouseAI.install(ship)
-
-
-//    makeDroneFormation()
-
-    if (!ship.isUnderManualControl && ((ship.ai as? ShipAIWrapper)?.ai !is RotateEngineControllerAI)) {
-        ship.shipAI = RotateEngineControllerAI(ship)
-    }
-    if (ship.isUnderManualControl) {
-        expectedFacing += df * dt
-        drawLine(ship.location, ship.location + unitVector(expectedFacing) * 400f, GREEN)
-    }
-
-
-
-    log("EFS ${ship.facing} ${expectedFacing} ${abs(MathUtils.getShortestRotation(ship.facing, expectedFacing))}")
-    log("------------")
-//    drawLine(ship.location, ship.location + unitVector(ship.facing) * 400f, RED)
-//    debugPrint["err"] = abs(err)
-//    drawEngineLines(ship)
 }
 
 var expectedFacing = 90f

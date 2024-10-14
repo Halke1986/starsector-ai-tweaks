@@ -18,8 +18,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
 
     protected var target: CombatEntityAPI? = null
-    private var aimPoint: Vector2f? = null
-
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
     private var idleFrames: Int = 0
@@ -29,8 +27,10 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var selectTargetInterval = Interval(0.25F, 0.50F)
     private var shouldFireInterval = Interval(0.1F, 0.2F)
 
-    // Fields accessed by custom ship AI
+    // Aiming data.
     var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons
+    private var prevIntercept: Vector2f? = null
+    private var aimPoint: Vector2f? = null
     var shouldHoldFire: HoldFire? = NO_TARGET
     var predictedHit: Hit? = null
 
@@ -63,7 +63,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         trackAttackTimes(dt)
-        updateAimLocation()
+        updateAimLocation(dt)
 
         // Calculate if weapon should fire at current target.
         if (shouldFireInterval.elapsed()) {
@@ -188,7 +188,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         predictedHit = null
 
         if (target?.isValidTarget != true) return NO_TARGET
-        if (intercept == null) return NO_HIT_EXPECTED
 
         holdFireIfOverfluxed()?.let { return it }
 
@@ -205,6 +204,8 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, ballisticParams)
+
+        // Rest of the should-fire decisioning will be based on the actual hit.
         val hit = when {
             actualHit == null -> expectedHit
             actualHit.range > expectedHit.range -> expectedHit
@@ -214,7 +215,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
 
-        // Rest of the should-fire decisioning will be based on the actual hit.
         when {
             hit.shieldHit && hit.range > weapon.range -> return OUT_OF_RANGE
             !hit.shieldHit && hit.range > weapon.totalRange -> return OUT_OF_RANGE
@@ -263,15 +263,27 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return null
     }
 
-    private fun updateAimLocation() {
-        intercept = null
-        aimPoint = null
+    private fun updateAimLocation(dt: Float) {
+        val target: CombatEntityAPI? = this.target
+        if (target == null) {
+            prevIntercept = null
+            intercept = null
+            aimPoint = null
+            return
+        }
 
-        if (target == null) return
+        // Updated intercept point location.
+        val newIntercept = plotIntercept(target)
+        prevIntercept = intercept?.copy ?: newIntercept.copy
+        intercept = newIntercept
 
-        intercept = plotIntercept(target!!)
-        aimPoint = if (weapon.slot.isTurret) intercept
-        else aimHardpoint(intercept!!, target!!)
+        aimPoint = if (weapon.slot.isTurret) {
+            val shipRotation = ship.angularVelocity * dt
+            val interceptRotation = getShortestRotation(prevIntercept!!, weapon.location, newIntercept)
+
+            val r = Rotation(interceptRotation - shipRotation)
+            newIntercept.rotatedAroundPivot(r, weapon.location)
+        } else aimHardpoint(newIntercept, target)
     }
 
     /** get current weapon attack parameters */
