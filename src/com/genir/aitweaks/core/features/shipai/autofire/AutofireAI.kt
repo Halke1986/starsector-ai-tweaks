@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.features.shipai.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.core.debug.debugPrint
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
@@ -30,6 +31,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     // Aiming data.
     var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons
     private var prevIntercept: Vector2f? = null
+    private var prevShipFacing: Float = 0f
     private var aimPoint: Vector2f? = null
     var shouldHoldFire: HoldFire? = NO_TARGET
     var predictedHit: Hit? = null
@@ -41,6 +43,12 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             // Don't operate the weapon in refit screen.
             Global.getCurrentState() == GameState.CAMPAIGN -> return
             Global.getCombatEngine().isPaused -> return
+        }
+
+        if (weapon.ship.owner == 0 && weapon.id == "hephag" && intercept != null) {
+            val err = abs(MathUtils.getShortestRotation(weapon.currAngle, (intercept!! - weapon.location).facing))
+            debugPrint["err"] = err
+            debugPrint["rot"] = weapon.ship.angularVelocity
         }
 
         // Update time trackers.
@@ -63,7 +71,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         trackAttackTimes(dt)
-        updateAimLocation(dt)
+        updateAimLocation()
 
         // Calculate if weapon should fire at current target.
         if (shouldFireInterval.elapsed()) {
@@ -263,7 +271,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return null
     }
 
-    private fun updateAimLocation(dt: Float) {
+    private fun updateAimLocation() {
         val target: CombatEntityAPI? = this.target
         if (target == null) {
             prevIntercept = null
@@ -278,12 +286,22 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         intercept = newIntercept
 
         aimPoint = if (weapon.slot.isTurret) {
-            val shipRotation = ship.angularVelocity * dt
+            // ship.angularVelocity() returns 0 for modules and stations, so the ship
+            // true angular velocity is estimated by calculating the change in ship facing.
+            val shipRotation = ship.facing - prevShipFacing
             val interceptRotation = getShortestRotation(prevIntercept!!, weapon.location, newIntercept)
 
+            // Combat engine fires weapons before setting their aim location. This means
+            // the aim location returned by this method will take effect the next frame.
+            // Therefore, the weapon facing needs to be extrapolated based on intercept
+            // point's and ship's angular velocity.
             val r = Rotation(interceptRotation - shipRotation)
             newIntercept.rotatedAroundPivot(r, weapon.location)
-        } else aimHardpoint(newIntercept, target)
+        } else {
+            aimHardpoint(newIntercept, target)
+        }
+
+        prevShipFacing = ship.facing
     }
 
     /** get current weapon attack parameters */
