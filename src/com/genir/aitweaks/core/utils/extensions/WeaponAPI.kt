@@ -103,3 +103,10 @@ val WeaponAPI.group: WeaponGroupAPI?
 
 val WeaponAPI.target: CombatEntityAPI?
     get() = this.autofirePlugin?.let { it.targetShip ?: it.targetMissile }
+
+val WeaponAPI.barrelOffset: Float
+    get() {
+        val offsets = if (slot.isHardpoint) spec.hardpointFireOffsets
+        else spec.turretFireOffsets
+        return offsets[0]?.x ?: 0f
+    }

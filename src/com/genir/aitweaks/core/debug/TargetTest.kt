@@ -36,7 +36,7 @@ fun targetTest(dt: Float) {
         if (!projectiles.contains(proj)) {
             projectiles.add(proj)
 
-            val intercept = ship.allGroupedWeapons.first().customAI!!.intercept
+            val intercept = ship.allGroupedWeapons.first().customAI!!.plotIntercept(target)
 
             val vt = proj.velocity - targetV
             val pt = proj.location - target.location

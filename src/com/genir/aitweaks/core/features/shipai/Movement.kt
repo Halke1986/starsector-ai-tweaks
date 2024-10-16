@@ -11,7 +11,6 @@ import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -230,13 +229,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
         val makeSolution = fun(weapon: WeaponAPI): Pair<AutofireAI, Float>? {
             val ai = weapon.customAI ?: return null
-
-            // Use weapon intercept point instead of target vector,
-            // as they may not be the same for hardpoints.
-            val intercept: Vector2f? = if (ai.targetShip == attackTarget) ai.intercept
-            else ai.plotIntercept(attackTarget)
-            intercept ?: return null
-
+            val intercept = ai.plotIntercept(attackTarget)
             return Pair(ai, (intercept - weapon.location).facing)
         }
 

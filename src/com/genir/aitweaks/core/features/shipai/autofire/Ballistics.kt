@@ -3,10 +3,7 @@ package com.genir.aitweaks.core.features.shipai.autofire
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.extensions.absoluteArcFacing
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.lengthSquared
-import com.genir.aitweaks.core.utils.extensions.totalRange
+import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -137,10 +134,3 @@ private fun targetAboveWeapon(locationRelative: Vector2f, weapon: WeaponAPI, tar
     val r = weapon.barrelOffset + target.radius
     return d2 < r * r
 }
-
-private val WeaponAPI.barrelOffset: Float
-    get() {
-        val offsets = if (slot.isHardpoint) spec.hardpointFireOffsets
-        else spec.turretFireOffsets
-        return offsets[0]?.x ?: 0f
-    }
