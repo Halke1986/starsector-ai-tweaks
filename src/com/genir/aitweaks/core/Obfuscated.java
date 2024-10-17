@@ -8,7 +8,8 @@ import java.util.List;
  * Collection of placeholders for obfuscated type names.
  */
 public class Obfuscated {
-    public static class ThreatEvalAI {
+    public enum ShipCommand {
+        TURN_LEFT, TURN_RIGHT,
     }
 
     public interface AutofireManager {
@@ -22,11 +23,10 @@ public class Obfuscated {
         CombatEntity getTarget_Maneuver();
     }
 
-    public static class ApproachManeuver {
+    public static class ThreatEvalAI {
     }
 
-    public enum ShipCommand {
-        TURN_LEFT, TURN_RIGHT,
+    public static class ApproachManeuver {
     }
 
     public static class ShipCommandWrapper {

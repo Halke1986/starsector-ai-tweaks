@@ -6,7 +6,6 @@ import com.genir.aitweaks.core.utils.extensions.isFrigateShip
 import com.genir.aitweaks.core.utils.extensions.isModule
 import com.genir.aitweaks.core.utils.extensions.timeMult
 import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max

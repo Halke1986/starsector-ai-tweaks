@@ -10,7 +10,6 @@ import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 

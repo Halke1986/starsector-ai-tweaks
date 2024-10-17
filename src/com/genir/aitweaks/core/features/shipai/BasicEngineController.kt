@@ -63,8 +63,6 @@ open class BasicEngineController(val ship: ShipAPI) {
 
         // Maximum velocity towards target for both axis of movement.
         // Any higher velocity would lead to overshooting target location.
-        // Note: vmx and vmy are always integer multiples of respective
-        // acceleration values, without any fractional part.
         val vmx = if (d.x > 0) vMax(d.x, al) else -vMax(-d.x, al)
         val vmy = if (d.y > 0) vMax(d.y, ab) else -vMax(-d.y, af)
 

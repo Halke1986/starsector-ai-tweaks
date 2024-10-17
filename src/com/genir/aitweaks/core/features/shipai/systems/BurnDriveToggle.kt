@@ -14,7 +14,6 @@ import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.extensions.rootModule
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus

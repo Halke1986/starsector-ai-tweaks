@@ -42,7 +42,7 @@ fun targetTest(dt: Float) {
             val errt = distanceToOrigin(pt, vt)!!
 
             val vi = proj.velocity
-            val pi = proj.location - intercept!!
+            val pi = proj.location - intercept
             val erri = distanceToOrigin(pi, vi)!!
 
 //            debugPrint["intercept"] = "i $erri"

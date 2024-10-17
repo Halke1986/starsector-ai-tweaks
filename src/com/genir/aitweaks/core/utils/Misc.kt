@@ -10,7 +10,6 @@ import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import org.json.JSONObject
 import org.lazywizard.lazylib.MathUtils.getShortestRotation
 import org.lazywizard.lazylib.VectorUtils
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f

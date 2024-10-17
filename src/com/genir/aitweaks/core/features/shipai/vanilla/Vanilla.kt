@@ -7,7 +7,6 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.genir.aitweaks.core.features.shipai.AutofireManager
 import com.genir.aitweaks.core.utils.extensions.facing
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
 import java.lang.invoke.MethodHandle
