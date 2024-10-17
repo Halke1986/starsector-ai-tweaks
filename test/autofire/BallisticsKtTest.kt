@@ -1,12 +1,10 @@
 package autofire
 
+import com.fs.starfarer.api.combat.MutableStat
 import com.genir.aitweaks.core.features.shipai.autofire.*
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.extensions.length
-import mocks.MockBoundsAPI
-import mocks.MockSegmentAPI
-import mocks.MockShipAPI
-import mocks.MockWeaponAPI
+import mocks.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.lwjgl.util.vector.Vector2f
@@ -43,7 +41,9 @@ class BallisticsKtTest {
             "getLocation" to Vector2f(2011.343f, -1750.4396f),
             "getCurrAngle" to 104.474915f,
             "getProjectileSpeed" to 3.4028236E36f,
-            "getShip" to MockShipAPI("getVelocity" to Vector2f(2.2171297f, 65.96275f))
+            "getShip" to MockShipAPI("getVelocity" to Vector2f(2.2171297f, 65.96275f)),
+            "getSlot" to MockWeaponSlotAPI("isHardpoint" to false),
+            "getSpec" to MockWeaponSpecAPI("getTurretFireOffsets" to listOf(Vector2f()))
         )
 
         val target = MockShipAPI(
@@ -52,6 +52,7 @@ class BallisticsKtTest {
             "getCollisionRadius" to 35.755074f,
             "getFacing" to 219.58746f,
             "getExactBounds" to bounds,
+            "getMutableStats" to MockMutableShipStatsAPI("getTimeMult" to MutableStat(1f))
         )
 
         val actual = willHitBounds(weapon, target, BallisticParams(1f, 0f))
@@ -64,7 +65,9 @@ class BallisticsKtTest {
             "getLocation" to Vector2f(0f, 0f),
             "getProjectileSpeed" to 1f,
             "getCurrAngle" to 90f,
-            "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 0f))
+            "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 0f)),
+            "getSlot" to MockWeaponSlotAPI("isHardpoint" to false),
+            "getSpec" to MockWeaponSpecAPI("getTurretFireOffsets" to listOf(Vector2f()))
         )
 
         val target = BallisticTarget(
@@ -94,7 +97,9 @@ class BallisticsKtTest {
             "getShip" to MockShipAPI(
                 "getVelocity" to Vector2f(0f, 0f),
                 "getFacing" to 90f,
-            )
+            ),
+            "getSlot" to MockWeaponSlotAPI("isHardpoint" to false),
+            "getSpec" to MockWeaponSpecAPI("getTurretFireOffsets" to listOf(Vector2f()))
         )
 
         val target = BallisticTarget(

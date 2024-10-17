@@ -6,7 +6,7 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.sign
 
-class Arc(var arc: Float, var facing: Float) {
+data class Arc(var arc: Float, var facing: Float) {
     fun overlaps(second: Arc): Boolean {
         return abs(MathUtils.getShortestRotation(this.facing, second.facing)) <= (this.arc + second.arc) / 2f
     }

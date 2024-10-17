@@ -31,7 +31,6 @@ fun targetTest(dt: Float) {
 
     installAI(target) { TargetAI(target) }
 
-    // TODO the difference is bigger at start, there's a big error at hitting intercept point.
     engine.projectiles.forEach { proj ->
         if (!projectiles.contains(proj)) {
             projectiles.add(proj)
