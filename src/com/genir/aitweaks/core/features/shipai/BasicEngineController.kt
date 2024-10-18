@@ -19,12 +19,17 @@ import kotlin.math.min
 import kotlin.math.sign
 import kotlin.random.Random
 
-/** Engine Controller controls the ship heading and facing
+/**
+ * Engine Controller controls the ship heading and facing
  * by issuing appropriate engine commands.
  *
  * Note: Due to Starsector combat engine order of operations,
  * the controller works better when called from ship AI, as
- * opposed to every frame combat plugin. */
+ * opposed to every frame combat plugin.
+ *
+ * heading and facing methods should be called once per frame
+ * each frame.
+ */
 open class BasicEngineController(val ship: ShipAPI) {
     private var prevFacing: Float = 0f
     private var prevHeading: Vector2f = Vector2f()
@@ -33,11 +38,13 @@ open class BasicEngineController(val ship: ShipAPI) {
     val allStop: Vector2f = Vector2f(Float.MAX_VALUE, Float.MAX_VALUE)
     val rotationStop: Float = Float.MAX_VALUE
 
-    /** Set ship heading towards selected location. Appropriate target
+    /**
+     * Set ship heading towards selected location. Appropriate target
      * leading is calculated based on estimated target velocity. If the ship
      * is already at 'heading' location, it will match the target velocity.
-     * limitVelocity lambda is used to restrict the velocity, e.g. for collision
-     * avoidance purposes. Returns the calculated expected velocity. */
+     * `limitVelocity` lambda is used to restrict the velocity, e.g. for
+     * collision avoidance purposes. Returns the calculated expected velocity.
+     */
     fun heading(dt: Float, heading: Vector2f, limitVelocity: ((Float, Vector2f) -> Vector2f)? = null): Vector2f {
         if (heading == allStop) return stop()
 
@@ -105,18 +112,11 @@ open class BasicEngineController(val ship: ShipAPI) {
     /**
      * Set ship facing.
      *
-     * The provided facing parameter should represent the expected ship facing
-     * for the current frame, as long as the method if called from within
-     * ShipAIPlugin.advance.
-     *
      * Due to how Starsector combat engine works, the actual change in ship facing
      * takes effect in the following frame, when the provided facing is already
      * obsolete. However, the engine controller matches the ship angular velocity
      * with changing facing values, effectively extrapolating the expected ship
      * facing to the next frame.
-     *
-     * This is important when using ship facing to aim hardpoints: facing value
-     * should be calculated based on current frame target leading solution.
      */
     fun facing(dt: Float, facing: Float) {
         if (facing == rotationStop && ship.angularVelocity == 0f) return
@@ -157,23 +157,28 @@ open class BasicEngineController(val ship: ShipAPI) {
         return Vector2f()
     }
 
-    /** Calculate the maximum velocity in a given direction to
-     * avoid overshooting the target.
+    /**
+     * Calculates the maximum velocity in a given direction to avoid
+     * overshooting a target at distance `s` with acceleration `a`.
      *
-     * The Starsector engine simulates motion in a discrete manner,
-     * where the distance covered during accelerated motion is
-     * calculated using the following non-Newtonian equation:
+     * The Starsector engine simulates motion in a discrete manner, where
+     * the distance covered during accelerated motion is described using
+     * a non-Newtonian formula:
      *
-     * 2 s = a t t + a t u
+     * s(n) = s(n-1) + n a u²
      *
-     * where `a` is acceleration, `t` is time, and `u` is the duration
-     * of a single simulation frame, here normalized to 1. This gives
-     * the following equation for velocity:
+     * where `s(n)` is the distance covered after `n` frames., `a` is acceleration
+     * and `u` is the duration of a single simulation frame (normalized to 1).
+     * This recursive formula can be converted into a continuous explicit formula:
      *
-     * 0 = v v / a + v - 2 s
+     * s = a (t+u)² / 2 - a u² / 2
+     *
+     * Solving for velocity `v` (where v = a t) gives:
+     *
+     * 0 = v² / 2 + v a - s a
      */
     private fun vMax(s: Float, a: Float): Float {
-        return quad(1f / a, 1f, -s * 2f)?.first ?: 0f
+        return quad(0.5f, a, -s * a)?.first ?: 0f
     }
 
     /** Decide if the ship should accelerate in the given

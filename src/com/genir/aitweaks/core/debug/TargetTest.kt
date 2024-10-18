@@ -3,16 +3,15 @@ package com.genir.aitweaks.core.debug
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
-import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.log
+import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
+import kotlin.math.abs
 
 var projectiles: MutableSet<DamagingProjectileAPI> = mutableSetOf()
 
@@ -69,7 +68,7 @@ class ShipAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() 
     override fun getAIFlags(): ShipwideAIFlags = flags
 
     override fun advance(dt: Float) {
-        drawCircle(ship.location, ship.collisionRadius / 2f, Color.GREEN)
+//        drawCircle(ship.location, ship.collisionRadius / 2f, Color.GREEN)
         ship.weaponGroupsCopy.forEach { it.toggleOn() }
         flags.advance(dt)
 //        ship.shipTarget = target
@@ -77,14 +76,16 @@ class ShipAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() 
 
         targetV = target.velocity.copy
 
-//        val err = MathUtils.getShortestRotation(ship.facing, getFacingStrict(target.location - ship.location))
-//        debugPrint["e"] = "e ${abs(err)}"
-//        log(err)
+        val err = MathUtils.getShortestRotation(ship.facing, (target.location - ship.location).facing)
+        debugPrint["e"] = "e ${abs(err)}"
+        log(err)
 
         controller.heading(dt, location)
-//        controller.facing(dt, target.location)
+        controller.facing(dt, target.location)
 //        ship.command(ShipCommand.TURN_RIGHT)
-        ship.command(ShipCommand.TURN_LEFT)
+//        ship.command(ShipCommand.TURN_LEFT)
+
+        drawEngineLines(ship)
     }
 }
 

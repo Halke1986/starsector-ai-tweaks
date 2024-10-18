@@ -43,7 +43,7 @@ import kotlin.math.abs
 
 internal fun debug(dt: Float) {
 //    targetTest(dt)
-    return
+//    Global.getCombatEngine().playerShip?.let { FollowMouseAI.install(it) }
 }
 
 var expectedFacing = 90f
