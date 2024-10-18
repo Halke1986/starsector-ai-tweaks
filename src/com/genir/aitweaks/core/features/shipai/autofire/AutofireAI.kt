@@ -18,8 +18,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
 
     protected var target: CombatEntityAPI? = null
-    private var aimPoint: Vector2f? = null
-
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
     private var idleFrames: Int = 0
@@ -29,9 +27,11 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var selectTargetInterval = Interval(0.25F, 0.50F)
     private var shouldFireInterval = Interval(0.1F, 0.2F)
 
-    // Fields accessed by custom ship AI
-    var intercept: Vector2f? = null // intercept may be different from aim location for hardpoint weapons
-    var shouldHoldFire: HoldFire? = NO_TARGET
+    // Aiming data.
+    private var aimPoint: Vector2f? = null
+    private var prevTurretIntercept: Vector2f? = null
+    private var prevShipFacing: Float = 0f
+    private var shouldHoldFire: HoldFire? = NO_TARGET
     var predictedHit: Hit? = null
 
     var syncState: SyncState? = null
@@ -188,7 +188,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         predictedHit = null
 
         if (target?.isValidTarget != true) return NO_TARGET
-        if (intercept == null) return NO_HIT_EXPECTED
 
         holdFireIfOverfluxed()?.let { return it }
 
@@ -205,6 +204,8 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, ballisticParams)
+
+        // Rest of the should-fire decisioning will be based on the actual hit.
         val hit = when {
             actualHit == null -> expectedHit
             actualHit.range > expectedHit.range -> expectedHit
@@ -214,7 +215,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
 
-        // Rest of the should-fire decisioning will be based on the actual hit.
         when {
             hit.shieldHit && hit.range > weapon.range -> return OUT_OF_RANGE
             !hit.shieldHit && hit.range > weapon.totalRange -> return OUT_OF_RANGE
@@ -244,29 +244,31 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     /** Hold fire for a period of time after initially acquiring
      * the target to increase first volley accuracy. */
     private fun stabilizeOnTarget(): HoldFire? {
-        // PD weapons should fire with no delay.
-        if (weapon.isPD || onTargetTime >= min(2f, weapon.firingCycle.duration)) return null
+        when {
+            // PD weapons should fire with no delay.
+            weapon.isPD || !target!!.isShip -> return null
 
-        // Use intercept point instead aim point for hardpoints,
-        // to not get false accuracy because of predictive aiming.
-        val toTarget = (intercept!! - weapon.location)
-        val angleToTarget = toTarget.facing
-        val targetSize = angularSize(toTarget.lengthSquared, target!!.collisionRadius)
-        val inaccuracy = abs(MathUtils.getShortestRotation(weapon.currAngle, angleToTarget))
-        if (inaccuracy > targetSize * 3f) return STABILIZE_ON_TARGET
+            // Weapon is on target for long enough already.
+            onTargetTime >= min(2f, weapon.firingCycle.duration) -> return null
+        }
+
+        val arc = interceptArc(weapon, BallisticTarget.entity(target!!), currentParams()) ?: return STABILIZE_ON_TARGET
+        val inaccuracy = abs(MathUtils.getShortestRotation(weapon.currAngle, arc.facing))
+        if (inaccuracy * 4f > arc.arc) return STABILIZE_ON_TARGET
 
         return null
     }
 
     private fun updateAimLocation() {
-        intercept = null
-        aimPoint = null
+        val target: CombatEntityAPI? = this.target
+        if (target == null) {
+            prevTurretIntercept = null
+            aimPoint = null
+            return
+        }
 
-        if (target == null) return
-
-        intercept = plotIntercept(target!!)
-        aimPoint = if (weapon.slot.isTurret) intercept
-        else aimHardpoint(intercept!!, target!!)
+        aimPoint = if (weapon.slot.isTurret) aimTurret(target)
+        else aimHardpoint(target)
     }
 
     /** get current weapon attack parameters */
@@ -290,23 +292,47 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
     }
 
+    private fun aimTurret(target: CombatEntityAPI): Vector2f {
+        val intercept = plotIntercept(target)
+
+        // ship.angularVelocity() returns 0 for modules and stations, so the ship
+        // true angular velocity is estimated by calculating the change in ship facing.
+        val shipRotation = ship.facing - prevShipFacing
+        val prevIntercept = prevTurretIntercept ?: intercept
+        val interceptRotation = getShortestRotation(prevIntercept, weapon.location, intercept)
+
+        // Save current state for next frame.
+        prevShipFacing = ship.facing
+        prevTurretIntercept = intercept
+
+        // Combat engine fires weapons before setting their aim location. This means
+        // the aim location returned by this method will take effect the next frame.
+        // Therefore, the weapon facing needs to be extrapolated based on intercept
+        // point's and ship's angular velocity.
+        val r = Rotation(interceptRotation - shipRotation)
+        return intercept.rotatedAroundPivot(r, weapon.location)
+    }
+
     /** predictive aiming for hardpoints */
-    private fun aimHardpoint(intercept: Vector2f, target: CombatEntityAPI): Vector2f {
+    private fun aimHardpoint(target: CombatEntityAPI): Vector2f {
         // Try to read expected facing from custom AI implementations.
         val customAIFacing = ship.customShipAI?.movement?.expectedFacing
         val wrapperAIFacing = (ship.ai as? WrapperShipAI)?.expectedFacing
+        val expectedFacing = customAIFacing ?: wrapperAIFacing ?: (target.location - ship.location).facing
 
         // If no expected facing was found, assume the ship is controlled by vanilla AI.
         // Vanilla AI lacks precise aiming, so hardpoints need flexibility to compensate.
         // Aim directly at the intercept point when the ship is close to aligned.
         if (customAIFacing == null && wrapperAIFacing == null) {
+            val intercept = plotIntercept(target)
             if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(intercept - weapon.location))
                 return intercept
         }
 
         // Aim the hardpoint as if the ship was facing the target directly.
-        val expectedFacing = customAIFacing ?: wrapperAIFacing ?: (target.location - ship.location).facing
-        val angleToTarget = MathUtils.getShortestRotation(ship.facing, expectedFacing)
-        return rotateAroundPivot(intercept, ship.location, angleToTarget)
+        val r = Rotation(MathUtils.getShortestRotation(expectedFacing, ship.facing))
+        val v = target.velocity.rotated(r)
+        val p = target.location.rotatedAroundPivot(r, weapon.ship.location)
+        return intercept(weapon, BallisticTarget(v, p, target.collisionRadius), currentParams())
     }
 }

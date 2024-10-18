@@ -16,8 +16,10 @@ class SymbolsTest {
         assertEquals("com/fs/starfarer/combat/entities/Ship\$Oo", s.shipCommandWrapper.classPath)
         assertEquals("com/fs/starfarer/combat/entities/Ship\$oo", s.shipCommand.classPath)
         assertEquals("com/fs/starfarer/combat/ai/movement/maneuvers/oO0O", s.maneuver.classPath)
+        assertEquals("com/fs/starfarer/combat/o0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/B", s.combatEntity.classPath)
 
-        assertEquals("o00000", s.advanceAutofireManager)
-        assertEquals("new", s.commandShipCommandWrapper)
+        assertEquals("o00000", s.advance_AutofireManager.name)
+        assertEquals("new", s.command_ShipCommandWrapper.name)
+        assertEquals("o00000", s.getTarget_Maneuver.name)
     }
 }

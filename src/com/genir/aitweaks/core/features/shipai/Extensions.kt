@@ -1,11 +1,11 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.isFrigateShip
 import com.genir.aitweaks.core.utils.extensions.isModule
 import com.genir.aitweaks.core.utils.extensions.timeMult
 import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
@@ -41,7 +41,7 @@ val WeaponAPI.reloadTimeRemaining: Float
     }
 
 fun ShipAPI.shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Float): Float {
-    val facingToTarget = (target - location).getFacing()
+    val facingToTarget = (target - location).facing
     return MathUtils.getShortestRotation(facing + weaponGroupFacing, facingToTarget)
 }
 

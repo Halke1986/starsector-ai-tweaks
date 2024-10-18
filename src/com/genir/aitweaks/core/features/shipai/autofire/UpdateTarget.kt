@@ -4,10 +4,12 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.asteroidGrid
+import com.genir.aitweaks.core.utils.closestEntityFinder
 import com.genir.aitweaks.core.utils.extensions.*
+import com.genir.aitweaks.core.utils.missileGrid
+import com.genir.aitweaks.core.utils.shipGrid
 import lunalib.lunaSettings.LunaSettings
-import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
 private const val alsoTargetFighters = true
@@ -59,9 +61,6 @@ class UpdateTarget(
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
         // Estimate priority target.
         val priorityTarget = when {
-            // When ship is on vanilla escort assignment, the priority target needs to be estimated.
-            attackTarget == null && weapon.isFrontFacing && weapon.ship.hasEscortAssignment -> estimateShipTarget(weapon)
-
             // Don't attack allies.
             attackTarget?.owner == weapon.ship.owner -> null
 
@@ -99,26 +98,5 @@ class UpdateTarget(
                 else -> Hit(it, closestHitRange(weapon, target, params)!!, false)
             }
         }?.target
-    }
-
-    /** Fallback method of acquiring ship maneuver target.
-     * Returns closest enemy ship "hit" by the ships heading vector. */
-    private fun estimateShipTarget(weapon: WeaponAPI): ShipAPI? {
-        val facing = unitVector(weapon.ship.facing)
-        val isTarget = fun(entity: ShipAPI): Boolean {
-            val dist = distanceToOrigin(weapon.ship.location - entity.location, facing) ?: return false
-            return dist < entity.collisionRadius
-        }
-
-        return closestEntityFinder(weapon.ship.location, weapon.totalRange, shipGrid()) {
-            when {
-                it !is ShipAPI -> null
-                !it.isValidTarget -> null
-                it.isFighter -> null
-                it.owner == weapon.ship.owner -> null
-                !isTarget(it) -> null
-                else -> Hit(it, (weapon.ship.location - it.location).length(), false)
-            }
-        }?.target as? ShipAPI
     }
 }

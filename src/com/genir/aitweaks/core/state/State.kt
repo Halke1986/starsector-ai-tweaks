@@ -18,13 +18,11 @@ class State : BaseEveryFrameCombatPlugin() {
 
     val fleetCohesion: Array<FleetCohesion> = arrayOf(FleetCohesion(0), FleetCohesion(1))
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
-    val maneuverTargetTracker: ManeuverTargetTracker = ManeuverTargetTracker()
 
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
         fleetCohesion[0],
         fleetCohesion[1],
         accelerationTracker,
-        maneuverTargetTracker,
         com.genir.aitweaks.core.features.AimAssist(),
         com.genir.aitweaks.core.features.AutoOmniShields(),
         com.genir.aitweaks.core.features.AutomatedShipAIManager(),

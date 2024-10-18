@@ -15,7 +15,6 @@ class TadaPlasmaAI(weapon: WeaponAPI) : AutofireAI(weapon) {
         predictedHit = null
 
         if (target?.isValidTarget != true) return HoldFire.NO_TARGET
-        if (intercept == null) return HoldFire.NO_HIT_EXPECTED
 
         holdFireIfOverfluxed()?.let { return it }
 

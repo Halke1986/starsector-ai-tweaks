@@ -1,3 +1,7 @@
+- AI-controlled frigates no longer briefly freeze after destroying their current target; now they immediately proceed to attack a new target.
+- Target leading calculations account for weapon barrel offset, ship rotation and combat engine order of operation, leading to slightly improved accuracy.
+- More accurate arctan(x) approximation and engine controller AI improvements, again leading to slightly improved accuracy, especially for hardpoints.
+
 Version 1.10.2
 
 - Fixed a bug where AI Tweaks did not register LunaLib settings changes until Starsector was restarted.

@@ -14,7 +14,6 @@ import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.extensions.rootModule
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -106,7 +105,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), Coordinable {
             val toDestination = newDestination - ship.location
             headingPoint = toDestination + ship.location
             destinationDist = toDestination.length()
-            destinationFacing = abs(MathUtils.getShortestRotation(toDestination.getFacing(), ship.facing))
+            destinationFacing = abs(MathUtils.getShortestRotation(toDestination.facing, ship.facing))
         } else {
             headingPoint = Vector2f()
             destinationDist = 0f

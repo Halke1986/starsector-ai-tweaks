@@ -233,7 +233,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
         val p = target.location - ship.location
         val v = target.velocity
 
-        val time = solve(Pair(p, v), 0f, burstSpeed, 0f) ?: return null
+        val time = solve(Pair(p, v), 0f, burstSpeed, 0f, 0f) ?: return null
         return target.location + v * time
     }
 

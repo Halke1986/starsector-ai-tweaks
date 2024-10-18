@@ -13,7 +13,6 @@ import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.averageFacing
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
-import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
 /** Ship AI implementation that wraps around vanilla BasicShipAI and overrides certain decisions.
@@ -36,7 +35,13 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         val currentManeuver: Obfuscated.Maneuver? = basicShipAI.currentManeuver
         if (currentManeuver !is StrafeTargetManeuverV2 && currentManeuver !is Obfuscated.ApproachManeuver) return
 
-        expectedFacing = ship.attackTarget?.let { aimShip(it) } ?: return
+        val attackTarget: ShipAPI = currentManeuver.target_Maneuver as? ShipAPI ?: return
+        if (!attackTarget.isValidTarget) {
+            basicShipAI.cancelCurrentManeuver()
+            return
+        }
+
+        expectedFacing = aimShip(attackTarget) ?: return
 
         // Remove vanilla turn commands.
         clearTurnCommands(ship)
@@ -64,14 +69,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         if (maxRange * 1.75f < (attackTarget.location - ship.location).length) return null
 
         val makeSolution = fun(weapon: WeaponAPI): Float? {
-            val ai = weapon.customAI ?: return null
-
-            // Use weapon intercept point instead of target vector,
-            // as they may be different for hardpoints.
-            val intercept: Vector2f? = if (ai.targetShip == attackTarget) ai.intercept
-            else ai.plotIntercept(attackTarget)
-            intercept ?: return null
-
+            val intercept = weapon.customAI?.plotIntercept(attackTarget) ?: return null
             return (intercept - weapon.location).facing
         }
 

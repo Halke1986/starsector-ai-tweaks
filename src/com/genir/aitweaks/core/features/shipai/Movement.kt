@@ -11,7 +11,6 @@ import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -230,13 +229,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
         val makeSolution = fun(weapon: WeaponAPI): Pair<AutofireAI, Float>? {
             val ai = weapon.customAI ?: return null
-
-            // Use weapon intercept point instead of target vector,
-            // as they may not be the same for hardpoints.
-            val intercept: Vector2f? = if (ai.targetShip == attackTarget) ai.intercept
-            else ai.plotIntercept(attackTarget)
-            intercept ?: return null
-
+            val intercept = ai.plotIntercept(attackTarget)
             return Pair(ai, (intercept - weapon.location).facing)
         }
 
@@ -327,17 +320,17 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
         // Calculations are done in target frame of reference.
         val lineOfFire = ship.location - target.location
-        val facing = lineOfFire.getFacing()
+        val facing = lineOfFire.facing
         val distToTarget = lineOfFire.length()
 
-        val velocityFacing = (ship.location + ship.velocity - target.location).getFacing()
+        val velocityFacing = (ship.location + ship.velocity - target.location).facing
         val angleToVelocity = MathUtils.getShortestRotation(facing, velocityFacing)
 
         var maxLimit: EngineController.Limit? = null
 
         squad.forEach { obstacle ->
             val obstacleLineOfFire = obstacle.ship.location - target.location
-            val obstacleFacing = obstacleLineOfFire.getFacing()
+            val obstacleFacing = obstacleLineOfFire.facing
             val angleToOtherLine = MathUtils.getShortestRotation(facing, obstacleFacing)
 
             val blocked = if (obstacleLineOfFire.lengthSquared() < lineOfFire.lengthSquared()) ai
@@ -422,7 +415,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         // The closer the ship is to map edge, the stronger
         // the heading transformation away from the border.
         val avoidForce = (d / (Preset.borderNoGoZone - Preset.borderHardNoGoZone)).coerceAtMost(1f)
-        return EngineController.Limit(borderIntrusion.getFacing(), ship.maxSpeed * (1f - avoidForce))
+        return EngineController.Limit(borderIntrusion.facing, ship.maxSpeed * (1f - avoidForce))
     }
 
     private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, distance: Float): EngineController.Limit? {

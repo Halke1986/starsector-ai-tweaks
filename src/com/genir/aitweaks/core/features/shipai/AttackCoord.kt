@@ -8,10 +8,10 @@ import com.genir.aitweaks.core.features.shipai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.extensions.customShipAI
+import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.ext.getFacing
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -123,7 +123,7 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         val ship: ShipAPI = coordinable.ai.ship
         val attackRange: Float = (proposedHeadingPoint - target.location).length()
         val angularSize: Float = angularSize(attackRange * attackRange, ship.totalCollisionRadius + collisionBuffer)
-        val proposedFacing: Float = (proposedHeadingPoint - target.location).getFacing()
-        val currentFacing: Float = (ship.location - target.location).getFacing()
+        val proposedFacing: Float = (proposedHeadingPoint - target.location).facing
+        val currentFacing: Float = (ship.location - target.location).facing
     }
 }
