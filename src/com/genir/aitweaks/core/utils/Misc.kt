@@ -41,10 +41,7 @@ fun shieldUptime(shield: ShieldAPI?): Float {
 internal infix operator fun Vector2f.times(d: Float): Vector2f = Vector2f(x * d, y * d)
 internal infix operator fun Vector2f.div(d: Float): Vector2f = Vector2f(x / d, y / d)
 
-fun rotateAroundPivot(toRotate: Vector2f, pivot: Vector2f, angle: Float): Vector2f = VectorUtils.rotateAroundPivot(toRotate, pivot, angle, Vector2f())
-
 fun unitVector(angle: Float): Vector2f = VectorUtils.rotate(Vector2f(1f, 0f), angle)
-
 
 class Log
 

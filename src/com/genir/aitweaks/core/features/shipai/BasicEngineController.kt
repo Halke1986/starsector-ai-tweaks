@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.*
-import com.genir.aitweaks.core.utils.quad
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.clampLength
@@ -13,10 +12,7 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sign
+import kotlin.math.*
 import kotlin.random.Random
 
 /**
@@ -157,28 +153,27 @@ open class BasicEngineController(val ship: ShipAPI) {
         return Vector2f()
     }
 
-    /**
-     * Calculates the maximum velocity in a given direction to avoid
-     * overshooting a target at distance `s` with acceleration `a`.
-     *
-     * The Starsector engine simulates motion in a discrete manner, where
-     * the distance covered during accelerated motion is described using
-     * a non-Newtonian formula:
-     *
-     * s(n) = s(n-1) + n a u²
-     *
-     * where `s(n)` is the distance covered after `n` frames., `a` is acceleration
-     * and `u` is the duration of a single simulation frame (normalized to 1).
-     * This recursive formula can be converted into a continuous explicit formula:
-     *
-     * s = a (t+u)² / 2 - a u² / 2
-     *
-     * Solving for velocity `v` (where v = a t) gives:
-     *
-     * 0 = v² / 2 + v a - s a
-     */
+    /** Calculates the maximum velocity in a given direction to avoid
+     * overshooting a target at distance `s` with acceleration `a`. */
     private fun vMax(s: Float, a: Float): Float {
-        return quad(0.5f, a, -s * a)?.first ?: 0f
+        // The Starsector engine simulates motion in a discrete manner, where
+        // the distance covered during accelerated motion is described using
+        // a non-Newtonian formula:
+        //
+        // s(0) = 0
+        // s(n) = s(n-1) + n a u
+        //
+        // where `s(n)` is the distance covered after `n` frames, `a` is
+        // acceleration per frame and `u` is the duration of a single
+        // simulation frame (here normalized to 1). This recursive formula
+        // can be converted into an explicit integer function and solved
+        // for `v` (where `v = a n`), giving:
+        //
+        // v(s) = sqrt(a² / 4 + 2 a s) - a / 2
+        //
+        // Finally, v(s) can be extended to real arguments by using the
+        // following approximation:
+        return sqrt((a * a) + (2f * a * s)) - a
     }
 
     /** Decide if the ship should accelerate in the given
