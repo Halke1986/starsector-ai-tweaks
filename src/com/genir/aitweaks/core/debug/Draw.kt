@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.isPD
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.ext.minus
@@ -50,7 +51,7 @@ fun drawAccelerationLines(ship: ShipAPI) {
         if (engine.isStrafingLeft) Vector2f(-1f, 0f) else null,
         if (engine.isStrafingRight) Vector2f(1f, 0f) else null,
     ).forEach {
-        drawLine(ship.location, ship.location + r.rotate(it * ship.collisionRadius * 1.2f), Color.BLUE)
+        drawLine(ship.location, ship.location + (it * ship.collisionRadius * 1.2f).rotated(r), Color.BLUE)
     }
 }
 
@@ -64,7 +65,7 @@ fun drawTurnLines(ship: ShipAPI) {
         if (engine.isTurningLeft) Vector2f(-0.75f, 0.20f) else null,
         if (engine.isTurningRight) Vector2f(0.75f, 0.20f) else null,
     ).forEach {
-        drawLine(ship.location, ship.location + r.rotate(it * ship.collisionRadius * 1.2f), Color.CYAN)
+        drawLine(ship.location, ship.location + (it * ship.collisionRadius * 1.2f).rotated(r), Color.CYAN)
     }
 }
 

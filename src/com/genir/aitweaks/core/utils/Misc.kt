@@ -9,11 +9,9 @@ import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import org.json.JSONObject
 import org.lazywizard.lazylib.MathUtils.getShortestRotation
-import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.PI
 import kotlin.math.abs
 
 // TODO remove and use ballistics implementation
@@ -41,21 +39,9 @@ fun shieldUptime(shield: ShieldAPI?): Float {
 internal infix operator fun Vector2f.times(d: Float): Vector2f = Vector2f(x * d, y * d)
 internal infix operator fun Vector2f.div(d: Float): Vector2f = Vector2f(x / d, y / d)
 
-fun unitVector(angle: Float): Vector2f = VectorUtils.rotate(Vector2f(1f, 0f), angle)
-
 class Log
 
 fun log(message: Any) = Global.getLogger(Log().javaClass).info(message)
-
-class Rotation(angle: Float) {
-    private val radians = angle / 180.0f * PI.toFloat()
-    private val sin = kotlin.math.sin(radians)
-    private val cos = kotlin.math.cos(radians)
-
-    fun rotate(v: Vector2f) = Vector2f(v.x * cos - v.y * sin, v.x * sin + v.y * cos)
-
-    fun reverse(v: Vector2f) = Vector2f(v.x * cos + v.y * sin, -v.x * sin + v.y * cos)
-}
 
 fun defaultAIInterval() = Interval(0.25f, 0.33f)
 

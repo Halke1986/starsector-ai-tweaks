@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.utils
 
 import com.genir.aitweaks.core.utils.extensions.length
+import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
@@ -153,4 +154,36 @@ private fun atanApprox(x: Double): Double {
 
     val xx = x * x
     return ((a * xx + b) * xx + c) * x
+}
+
+class Rotation(angle: Float) {
+    private val sin: Float
+    private val cos: Float
+
+    init {
+        val radians = angle * DEGREES_TO_RADIANS
+        sin = sin(radians)
+        cos = cos(radians)
+    }
+
+    companion object {
+        fun Vector2f.rotated(r: Rotation): Vector2f {
+            return Vector2f(x * r.cos - y * r.sin, x * r.sin + y * r.cos)
+        }
+
+        fun Vector2f.rotatedAroundPivot(r: Rotation, p: Vector2f): Vector2f {
+            return (this - p).rotated(r) + p
+        }
+
+        fun Vector2f.rotatedReverse(r: Rotation): Vector2f {
+            return Vector2f(x * r.cos + y * r.sin, -x * r.sin + y * r.cos)
+        }
+    }
+}
+
+fun unitVector(angle: Float): Vector2f {
+    val radians = angle * DEGREES_TO_RADIANS
+    val x = cos(radians)
+    val y = sin(radians)
+    return Vector2f(x, y)
 }

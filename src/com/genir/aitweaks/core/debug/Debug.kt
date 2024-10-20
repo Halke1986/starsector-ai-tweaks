@@ -9,14 +9,14 @@ import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.rotated
+import com.genir.aitweaks.core.utils.extensions.resized
 import com.genir.aitweaks.core.utils.mousePosition
 import com.genir.aitweaks.core.utils.times
 import com.genir.aitweaks.core.utils.unitVector
 import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.VectorUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -130,7 +130,7 @@ private fun makeDroneFormation() {
         val drone = drones[i]
 
         if (((drone.ai as? ShipAIWrapper)?.ai !is DroneFormationAI)) {
-            val offset = Rotation(angle * i).rotate(Vector2f(0f, 300f))
+            val offset = Vector2f(0f, 300f).rotated(Rotation(angle * i))
             drone.shipAI = DroneFormationAI(drone, ship, offset)
         }
 
@@ -150,7 +150,7 @@ private fun speedupAsteroids() {
     for (i in asteroids.indices) {
         val a = asteroids[i]
         a.mass = 0f
-        a.velocity.set(VectorUtils.getDirectionalVector(Vector2f(), a.velocity) * 1200f)
+        a.velocity.set(a.velocity.resized(1200f))
     }
 }
 

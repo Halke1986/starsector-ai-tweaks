@@ -3,8 +3,12 @@ package com.genir.aitweaks.core.features.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.div
-import com.genir.aitweaks.core.utils.extensions.*
+import com.genir.aitweaks.core.utils.extensions.copy
+import com.genir.aitweaks.core.utils.extensions.facing
+import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.clampLength

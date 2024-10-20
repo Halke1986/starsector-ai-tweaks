@@ -7,6 +7,8 @@ import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus

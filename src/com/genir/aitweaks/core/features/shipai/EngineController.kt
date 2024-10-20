@@ -4,10 +4,10 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
 import com.genir.aitweaks.core.utils.RADIANS_TO_DEGREES
 import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.resized
-import com.genir.aitweaks.core.utils.extensions.rotated
 import com.genir.aitweaks.core.utils.quad
 import org.lazywizard.lazylib.MathUtils
 import org.lwjgl.util.vector.Vector2f

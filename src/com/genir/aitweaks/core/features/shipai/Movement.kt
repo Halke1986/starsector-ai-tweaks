@@ -9,6 +9,7 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.isZeroVector

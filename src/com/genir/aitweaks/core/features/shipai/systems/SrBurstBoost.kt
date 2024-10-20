@@ -9,6 +9,7 @@ import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.times
