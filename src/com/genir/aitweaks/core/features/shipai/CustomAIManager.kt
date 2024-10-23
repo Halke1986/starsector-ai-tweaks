@@ -8,7 +8,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
 import com.genir.aitweaks.core.state.combatState
-import com.genir.aitweaks.core.utils.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.utils.extensions.assignment
 import com.genir.aitweaks.core.utils.extensions.isFrigateShip
 import lunalib.lunaSettings.LunaSettings.getBoolean
@@ -18,8 +17,10 @@ class CustomAIManager {
 
     fun getCustomAIForShip(ship: ShipAPI): ShipAIPlugin? {
         return when {
-            shouldHaveCustomAI(ship) -> CustomShipAI(ship)
+            !customAIEnabled -> null
+            Global.getCurrentState() != GameState.COMBAT -> null
 
+            shouldHaveCustomAI(ship) -> CustomShipAI(ship)
             shouldHaveWrapperAI(ship) -> WrapperShipAI(ship)
 
             else -> null
@@ -27,21 +28,12 @@ class CustomAIManager {
     }
 
     private fun shouldHaveWrapperAI(ship: ShipAPI): Boolean {
-        return when {
-            Global.getCurrentState() != GameState.COMBAT -> false
-
-            !ship.isFrigateShip -> false
-
-            else -> ship.allGroupedWeapons.any { WrapperShipAI.shouldAim(it) }
-        }
+        return ship.isFrigateShip
     }
 
     /** Currently, custom AI is enabled only for selected ships. */
     private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
-            !customAIEnabled -> false
-            Global.getCurrentState() != GameState.COMBAT -> false
-
             ship.hullSpec.isPhase -> false
             ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
             ship.isStation -> false
