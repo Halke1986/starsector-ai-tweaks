@@ -41,9 +41,25 @@ import kotlin.math.abs
  *
  */
 
+var prevToTargetFacing = 0f
+
 internal fun debug(dt: Float) {
 //    targetTest(dt)
 //    Global.getCombatEngine().playerShip?.let { FollowMouseAI.install(it) }
+
+//    if (Global.getCombatEngine().isPaused) return
+//
+//    val ship = Global.getCombatEngine().playerShip ?: return
+//    val target = ship.attackTarget ?: return
+//
+//    ship.fluxTracker.currFlux *= 0.1f
+//
+//    val toTargetFacing = getFacingStrict(target.location - ship.location)
+//
+//    val df = abs(MathUtils.getShortestRotation(toTargetFacing, prevToTargetFacing))
+//    prevToTargetFacing = toTargetFacing
+//
+//    drawTurnLines(ship)
 }
 
 var expectedFacing = 90f

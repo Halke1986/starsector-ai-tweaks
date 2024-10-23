@@ -1,19 +1,23 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.DamagingProjectileAPI
+import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
-import com.genir.aitweaks.core.utils.distanceToOrigin
+import com.genir.aitweaks.core.features.shipai.WrapperShipAI
+import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.log
+import com.genir.aitweaks.core.utils.quad
+import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
+import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
-
-var projectiles: MutableSet<DamagingProjectileAPI> = mutableSetOf()
+import kotlin.math.max
+import kotlin.math.min
 
 var targetV = Vector2f()
 
@@ -29,34 +33,6 @@ fun targetTest(dt: Float) {
     }
 
     installAI(target) { TargetAI(target) }
-
-    engine.projectiles.forEach { proj ->
-        if (!projectiles.contains(proj)) {
-            projectiles.add(proj)
-
-            val intercept = ship.allGroupedWeapons.first().customAI!!.plotIntercept(target)
-
-            val vt = proj.velocity - targetV
-            val pt = proj.location - target.location
-            val errt = distanceToOrigin(pt, vt)!!
-
-            val vi = proj.velocity
-            val pi = proj.location - intercept
-            val erri = distanceToOrigin(pi, vi)!!
-
-//            debugPrint["intercept"] = "i $erri"
-            debugPrint["target"] = "t $errt"
-
-//            debugPrint["spec"] = "spec ${ship.allGroupedWeapons.first().projectileSpeed}"
-//            debugPrint["vel"] = "vel ${proj.velocity.length}"
-//            debugPrint["loc"] = "loc ${ship.allGroupedWeapons.first().location}"
-
-//            log("$erri $errt ${target.location} ${targetV} ${proj.location} ${proj.velocity} $intercept")
-            log("$erri")
-
-//            drawCircle(target.location, erri * 2f, Color.GREEN)
-        }
-    }
 }
 
 class ShipAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
@@ -76,12 +52,22 @@ class ShipAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() 
 
         targetV = target.velocity.copy
 
+
+
+        controller.heading(dt, location)
+//        controller.facing(dt, target.location)
+
+        controller.facing(dt, aimShip(ship, target))
+//        ship.facing = aimShip(ship, target)
+
+
+        val weapon = ship.allGroupedWeapons.first { WrapperShipAI.shouldAim(it) }
+
+
         val err = MathUtils.getShortestRotation(ship.facing, (target.location - ship.location).facing)
         debugPrint["e"] = "e ${abs(err)}"
         log(err)
 
-        controller.heading(dt, location)
-        controller.facing(dt, target.location)
 //        ship.command(ShipCommand.TURN_RIGHT)
 //        ship.command(ShipCommand.TURN_LEFT)
 
@@ -106,6 +92,35 @@ class TargetAI(val ship: ShipAPI) : BaseEngineControllerAI() {
         }
 
         controller.heading(dt, location)
-        controller.facing(dt, location)
+        controller.facing(dt, (location - ship.location).facing)
     }
 }
+
+private fun aimShip(ship: ShipAPI, target: CombatEntityAPI): Float {
+    val weapon = ship.allGroupedWeapons.first { WrapperShipAI.shouldAim(it) }
+
+    val p = (target.location - weapon.ship.location)
+    val v = (target.velocity - weapon.ship.velocity) / (weapon.projectileSpeed)
+    val h = weapon.slot.location.x + weapon.barrelOffset
+
+    // (px + t vx)² + (py + t vy)² = (h + t)²
+    // (px² + 2 t px vx + t² vx²) + (py² + 2 t py vy + t² vy²) = (h² + 2 t h + t²)
+    // 0 = t² (vx² + vy² - 1) + t 2 (px vx + py vy - h) + (px² + py² - h²)
+
+    val a = (v.x * v.x) + (v.y * v.y) - 1f
+    val b = (p.x * v.x) + (p.y * v.y) - h
+    val c = (p.x * p.x) + (p.y * p.y) - h * h
+
+    val t = quad(a, b + b, c)?.smallerPositive ?: 0f
+    val intercept = target.location + v * t
+
+    return (intercept - ship.location).facing
+}
+
+val Pair<Float, Float>.smallerPositive: Float?
+    get() = when {
+        first >= 0 && second >= 0 -> min(first, second)
+        first <= 0 != second <= 0 -> max(first, second)
+        else -> null
+    }
+

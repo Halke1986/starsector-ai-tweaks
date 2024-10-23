@@ -1,10 +1,11 @@
 package com.genir.aitweaks.core.features.shipai
 
+import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.extensions.isAngleInArc
 
 /** A group of weapons that can focus on a single attack angle. */
-class WeaponGroup(significantWeapons: List<WeaponAPI>, val facing: Float) {
+class WeaponGroup(val ship: ShipAPI, significantWeapons: List<WeaponAPI>, val facing: Float) {
     val weapons = significantWeapons.filter { it.isAngleInArc(facing) }
     val dps: Float = weapons.sumOf { it.derivedStats.dps.toDouble() }.toFloat()
     val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)

@@ -58,7 +58,7 @@ class ShipStats(private val ship: ShipAPI) {
     private fun findWeaponGroups(): List<WeaponGroup> {
         // Special case for front facing hardpoints.
         if (significantWeapons.any { it.slot.isHardpoint && it.arcFacing == 0f }) {
-            return listOf(WeaponGroup(significantWeapons, 0f))
+            return listOf(WeaponGroup(ship, significantWeapons, 0f))
         }
 
         // Find firing arc boundary closes to ship front for
@@ -93,6 +93,6 @@ class ShipStats(private val ship: ShipAPI) {
         // Find all weapon groups with acceptable DPS.
         val bestWeaponGroup: AngleDPS = anglesDPS.maxWithOrNull(compareBy { it.dps })!!
         val validWeaponGroups = anglesDPS.filter { it.dps >= bestWeaponGroup.dps * Preset.validWeaponGroupDPSThreshold }
-        return validWeaponGroups.map { WeaponGroup(significantWeapons, it.angle) }
+        return validWeaponGroups.map { WeaponGroup(ship, significantWeapons, it.angle) }
     }
 }

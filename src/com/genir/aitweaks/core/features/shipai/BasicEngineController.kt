@@ -7,7 +7,6 @@ import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.copy
-import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.MathUtils
@@ -103,10 +102,6 @@ open class BasicEngineController(val ship: ShipAPI) {
         if (shouldAccelerate(+d.x, fr, fMax)) ship.command(STRAFE_RIGHT)
 
         return vec.rotatedReverse(r) / dt
-    }
-
-    fun facing(dt: Float, facingNextFrame: Vector2f) {
-        facing(dt, (facingNextFrame - ship.location).facing)
     }
 
     /**

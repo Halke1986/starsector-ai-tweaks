@@ -1,3 +1,6 @@
+- Frigate hardpoint aiming now works correctly with Advanced Gunnery Control.
+- Frigates will rotate to properly aim all front-facing projectile and beam weapons, not just hardpoints.  
+
 Version 1.10.3
 
 - AI-controlled frigates no longer briefly freeze after destroying their current target; now they immediately proceed to attack a new target.

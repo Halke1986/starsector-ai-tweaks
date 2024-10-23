@@ -6,7 +6,9 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
+import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
+import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.intercept
 import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
@@ -223,51 +225,6 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         }
     }
 
-    /** Aim weapons with the entire ship, if possible. */
-    private fun aimShip(attackTarget: CombatEntityAPI, weaponGroup: WeaponGroup): Float {
-        // Prioritize hardpoints if there are any in the weapon group.
-        val weapons = weaponGroup.weapons.filter { it.slot.isHardpoint }.ifEmpty { weaponGroup.weapons }
-
-        val makeSolution = fun(weapon: WeaponAPI): Pair<AutofireAI, Float>? {
-            val ai = weapon.customAI ?: return null
-            val intercept = ai.plotIntercept(attackTarget)
-            return Pair(ai, (intercept - weapon.location).facing)
-        }
-
-        val solutions: Map<AutofireAI, Float> = weapons.mapNotNull { makeSolution(it) }.toMap()
-
-        // Aim directly at target if no weapon firing solution is available.
-        if (solutions.isEmpty()) return (attackTarget.location - ship.location).facing - weaponGroup.facing
-
-        // Start with aiming the weapon group at the average intercept point.
-        val averageIntercept: Float = averageFacing(solutions.values)
-        val defaultShipFacing: Float = averageIntercept - weaponGroup.facing
-
-        // Fine tune the facing to minimize the amount of weapons
-        // not able to aim at their calculated intercept point.
-        var offsetNegative = 0f
-        var offsetPositive = 0f
-        solutions.forEach {
-            val weapon = it.key.weapon
-            val localIntercept: Float = it.value - defaultShipFacing
-            if (weapon.isAngleInArc(localIntercept)) return@forEach
-
-            // Angle to nearest arc boundary.
-            val halfArc = weapon.arc / 2f
-            val angleArc1 = MathUtils.getShortestRotation(weapon.arcFacing + halfArc, localIntercept)
-            val angleArc2 = MathUtils.getShortestRotation(weapon.arcFacing - halfArc, localIntercept)
-            val outOfArc = if (abs(angleArc1) > abs(angleArc2)) angleArc2 else angleArc1
-
-            // Calculate offset if firing solution is outside weapon firing arc.
-            when {
-                outOfArc < 0f -> offsetNegative = min(offsetNegative, outOfArc)
-                outOfArc > 0f -> offsetPositive = max(offsetPositive, outOfArc)
-            }
-        }
-
-        return defaultShipFacing + offsetNegative + offsetPositive
-    }
-
     private fun gatherSpeedLimits(dt: Float): List<EngineController.Limit> {
         val friendlies = Global.getCombatEngine().ships.filter {
             when {
@@ -463,6 +420,51 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
             angleFromBow < 30f -> deceleration
             angleFromBow < 150f -> strafeAcceleration
             else -> acceleration
+        }
+    }
+
+    companion object {
+
+        /** Aim weapons with the entire ship, if possible. */
+        fun aimShip(target: CombatEntityAPI, weaponGroup: WeaponGroup): Float {
+            // Prioritize hardpoints if there are any in the weapon group.
+            val weapons: List<WeaponAPI> = weaponGroup.weapons.filter { it.slot.isHardpoint }.ifEmpty { weaponGroup.weapons }
+
+            val solutions: Map<WeaponAPI, Float> = weapons.associateWith { weapon ->
+                val intercept = intercept(weapon, BallisticTarget.entity(target), defaultBallisticParams())
+                (intercept - weapon.location).facing
+            }
+
+            // Aim directly at target if no weapon firing solution is available.
+            if (solutions.isEmpty()) return (target.location - weaponGroup.ship.location).facing - weaponGroup.facing
+
+            // Start with aiming the weapon group at the average intercept point.
+            val averageIntercept: Float = averageFacing(solutions.values)
+            val defaultShipFacing: Float = averageIntercept - weaponGroup.facing
+
+            // Fine tune the facing to minimize the amount of weapons
+            // not able to aim at their calculated intercept point.
+            var offsetNegative = 0f
+            var offsetPositive = 0f
+            solutions.forEach {
+                val weapon = it.key
+                val localIntercept: Float = it.value - defaultShipFacing
+                if (weapon.isAngleInArc(localIntercept)) return@forEach
+
+                // Angle to nearest arc boundary.
+                val halfArc = weapon.arc / 2f
+                val angleArc1 = MathUtils.getShortestRotation(weapon.arcFacing + halfArc, localIntercept)
+                val angleArc2 = MathUtils.getShortestRotation(weapon.arcFacing - halfArc, localIntercept)
+                val outOfArc = if (abs(angleArc1) > abs(angleArc2)) angleArc2 else angleArc1
+
+                // Calculate offset if firing solution is outside weapon firing arc.
+                when {
+                    outOfArc < 0f -> offsetNegative = min(offsetNegative, outOfArc)
+                    outOfArc > 0f -> offsetPositive = max(offsetPositive, outOfArc)
+                }
+            }
+
+            return defaultShipFacing + offsetNegative + offsetPositive
         }
     }
 

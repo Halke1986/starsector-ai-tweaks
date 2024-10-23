@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
@@ -10,8 +9,12 @@ import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.drawCircle
 import com.genir.aitweaks.core.state.combatState
-import com.genir.aitweaks.core.utils.averageFacing
-import com.genir.aitweaks.core.utils.extensions.*
+import com.genir.aitweaks.core.utils.Interval
+import com.genir.aitweaks.core.utils.defaultAIInterval
+import com.genir.aitweaks.core.utils.extensions.allGroupedWeapons
+import com.genir.aitweaks.core.utils.extensions.isMissile
+import com.genir.aitweaks.core.utils.extensions.isValidTarget
+import com.genir.aitweaks.core.utils.extensions.length
 import org.lazywizard.lazylib.ext.minus
 import java.awt.Color
 
@@ -20,6 +23,8 @@ import java.awt.Color
 class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings().createDefaultShipAI(ship, ShipAIConfig())) {
     private val basicShipAI: Obfuscated.BasicShipAI = super.getAI() as Obfuscated.BasicShipAI
     private val engineController: EngineController = EngineController(ship)
+    private val updateInterval: Interval = defaultAIInterval()
+    private var weaponGroup: WeaponGroup = WeaponGroup(ship, listOf(), 0f)
 
     var expectedFacing: Float? = null
 
@@ -27,7 +32,17 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         debug()
 
         basicShipAI.advance(dt)
+        updateInterval.advance(dt)
+
         expectedFacing = null
+
+        if (updateInterval.elapsed()) {
+            updateInterval.reset()
+
+            // Refresh the list of weapons to aim.
+            val weapons = ship.allGroupedWeapons.filter { shouldAim(it) }
+            weaponGroup = WeaponGroup(ship, weapons, 0f)
+        }
 
         if (ship.fluxTracker.isOverloadedOrVenting) return
 
@@ -35,18 +50,22 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         val currentManeuver: Obfuscated.Maneuver? = basicShipAI.currentManeuver
         if (currentManeuver !is StrafeTargetManeuverV2 && currentManeuver !is Obfuscated.ApproachManeuver) return
 
-        val attackTarget: ShipAPI = currentManeuver.target_Maneuver as? ShipAPI ?: return
-        if (!attackTarget.isValidTarget) {
+        // Find ship target and force a refresh is it's invalid.
+        val target: ShipAPI = currentManeuver.target_Maneuver as? ShipAPI ?: return
+        if (!target.isValidTarget) {
             basicShipAI.cancelCurrentManeuver()
             return
         }
 
-        expectedFacing = aimShip(attackTarget) ?: return
+        // Aim ship only if the target is close to weapons range.
+        val rangeThreshold = weaponGroup.maxRange * 1.75f
+        if (rangeThreshold * 1.75f < (target.location - ship.location).length) return
 
         // Remove vanilla turn commands.
         clearTurnCommands(ship)
 
         // Control the ship rotation.
+        expectedFacing = Movement.aimShip(target, weaponGroup)
         engineController.facing(dt, expectedFacing!!)
     }
 
@@ -62,30 +81,10 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         }
     }
 
-    private fun aimShip(attackTarget: CombatEntityAPI): Float? {
-        val hardpoints = ship.allGroupedWeapons.filter { shouldAim(it) }
-
-        val maxRange = hardpoints.maxOfOrNull { it.slotRange } ?: 0f
-        if (maxRange * 1.75f < (attackTarget.location - ship.location).length) return null
-
-        val makeSolution = fun(weapon: WeaponAPI): Float? {
-            val intercept = weapon.customAI?.plotIntercept(attackTarget) ?: return null
-            return (intercept - weapon.location).facing
-        }
-
-        val solutions: List<Float> = hardpoints.mapNotNull { makeSolution(it) }
-        if (solutions.isEmpty()) return null
-
-        return averageFacing(solutions)
-    }
-
     companion object {
         fun shouldAim(weapon: WeaponAPI): Boolean {
             return when {
                 weapon.isMissile -> false
-                weapon.isBeam -> false
-                !weapon.slot.isHardpoint -> false
-                !weapon.isFrontFacing -> false
                 weapon.isDisabled -> false
                 weapon.isPermanentlyDisabled -> false
 
