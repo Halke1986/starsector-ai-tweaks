@@ -1,3 +1,5 @@
+Version 1.10.4
+
 - Frigate hardpoint aiming now works correctly with Advanced Gunnery Control.
 - Frigates will rotate to properly aim all front-facing projectile and beam weapons, not just hardpoints.
 - Frigate hardpoint aiming can be disabled with "Enable Custom Ship AI" LunaLib setting.
