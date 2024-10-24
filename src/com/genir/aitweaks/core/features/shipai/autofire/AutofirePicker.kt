@@ -11,13 +11,20 @@ class AutofirePicker {
         "cryoflux", // Cryoflamer has a custom script that makes the projectiles incompatible with ballistic calculations.
     )
 
+    // List of weapons that are most effective when very trigger-happy.
+    private val recklessWeapons = setOf(
+        "TADA_plasma",
+        "TS_plasma",
+        "riftbeam"
+    )
+
     fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
         val ai = when {
             weapon.type == WeaponAPI.WeaponType.MISSILE -> null
 
             autofireBlacklist.contains(weapon.id) -> null
 
-            weapon.id == "TADA_plasma" || weapon.id == "TS_plasma" -> TadaPlasmaAI(weapon)
+            recklessWeapons.contains(weapon.id) -> RecklessAutofireAI(weapon)
 
             else -> AutofireAI(weapon)
         }

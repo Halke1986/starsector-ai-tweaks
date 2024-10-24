@@ -13,7 +13,8 @@ import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
-// Returns false for detached modules.
+// Returns false for detached modules. Will be false before
+// ship is completely initialized, e.g. in AI picker.
 val ShipAPI.isModule: Boolean
     get() = stationSlot != null
 
@@ -21,7 +22,7 @@ val ShipAPI.rootModule: ShipAPI
     get() = if (isModule) parentStation else this
 
 val ShipAPI.isFrigateShip: Boolean
-    get() = isFrigate && !isModule
+    get() = isFrigate && !isModule && engineController.shipEngines.isNotEmpty()
 
 val ShipAPI.isBig: Boolean
     get() = isModule || isDestroyer || isCruiser || isCapital

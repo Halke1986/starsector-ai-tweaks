@@ -7,10 +7,10 @@ import com.genir.aitweaks.core.utils.extensions.totalRange
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import org.lazywizard.lazylib.ext.minus
 
-/** Specialized AutofireAI implementation for Torchship plasma flamer.
- * Plasma flamer is made very trigger-happy, firing even when it will
- * miss or is out of range. */
-class TadaPlasmaAI(weapon: WeaponAPI) : AutofireAI(weapon) {
+/** Specialized AutofireAI implementation for weapons that are most
+ * effective when very trigger-happy. The AI will fire even if it
+ * anticipates a miss or is out of range. */
+class RecklessAutofireAI(weapon: WeaponAPI) : AutofireAI(weapon) {
     override fun calculateShouldFire(): HoldFire? {
         predictedHit = null
 
