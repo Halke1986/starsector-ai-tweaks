@@ -1,0 +1,2 @@
+ships avoid collisions with very large modded shields
+hef is triggered by anti shield weapons

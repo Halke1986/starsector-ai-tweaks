@@ -1,3 +1,5 @@
+- AI Tweaks hullmods have a manufacturer attribute set and can be filtered from Common hullmods. Suggested by MegaPenguin
+
 Version 1.10.4
 
 - Frigate hardpoint aiming now works correctly with Advanced Gunnery Control.
