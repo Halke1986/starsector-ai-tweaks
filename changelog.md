@@ -1,4 +1,5 @@
 - AI Tweaks hullmods have a manufacturer attribute set and can be filtered from Common hullmods. Suggested by MegaPenguin
+- Weapons with firing cycle longer than 8 seconds are not eligible for staggered firing mode. This solves the issue with AI Tweaks not firing the Iron Shell Twin-Linked Railgun reported by StrikeEcho 
 
 Version 1.10.4
 

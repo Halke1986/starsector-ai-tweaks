@@ -124,8 +124,12 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Weapon is the middle of firing cycle, it won't stop now.
         if (weapon.isInFiringCycle) return true
 
-        val timestamp = Global.getCombatEngine().getTotalElapsedTime(false)
+        // Weapons with firing cycle longer than 8 seconds
+        // are not eligible for staggered firing mode.
         val cycleDuration = weapon.firingCycle.duration
+        if (cycleDuration >= 6f) return true
+
+        val timestamp = Global.getCombatEngine().getTotalElapsedTime(false)
         val sinceLastAttack = timestamp - syncState.lastAttack
         val stagger = cycleDuration / syncState.weapons
         val dt = Global.getCombatEngine().elapsedInLastFrame
