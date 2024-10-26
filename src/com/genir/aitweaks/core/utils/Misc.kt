@@ -3,8 +3,6 @@ package com.genir.aitweaks.core.utils
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import org.json.JSONObject
@@ -12,22 +10,6 @@ import org.lazywizard.lazylib.MathUtils.getShortestRotation
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
-
-// TODO remove and use ballistics implementation
-fun willHitShield(weapon: WeaponAPI, target: ShipAPI?) = when {
-    target == null -> false
-    target.shield == null -> false
-    target.shield.isOff -> false
-    else -> willHitActiveShieldArc(weapon, target.shield)
-}
-
-// TODO remove and use ballistics implementation
-fun willHitActiveShieldArc(weapon: WeaponAPI, shield: ShieldAPI): Boolean {
-    val tgtFacing = (weapon.location - shield.location).facing
-    val attackAngle = getShortestRotation(tgtFacing, shield.facing)
-    return abs(attackAngle) < (shield.activeArc / 2)
-}
 
 fun shieldUptime(shield: ShieldAPI?): Float {
     if (shield == null) return 0f

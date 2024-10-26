@@ -88,7 +88,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun weaponsOnTarget(target: ShipAPI): Boolean {
-        return lidarWeapons.firstOrNull { !canTrack(it, BallisticTarget.entity(target), defaultBallisticParams(), it.range * weaponRangeFraction) } == null
+        return lidarWeapons.firstOrNull { !canTrack(it, BallisticTarget.entity(target), defaultBallisticParams, it.range * weaponRangeFraction) } == null
     }
 
     private fun weaponsNotBlocked(): Boolean {
@@ -96,7 +96,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun isWeaponBlocked(weapon: WeaponAPI): Boolean {
-        val hit = firstShipAlongLineOfFire(weapon, defaultBallisticParams())?.target
+        val hit = firstShipAlongLineOfFire(weapon, defaultBallisticParams)?.target
         return when {
             hit == null -> false
             hit !is ShipAPI -> false

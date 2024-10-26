@@ -431,7 +431,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
             val weapons: List<WeaponAPI> = weaponGroup.weapons.filter { it.slot.isHardpoint }.ifEmpty { weaponGroup.weapons }
 
             val solutions: Map<WeaponAPI, Float> = weapons.associateWith { weapon ->
-                val intercept = intercept(weapon, BallisticTarget.entity(target), defaultBallisticParams())
+                val intercept = intercept(weapon, BallisticTarget.entity(target), defaultBallisticParams)
                 (intercept - weapon.location).facing
             }
 

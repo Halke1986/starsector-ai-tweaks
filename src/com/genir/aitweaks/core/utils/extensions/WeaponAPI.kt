@@ -10,6 +10,12 @@ import kotlin.math.abs
 val WeaponAPI.isAntiArmor: Boolean
     get() = damageType == DamageType.HIGH_EXPLOSIVE || hasAIHint(USE_LESS_VS_SHIELDS)
 
+val WeaponAPI.isAntiShield: Boolean
+    get() = damageType == DamageType.KINETIC || isStrictlyAntiShield
+
+val WeaponAPI.isStrictlyAntiShield: Boolean
+    get() = spec.hasTag("aitweaks_anti_shield")
+
 val WeaponAPI.isPD: Boolean
     get() = hasAIHint(PD) || hasAIHint(PD_ONLY)
 
@@ -20,9 +26,6 @@ val WeaponAPI.isPDSpec: Boolean
 
 val WeaponAPI.isMissile: Boolean
     get() = type == WeaponAPI.WeaponType.MISSILE
-
-val WeaponAPI.isStrictlyAntiShield: Boolean
-    get() = spec.hasTag("aitweaks_anti_shield")
 
 val WeaponAPI.conserveAmmo: Boolean
     get() = usesAmmo() || isBurstBeam
@@ -102,7 +105,7 @@ val WeaponAPI.group: WeaponGroupAPI?
     get() = this.ship.getWeaponGroupFor(this)
 
 val WeaponAPI.target: CombatEntityAPI?
-    get() = this.autofirePlugin?.let { it.targetShip ?: it.targetMissile }
+    get() = autofirePlugin?.let { it.targetShip ?: it.targetMissile } ?: ship.shipTarget
 
 val WeaponAPI.barrelOffset: Float
     get() {

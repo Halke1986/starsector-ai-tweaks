@@ -23,7 +23,7 @@ private const val cos180 = -1f
 /** Weapon attack parameters: accuracy and delay until attack. */
 data class BallisticParams(val accuracy: Float, val delay: Float)
 
-fun defaultBallisticParams() = BallisticParams(1f, 0f)
+val defaultBallisticParams = BallisticParams(1f, 0f)
 
 /** Weapon aim location required to hit center point of a moving target.
  * When the target's speed approaches the speed of the projectile, the intercept

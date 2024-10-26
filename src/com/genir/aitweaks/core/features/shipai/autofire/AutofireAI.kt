@@ -32,7 +32,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     // Aiming data.
     private var prevTurretIntercept: Vector2f? = null
     private var prevShipFacing: Float = 0f
-    private var shouldHoldFire: HoldFire? = NO_TARGET
+    var shouldHoldFire: HoldFire? = NO_TARGET
     var predictedHit: Hit? = null
 
     var syncState: SyncState? = null

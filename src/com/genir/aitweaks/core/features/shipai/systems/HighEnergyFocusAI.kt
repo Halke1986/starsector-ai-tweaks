@@ -3,72 +3,101 @@ package com.genir.aitweaks.core.features.shipai.systems
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.core.utils.extensions.isAntiArmor
-import com.genir.aitweaks.core.utils.willHitShield
+import com.fs.starfarer.api.combat.DamageType.*
+import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.*
+import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
+import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.willHitShield
+import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.combat.AIUtils
 import org.lwjgl.util.vector.Vector2f
 
-data class TargetedWeapon(val weapon: WeaponAPI, val target: ShipAPI?)
-
 class HighEnergyFocusAI : ShipSystemAIScript {
     private var ship: ShipAPI? = null
-    private var engine: CombatEngineAPI? = null
 
     override fun init(ship: ShipAPI?, p1: ShipSystemAPI?, p2: ShipwideAIFlags?, engine: CombatEngineAPI?) {
         this.ship = ship
-        this.engine = engine
     }
 
-    override fun advance(p0: Float, p1: Vector2f?, p2: Vector2f?, p3: ShipAPI?) = when {
-        engine == null -> Unit
-        ship == null -> Unit
-        Global.getCurrentState() == GameState.TITLE -> Unit
-        engine!!.isPaused -> Unit
-        !AIUtils.canUseSystemThisFrame(ship) -> Unit
-        !shouldTriggerHEF(ship!!) -> Unit
-        else -> ship!!.useSystem()
-    }
-}
+    override fun advance(p0: Float, p1: Vector2f?, p2: Vector2f?, p3: ShipAPI?) {
+        val ship: ShipAPI = ship ?: return
 
-fun shouldTriggerHEF(ship: ShipAPI): Boolean {
-    val ew = energyWeapons(shipWeapons(ship))
-    val size = largestWeaponSize(ew)
-    return ew.any { weaponShouldTriggerHEF(it, size) }
-}
+        when {
+            Global.getCurrentState() == GameState.TITLE -> return
+            Global.getCombatEngine().isPaused -> return
 
-fun shipWeapons(ship: ShipAPI): List<TargetedWeapon> {
-    return ship.weaponGroupsCopy.map { unfoldWeaponGroup(it) }.flatten()
-}
-
-fun unfoldWeaponGroup(wg: WeaponGroupAPI): List<TargetedWeapon> {
-    return wg.aiPlugins.map { TargetedWeapon(it.weapon, getTarget(wg, it)) }
-}
-
-fun getTarget(wg: WeaponGroupAPI, aiPlugin: AutofireAIPlugin): ShipAPI? {
-    return if (wg.isAutofiring) aiPlugin.targetShip else wg.ship.shipTarget
-}
-
-fun energyWeapons(weapons: List<TargetedWeapon>): List<TargetedWeapon> {
-    return weapons.filter { it.weapon.type == WeaponAPI.WeaponType.ENERGY }
-}
-
-fun largestWeaponSize(weapons: List<TargetedWeapon>): WeaponAPI.WeaponSize {
-    return weapons.fold(WeaponAPI.WeaponSize.SMALL) { size, w ->
-        when (w.weapon.size) {
-            WeaponAPI.WeaponSize.LARGE -> return WeaponAPI.WeaponSize.LARGE
-            WeaponAPI.WeaponSize.MEDIUM -> WeaponAPI.WeaponSize.MEDIUM
-            else -> size
+            !AIUtils.canUseSystemThisFrame(ship) -> return
+            !shouldTriggerHEF(ship) -> return
+            else -> ship.useSystem()
         }
     }
-}
 
-fun weaponShouldTriggerHEF(w: TargetedWeapon, size: WeaponAPI.WeaponSize) = when {
-    w.weapon.size != size -> false
-    !w.weapon.isFiring -> false
-    w.weapon.cooldownRemaining != 0f -> false
-    w.target == null -> false
-    w.target.isFighter -> false
-    w.target.isPhased -> false
-    w.weapon.isAntiArmor && willHitShield(w.weapon, w.target) -> false
-    else -> true
+    /** High Energy Focus is triggered when weapons with at least half
+     * of the total energy weapon DPS (adjusted for damage type) are firing. */
+    private fun shouldTriggerHEF(ship: ShipAPI): Boolean {
+        val weapons: List<WeaponAPI> = energyWeapons(ship)
+
+        // All weapons are in cooldown.
+        if (weapons.all { it.cooldownRemaining > 0f }) return false
+
+        val dpsTotal = weapons.sumOf { (if (it.damageType == FRAGMENTATION) 0.25 else 1.0) * it.derivedStats.dps.toDouble() }.toFloat()
+        val dpsHef = weapons.sumOf { (it.derivedStats.dps * dpsMultiplier(it)).toDouble() }.toFloat()
+
+        // Too small portion of the total DPS is affected by HEF.
+        if (dpsHef * 2f < dpsTotal) return false
+
+        // Last charge is reserved for largest weapons.
+        val largestWeapon = largestWeaponSize(weapons)
+        if (ship.system.ammo == 1) {
+            return weapons.filter { it.size == largestWeapon }.any { dpsMultiplier(it) > 0 }
+        }
+
+        return true
+    }
+
+    private fun energyWeapons(ship: ShipAPI): List<WeaponAPI> {
+        return ship.allGroupedWeapons.filter { weapon ->
+            when {
+                weapon.isDisabled -> false
+                weapon.isPermanentlyDisabled -> false
+                else -> weapon.type == WeaponType.ENERGY
+            }
+        }
+    }
+
+    private fun largestWeaponSize(weapons: List<WeaponAPI>): WeaponAPI.WeaponSize {
+        val sizes = weapons.map { it.size }
+        return when {
+            sizes.contains(LARGE) -> LARGE
+            sizes.contains(MEDIUM) -> MEDIUM
+            else -> SMALL
+        }
+    }
+
+    private fun dpsMultiplier(weapon: WeaponAPI): Float {
+        val target: ShipAPI = (weapon.target as? ShipAPI) ?: return 0f
+        val params = defaultBallisticParams
+
+        return when {
+            // Check custom AI decision.
+            weapon.customAI?.shouldHoldFire != null -> 0f
+
+            // Check firing cycle.
+            !weapon.isInFiringCycle -> 0f
+            weapon.cooldownRemaining > weapon.ship.system.chargeActiveDur -> 0f
+
+            // Check if target is valid.
+            !target.isValidTarget -> 0f
+            target.isPhased -> 0f
+
+            // Account for damage type.
+            weapon.damageType == FRAGMENTATION -> 0.25f
+            weapon.damageType == ENERGY -> 1f
+            weapon.damageType == OTHER -> 1f
+            target.isFighter -> 1f
+            weapon.damageType == HIGH_EXPLOSIVE && willHitShield(weapon, target, params) == null -> 2f
+            weapon.damageType == KINETIC && willHitShield(weapon, target, params) != null -> 2f
+            else -> 0.5f
+        }
+    }
 }

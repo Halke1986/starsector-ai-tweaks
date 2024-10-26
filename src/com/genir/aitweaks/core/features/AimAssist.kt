@@ -134,7 +134,7 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
             }
 
             else -> {
-                intercept(weapon, ballisticTarget, defaultBallisticParams())
+                intercept(weapon, ballisticTarget, defaultBallisticParams)
             }
         }
 
