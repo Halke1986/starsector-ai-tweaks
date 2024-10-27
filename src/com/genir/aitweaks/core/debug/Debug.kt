@@ -8,15 +8,11 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.resized
-import com.genir.aitweaks.core.utils.mousePosition
-import com.genir.aitweaks.core.utils.times
-import com.genir.aitweaks.core.utils.unitVector
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -73,7 +69,7 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
 
         drawLine(ship.location, ship.location + unitVector(expectedFacing) * 400f, GREEN)
         drawLine(ship.location, ship.location + unitVector(ship.facing) * 400f, BLUE)
-        debugPrint["f"] = abs(MathUtils.getShortestRotation(ship.facing, expectedFacing))
+        debugPrint["f"] = abs(shortestRotation(ship.facing, expectedFacing))
 
         controller.facing(dt, expectedFacing)
     }

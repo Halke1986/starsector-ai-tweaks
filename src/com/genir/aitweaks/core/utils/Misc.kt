@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShieldAPI
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import org.json.JSONObject
-import org.lazywizard.lazylib.MathUtils.getShortestRotation
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -81,11 +80,11 @@ inline fun <reified T : Enum<T>> loadEnum(json: JSONObject, fieldName: String): 
 }
 
 fun getShortestRotation(from: Vector2f, to: Vector2f): Float {
-    return getShortestRotation(from.facing, to.facing)
+    return shortestRotation(from.facing, to.facing)
 }
 
 fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Float {
-    return getShortestRotation((from - pivot).facing, (to - pivot).facing)
+    return shortestRotation((from - pivot).facing, (to - pivot).facing)
 }
 
 fun mousePosition(): Vector2f {

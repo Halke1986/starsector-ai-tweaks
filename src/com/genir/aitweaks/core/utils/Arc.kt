@@ -1,14 +1,13 @@
 package com.genir.aitweaks.core.utils
 
 import com.genir.aitweaks.core.utils.extensions.facing
-import org.lazywizard.lazylib.MathUtils
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.sign
 
 data class Arc(var arc: Float, var facing: Float) {
     fun overlaps(second: Arc): Boolean {
-        return abs(MathUtils.getShortestRotation(this.facing, second.facing)) <= (this.arc + second.arc) / 2f
+        return abs(shortestRotation(this.facing, second.facing)) <= (this.arc + second.arc) / 2f
     }
 
     /** Append the second arc, under the assumption both arcs are overlapping. */
@@ -16,7 +15,7 @@ data class Arc(var arc: Float, var facing: Float) {
         val larger: Arc = if (this.arc > second.arc) this else second
         val smaller: Arc = if (this.arc > second.arc) second else this
 
-        val offset: Float = MathUtils.getShortestRotation(larger.facing, smaller.facing)
+        val offset: Float = shortestRotation(larger.facing, smaller.facing)
         val overhang: Float = abs(offset) + smaller.arc / 2f - larger.arc / 2f
 
         if (larger.arc + overhang >= 360f) {
@@ -28,7 +27,7 @@ data class Arc(var arc: Float, var facing: Float) {
     }
 
     fun contains(facing: Float): Boolean {
-        return abs(MathUtils.getShortestRotation(facing, this.facing)) <= arc / 2f
+        return abs(shortestRotation(facing, this.facing)) <= arc / 2f
     }
 
     fun contains(v: Vector2f): Boolean {

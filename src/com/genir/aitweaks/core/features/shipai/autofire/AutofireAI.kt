@@ -10,7 +10,6 @@ import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
 import com.genir.aitweaks.core.utils.extensions.*
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
@@ -272,7 +271,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         val arc = interceptArc(weapon, BallisticTarget.entity(target!!), currentParams()) ?: return STABILIZE_ON_TARGET
-        val inaccuracy = abs(MathUtils.getShortestRotation(weapon.currAngle, arc.facing))
+        val inaccuracy = abs(shortestRotation(weapon.currAngle, arc.facing))
         if (inaccuracy * 4f > arc.arc) return STABILIZE_ON_TARGET
 
         return null
@@ -321,7 +320,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     /** predictive aiming for hardpoints */
-    private fun aimHardpoint(target: CombatEntityAPI): Vector2f? {
+    private fun aimHardpoint(target: CombatEntityAPI): Vector2f {
         // Try to read expected facing from custom AI implementations.
         val customAIFacing = ship.customShipAI?.movement?.expectedFacing
         val wrapperAIFacing = (ship.ai as? WrapperShipAI)?.expectedFacing
@@ -337,7 +336,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         // Aim the hardpoint as if the ship was facing the target directly.
-        val r = Rotation(MathUtils.getShortestRotation(expectedFacing, ship.facing))
+        val r = Rotation(shortestRotation(expectedFacing, ship.facing))
         val v = target.velocity.rotated(r)
         val p = target.location.rotatedAroundPivot(r, weapon.ship.location)
         return intercept(weapon, BallisticTarget(v, p, target.collisionRadius), currentParams())

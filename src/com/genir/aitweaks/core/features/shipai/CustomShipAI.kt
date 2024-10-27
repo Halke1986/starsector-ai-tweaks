@@ -13,7 +13,6 @@ import com.genir.aitweaks.core.features.shipai.vanilla.Vanilla
 import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -240,7 +239,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         stats = ShipStats(ship)
 
         // Find the most similar weapon group to the current one after ship stats have been updated.
-        attackingGroup = stats.weaponGroups.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.facing, attackingGroup.facing)) })!!
+        attackingGroup = stats.weaponGroups.minWithOrNull(compareBy { abs(shortestRotation(it.facing, attackingGroup.facing)) })!!
     }
 
     private fun updateIdleTime(dt: Float) {

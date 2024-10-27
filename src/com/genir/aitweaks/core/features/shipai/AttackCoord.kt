@@ -10,8 +10,8 @@ import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.extensions.customShipAI
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.resized
+import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.unitVector
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -85,7 +85,7 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         taskForce.forEach { formation ->
             var facing = formation.facing - formation.angularSize / 2f
 
-            formation.units.sortBy { MathUtils.getShortestRotation(formation.facing, it.currentFacing) }
+            formation.units.sortBy { shortestRotation(formation.facing, it.currentFacing) }
 
             formation.units.forEach { entity ->
                 val angle = facing + entity.angularSize / 2f
@@ -104,7 +104,7 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
         var facing = initialUnit.proposedFacing
 
         fun isOverlapping(other: Formation): Boolean {
-            val angleToOther = MathUtils.getShortestRotation(facing, other.facing)
+            val angleToOther = shortestRotation(facing, other.facing)
             return abs(angleToOther) < (angularSize + other.angularSize) / 2f
         }
 
@@ -112,7 +112,7 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
             units.addAll(other.units)
 
             val newAngularSize = angularSize + other.angularSize
-            val angleToOther = MathUtils.getShortestRotation(facing, other.facing)
+            val angleToOther = shortestRotation(facing, other.facing)
 
             facing += (angleToOther * other.angularSize) / newAngularSize
             angularSize = newAngularSize

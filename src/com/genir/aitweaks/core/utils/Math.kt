@@ -187,3 +187,12 @@ fun unitVector(angle: Float): Vector2f {
     val y = sin(radians)
     return Vector2f(x, y)
 }
+
+/** Returns the shortest rotation angle from `from` to `to`.
+ * Exhibits lower numerical instability compared to
+ * lazyLib MathUtils.getShortestRotation. */
+fun shortestRotation(from: Float, to: Float): Float {
+    val dist = (to - from) % 360f
+    return if (abs(dist) <= 180f) dist
+    else (-dist.sign) * 360f + dist
+}

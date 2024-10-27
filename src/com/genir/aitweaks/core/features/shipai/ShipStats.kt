@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.extensions.isAngleInArc
 import com.genir.aitweaks.core.utils.extensions.isInFiringSequence
 import com.genir.aitweaks.core.utils.extensions.isPDSpec
-import org.lazywizard.lazylib.MathUtils
+import com.genir.aitweaks.core.utils.shortestRotation
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sign
@@ -64,7 +64,7 @@ class ShipStats(private val ship: ShipAPI) {
         // Find firing arc boundary closes to ship front for
         // each weapon, or 0f for front facing weapons.
         val attackAngles: Set<Float> = significantWeapons.flatMap { weapon ->
-            val facing = MathUtils.getShortestRotation(0f, weapon.arcFacing)
+            val facing = shortestRotation(0f, weapon.arcFacing)
             val arc = weapon.arc
 
             when {

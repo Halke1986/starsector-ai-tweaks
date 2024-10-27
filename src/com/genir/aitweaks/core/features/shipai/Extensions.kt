@@ -5,7 +5,7 @@ import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.isFrigateShip
 import com.genir.aitweaks.core.utils.extensions.isModule
 import com.genir.aitweaks.core.utils.extensions.timeMult
-import org.lazywizard.lazylib.MathUtils
+import com.genir.aitweaks.core.utils.shortestRotation
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
@@ -42,7 +42,7 @@ val WeaponAPI.reloadTimeRemaining: Float
 
 fun ShipAPI.shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Float): Float {
     val facingToTarget = (target - location).facing
-    return MathUtils.getShortestRotation(facing + weaponGroupFacing, facingToTarget)
+    return shortestRotation(facing + weaponGroupFacing, facingToTarget)
 }
 
 val ShipAPI.strafeAcceleration: Float

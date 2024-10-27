@@ -1,15 +1,11 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
-import com.genir.aitweaks.core.utils.RADIANS_TO_DEGREES
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.resized
-import com.genir.aitweaks.core.utils.quad
-import org.lazywizard.lazylib.MathUtils
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.PI
 import kotlin.math.abs
@@ -52,7 +48,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
         // Find new heading that circumvents the lowest speed limit.
         val headingOffset = lowestLimit.headingOffset(expectedSpeed)
-        val angleToLimit = MathUtils.getShortestRotation(expectedHeading, lowestLimit.heading)
+        val angleToLimit = shortestRotation(expectedHeading, lowestLimit.heading)
         val angleToNewFacing = angleToLimit - headingOffset * angleToLimit.sign
         val newFacing = expectedHeading + angleToNewFacing
 
@@ -77,7 +73,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
      * To avoid using trigonometric functions, f(x) = 1/cos(x) is approximated as
      * g(t) = 1/t + t/5 where t = PI/2 - x. */
     private fun Limit.clampSpeed(expectedHeading: Float, expectedSpeed: Float): Float {
-        val angleFromLimit = abs(MathUtils.getShortestRotation(expectedHeading, heading))
+        val angleFromLimit = abs(shortestRotation(expectedHeading, heading))
         if (angleFromLimit >= 90f) return expectedSpeed
 
         val t = (PI / 2f - angleFromLimit * DEGREES_TO_RADIANS).toFloat()

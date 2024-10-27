@@ -8,8 +8,8 @@ import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.copy
 import com.genir.aitweaks.core.utils.extensions.length
+import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.times
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.clampLength
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
@@ -123,11 +123,11 @@ open class BasicEngineController(val ship: ShipAPI) {
         val d = min(abs(w), ship.turnDeceleration * dt * dt) * -sign(w)
 
         // Estimate target angular velocity.
-        val wt = MathUtils.getShortestRotation(prevFacing, facing)
+        val wt = shortestRotation(prevFacing, facing)
         prevFacing = facing
 
         // Angular distance between expected facing and ship facing.
-        val r = MathUtils.getShortestRotation(ship.facing, facing)
+        val r = shortestRotation(ship.facing, facing)
 
         // Expected velocity change.
         val we = if (facing == rotationStop) 0f else sign(r) * vMax(abs(r), a) + wt

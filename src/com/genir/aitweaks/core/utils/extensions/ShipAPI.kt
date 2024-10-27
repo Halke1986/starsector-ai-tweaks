@@ -8,8 +8,8 @@ import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
+import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.times
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
@@ -73,7 +73,7 @@ val ShipAPI.deploymentPoints: Float
 
 /** Angle between ship facing and direction from ship to point p. */
 fun ShipAPI.angleFromFacing(p: Vector2f): Float {
-    return MathUtils.getShortestRotation((p - location).facing, facing)
+    return shortestRotation((p - location).facing, facing)
 }
 
 /** Calculates the effective ship velocity in the global frame

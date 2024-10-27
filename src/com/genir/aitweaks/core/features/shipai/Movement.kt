@@ -13,7 +13,6 @@ import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.*
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -199,8 +198,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         val angle2 = obstacle.facing + (obstacle.arc / 2f)
 
         val toShipAngle = (ship.location - maneuverTarget.location).facing
-        val offset1 = abs(MathUtils.getShortestRotation(toShipAngle, angle1))
-        val offset2 = abs(MathUtils.getShortestRotation(toShipAngle, angle2))
+        val offset1 = abs(shortestRotation(toShipAngle, angle1))
+        val offset2 = abs(shortestRotation(toShipAngle, angle2))
 
         val newAngle = if (offset1 < offset2) angle1 else angle2
 
@@ -282,14 +281,14 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         val distToTarget = lineOfFire.length()
 
         val velocityFacing = (ship.location + ship.velocity - target.location).facing
-        val angleToVelocity = MathUtils.getShortestRotation(facing, velocityFacing)
+        val angleToVelocity = shortestRotation(facing, velocityFacing)
 
         var maxLimit: EngineController.Limit? = null
 
         squad.forEach { obstacle ->
             val obstacleLineOfFire = obstacle.ship.location - target.location
             val obstacleFacing = obstacleLineOfFire.facing
-            val angleToOtherLine = MathUtils.getShortestRotation(facing, obstacleFacing)
+            val angleToOtherLine = shortestRotation(facing, obstacleFacing)
 
             val blocked = if (obstacleLineOfFire.lengthSquared() < lineOfFire.lengthSquared()) ai
             else obstacle
@@ -298,7 +297,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 blocked.isBackingOff -> return@forEach
 
                 // Too far from obstacle line of fire to consider blocking.
-                abs(MathUtils.getShortestRotation(facing, obstacleFacing)) >= 90f -> return@forEach
+                abs(shortestRotation(facing, obstacleFacing)) >= 90f -> return@forEach
 
                 // Ship is moving away from the obstacle.
                 angleToVelocity.sign != angleToOtherLine.sign -> return@forEach
@@ -415,7 +414,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
     /** Ship deceleration for collision avoidance purposes. */
     private fun ShipAPI.collisionDeceleration(collisionFacing: Float): Float {
-        val angleFromBow = abs(MathUtils.getShortestRotation(facing, collisionFacing))
+        val angleFromBow = abs(shortestRotation(facing, collisionFacing))
         return when {
             angleFromBow < 30f -> deceleration
             angleFromBow < 150f -> strafeAcceleration
@@ -453,8 +452,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
                 // Angle to nearest arc boundary.
                 val halfArc = weapon.arc / 2f
-                val angleArc1 = MathUtils.getShortestRotation(weapon.arcFacing + halfArc, localIntercept)
-                val angleArc2 = MathUtils.getShortestRotation(weapon.arcFacing - halfArc, localIntercept)
+                val angleArc1 = shortestRotation(weapon.arcFacing + halfArc, localIntercept)
+                val angleArc2 = shortestRotation(weapon.arcFacing - halfArc, localIntercept)
                 val outOfArc = if (abs(angleArc1) > abs(angleArc2)) angleArc2 else angleArc1
 
                 // Calculate offset if firing solution is outside weapon firing arc.

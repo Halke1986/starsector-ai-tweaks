@@ -6,12 +6,8 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.WrapperShipAI
-import com.genir.aitweaks.core.utils.div
+import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
-import com.genir.aitweaks.core.utils.log
-import com.genir.aitweaks.core.utils.quad
-import com.genir.aitweaks.core.utils.times
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -64,7 +60,7 @@ class ShipAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() 
         val weapon = ship.allGroupedWeapons.first { WrapperShipAI.shouldAim(it) }
 
 
-        val err = MathUtils.getShortestRotation(ship.facing, (target.location - ship.location).facing)
+        val err = shortestRotation(ship.facing, (target.location - ship.location).facing)
         debugPrint["e"] = "e ${abs(err)}"
         log(err)
 

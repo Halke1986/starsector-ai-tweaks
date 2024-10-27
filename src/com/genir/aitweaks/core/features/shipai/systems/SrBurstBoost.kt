@@ -7,13 +7,9 @@ import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.command
-import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.*
-import com.genir.aitweaks.core.utils.solve
-import com.genir.aitweaks.core.utils.times
-import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -165,7 +161,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
         private val targetFacing: Float = toTarget.facing
 
         fun angleToTarget(): Float {
-            return MathUtils.getShortestRotation(burst.facing, targetFacing)
+            return shortestRotation(burst.facing, targetFacing)
         }
 
         fun distanceToTarget(): Float {
@@ -175,7 +171,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
     private fun makeBurstPlan(toTarget: Vector2f, burstVectors: List<BurstVector>, target: ShipAPI?): BurstPlan {
         // Find burst vector best aligned with direction to target.
-        val burst: BurstVector = burstVectors.minWithOrNull(compareBy { abs(MathUtils.getShortestRotation(it.facing, toTarget.facing)) })!!
+        val burst: BurstVector = burstVectors.minWithOrNull(compareBy { abs(shortestRotation(it.facing, toTarget.facing)) })!!
 
         return BurstPlan(burst, toTarget, target)
     }
