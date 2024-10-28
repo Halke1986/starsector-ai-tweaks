@@ -191,11 +191,11 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
             Arc(min(arc, 90f), facing)
         }.toList()
 
-        val mergedArcs = Arc.merge(arcs)
+        val mergedArcs = Arc.mergeOverlapping(arcs)
         val obstacle = mergedArcs.firstOrNull { it.contains(toHeadingAngle) } ?: return null
 
-        val angle1 = obstacle.facing - (obstacle.arc / 2f)
-        val angle2 = obstacle.facing + (obstacle.arc / 2f)
+        val angle1 = obstacle.facing - (obstacle.angle / 2f)
+        val angle2 = obstacle.facing + (obstacle.angle / 2f)
 
         val toShipAngle = (ship.location - maneuverTarget.location).facing
         val offset1 = abs(shortestRotation(toShipAngle, angle1))

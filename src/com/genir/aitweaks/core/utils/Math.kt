@@ -192,7 +192,6 @@ fun unitVector(angle: Float): Vector2f {
  * Exhibits lower numerical instability compared to
  * lazyLib MathUtils.getShortestRotation. */
 fun shortestRotation(from: Float, to: Float): Float {
-    val dist = (to - from) % 360f
-    return if (abs(dist) <= 180f) dist
-    else (-dist.sign) * 360f + dist
+    val dist = to - from
+    return dist - round(dist / 360f) * 360f
 }

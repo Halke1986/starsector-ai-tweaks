@@ -19,6 +19,7 @@ import org.lwjgl.util.vector.Vector2f
 
 private const val cos90 = 0f
 private const val cos180 = -1f
+private const val approachesInfinity = 1e6f
 
 /** Weapon attack parameters: accuracy and delay until attack. */
 data class BallisticParams(val accuracy: Float, val delay: Float)
@@ -33,7 +34,7 @@ fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParam
     val pv = targetCoords(weapon, target, params)
     if (targetAboveWeapon(pv.first, weapon, target)) return target.location
 
-    val range = solve(pv, weapon.barrelOffset, 1f, 0f, 0f) ?: 1e6f
+    val range = solve(pv, weapon.barrelOffset, 1f, 0f, 0f) ?: approachesInfinity
     val offset = pv.second * range
 
     return target.location + (target.velocity - weapon.ship.velocity) * params.delay + offset
@@ -44,7 +45,7 @@ fun canTrack(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams
     val closestHit = closestHitRange(weapon, target, params) ?: return false
     if (closestHit > (rangeOverride ?: weapon.totalRange)) return false
 
-    val interceptArc = interceptArc(weapon, target, params) ?: return false
+    val interceptArc = interceptArc(weapon, target, params)
     return Arc(weapon.arc, weapon.absoluteArcFacing).overlaps(interceptArc)
 }
 
@@ -60,14 +61,14 @@ fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: Ballisti
  * the weapon projectile will collide with target circumference.
  * Similar to intercept point, but not restricted to target center point.
  * Null if projectile is slower than the target. */
-fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Arc? {
+fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Arc {
     val (p, v) = targetCoords(weapon, target, params)
     if (targetAboveWeapon(p, weapon, target)) return Arc(360f, 0f)
 
-    val tangentDistance = solve(Pair(p, v), weapon.barrelOffset, 1f, target.radius, cos90) ?: return null
+    val range = solve(Pair(p, v), weapon.barrelOffset, 1f, target.radius, cos90) ?: approachesInfinity
     return Arc(
-        arc = atan(target.radius / tangentDistance) * RADIANS_TO_DEGREES * 2f,
-        facing = (p + v * tangentDistance).facing,
+        angle = atan(target.radius / (range + weapon.barrelOffset)) * RADIANS_TO_DEGREES * 2f,
+        facing = (p + v * range).facing,
     )
 }
 
@@ -94,7 +95,7 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
 /** Calculates if an inaccurate projectile may collide with target,
  * given current weapon facing. Weapon range is ignored. */
 fun willHitCautious(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Boolean {
-    val interceptArc = interceptArc(weapon, target, params) ?: return false
+    val interceptArc = interceptArc(weapon, target, params)
     return Arc(weapon.spec.maxSpread + 2f, weapon.currAngle).overlaps(interceptArc)
 }
 
