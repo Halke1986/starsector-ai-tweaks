@@ -4,8 +4,8 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
+import com.genir.aitweaks.core.utils.clampAngle
 import com.genir.aitweaks.core.utils.shortestRotation
-import org.lazywizard.lazylib.MathUtils
 import kotlin.math.abs
 
 val WeaponAPI.isAntiArmor: Boolean
@@ -50,7 +50,7 @@ val WeaponAPI.isFrontFacing: Boolean
 
 /** weapon arc facing in absolute coordinates, instead of ship coordinates */
 val WeaponAPI.absoluteArcFacing: Float
-    get() = MathUtils.clampAngle(arcFacing + ship.facing)
+    get() = clampAngle(arcFacing + ship.facing)
 
 val WeaponAPI.totalRange: Float
     get() = range + projectileFadeRange * 0.5f

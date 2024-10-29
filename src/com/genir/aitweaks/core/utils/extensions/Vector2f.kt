@@ -2,7 +2,7 @@ package com.genir.aitweaks.core.utils.extensions
 
 import com.genir.aitweaks.core.utils.RADIANS_TO_DEGREES
 import com.genir.aitweaks.core.utils.atan2
-import org.lazywizard.lazylib.MathUtils
+import com.genir.aitweaks.core.utils.clampAngle
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
 
@@ -27,7 +27,7 @@ val Vector2f.facing: Float
     get() {
         if (this.isZeroVector()) return 0f
 
-        return MathUtils.clampAngle(atan2(this.y, this.x) * RADIANS_TO_DEGREES)
+        return clampAngle(atan2(this.y, this.x) * RADIANS_TO_DEGREES)
     }
 
 val Vector2f.length: Float

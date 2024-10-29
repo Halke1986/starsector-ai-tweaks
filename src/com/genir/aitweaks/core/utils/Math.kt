@@ -195,3 +195,7 @@ fun shortestRotation(from: Float, to: Float): Float {
     val dist = to - from
     return dist - round(dist / 360f) * 360f
 }
+
+fun clampAngle(angle: Float): Float {
+    return angle - floor(angle / 360f) * 360f
+}

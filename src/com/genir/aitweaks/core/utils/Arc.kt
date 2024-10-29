@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.utils
 
 import com.genir.aitweaks.core.utils.extensions.facing
-import org.lazywizard.lazylib.MathUtils
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.sign
@@ -67,7 +66,7 @@ data class Arc(val angle: Float, val facing: Float) {
          * between 'from' and 'to' angles. */
         fun fromTo(from: Float, to: Float): Arc {
             val angle = shortestRotation(from, to)
-            val facing = MathUtils.clampAngle(from + angle / 2f)
+            val facing = clampAngle(from + angle / 2f)
 
             return Arc(
                 angle = abs(angle),
