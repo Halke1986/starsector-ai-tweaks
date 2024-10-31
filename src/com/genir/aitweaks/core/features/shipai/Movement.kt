@@ -17,10 +17,7 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sign
+import kotlin.math.*
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Movement(override val ai: CustomShipAI) : Coordinable {
@@ -420,6 +417,12 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
             angleFromBow < 150f -> strafeAcceleration
             else -> acceleration
         }
+    }
+
+    /** Maximum velocity in given direction to not overshoot target. */
+    private fun vMax(dt: Float, dist: Float, deceleration: Float): Float {
+        val (q, _) = quad(0.5f, 0.5f, -dist / (deceleration * dt * dt)) ?: return 0f
+        return floor(q) * deceleration * dt
     }
 
     companion object {

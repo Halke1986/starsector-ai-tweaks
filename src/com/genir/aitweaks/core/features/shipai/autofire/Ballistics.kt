@@ -62,13 +62,18 @@ fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: Ballisti
  * Similar to intercept point, but not restricted to target center point.
  * Null if projectile is slower than the target. */
 fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Arc {
-    val (p, v) = targetCoords(weapon, target, params)
-    if (targetAboveWeapon(p, weapon, target)) return Arc(360f, 0f)
+    val (p, _) = targetCoords(weapon, target, params)
+    val points = pointsOfTangency(p, target.radius) ?: return Arc(360f, 0f)
 
-    val range = solve(Pair(p, v), weapon.barrelOffset, 1f, target.radius, cos90) ?: approachesInfinity
-    return Arc(
-        angle = atan(target.radius / (range + weapon.barrelOffset)) * RADIANS_TO_DEGREES * 2f,
-        facing = (p + v * range).facing,
+    val target1 = BallisticTarget(target.velocity, weapon.location + points.first, 0f)
+    val target2 = BallisticTarget(target.velocity, weapon.location + points.second, 0f)
+
+    val intercept1 = intercept(weapon, target1, params)
+    val intercept2 = intercept(weapon, target2, params)
+
+    return Arc.fromTo(
+        (intercept1 - weapon.location).facing,
+        (intercept2 - weapon.location).facing,
     )
 }
 
