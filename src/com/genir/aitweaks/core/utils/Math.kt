@@ -78,6 +78,11 @@ fun vectorProjection(a: Vector2f, b: Vector2f): Vector2f {
     return b * (dotProduct(a, b) / dotProduct(b, b))
 }
 
+/** Vector rejection of 'a' from 'b' */
+fun vectorRejection(a: Vector2f, b: Vector2f): Vector2f {
+    return a - vectorProjection(a, b)
+}
+
 /** Length of vector projection of 'a' onto 'b'. Positive value
  * is returned if 'b' and 'a projection onto b' have same the
  * direction, negative otherwise. */
@@ -90,6 +95,11 @@ fun dotProduct(a: Vector2f, b: Vector2f): Float {
     return a.x * b.x + a.y * b.y
 }
 
+/** Calculates the z-axis component of the cross product of two vectors. */
+fun crossProductZ(a: Vector2f, b: Vector2f): Float {
+    return a.x * b.y - a.y * b.x
+}
+
 /** Angular size of a circle, as observed from point (0,0). */
 fun angularSize(distanceSqr: Float, radius: Float): Float {
     val radiusSqr = radius * radius
@@ -97,6 +107,12 @@ fun angularSize(distanceSqr: Float, radius: Float): Float {
 
     val adjacent = sqrt(distanceSqr - radius * radius)
     return atan(radius / adjacent) * RADIANS_TO_DEGREES * 2f
+}
+
+/** Angular velocity of point 'p' moving with a linear
+ * velocity 'v' in relation to the origin (0, 0). */
+fun angularVelocity(p: Vector2f, v: Vector2f): Float {
+    return crossProductZ(p, v) / p.lengthSquared * RADIANS_TO_DEGREES
 }
 
 /** Calculates the points of tangency for a circle centered at point `p`

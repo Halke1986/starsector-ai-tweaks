@@ -318,7 +318,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 EngineController.Limit(limitFacing, 0f)
             } else {
                 val obstacleV = obstacle.ship.timeAdjustedVelocity
-                val obstacleAngularV = obstacleV - vectorProjection(obstacleV, obstacleLineOfFire)
+                val obstacleAngularV = vectorRejection(obstacleV, obstacleLineOfFire)
 
                 val t = timeToOrigin(obstacle.ship.location - ship.location, obstacleAngularV)
                 val obstacleVComponent = obstacleAngularV.length() * t.sign
