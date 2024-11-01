@@ -17,7 +17,6 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
 import kotlin.math.min
 
 /** Burn Drive AI. It replaces the vanilla implementation in ships with custom AI. */
@@ -104,7 +103,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), Coordinable {
             val toDestination = newDestination - ship.location
             headingPoint = toDestination + ship.location
             destinationDist = toDestination.length()
-            destinationFacing = abs(shortestRotation(toDestination.facing, ship.facing))
+            destinationFacing = absShortestRotation(toDestination.facing, ship.facing)
         } else {
             headingPoint = Vector2f()
             destinationDist = 0f

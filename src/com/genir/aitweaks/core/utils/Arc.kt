@@ -7,12 +7,12 @@ import kotlin.math.sign
 
 data class Arc(val angle: Float, val facing: Float) {
     fun overlaps(second: Arc): Boolean {
-        val offset = abs(shortestRotation(this.facing, second.facing))
+        val offset = absShortestRotation(this.facing, second.facing)
         return offset <= this.half + second.half
     }
 
     fun contains(facing: Float): Boolean {
-        return abs(shortestRotation(facing, this.facing)) <= half
+        return absShortestRotation(facing, this.facing) <= half
     }
 
     fun contains(v: Vector2f): Boolean {

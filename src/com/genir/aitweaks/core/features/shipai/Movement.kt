@@ -195,8 +195,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         val angle2 = obstacle.facing + (obstacle.angle / 2f)
 
         val toShipAngle = (ship.location - maneuverTarget.location).facing
-        val offset1 = abs(shortestRotation(toShipAngle, angle1))
-        val offset2 = abs(shortestRotation(toShipAngle, angle2))
+        val offset1 = absShortestRotation(toShipAngle, angle1)
+        val offset2 = absShortestRotation(toShipAngle, angle2)
 
         val newAngle = if (offset1 < offset2) angle1 else angle2
 
@@ -294,7 +294,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 blocked.isBackingOff -> return@forEach
 
                 // Too far from obstacle line of fire to consider blocking.
-                abs(shortestRotation(facing, obstacleFacing)) >= 90f -> return@forEach
+                absShortestRotation(facing, obstacleFacing) >= 90f -> return@forEach
 
                 // Ship is moving away from the obstacle.
                 angleToVelocity.sign != angleToOtherLine.sign -> return@forEach
@@ -411,7 +411,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
     /** Ship deceleration for collision avoidance purposes. */
     private fun ShipAPI.collisionDeceleration(collisionFacing: Float): Float {
-        val angleFromBow = abs(shortestRotation(facing, collisionFacing))
+        val angleFromBow = absShortestRotation(facing, collisionFacing)
         return when {
             angleFromBow < 30f -> deceleration
             angleFromBow < 150f -> strafeAcceleration

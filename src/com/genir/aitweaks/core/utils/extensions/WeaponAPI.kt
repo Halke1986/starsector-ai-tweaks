@@ -4,9 +4,8 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
+import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.clampAngle
-import com.genir.aitweaks.core.utils.shortestRotation
-import kotlin.math.abs
 
 val WeaponAPI.isAntiArmor: Boolean
     get() = damageType == DamageType.HIGH_EXPLOSIVE || hasAIHint(USE_LESS_VS_SHIELDS)
@@ -42,7 +41,7 @@ val WeaponAPI.ignoresFlares: Boolean
 
 fun WeaponAPI.isAngleInArc(angle: Float): Boolean {
     val tolerance = 0.01f
-    return abs(shortestRotation(arcFacing, angle)) <= (arc + tolerance) / 2f
+    return absShortestRotation(arcFacing, angle) <= (arc + tolerance) / 2f
 }
 
 val WeaponAPI.isFrontFacing: Boolean

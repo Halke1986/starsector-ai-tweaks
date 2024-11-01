@@ -12,7 +12,6 @@ import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
 import kotlin.math.min
 
 open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
@@ -271,7 +270,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         val arc = interceptArc(weapon, BallisticTarget.entity(target!!), currentParams())
-        val inaccuracy = abs(shortestRotation(weapon.currAngle, arc.facing))
+        val inaccuracy = absShortestRotation(weapon.currAngle, arc.facing)
         if (inaccuracy * 4f > arc.angle) return STABILIZE_ON_TARGET
 
         return null

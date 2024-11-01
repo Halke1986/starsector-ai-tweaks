@@ -18,7 +18,6 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
 import java.awt.Color.GREEN
-import kotlin.math.abs
 
 /**
  *
@@ -69,7 +68,7 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
 
         drawLine(ship.location, ship.location + unitVector(expectedFacing) * 400f, GREEN)
         drawLine(ship.location, ship.location + unitVector(ship.facing) * 400f, BLUE)
-        debugPrint["f"] = abs(shortestRotation(ship.facing, expectedFacing))
+        debugPrint["f"] = absShortestRotation(ship.facing, expectedFacing)
 
         controller.facing(dt, expectedFacing)
     }

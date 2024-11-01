@@ -239,7 +239,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         stats = ShipStats(ship)
 
         // Find the most similar weapon group to the current one after ship stats have been updated.
-        attackingGroup = stats.weaponGroups.minWithOrNull(compareBy { abs(shortestRotation(it.facing, attackingGroup.facing)) })!!
+        attackingGroup = stats.weaponGroups.minWithOrNull(compareBy { absShortestRotation(it.facing, attackingGroup.facing) })!!
     }
 
     private fun updateIdleTime(dt: Float) {

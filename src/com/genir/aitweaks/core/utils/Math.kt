@@ -214,6 +214,10 @@ fun shortestRotation(from: Float, to: Float): Float {
     return dist - round(dist / 360f) * 360f
 }
 
+fun absShortestRotation(from: Float, to: Float): Float {
+    return abs(shortestRotation(from, to))
+}
+
 fun clampAngle(angle: Float): Float {
     return angle - floor(angle / 360f) * 360f
 }

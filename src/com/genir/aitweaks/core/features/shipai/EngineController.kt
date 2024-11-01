@@ -73,7 +73,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
      * To avoid using trigonometric functions, f(x) = 1/cos(x) is approximated as
      * g(t) = 1/t + t/5 where t = PI/2 - x. */
     private fun Limit.clampSpeed(expectedHeading: Float, expectedSpeed: Float): Float {
-        val angleFromLimit = abs(shortestRotation(expectedHeading, heading))
+        val angleFromLimit = absShortestRotation(expectedHeading, heading)
         if (angleFromLimit >= 90f) return expectedSpeed
 
         val t = (PI / 2f - angleFromLimit * DEGREES_TO_RADIANS).toFloat()
