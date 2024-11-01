@@ -6,6 +6,8 @@ import com.genir.aitweaks.core.utils.vectorProjection
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.PI
+import kotlin.math.abs
 
 class Math {
     @Test
@@ -24,10 +26,9 @@ class Math {
             if (i == 0) continue
 
             val z = i / 1000.0
-            val err = atan(z) / kotlin.math.atan(z)
+            val err = atan(z) - kotlin.math.atan(z)
 
-            Assertions.assertTrue(err > 0.9978)
-            Assertions.assertTrue(err < 1.0018)
+            Assertions.assertTrue(abs(err) < 1E-4)
         }
     }
 
@@ -44,5 +45,26 @@ class Math {
         Assertions.assertEquals(0f, clampAngle(-360f))
         Assertions.assertEquals(280f, clampAngle(1000f))
         Assertions.assertEquals(80f, clampAngle(-1000f))
+    }
+
+    fun benchAtan() {
+        val iterations = 100000000
+        var value: Double = PI / 4
+
+        // Warm-up
+        for (i in 0 until iterations) {
+            value += 0.001
+            atan(value)
+        }
+
+        value = PI / 4
+        var sum = 0.0
+        val start = System.nanoTime()
+        for (i in 0 until iterations) {
+            value += 0.001
+            sum += atan(value)
+        }
+        val elapsedTime = System.nanoTime() - start
+        println("atan() took: " + (elapsedTime / iterations) + " ns per operation")
     }
 }

@@ -178,18 +178,17 @@ fun atan2(y: Double, x: Double): Double {
 }
 
 /**
- * Polynomial atan approximation taken from
- * https://stackoverflow.com/questions/42537957/fast-accurate-atan-arctan-approximation-algorithm
- *
- * Accurate in range [-1,1]
+ * Atan approximation accurate in range [-1,1].
+ * Zarowski, C. Differential Evolution for a Better Approximation to the Arctangent Function,
+ * Nanodottek Report NDT3-04-2006
  */
-private fun atanApprox(x: Double): Double {
-    val a = 0.0869142852883849
-    val b = -2.9993501171084700E-01
-    val c = 0.998418889819911
+fun atanApprox(x: Double): Double {
+    val a = 0.372003
+    val b = 0.703384
+    val c = 0.043562
 
     val xx = x * x
-    return ((a * xx + b) * xx + c) * x
+    return (1 + a * xx) * x / (1 + xx * (b + c * xx))
 }
 
 /** 2D rotation matrix. */
