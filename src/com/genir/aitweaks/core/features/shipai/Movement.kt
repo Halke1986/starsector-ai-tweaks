@@ -425,6 +425,15 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         return floor(q) * deceleration * dt
     }
 
+    /** Distance covered by ship when decelerating from given velocity. */
+    private fun decelerationDist(dt: Float, velocity: Float, deceleration: Float): Float {
+        val v = velocity * dt
+        val a = deceleration * dt * dt
+
+        val t = ceil(v / a)
+        return (v + a) * t * 0.5f
+    }
+
     companion object {
 
         /** Aim weapons with the entire ship, if possible. */

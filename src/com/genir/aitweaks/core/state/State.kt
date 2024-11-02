@@ -14,10 +14,12 @@ var combatState: State = State()
 class State : BaseEveryFrameCombatPlugin() {
     val customAIManager: CustomAIManager = CustomAIManager()
     var frameCount: Int = 0
-    val devMode: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
 
     val fleetCohesion: Array<FleetCohesion> = arrayOf(FleetCohesion(0), FleetCohesion(1))
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
+
+    val devMode: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
+    val highlightCustomAI: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_highlight_custom_ai") ?: false
 
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
         fleetCohesion[0],

@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.features.shipai.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
@@ -12,26 +13,30 @@ import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.abs
 import kotlin.math.min
+import kotlin.math.sign
 
 open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
 
+    // Aiming data.
     protected var target: CombatEntityAPI? = null
+    private var intercept: Vector2f? = null
+    private var aimPoint: Vector2f? = null
+    var shouldHoldFire: HoldFire? = NO_TARGET
+    var predictedHit: Hit? = null
+    private val interceptTracker = InterceptTracker(weapon)
+
+    // Timers.
+    private var selectTargetInterval = Interval(0.25F, 0.50F)
+    private var shouldFireInterval = Interval(0.1F, 0.2F)
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
     private var idleFrames: Int = 0
     private var onTargetTime: Float = 0f
+
     private var isForcedOff: Boolean = false
-
-    private var selectTargetInterval = Interval(0.25F, 0.50F)
-    private var shouldFireInterval = Interval(0.1F, 0.2F)
-
-    // Aiming data.
-    private var prevOffsetFromSlotAngle = 0f
-    var shouldHoldFire: HoldFire? = NO_TARGET
-    var predictedHit: Hit? = null
-
     var syncState: SyncState? = null
 
     override fun advance(dt: Float) {
@@ -41,13 +46,14 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             Global.getCombatEngine().isPaused -> return
         }
 
-        // Update time trackers.
+        // Advance intervals.
         selectTargetInterval.advance(dt)
         shouldFireInterval.advance(dt)
 
         // Update target if needed.
         if (shouldUpdateTarget()) {
             selectTargetInterval.reset()
+
             val previousTarget = target
             target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target
 
@@ -60,9 +66,12 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             }
         }
 
+        intercept = target?.let { intercept(weapon, BallisticTarget.entity(it), currentParams()) }
+        interceptTracker.advance(dt, intercept)
         trackAttackTimes(dt)
+        updateAimPoint(dt)
 
-        // Calculate if weapon should fire at current target.
+        // Calculate if weapon should fire at the current target.
         if (shouldFireInterval.elapsed()) {
             shouldFireInterval.reset()
             shouldHoldFire = calculateShouldFire()
@@ -70,7 +79,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     override fun shouldFire(): Boolean {
-        val syncState = syncState
         return when {
             isForcedOff -> {
                 isForcedOff = false
@@ -79,7 +87,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             shouldHoldFire != null -> false
 
-            syncState != null -> syncFire(syncState)
+            syncState != null -> syncFire(syncState!!)
 
             else -> true
         }
@@ -90,27 +98,12 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     override fun getTarget(): Vector2f? {
-        val target: CombatEntityAPI? = this.target
-
-        return when {
-            target == null -> null
-
-            // Can't aim fixed weapons.
-            weapon.slot.arc == 0f -> null
-
-            weapon.slot.isTurret -> aimTurret(target)
-
-            else -> aimHardpoint(target)
-        }
+        return aimPoint
     }
 
     override fun getTargetShip(): ShipAPI? = target as? ShipAPI
     override fun getWeapon(): WeaponAPI = weapon
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
-
-    private fun plotIntercept(target: CombatEntityAPI): Vector2f {
-        return intercept(weapon, BallisticTarget.entity(target), currentParams())
-    }
 
     /** Make weapons sync fire in staggered firing mode. */
     private fun syncFire(syncState: SyncState): Boolean {
@@ -202,20 +195,23 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     protected open fun calculateShouldFire(): HoldFire? {
         predictedHit = null
 
-        if (target?.isValidTarget != true) return NO_TARGET
+        val target: CombatEntityAPI = target ?: return NO_TARGET
+        if (!target.isValidTarget) return NO_TARGET
 
         holdFireIfOverfluxed()?.let { return it }
-
         stabilizeOnTarget()?.let { return it }
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
         val ballisticParams = currentParams()
-        val expectedHit = target?.let { analyzeHit(weapon, target!!, ballisticParams) }
+        var expectedHit: Hit? = analyzeHit(weapon, target, ballisticParams)
+
+        // Mock an expected hit for beams that should keep firing when in transition between targets.
+        if (expectedHit == null && shouldHoldBeam(target)) {
+            expectedHit = Hit(target, (target.location - weapon.location).length, target.shield?.isOn ?: false)
+        }
 
         if (expectedHit == null) return NO_HIT_EXPECTED
-
-        predictedHit = expectedHit
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, ballisticParams)
@@ -232,6 +228,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         when {
             hit.shieldHit && hit.range > weapon.range -> return OUT_OF_RANGE
+
             !hit.shieldHit && hit.range > weapon.totalRange -> return OUT_OF_RANGE
         }
 
@@ -281,6 +278,28 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         0f,
     )
 
+    private fun shouldHoldBeam(target: CombatEntityAPI): Boolean {
+        when {
+            !weapon.isPlainBeam -> return false
+
+            !weapon.isFiring -> return false
+
+            weapon.slot.isHardpoint -> return false
+        }
+
+        val r = interceptTracker.angleToIntercept
+        val w = weapon.turnRate + interceptTracker.interceptVelocityTowardsSlot
+
+        // The beam's turn rate is too low to track the target.
+        if (w < 0) return false
+
+        val toTarget = (target.location - weapon.location)
+        val reachTime = toTarget.length / (weapon.spec as BeamWeaponSpecAPI).beamSpeed
+        val rotationTime = 1.5f * (abs(r) / w)
+
+        return reachTime > rotationTime
+    }
+
     /**
      * getAccuracy returns current weapon accuracy.
      * The value is a number in range [1.0;2.0]. 1.0 is perfect accuracy, 2.0f is the worst accuracy.
@@ -295,25 +314,38 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
     }
 
-    private fun aimTurret(target: CombatEntityAPI): Vector2f {
-        val intercept = plotIntercept(target)
+    private fun updateAimPoint(dt: Float) {
+        val intercept: Vector2f? = this.intercept
+        val target: CombatEntityAPI? = this.target
+        if (target == null || intercept == null) {
+            aimPoint = null
+            return
+        }
 
+        aimPoint = when {
+            // Can't aim fixed weapons.
+            weapon.slot.arc == 0f -> null
+
+            weapon.slot.isHardpoint -> aimHardpoint(target, intercept)
+
+            // Beam weapons in turrets can be aimed directly at the target location.
+            weapon.isBeam -> target.location
+
+            else -> aimTurret(dt, intercept)
+        }
+    }
+
+    private fun aimTurret(dt: Float, intercept: Vector2f): Vector2f {
         // Combat engine fires weapons before setting their aim location. This means
         // the aim location returned by this method will take effect the next frame.
-        // Therefore, the weapon angle needs to be extrapolated based on previous
-        // angle values.
-        val arcFacing = weapon.absoluteArcFacing
-        val offset = shortestRotation(arcFacing, (intercept - weapon.location).facing)
-        val dOffset = shortestRotation(prevOffsetFromSlotAngle, offset)
-
-        prevOffsetFromSlotAngle = offset
-
-        val r = Rotation(dOffset)
+        // Therefore, the weapon angle needs to be adjusted for slot angular velocity
+        // towards target.
+        val r = Rotation(interceptTracker.interceptVelocity * dt)
         return intercept.rotatedAroundPivot(r, weapon.location)
     }
 
     /** predictive aiming for hardpoints */
-    private fun aimHardpoint(target: CombatEntityAPI): Vector2f {
+    private fun aimHardpoint(target: CombatEntityAPI, intercept: Vector2f): Vector2f {
         // Try to read expected facing from custom AI implementations.
         val customAIFacing = ship.customShipAI?.movement?.expectedFacing
         val wrapperAIFacing = (ship.ai as? WrapperShipAI)?.expectedFacing
@@ -323,15 +355,33 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Vanilla AI lacks precise aiming, so hardpoints need flexibility to compensate.
         // Aim directly at the intercept point when the ship is close to aligned.
         if (customAIFacing == null && wrapperAIFacing == null) {
-            val intercept = plotIntercept(target)
-            if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(intercept - weapon.location))
+            if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(interceptTracker.angleToIntercept))
                 return intercept
         }
 
         // Aim the hardpoint as if the ship was facing the target directly.
         val r = Rotation(shortestRotation(expectedFacing, ship.facing))
-        val v = target.velocity.rotated(r)
+        val v = target.timeAdjustedVelocity.rotated(r)
         val p = target.location.rotatedAroundPivot(r, weapon.ship.location)
         return intercept(weapon, BallisticTarget(v, p, target.collisionRadius), currentParams())
+    }
+
+    /** Tracks intercept angular velocity and angular distance in weapon slot frame of reference. */
+    private class InterceptTracker(private val weapon: WeaponAPI) {
+        private var prevAngleToIntercept = 0f
+
+        var angleToIntercept = 0f
+        var interceptVelocity = 0f
+        var interceptVelocityTowardsSlot = 0f // same magnitude as interceptVelocity
+
+        fun advance(dt: Float, intercept: Vector2f?) {
+            if (intercept == null) return
+
+            angleToIntercept = shortestRotation(weapon.absoluteArcFacing, (intercept - weapon.location).facing)
+            interceptVelocity = shortestRotation(prevAngleToIntercept, angleToIntercept) / dt
+            interceptVelocityTowardsSlot = -interceptVelocity * angleToIntercept.sign
+
+            prevAngleToIntercept = angleToIntercept
+        }
     }
 }

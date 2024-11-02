@@ -27,6 +27,9 @@ val WeaponAPI.isPDSpec: Boolean
 val WeaponAPI.isMissile: Boolean
     get() = type == WeaponAPI.WeaponType.MISSILE
 
+val WeaponAPI.isPlainBeam: Boolean
+    get() = isBeam && !conserveAmmo
+
 val WeaponAPI.conserveAmmo: Boolean
     get() = usesAmmo() || isBurstBeam
 

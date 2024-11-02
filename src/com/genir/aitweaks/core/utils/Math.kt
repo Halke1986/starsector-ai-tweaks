@@ -141,15 +141,6 @@ fun pointsOfTangency(p: Vector2f, r: Float): Pair<Vector2f, Vector2f>? {
     return Pair(h1, h2)
 }
 
-/** Distance covered by ship when decelerating from given velocity. */
-fun decelerationDist(dt: Float, velocity: Float, deceleration: Float): Float {
-    val v = velocity * dt
-    val a = deceleration * dt * dt
-
-    val t = ceil(v / a)
-    return (v + a) * t * 0.5f
-}
-
 fun atan(z: Float): Float {
     // extend atanApprox range from [-1,1]
     return if (z <= 1) atanApprox(z)

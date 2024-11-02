@@ -89,13 +89,18 @@ fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit?, actual: Hit?): HoldFire
     else -> HoldFire.AVOID_FF
 }
 
-/** Allow friendly fire with fragmentation PD when attacking missiles and fighters */
+/** Allow friendly fire with in some cases of PD defense. */
 fun allowPDFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit): Boolean = when {
+    // Determine if there's a risk of friendly fire.
     actual.target.owner != weapon.ship.owner -> false
     actual.range < expected.range -> false
-    !weapon.isPD -> false
-    weapon.spec.damageType != FRAGMENTATION -> false
 
-    expected.target !is ShipAPI -> true
-    else -> expected.target.isFighter
+    // Only fragmentation and beam weapons are allowed to risk friendly fire.
+    weapon.spec.damageType != FRAGMENTATION && !weapon.isPlainBeam -> false
+
+    // Determine if weapon is performing PD defense.
+    !weapon.isPD -> false
+    !expected.target.isPDTarget -> false
+
+    else -> true
 }

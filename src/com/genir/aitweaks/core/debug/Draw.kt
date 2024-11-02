@@ -69,10 +69,10 @@ fun drawTurnLines(ship: ShipAPI) {
     }
 }
 
-fun drawCollisionRadius(entity: CombatEntityAPI) {
+fun drawCollisionRadius(entity: CombatEntityAPI, color: Color = Color.CYAN) {
     if (debugRenderer == null) return
 
-    drawCircle(entity.location, entity.collisionRadius)
+    drawCircle(entity.location, entity.collisionRadius, color)
 }
 
 fun drawWeaponLines(ship: ShipAPI) {

@@ -29,5 +29,8 @@ val CombatEntityAPI.isValidTarget: Boolean
 val CombatEntityAPI.isSupportFighter: Boolean
     get() = (this is ShipAPI) && wing?.spec?.isSupport == true
 
+val CombatEntityAPI.isPDTarget: Boolean
+    get() = this is MissileAPI || (this is ShipAPI) && isFighter
+
 val CombatEntityAPI.timeAdjustedVelocity: Vector2f
     get() = (this as? ShipAPI)?.timeAdjustedVelocity ?: velocity

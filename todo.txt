@@ -1,2 +1,4 @@
 ships avoid collisions with very large modded shields
 ff when attacking fighters with main weapons
+
+PD change target when blocked by junk
