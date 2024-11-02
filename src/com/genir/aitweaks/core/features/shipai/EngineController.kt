@@ -7,7 +7,6 @@ import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.resized
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.sign
@@ -76,7 +75,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         val angleFromLimit = absShortestRotation(expectedHeading, heading)
         if (angleFromLimit >= 90f) return expectedSpeed
 
-        val t = (PI / 2f - angleFromLimit * DEGREES_TO_RADIANS).toFloat()
+        val t = (PI / 2f - angleFromLimit * DEGREES_TO_RADIANS)
         val e = speed * (1f / t + t / 5f)
         return min(e, expectedSpeed)
     }
@@ -89,6 +88,6 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         val c = 5f
 
         val t = quad(a, b, c)!!.second
-        return abs(t - PI / 2f).toFloat() * RADIANS_TO_DEGREES
+        return abs(t - PI / 2f) * RADIANS_TO_DEGREES
     }
 }

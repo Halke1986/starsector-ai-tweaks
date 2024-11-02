@@ -9,6 +9,7 @@ import kotlin.math.*
 
 const val DEGREES_TO_RADIANS: Float = 0.017453292F
 const val RADIANS_TO_DEGREES: Float = 57.29578F
+const val PI = Math.PI.toFloat()
 
 /** Solve quadratic equation [ax² + bx + c = 0] for x. */
 fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
@@ -150,29 +151,21 @@ fun decelerationDist(dt: Float, velocity: Float, deceleration: Float): Float {
 }
 
 fun atan(z: Float): Float {
-    return atan(z.toDouble()).toFloat()
-}
-
-fun atan2(y: Float, x: Float): Float {
-    return atan2(y.toDouble(), x.toDouble()).toFloat()
-}
-
-fun atan(z: Double): Double {
     // extend atanApprox range from [-1,1]
-    return if (z <= 1.0) atanApprox(z)
-    else z.sign * PI / 2.0 - atanApprox(1.0 / z)
+    return if (z <= 1) atanApprox(z)
+    else z.sign * PI / 2 - atanApprox(1 / z)
 }
 
 /** Based on org.lazywizard.lazylib.FastTrig.atan2 */
-fun atan2(y: Double, x: Double): Double {
+fun atan2(y: Float, x: Float): Float {
     val ay = abs(y)
     val ax = abs(x)
     val invert = ay > ax
     val z = if (invert) ax / ay else ay / ax // [0,1]
     var th = atanApprox(z) // [0,π/4]
-    if (invert) th = Math.PI / 2.0 - th // [0,π/2]
+    if (invert) th = PI / 2 - th // [0,π/2]
 
-    if (x < 0.0) th = Math.PI - th // [0,π]
+    if (x < 0) th = PI - th // [0,π]
 
     return th.withSign(y) // [-π,π]
 }
@@ -182,10 +175,10 @@ fun atan2(y: Double, x: Double): Double {
  * Zarowski, C. Differential Evolution for a Better Approximation to the Arctangent Function,
  * Nanodottek Report NDT3-04-2006
  */
-fun atanApprox(x: Double): Double {
-    val a = 0.372003
-    val b = 0.703384
-    val c = 0.043562
+fun atanApprox(x: Float): Float {
+    val a = 0.372003f
+    val b = 0.703384f
+    val c = 0.043562f
 
     val xx = x * x
     return (1 + a * xx) * x / (1 + xx * (b + c * xx))

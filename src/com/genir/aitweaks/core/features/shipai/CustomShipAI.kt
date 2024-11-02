@@ -17,7 +17,6 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -378,7 +377,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     /** Evaluate if target is worth attacking. The lower the score, the better the target. */
     private fun evaluateTarget(target: ShipAPI, weaponGroup: WeaponGroup): Float {
         // Prioritize targets closer to ship facing.
-        val angle = ship.shortestRotationToTarget(target.location, weaponGroup.facing) * PI.toFloat() / 180.0f
+        val angle = ship.shortestRotationToTarget(target.location, weaponGroup.facing) * DEGREES_TO_RADIANS
         val angleWeight = 0.75f
         val evalAngle = abs(angle) * angleWeight
 
