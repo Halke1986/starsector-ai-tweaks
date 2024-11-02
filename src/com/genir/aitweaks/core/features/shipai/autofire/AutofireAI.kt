@@ -28,8 +28,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var shouldFireInterval = Interval(0.1F, 0.2F)
 
     // Aiming data.
-    private var prevTurretIntercept: Vector2f? = null
-    private var prevShipFacing: Float = 0f
+    private var prevOffsetFromSlotAngle = 0f
     var shouldHoldFire: HoldFire? = NO_TARGET
     var predictedHit: Hit? = null
 
@@ -56,7 +55,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             if (previousTarget != target) {
                 attackTime = 0f
                 onTargetTime = 0f
-                prevTurretIntercept = null
 
                 shouldFireInterval.forceElapsed()
             }
@@ -300,21 +298,17 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private fun aimTurret(target: CombatEntityAPI): Vector2f {
         val intercept = plotIntercept(target)
 
-        // ship.angularVelocity() returns 0 for modules and stations, so the ship
-        // true angular velocity is estimated by calculating the change in ship facing.
-        val shipRotation = ship.facing - prevShipFacing
-        val prevIntercept = prevTurretIntercept ?: intercept
-        val interceptRotation = getShortestRotation(prevIntercept, weapon.location, intercept)
-
-        // Save current state for next frame.
-        prevShipFacing = ship.facing
-        prevTurretIntercept = intercept
-
         // Combat engine fires weapons before setting their aim location. This means
         // the aim location returned by this method will take effect the next frame.
-        // Therefore, the weapon facing needs to be extrapolated based on intercept
-        // point's and ship's angular velocity.
-        val r = Rotation(interceptRotation - shipRotation)
+        // Therefore, the weapon angle needs to be extrapolated based on previous
+        // angle values.
+        val arcFacing = weapon.absoluteArcFacing
+        val offset = shortestRotation(arcFacing, (intercept - weapon.location).facing)
+        val dOffset = shortestRotation(prevOffsetFromSlotAngle, offset)
+
+        prevOffsetFromSlotAngle = offset
+
+        val r = Rotation(dOffset)
         return intercept.rotatedAroundPivot(r, weapon.location)
     }
 

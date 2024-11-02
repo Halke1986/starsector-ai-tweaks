@@ -3,15 +3,19 @@ package com.genir.aitweaks.core.debug
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.WrapperShipAI
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.features.shipai.command
+import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.*
+import com.genir.aitweaks.core.utils.log
+import com.genir.aitweaks.core.utils.quad
+import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -27,6 +31,12 @@ fun targetTest(dt: Float) {
     if (!ship.isUnderManualControl) {
         installAI(ship) { ShipAI(ship, target) }
     }
+
+    val weapon = ship.allGroupedWeapons.firstOrNull() ?: return
+
+//    val err = shortestRotation(weapon.currAngle, expectedRelativeFacing)
+//    debugPrint["err"] = ("${abs(err)}")
+//    log("$err")
 
     installAI(target) { TargetAI(target) }
 }
@@ -49,22 +59,19 @@ class ShipAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() 
         targetV = target.velocity.copy
 
 
-
         controller.heading(dt, location)
-//        controller.facing(dt, target.location)
+//        controller.facing(dt, 90f)
 
-        controller.facing(dt, aimShip(ship, target))
-//        ship.facing = aimShip(ship, target)
+//        controller.facing(dt, aimShip(ship, target))
 
+        val weapon = ship.allGroupedWeapons.firstOrNull() ?: return
+//        val intercept = weapon.customAI!!.plotIntercept(target)
 
-        val weapon = ship.allGroupedWeapons.first { WrapperShipAI.shouldAim(it) }
+//        val err = shortestRotation(weapon.currAngle, (intercept - weapon.location).facing)
+//        debugPrint["e"] = "e ${abs(err)}"
+//        log(err)
 
-
-        val err = shortestRotation(ship.facing, (target.location - ship.location).facing)
-        debugPrint["e"] = "e ${abs(err)}"
-        log(err)
-
-//        ship.command(ShipCommand.TURN_RIGHT)
+        ship.command(ShipCommand.TURN_RIGHT)
 //        ship.command(ShipCommand.TURN_LEFT)
 
         drawEngineLines(ship)
@@ -74,7 +81,7 @@ class ShipAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() 
 class TargetAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     private val controller: BasicEngineController = BasicEngineController(ship)
 
-    val x = 3000f
+    val x = 2000f
     private val y = 0f
 
     val location = Vector2f(x, y)
