@@ -88,9 +88,12 @@ fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Float {
 }
 
 fun mousePosition(): Vector2f {
+    val viewport = Global.getCombatEngine().viewport
+    val settings = Global.getSettings()
+
     return Vector2f(
-        Global.getCombatEngine().viewport.convertScreenXToWorldX(Global.getSettings().mouseX.toFloat()),
-        Global.getCombatEngine().viewport.convertScreenYToWorldY(Global.getSettings().mouseY.toFloat()),
+        viewport.convertScreenXToWorldX(settings.mouseX.toFloat()),
+        viewport.convertScreenYToWorldY(settings.mouseY.toFloat()),
     )
 }
 

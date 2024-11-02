@@ -14,10 +14,7 @@ import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.defaultAIInterval
-import com.genir.aitweaks.core.utils.extensions.attackTarget
-import com.genir.aitweaks.core.utils.extensions.autofirePlugin
-import com.genir.aitweaks.core.utils.extensions.isHullDamageable
-import com.genir.aitweaks.core.utils.extensions.isValidTarget
+import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 
@@ -112,8 +109,8 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun burstFluxRequired(): Float {
-        val weaponBaseFlux = lidarWeapons.sumOf { it.derivedStats.fluxPerSecond.toDouble() }
-        val weaponFlux = weaponBaseFlux.toFloat() * (1f + LidarArrayStats.ROF_BONUS)
+        val weaponBaseFlux = lidarWeapons.sumOf { it.derivedStats.fluxPerSecond }
+        val weaponFlux = weaponBaseFlux * (1f + LidarArrayStats.ROF_BONUS)
         val dissipation = ship.mutableStats.fluxDissipation.modifiedValue
 
         return (weaponFlux - dissipation) * system.chargeActiveDur
