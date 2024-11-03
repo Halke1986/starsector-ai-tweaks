@@ -4,13 +4,12 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
-import com.genir.aitweaks.core.utils.asteroidGrid
-import com.genir.aitweaks.core.utils.closestEntityFinder
+import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
-import com.genir.aitweaks.core.utils.missileGrid
-import com.genir.aitweaks.core.utils.shipGrid
 import lunalib.lunaSettings.LunaSettings
+import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.abs
 
 private const val alsoTargetFighters = true
 
@@ -59,32 +58,47 @@ class UpdateTarget(
     }
 
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
-        // Estimate priority target.
-        val priorityTarget = when {
+        val priorityTarget: ShipAPI? = attackTarget
+
+        // Try to follow ship attack target.
+        val selectPriorityTarget = when {
+            priorityTarget == null -> false
+
+            !priorityTarget.isValidTarget -> false
+
             // Don't attack allies.
-            attackTarget?.owner == weapon.ship.owner -> null
+            priorityTarget.owner == weapon.ship.owner -> false
 
-            // Try to follow ship attack target.
-            else -> attackTarget
+            // Hardpoint weapons select ship target even when it's outside their firing arc.
+            weapon.slot.isHardpoint -> true
+
+            // Turreted weapons select ship target if it can be tracked.
+            canTrack(weapon, BallisticTarget.entity(priorityTarget), params) -> true
+
+            else -> false
         }
 
-        return when {
-            // Hardpoint weapons track ships target even when it's outside their firing arc.
-            priorityTarget != null && weapon.slot.isHardpoint -> priorityTarget
+        if (selectPriorityTarget) return priorityTarget
 
-            // Select priority target, if it can be tracked.
-            priorityTarget != null && canTrack(weapon, BallisticTarget.entity(priorityTarget), params) -> priorityTarget
-
-            // Select alternative target.
-            else -> selectEntity<ShipAPI>(shipGrid()) { !it.isFighter || alsoFighter }
-        }
+        // Select alternative target.
+        return selectEntity<ShipAPI>(shipGrid()) { !it.isFighter || alsoFighter }
     }
 
     private inline fun <reified T : CombatEntityAPI> selectEntity(
         grid: CollisionGridAPI, crossinline isAcceptableTarget: (T) -> Boolean
     ): CombatEntityAPI? {
-        // Try tracking current target.
-        if (current is T && isAcceptableTarget(current) && canTrack(weapon, BallisticTarget.entity(current), params)) return current
+        // Try tracking the current target.
+        when {
+            current !is T -> Unit
+
+            !current.isValidTarget -> Unit
+
+            !isAcceptableTarget(current) -> Unit
+
+            !canTrack(weapon, BallisticTarget.entity(current), params) -> Unit
+
+            else -> return current
+        }
 
         // Find the closest enemy entity that can be tracked by the weapon.
         return closestEntityFinder(weapon.location, weapon.totalRange, grid) {
@@ -95,8 +109,20 @@ class UpdateTarget(
                 !it.isValidTarget -> null
                 !isAcceptableTarget(it) -> null
                 !canTrack(weapon, target, params) -> null
-                else -> Hit(it, closestHitRange(weapon, target, params)!!, Hit.Type.HULL)
+
+                // Evaluate the target based on angle and distance.
+                else -> {
+                    val angle = shortestRotation((target.location - weapon.location).facing, weapon.currAngle) * DEGREES_TO_RADIANS
+                    val angleWeight = 0.75f
+                    val evalAngle = abs(angle) * angleWeight
+
+                    // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
+                    val dist = closestHitRange(weapon, target, params)!!
+                    val evalDist = (dist / weapon.totalRange)
+
+                    evalAngle + evalDist
+                }
             }
-        }?.target
+        }
     }
 }

@@ -15,15 +15,15 @@ import com.genir.aitweaks.core.utils.extensions.totalRange
 import org.lwjgl.util.vector.Vector2f
 
 fun closestEntityFinder(
-    location: Vector2f, radius: Float, grid: CollisionGridAPI, considerEntity: (CombatEntityAPI) -> Hit?
-): Hit? {
+    location: Vector2f, radius: Float, grid: CollisionGridAPI, evaluateEntity: (CombatEntityAPI) -> Float?
+): CombatEntityAPI? {
     val entityIterator = grid.getCheckIterator(location, radius * 2.0f, radius * 2.0f)
-    val hits = entityIterator.asSequence().mapNotNull { (it as? CombatEntityAPI)?.let(considerEntity) }
-    return hits.minWithOrNull(compareBy { it.range })
+    val score = entityIterator.asSequence().filterIsInstance<CombatEntityAPI>().map { Pair(it, evaluateEntity(it)) }
+    return score.filter { it.second != null }.minWithOrNull(compareBy { it.second })?.first
 }
 
-fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: BallisticParams): Hit? =
-    closestEntityFinder(weapon.location, weapon.totalRange, shipGrid()) {
+fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: BallisticParams): Hit? {
+    val entity = closestEntityFinder(weapon.location, weapon.totalRange, shipGrid()) {
         when {
             it !is ShipAPI -> null
             it.isFighter -> null
@@ -34,8 +34,11 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: BallisticParams): Hit? =
             it.owner == weapon.ship.owner -> analyzeAllyHit(weapon, it, params)
             it.isPhased -> null
             else -> analyzeHit(weapon, it, params)
-        }
+        }?.range
     }
+
+    return entity?.let { analyzeHit(weapon, it, params) }
+}
 
 fun shipGrid(): CollisionGridAPI = Global.getCombatEngine().shipGrid
 

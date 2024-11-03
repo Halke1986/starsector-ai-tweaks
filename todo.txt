@@ -2,3 +2,35 @@ ships avoid collisions with very large modded shields
 ff when attacking fighters with main weapons
 
 PD change target when blocked by junk
+
+
+TIDAL
+ —
+Today at 2:50 PM
+@Genir i narrowed down the mods that could cause the frigate bug :
+ruthless sector
+perilous expanse
+fleet size by dp
+more hullmods
+amazigh ship foundry
+prv starworks
+
+
+
+[quote author=mora link=topic=28428.msg453502#msg453502 date=1730436801]
+From what I observed, the Invictus custom AI target selection simply ignores the eliminate command; It seems to have a
+strong bias towards whatever is the nearest to them which usually ends up in the ship trying to shoot frigates and
+destroyers while getting blasted by the enemy capital right in front of them.
+
+Even worse cases are the Invictus doing a 180 and showing their rear towards the eliminate target.
+Also it seems that the custom AI knows where the enemies are even if none are in in-combat sensor range.
+[/quote]
+
+
+
+
+[quote author=Modo44 link=topic=28428.msg453640#msg453640 date=1730629311]
+The fleet cohesion mechanic needs work. Whenever a ship gets separated in a fight, it will keep running straight back
+just like vanilla AI would. You still have to make it move sideways using an order, otherwise it only stops at the edge
+of the map.
+[/quote]

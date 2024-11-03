@@ -6,8 +6,7 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.LARGE
-import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.HULL
-import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.SHIELD
+import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.*
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import kotlin.math.min
@@ -81,13 +80,20 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
 /** Avoiding friendly fire works under the assumption that the provided
  * actual hit is the first non-fighter, non-phased ship or phased friendly
  * ship along the line of fire. */
-fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit?, actual: Hit?): HoldFire? = when {
+fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire? = when {
     actual == null -> fire
-    expected != null && allowPDFriendlyFire(weapon, expected, actual) -> fire
+
+    allowPDFriendlyFire(weapon, expected, actual) -> fire
+
     actual.target !is ShipAPI -> fire
-    !actual.target.isAlive -> HoldFire.AVOID_FF_JUNK
+
+    // Avoid firing at hulks, except the case of beams transiting to a new target.
+    !actual.target.isAlive && expected.type != EVENTUAL -> HoldFire.AVOID_FF_JUNK
+
     !actual.target.isHullDamageable -> HoldFire.AVOID_FF_INERT
+
     actual.target.owner != weapon.ship.owner -> fire
+
     else -> HoldFire.AVOID_FF
 }
 

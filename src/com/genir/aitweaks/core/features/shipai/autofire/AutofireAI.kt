@@ -64,6 +64,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
                 attackTime = 0f
                 onTargetTime = 0f
 
+                interceptTracker.clear()
                 shouldFireInterval.forceElapsed()
             }
         }
@@ -168,23 +169,15 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     private fun shouldUpdateTarget(): Boolean {
-        val currentTarget: CombatEntityAPI? = target
-
         return when {
-            currentTarget == null -> selectTargetInterval.elapsed()
+            target == null -> selectTargetInterval.elapsed()
 
             // Target became invalid last frame, update immediately.
             // This is important for PD weapons defending against swarms of missiles.
-            !currentTarget.isValidTarget -> {
-                target = null
-                true
-            }
+            target?.isValidTarget != true -> true
 
             // Target can no longer be tracked. This does not apply to hardpoint weapons tracking ship attack target.
-            (currentTarget != ship.attackTarget || weapon.slot.isTurret) && !canTrack(weapon, BallisticTarget.entity(target!!), currentParams()) -> {
-                target = null
-                true
-            }
+            (target != ship.attackTarget || weapon.slot.isTurret) && !canTrack(weapon, BallisticTarget.entity(target!!), currentParams()) -> true
 
             // Do not interrupt firing sequence.
             weapon.isInFiringSequence -> false
@@ -260,7 +253,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private fun stabilizeOnTarget(): HoldFire? {
         when {
             // PD weapons should fire with no delay.
-            weapon.isPD || !target!!.isShip -> return null
+            weapon.isPD || target!!.isPDTarget -> return null
 
             // Weapon is on target for long enough already.
             onTargetTime >= min(2f, weapon.firingCycle.duration) -> return null
@@ -280,6 +273,9 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         0f,
     )
 
+    /** Given the finite speed of beam weapons, when the weapon is off target,
+     * it may be more effective to rotate the active beam towards the target
+     * rather than turning it off and reactivating it after realignment. */
     private fun shouldHoldBeam(target: CombatEntityAPI): Boolean {
         when {
             !weapon.isPlainBeam -> return false
@@ -289,17 +285,21 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             weapon.slot.isHardpoint -> return false
         }
 
-        val r = interceptTracker.angleToIntercept
-        val w = weapon.turnRate + interceptTracker.interceptVelocityTowardsSlot
+        val r = shortestRotation(weapon.currAngle, (target.location - weapon.location).facing)
+        val w = weapon.turnRate - interceptTracker.interceptVelocity * r.sign
 
         // The beam's turn rate is too low to track the target.
         if (w < 0) return false
 
+        // Decide if it's faster to rotate the beam to target
+        // or start a new beam and let it reach the target.
         val toTarget = (target.location - weapon.location)
-        val reachTime = toTarget.length / (weapon.spec as BeamWeaponSpecAPI).beamSpeed
-        val rotationTime = 1.5f * (abs(r) / w)
+        val flightTime = toTarget.length / (weapon.spec as BeamWeaponSpecAPI).beamSpeed
+        val rotationTime = (abs(r) / w)
 
-        return reachTime > rotationTime
+        // Favor beam rotation, just because it looks cool.
+        val flightTimeMultiplier = 1.3f
+        return rotationTime < flightTime * flightTimeMultiplier
     }
 
     /**
@@ -357,7 +357,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Vanilla AI lacks precise aiming, so hardpoints need flexibility to compensate.
         // Aim directly at the intercept point when the ship is close to aligned.
         if (customAIFacing == null && wrapperAIFacing == null) {
-            if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(interceptTracker.angleToIntercept))
+            if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(intercept - weapon.location))
                 return intercept
         }
 
@@ -370,20 +370,22 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     /** Tracks intercept angular velocity and angular distance in weapon slot frame of reference. */
     private class InterceptTracker(private val weapon: WeaponAPI) {
-        private var prevAngleToIntercept = 0f
+        private var prevAngleToIntercept: Float? = null
 
-        var angleToIntercept = 0f
         var interceptVelocity = 0f
-        var interceptVelocityTowardsSlot = 0f // same magnitude as interceptVelocity
 
         fun advance(dt: Float, intercept: Vector2f?) {
             if (intercept == null) return
 
-            angleToIntercept = shortestRotation(weapon.absoluteArcFacing, (intercept - weapon.location).facing)
-            interceptVelocity = shortestRotation(prevAngleToIntercept, angleToIntercept) / dt
-            interceptVelocityTowardsSlot = -interceptVelocity * angleToIntercept.sign
-
+            val angleToIntercept = shortestRotation(weapon.absoluteArcFacing, (intercept - weapon.location).facing)
+            interceptVelocity = shortestRotation(prevAngleToIntercept ?: angleToIntercept, angleToIntercept) / dt
             prevAngleToIntercept = angleToIntercept
+        }
+
+        /** clear should be called after target change,
+         * to avoid false intercept velocity estimation. */
+        fun clear() {
+            prevAngleToIntercept = null
         }
     }
 }
