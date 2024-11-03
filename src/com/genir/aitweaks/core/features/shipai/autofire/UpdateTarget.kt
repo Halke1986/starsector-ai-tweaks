@@ -95,7 +95,7 @@ class UpdateTarget(
                 !it.isValidTarget -> null
                 !isAcceptableTarget(it) -> null
                 !canTrack(weapon, target, params) -> null
-                else -> Hit(it, closestHitRange(weapon, target, params)!!, false)
+                else -> Hit(it, closestHitRange(weapon, target, params)!!, Hit.Type.HULL)
             }
         }?.target
     }

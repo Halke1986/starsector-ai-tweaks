@@ -6,6 +6,8 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.WrapperShipAI
+import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.EVENTUAL
+import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
@@ -208,7 +210,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         // Mock an expected hit for beams that should keep firing when in transition between targets.
         if (expectedHit == null && shouldHoldBeam(target)) {
-            expectedHit = Hit(target, (target.location - weapon.location).length, target.shield?.isOn ?: false)
+            expectedHit = Hit(target, (target.location - weapon.location).length, EVENTUAL)
         }
 
         if (expectedHit == null) return NO_HIT_EXPECTED
@@ -227,9 +229,9 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
 
         when {
-            hit.shieldHit && hit.range > weapon.range -> return OUT_OF_RANGE
+            hit.type == SHIELD && hit.range > weapon.range -> return OUT_OF_RANGE
 
-            !hit.shieldHit && hit.range > weapon.totalRange -> return OUT_OF_RANGE
+            hit.type != SHIELD && hit.range > weapon.totalRange -> return OUT_OF_RANGE
         }
 
         return AttackRules(weapon, hit, ballisticParams).shouldHoldFire

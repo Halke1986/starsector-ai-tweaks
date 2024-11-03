@@ -6,6 +6,8 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.LARGE
+import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.HULL
+import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import kotlin.math.min
@@ -60,8 +62,8 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     /** Ensure projectile will not hit shields. */
     private fun avoidShields(): HoldFire? = when {
         !hit.target.isShip -> fire
-        hit.shieldHit && weapon.conserveAmmo -> HoldFire.AVOID_SHIELDS
-        hit.shieldHit && shieldUptime(hit.target.shield) > 1.2f -> HoldFire.AVOID_SHIELDS
+        hit.type == SHIELD && weapon.conserveAmmo -> HoldFire.AVOID_SHIELDS
+        hit.type == SHIELD && shieldUptime(hit.target.shield) > 1.2f -> HoldFire.AVOID_SHIELDS
         else -> fire
     }
 
@@ -70,7 +72,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
         !hit.target.isShip -> fire
         weapon.size == LARGE && (hit.target as ShipAPI).isFrigateShip -> fire
         weapon.ship.system?.let { it.specAPI.id == "lidararray" && it.isOn } == true -> fire
-        !hit.shieldHit -> HoldFire.AVOID_EXPOSED_HULL
+        hit.type == HULL -> HoldFire.AVOID_EXPOSED_HULL
         shieldUptime(hit.target.shield) < min(0.8f, weapon.firingCycle.duration) -> HoldFire.AVOID_EXPOSED_HULL // avoid shield flicker
         else -> fire
     }
