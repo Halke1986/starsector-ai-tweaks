@@ -46,15 +46,15 @@ class UpdateTarget(
     private fun selectAsteroid(): CombatEntityAPI? {
         val inViewport = { location: Vector2f -> Global.getCombatEngine().viewport.isNearViewport(location, 0f) }
         if (!inViewport(weapon.location)) return null
-        return selectEntity<CombatAsteroidAPI>(asteroidGrid()) { inViewport(it.location) }
+        return selectEntity(asteroidGrid()) { it is CombatAsteroidAPI && inViewport(it.location) }
     }
 
     private fun selectMissile(): CombatEntityAPI? {
-        return selectEntity<MissileAPI>(missileGrid()) { !it.isFlare || !weapon.ignoresFlares }
+        return selectEntity(missileGrid()) { it is MissileAPI && (!it.isFlare || !weapon.ignoresFlares) }
     }
 
     private fun selectFighter(): CombatEntityAPI? {
-        return selectEntity<ShipAPI>(shipGrid()) { it.isFighter }
+        return selectEntity(shipGrid()) { it is ShipAPI && it.isFighter }
     }
 
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
@@ -81,48 +81,41 @@ class UpdateTarget(
         if (selectPriorityTarget) return priorityTarget
 
         // Select alternative target.
-        return selectEntity<ShipAPI>(shipGrid()) { !it.isFighter || alsoFighter }
+        return selectEntity(shipGrid()) { it is ShipAPI && (!it.isFighter || alsoFighter) }
     }
 
-    private inline fun <reified T : CombatEntityAPI> selectEntity(
-        grid: CollisionGridAPI, crossinline isAcceptableTarget: (T) -> Boolean
-    ): CombatEntityAPI? {
-        // Try tracking the current target.
-        when {
-            current !is T -> Unit
+    private fun selectEntity(grid: CollisionGridAPI, isTargetAcceptable: (CombatEntityAPI) -> Boolean): CombatEntityAPI? {
+        val targetFilter = fun(target: CombatEntityAPI?): Boolean {
+            return when {
+                target == null -> false
+                !target.isValidTarget -> false
+                target.owner == weapon.ship.owner -> false
 
-            !current.isValidTarget -> Unit
-
-            !isAcceptableTarget(current) -> Unit
-
-            !canTrack(weapon, BallisticTarget.entity(current), params) -> Unit
-
-            else -> return current
+                !isTargetAcceptable(target) -> false
+                !canTrack(weapon, BallisticTarget.entity(target), params) -> false
+                else -> true
+            }
         }
+
+        // Try tracking the current target.
+        if (targetFilter(current)) return current
 
         // Find the closest enemy entity that can be tracked by the weapon.
         return closestEntityFinder(weapon.location, weapon.totalRange, grid) {
+            if (!targetFilter(it)) return@closestEntityFinder null
+
+            // Evaluate the target based on angle and distance.
             val target = BallisticTarget.entity(it)
-            when {
-                it !is T -> null
-                it.owner == weapon.ship.owner -> null
-                !it.isValidTarget -> null
-                !isAcceptableTarget(it) -> null
-                !canTrack(weapon, target, params) -> null
 
-                // Evaluate the target based on angle and distance.
-                else -> {
-                    val angle = shortestRotation((target.location - weapon.location).facing, weapon.currAngle) * DEGREES_TO_RADIANS
-                    val angleWeight = 0.75f
-                    val evalAngle = abs(angle) * angleWeight
+            val angle = shortestRotation((target.location - weapon.location).facing, weapon.currAngle) * DEGREES_TO_RADIANS
+            val angleWeight = 0.75f
+            val evalAngle = abs(angle) * angleWeight
 
-                    // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
-                    val dist = closestHitRange(weapon, target, params)!!
-                    val evalDist = (dist / weapon.totalRange)
+            // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
+            val dist = closestHitRange(weapon, target, params)!!
+            val evalDist = (dist / weapon.totalRange)
 
-                    evalAngle + evalDist
-                }
-            }
+            evalAngle + evalDist
         }
     }
 }
