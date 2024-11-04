@@ -55,7 +55,7 @@ val WeaponAPI.absoluteArcFacing: Float
     get() = clampAngle(arcFacing + ship.facing)
 
 val WeaponAPI.totalRange: Float
-    get() = range + projectileFadeRange * 0.5f
+    get() = range + projectileFadeRange * 0.5f + barrelOffset
 
 val WeaponAPI.timeToAttack: Float
     get() {
@@ -112,6 +112,10 @@ val WeaponAPI.target: CombatEntityAPI?
 
 val WeaponAPI.barrelOffset: Float
     get() {
+        // Beams do have a defined barrel offset, but
+        // the beam itself starts at the weapon center.
+        if (isBeam) return 0f
+
         val offsets = if (slot.isHardpoint) spec.hardpointFireOffsets
         else spec.turretFireOffsets
         return offsets[0]?.x ?: 0f

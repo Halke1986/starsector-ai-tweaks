@@ -26,10 +26,29 @@ data class BallisticParams(val accuracy: Float, val delay: Float)
 
 val defaultBallisticParams = BallisticParams(1f, 0f)
 
-/** Weapon aim location required to hit center point of a moving target.
+/** Range at which the projectile can collide with the center point of a moving target.
  * When the target's speed approaches the speed of the projectile, the intercept
  * time and location approach infinity. In such cases, the function assumes an
  * arbitrary long time period to approximate the target location. */
+fun interceptRange(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Float {
+    val pv = targetCoords(weapon, target, params)
+    if (targetAboveWeapon(pv.first, weapon, target)) return 0f
+
+    val rangeFromBarrel = solve(pv, weapon.barrelOffset, 1f, 0f, 0f)
+    return weapon.barrelOffset + (rangeFromBarrel ?: approachesInfinity)
+}
+
+/** Closest possible range at which the projectile can collide with the target
+ * circumference, for any weapon facing. */
+fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Float {
+    val pv = targetCoords(weapon, target, params)
+    if (targetAboveWeapon(pv.first, weapon, target)) return 0f
+
+    val rangeFromBarrel = solve(pv, weapon.barrelOffset, 1f, target.radius, cos180)
+    return weapon.barrelOffset + (rangeFromBarrel ?: approachesInfinity)
+}
+
+/** Weapon aim location required to hit center point of a moving target. */
 fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f {
     val pv = targetCoords(weapon, target, params)
     if (targetAboveWeapon(pv.first, weapon, target)) return target.location
@@ -42,25 +61,17 @@ fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParam
 
 /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
 fun canTrack(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams, rangeOverride: Float? = null): Boolean {
-    val closestHit = closestHitRange(weapon, target, params) ?: return false
+    val closestHit = closestHitRange(weapon, target, params)
     if (closestHit > (rangeOverride ?: weapon.totalRange)) return false
 
     val interceptArc = interceptArc(weapon, target, params)
     return Arc(weapon.arc, weapon.absoluteArcFacing).overlaps(interceptArc)
 }
 
-/** Closest possible range at which the projectile can collide with the target circumference,
- * for any weapon facing. Null if the target is faster than the projectile. */
-fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Float? {
-    val pv = targetCoords(weapon, target, params)
-    return if (targetAboveWeapon(pv.first, weapon, target)) 0f
-    else solve(pv, weapon.barrelOffset, 1f, target.radius, cos180)
-}
-
 /** Calculates the target intercept arc. If weapon facing is within this arc,
- * the weapon projectile will collide with target circumference.
+ * the weapon projectile will collide with the target circumference.
  * Similar to intercept point, but not restricted to target center point.
- * Null if projectile is slower than the target. */
+ * For simplicity, the barrel offset is omitted. */
 fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Arc {
     val (p, _) = targetCoords(weapon, target, params)
     val points = pointsOfTangency(p, target.radius) ?: return Arc(360f, 0f)

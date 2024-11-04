@@ -203,7 +203,8 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         // Mock an expected hit for beams that should keep firing when in transition between targets.
         if (expectedHit == null && shouldHoldBeam(target)) {
-            expectedHit = Hit(target, (target.location - weapon.location).length, EVENTUAL)
+            val range = interceptRange(weapon, BallisticTarget.entity(target), currentParams())
+            expectedHit = Hit(target, range, EVENTUAL)
         }
 
         if (expectedHit == null) return NO_HIT_EXPECTED
@@ -294,8 +295,11 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Decide if it's faster to rotate the beam to target
         // or start a new beam and let it reach the target.
         val toTarget = (target.location - weapon.location)
-        val flightTime = toTarget.length / (weapon.spec as BeamWeaponSpecAPI).beamSpeed
+        val turnRateMultiplier = 5f // vanilla turn rate multiplier for non-firing weapons
+        val wFast = weapon.turnRate * turnRateMultiplier - interceptTracker.interceptVelocity * r.sign
         val rotationTime = (abs(r) / w)
+        val rotationTimeFast = (abs(r) / wFast)
+        val flightTime = rotationTimeFast + toTarget.length / (weapon.spec as BeamWeaponSpecAPI).beamSpeed
 
         // Favor beam rotation, just because it looks cool.
         val flightTimeMultiplier = 1.3f
@@ -330,14 +334,14 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             weapon.slot.isHardpoint -> aimHardpoint(target, intercept)
 
-            // Beam weapons in turrets can be aimed directly at the target location.
-            weapon.isBeam -> target.location
-
             else -> aimTurret(dt, intercept)
         }
     }
 
     private fun aimTurret(dt: Float, intercept: Vector2f): Vector2f {
+        // Beam weapons in turrets can be aimed directly at the target location.
+        if (weapon.isBeam) return intercept
+
         // Combat engine fires weapons before setting their aim location. This means
         // the aim location returned by this method will take effect the next frame.
         // Therefore, the weapon angle needs to be adjusted for slot angular velocity

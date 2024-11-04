@@ -39,22 +39,11 @@ import java.awt.Color.GREEN
 var prevToTargetFacing = 0f
 
 internal fun debug(dt: Float) {
-//    targetTest(dt)
-//    Global.getCombatEngine().playerShip?.let { FollowMouseAI.install(it) }
+//    removeAsteroids()
 
-//    if (Global.getCombatEngine().isPaused) return
-//
-//    val ship = Global.getCombatEngine().playerShip ?: return
-//    val target = ship.attackTarget ?: return
-//
-//    ship.fluxTracker.currFlux *= 0.1f
-//
-//    val toTargetFacing = getFacingStrict(target.location - ship.location)
-//
-//    val df = abs(MathUtils.getShortestRotation(toTargetFacing, prevToTargetFacing))
-//    prevToTargetFacing = toTargetFacing
-//
-//    drawTurnLines(ship)
+//    val ships = Global.getCombatEngine().ships.filter { !it.isFighter }
+//    ships.forEach {
+//    }
 }
 
 var expectedFacing = 90f
@@ -141,7 +130,7 @@ private fun makeDroneFormation() {
         val drone = drones[i]
 
         if (((drone.ai as? ShipAIWrapper)?.ai !is DroneFormationAI)) {
-            val offset = Vector2f(0f, 300f).rotated(Rotation(angle * i))
+            val offset = Vector2f(0f, 500f).rotated(Rotation(angle * i))
             drone.shipAI = DroneFormationAI(drone, ship, offset)
         }
 

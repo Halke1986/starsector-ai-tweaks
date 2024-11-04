@@ -58,7 +58,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
 
     override fun renderInUICoords(viewport: ViewportAPI?) {
         for ((i, v) in logs.entries.withIndex()) {
-            v.value.second.draw(500f, 200f + (logs.count() / 2 - i) * 16f)
+            v.value.second.draw(500f, 400f + (logs.count() / 2 - i) * 16f)
         }
     }
 

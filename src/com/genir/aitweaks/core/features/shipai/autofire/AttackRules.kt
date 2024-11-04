@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.LARGE
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.*
+import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import kotlin.math.min
@@ -81,34 +82,48 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
  * actual hit is the first non-fighter, non-phased ship or phased friendly
  * ship along the line of fire. */
 fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire? = when {
+    // There are no obstacles in the line of fire.
     actual == null -> fire
 
-    allowPDFriendlyFire(weapon, expected, actual) -> fire
-
+    // Weapon will hit an unidentified entity. Allow fire.
     actual.target !is ShipAPI -> fire
 
-    // Avoid firing at hulks, except the case of beams transiting to a new target.
-    !actual.target.isAlive && expected.type != EVENTUAL -> HoldFire.AVOID_FF_JUNK
+    // Obstacle is in front of the expected target.
+    actual.range < expected.range -> when {
 
-    !actual.target.isHullDamageable -> HoldFire.AVOID_FF_INERT
+        // True friendly fire.
+        actual.target.owner == weapon.ship.owner -> AVOID_FF
 
-    actual.target.owner != weapon.ship.owner -> fire
+        // Beams transiting to a new target are allowed to hit inert targets.
+        expected.type == EVENTUAL -> fire
 
-    else -> HoldFire.AVOID_FF
+        !actual.target.isAlive -> AVOID_FF_JUNK
+
+        !actual.target.isHullDamageable -> AVOID_FF_INERT
+
+        // Weapon will hit other non-friendly entity. Allow fire.
+        else -> fire
+    }
+
+    // Obstacle is behind the expected target. This happens in case of PD fire.
+    actual.target.owner == weapon.ship.owner -> when {
+
+        // Allow risk of friendly fire if PD weapon misses its target.
+        allowPDFriendlyFire(weapon, expected) -> fire
+
+        else -> AVOID_FF
+    }
+
+    // Weapon may hit other non-friendly entity if PD weapon misses its target. Allow fire.
+    else -> fire
 }
 
 /** Allow friendly fire with in some cases of PD defense. */
-fun allowPDFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit): Boolean = when {
-    // Determine if there's a risk of friendly fire.
-    actual.target.owner != weapon.ship.owner -> false
-    actual.range < expected.range -> false
-
-    // Only fragmentation and beam weapons are allowed to risk friendly fire.
-    weapon.spec.damageType != FRAGMENTATION && !weapon.isPlainBeam -> false
-
+fun allowPDFriendlyFire(weapon: WeaponAPI, expected: Hit): Boolean = when {
     // Determine if weapon is performing PD defense.
     !weapon.isPD -> false
     !expected.target.isPDTarget -> false
 
-    else -> true
+    // Only fragmentation and beam weapons are allowed to risk friendly fire.
+    else -> weapon.spec.damageType == FRAGMENTATION || weapon.isPlainBeam
 }

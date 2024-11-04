@@ -1,10 +1,7 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.*
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.isFrigateShip
-import com.genir.aitweaks.core.utils.extensions.isModule
-import com.genir.aitweaks.core.utils.extensions.timeMult
+import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shortestRotation
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
@@ -12,7 +9,7 @@ import kotlin.math.max
 
 /** Weapon range from the center of the ship. */
 val WeaponAPI.slotRange: Float
-    get() = this.range + this.slot.location.x
+    get() = totalRange + slot.location.x
 
 val WeaponAPI.maxReloadTime: Float
     get() {

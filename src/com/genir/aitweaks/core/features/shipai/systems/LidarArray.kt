@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.canTrack
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.command
+import com.genir.aitweaks.core.features.shipai.slotRange
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.extensions.*
@@ -85,7 +86,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun weaponsOnTarget(target: ShipAPI): Boolean {
-        return lidarWeapons.firstOrNull { !canTrack(it, BallisticTarget.entity(target), defaultBallisticParams, it.range * weaponRangeFraction) } == null
+        return lidarWeapons.firstOrNull { !canTrack(it, BallisticTarget.entity(target), defaultBallisticParams, it.totalRange * weaponRangeFraction) } == null
     }
 
     private fun weaponsNotBlocked(): Boolean {
@@ -105,7 +106,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun minLidarWeaponRange(): Float {
-        return applyLidarRangeBonus { lidarWeapons.minOf { w -> w.range + w.slot.location.x } } * weaponRangeFraction
+        return applyLidarRangeBonus { lidarWeapons.minOf { it.slotRange } } * weaponRangeFraction
     }
 
     private fun burstFluxRequired(): Float {

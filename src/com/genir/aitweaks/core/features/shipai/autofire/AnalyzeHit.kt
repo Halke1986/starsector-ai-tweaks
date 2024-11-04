@@ -34,9 +34,9 @@ fun analyzeAllyHit(weapon: WeaponAPI, ally: ShipAPI, params: BallisticParams): H
         weapon.projectileCollisionClass == CollisionClass.PROJECTILE_FIGHTER -> null
         weapon.projectileCollisionClass == CollisionClass.RAY_FIGHTER -> null
         !willHitCautious(weapon, target, params) -> null
-        else -> closestHitRange(weapon, target, params)?.let { Hit(ally, it, HULL) }
+        else -> Hit(ally, closestHitRange(weapon, target, params), HULL)
     }
 }
 
-/** Workaround for hulks retaining outdated ShieldAPI */
+/** Workaround for hulks retaining outdated ShieldAPI. */
 private fun hasShield(target: CombatEntityAPI): Boolean = target.isShip && !(target as ShipAPI).isHulk
