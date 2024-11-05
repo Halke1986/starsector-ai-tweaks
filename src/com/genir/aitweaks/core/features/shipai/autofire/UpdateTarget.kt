@@ -4,9 +4,9 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
+import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
-import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
@@ -20,7 +20,7 @@ class UpdateTarget(
     private val params: BallisticParams,
 ) {
     val target: CombatEntityAPI? = when {
-        Global.getCurrentState() == GameState.TITLE && titleScreenFireIsOn() -> selectAsteroid()
+        Global.getCurrentState() == GameState.TITLE && combatState.titleScreenFireIsOn -> selectAsteroid()
 
         // Obligatory PD
         weapon.hasAIHint(PD_ONLY) && weapon.hasAIHint(ANTI_FTR) -> selectFighter() ?: selectMissile()
@@ -38,8 +38,6 @@ class UpdateTarget(
 
         else -> selectShip() ?: selectFighter()?.let { if (!it.isSupportFighter) it else null }
     }
-
-    private fun titleScreenFireIsOn() = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_title_screen_fire") == true
 
     /** Target asteroid selection. Selects asteroid only when the weapon and asteroid
      * are both in viewport. Otherwise, it looks weird on the title screen. */
@@ -60,7 +58,7 @@ class UpdateTarget(
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
         val priorityTarget: ShipAPI? = attackTarget
 
-        // Try to follow ship attack target.
+        // Try to follow the ship attack target.
         val selectPriorityTarget = when {
             priorityTarget == null -> false
 
@@ -148,7 +146,7 @@ class UpdateTarget(
     private fun makeObstacleList(): List<Obstacle> {
         val radius = weapon.totalRange
         val ships = shipGrid().getCheckIterator(weapon.location, radius * 2.0f, radius * 2.0f).asSequence()
-        val obstacles = ships.filterIsInstance<ShipAPI>().filter { it != weapon.ship && !it.isFighter }
+        val obstacles = ships.filterIsInstance<ShipAPI>().filter { it.root != weapon.ship.root && !it.isFighter }
 
         return obstacles.map { obstacle ->
             val target = BallisticTarget(obstacle.velocity, obstacle.location, obstacle.boundsRadius * 0.8f)

@@ -13,19 +13,22 @@ import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
-// Returns false for detached modules. Will be false before
-// ship is completely initialized, e.g. in AI picker.
+/** Returns false for detached modules. Will be false before
+ * ship is completely initialized, e.g. in AI picker. */
 val ShipAPI.isModule: Boolean
     get() = stationSlot != null
 
-val ShipAPI.rootModule: ShipAPI
+/** Return ship root module. */
+val ShipAPI.root: ShipAPI
     get() = if (isModule) parentStation else this
 
 val ShipAPI.isFrigateShip: Boolean
+    // Check for number of engines, as isModule method may return
+    // incorrect result when the ship is being initialized.
     get() = isFrigate && !isModule && engineController.shipEngines.isNotEmpty()
 
 val ShipAPI.isBig: Boolean
-    get() = isModule || isDestroyer || isCruiser || isCapital
+    get() = (isModule && allWeapons.isNotEmpty()) || isDestroyer || isCruiser || isCapital
 
 val ShipAPI.isHullDamageable: Boolean
     get() = mutableStats.hullDamageTakenMult.getModifiedValue() > 0f
@@ -46,7 +49,7 @@ val ShipAPI.deployedFleetMember: DeployedFleetMemberAPI?
 val ShipAPI.attackTarget: ShipAPI?
     get() = when {
         // Modules follow their parent target.
-        isModule -> rootModule.attackTarget
+        isModule -> root.attackTarget
 
         // Custom AI reliably sets shipTarget value.
         customShipAI != null -> shipTarget

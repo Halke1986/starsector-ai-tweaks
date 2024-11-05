@@ -29,7 +29,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     private var primaryBigTargets: List<ShipAPI> = listOf()
     private var primaryTargets: List<ShipAPI> = listOf()
     private var allBigTargets: List<ShipAPI> = listOf()
-    var allTargets: List<ShipAPI> = listOf()
+    private var allTargets: List<ShipAPI> = listOf()
 
     private val advanceInterval = Interval(0.75f, 1f)
 

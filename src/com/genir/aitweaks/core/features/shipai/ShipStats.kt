@@ -2,10 +2,7 @@ package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.utils.extensions.isAngleInArc
-import com.genir.aitweaks.core.utils.extensions.isInFiringSequence
-import com.genir.aitweaks.core.utils.extensions.isPDSpec
-import com.genir.aitweaks.core.utils.extensions.sumOf
+import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shortestRotation
 import kotlin.math.abs
 import kotlin.math.max
@@ -38,8 +35,7 @@ class ShipStats(private val ship: ShipAPI) {
         }
 
         // Filter out PD weapons, but only if there are non PD weapons available.
-        // Do not count weapons made PD by S-modded Integrated Point Defense AI.
-        val attackWeapons = weapons.filter { !it.isPDSpec || it.slot.isHardpoint }.ifEmpty { weapons }
+        val attackWeapons = weapons.filter { !it.isPD || it.slot.isHardpoint }.ifEmpty { weapons }
 
         // Return active weapons.
         return attackWeapons.filter { weapon ->

@@ -20,6 +20,7 @@ class State : BaseEveryFrameCombatPlugin() {
 
     val devMode: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
     val highlightCustomAI: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_highlight_custom_ai") ?: false
+    val titleScreenFireIsOn: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_title_screen_fire") ?: false
 
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
         fleetCohesion[0],

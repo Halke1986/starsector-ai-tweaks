@@ -3,12 +3,14 @@ package com.genir.aitweaks.core.features.shipai.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.EVENTUAL
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
+import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
@@ -52,32 +54,20 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         selectTargetInterval.advance(dt)
         shouldFireInterval.advance(dt)
 
-        // Update target if needed.
-        if (shouldUpdateTarget()) {
-            selectTargetInterval.reset()
-
-            val previousTarget = target
-            target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target
-
-            // Target changed, do cleanup.
-            if (previousTarget != target) {
-                attackTime = 0f
-                onTargetTime = 0f
-
-                interceptTracker.clear()
-                shouldFireInterval.forceElapsed()
-            }
-        }
-
-        intercept = target?.let { intercept(weapon, BallisticTarget.entity(it), currentParams()) }
-        interceptTracker.advance(dt, intercept)
         trackAttackTimes(dt)
-        updateAimPoint(dt)
+        updateAim(dt)
 
         // Calculate if weapon should fire at the current target.
         if (shouldFireInterval.elapsed()) {
-            shouldFireInterval.reset()
             shouldHoldFire = calculateShouldFire()
+
+            // Possibly update the target and calculate a new firing solution
+            // in the same frame as the previous target became invalid.
+            if (shouldUpdateTargetImmediately(target)) updateTarget(dt)
+        }
+
+        if (selectTargetInterval.elapsed() && shouldUpdateTarget(target)) {
+            updateTarget(dt)
         }
     }
 
@@ -107,6 +97,26 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getTargetShip(): ShipAPI? = target as? ShipAPI
     override fun getWeapon(): WeaponAPI = weapon
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
+
+    private fun updateTarget(dt: Float) {
+        selectTargetInterval.reset()
+
+        val previousTarget = target
+        target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target
+
+        // Nothing changed, return early.
+        if (target == previousTarget) return
+
+        // Cleanup
+        attackTime = 0f
+        onTargetTime = 0f
+        interceptTracker.clear()
+
+        trackAttackTimes(dt)
+        updateAim(dt)
+
+        shouldHoldFire = calculateShouldFire()
+    }
 
     /** Make weapons sync fire in staggered firing mode. */
     private fun syncFire(syncState: SyncState): Boolean {
@@ -168,26 +178,39 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         else onTargetTime += dt
     }
 
-    private fun shouldUpdateTarget(): Boolean {
+    /** Identify situations where the current target became invalid. */
+    private fun shouldUpdateTargetImmediately(target: CombatEntityAPI?): Boolean {
         return when {
-            target == null -> selectTargetInterval.elapsed()
+            // There is no current target.
+            target == null -> false
 
-            // Target became invalid last frame, update immediately.
-            // This is important for PD weapons defending against swarms of missiles.
-            target?.isValidTarget != true -> true
+            !target.isValidTarget -> true
 
             // Target can no longer be tracked. This does not apply to hardpoint weapons tracking ship attack target.
-            (target != ship.attackTarget || weapon.slot.isTurret) && !canTrack(weapon, BallisticTarget.entity(target!!), currentParams()) -> true
+            (target != ship.attackTarget || weapon.slot.isTurret) && !canTrack(weapon, BallisticTarget.entity(target), currentParams()) -> true
+
+            // PD defense became impossible for some reason.
+            target.isPDTarget && weapon.isPD && shouldHoldFire != null -> true
+
+            else -> false
+        }
+    }
+
+    private fun shouldUpdateTarget(target: CombatEntityAPI?): Boolean {
+        return when {
+            target == null -> true
 
             // Do not interrupt firing sequence.
             weapon.isInFiringSequence -> false
 
-            // Outside above special circumstances, refresh target periodically.
-            else -> selectTargetInterval.elapsed()
+            // Ensure the weapon is tracking a target specific to its type.
+            else -> !tracksPrimaryTarget()
         }
     }
 
     protected open fun calculateShouldFire(): HoldFire? {
+        shouldFireInterval.reset()
+
         predictedHit = null
 
         val target: CombatEntityAPI = target ?: return NO_TARGET
@@ -320,13 +343,15 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
     }
 
-    private fun updateAimPoint(dt: Float) {
-        val intercept: Vector2f? = this.intercept
-        val target: CombatEntityAPI? = this.target
-        if (target == null || intercept == null) {
-            aimPoint = null
-            return
-        }
+    private fun updateAim(dt: Float) {
+        intercept = null
+        aimPoint = null
+
+        val target = this.target ?: return
+        val intercept = intercept(weapon, BallisticTarget.entity(target), currentParams())
+
+        this.intercept = intercept
+        interceptTracker.advance(dt, intercept)
 
         aimPoint = when {
             // Can't aim fixed weapons.
@@ -372,10 +397,31 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return intercept(weapon, BallisticTarget(v, p, target.collisionRadius), currentParams())
     }
 
+    private fun tracksPrimaryTarget(): Boolean {
+        val target: CombatEntityAPI = this.target ?: return false
+        val attackTarget: ShipAPI? = weapon.ship.attackTarget
+
+        return when {
+            // Title screen
+            Global.getCurrentState() == GameState.TITLE && combatState.titleScreenFireIsOn -> target is CombatAsteroidAPI
+
+            // PD
+            weapon.isPD && weapon.hasAIHint(ANTI_FTR) -> target.isFighter
+            weapon.isPD -> target is MissileAPI
+
+            // Main weapons try to track ship target at all times.
+            attackTarget != null && canTrack(weapon, BallisticTarget.entity(attackTarget), currentParams()) -> target == attackTarget
+
+            // Non-PD anti fighter weapons can track ships and fighters with equal priority.
+            weapon.hasAIHint(ANTI_FTR) -> target.isFighter || target.isShip
+
+            else -> target.isShip
+        }
+    }
+
     /** Tracks intercept angular velocity and angular distance in weapon slot frame of reference. */
     private class InterceptTracker(private val weapon: WeaponAPI) {
         private var prevAngleToIntercept: Float? = null
-
         var interceptVelocity = 0f
 
         fun advance(dt: Float, intercept: Vector2f?) {
@@ -390,6 +436,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
          * to avoid false intercept velocity estimation. */
         fun clear() {
             prevAngleToIntercept = null
+            interceptVelocity = 0f
         }
     }
 }

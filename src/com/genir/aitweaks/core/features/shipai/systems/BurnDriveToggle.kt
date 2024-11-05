@@ -11,7 +11,7 @@ import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.addLength
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.resized
-import com.genir.aitweaks.core.utils.extensions.rootModule
+import com.genir.aitweaks.core.utils.extensions.root
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lazywizard.lazylib.ext.minus
@@ -172,7 +172,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), Coordinable {
                 it.owner == ship.owner -> true
 
                 // Equal or larger hulls. Hitting smaller hulls will not cause flameout.
-                it.rootModule.hullSize.ordinal >= ship.hullSize.ordinal -> true
+                it.root.hullSize.ordinal >= ship.hullSize.ordinal -> true
 
                 // Heavy obstacles.
                 it.mass >= ship.mass * ignoreMassFraction -> true

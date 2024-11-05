@@ -10,7 +10,7 @@ import com.genir.aitweaks.core.features.shipai.autofire.Hit
 import com.genir.aitweaks.core.features.shipai.autofire.analyzeAllyHit
 import com.genir.aitweaks.core.features.shipai.autofire.analyzeHit
 import com.genir.aitweaks.core.utils.extensions.get
-import com.genir.aitweaks.core.utils.extensions.rootModule
+import com.genir.aitweaks.core.utils.extensions.root
 import com.genir.aitweaks.core.utils.extensions.totalRange
 import org.lwjgl.util.vector.Vector2f
 
@@ -29,7 +29,7 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: BallisticParams): Hit? {
             it.isFighter -> null
             it.isExpired -> null
             it == weapon.ship -> null
-            weapon.ship.rootModule == it.rootModule -> null
+            weapon.ship.root == it.root -> null
 
             it.owner == weapon.ship.owner -> analyzeAllyHit(weapon, it, params)
             it.isPhased -> null

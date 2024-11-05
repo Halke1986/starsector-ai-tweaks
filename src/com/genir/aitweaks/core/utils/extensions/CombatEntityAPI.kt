@@ -26,6 +26,9 @@ val CombatEntityAPI.isValidTarget: Boolean
         else -> false
     }
 
+val CombatEntityAPI.isFighter: Boolean
+    get() = (this is ShipAPI) && isFighter
+
 val CombatEntityAPI.isSupportFighter: Boolean
     get() = (this is ShipAPI) && wing?.spec?.isSupport == true
 

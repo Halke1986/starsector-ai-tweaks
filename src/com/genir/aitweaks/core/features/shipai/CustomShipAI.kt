@@ -365,7 +365,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
      * method is avoiding situations when a ship tries to attack a module occluded by
      * station vast bulk. */
     private fun selectModuleToAttack(target: ShipAPI): ShipAPI {
-        val modules: List<ShipAPI> = target.rootModule.childModulesCopy.ifEmpty { return target } + target
+        val modules: List<ShipAPI> = target.root.childModulesCopy.ifEmpty { return target } + target
 
         // If ship is maneuvering around one of the modules, select it as attack the target.
         modules.firstOrNull { it == maneuverTarget }?.let { return it }
@@ -398,6 +398,9 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         // Assign lower priority to frigates.
         val evalType = if (!ship.shouldAttackFrigates && target.isFrigateShip) 1f else 0f
 
+        // Avoid attacking ships with no weapons (mostly station armor modules).
+        val noWeapons = if (target.allWeapons.isEmpty()) 2f else 0f
+
         // Finish helpless target.
         val evalVent = if (target.fluxTracker.isOverloadedOrVenting) -2f else 0f
 
@@ -406,7 +409,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
 
         // TODO avoid wrecks
 
-        return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType + evalVent + evalCurrentTarget
+        return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType + noWeapons + evalVent + evalCurrentTarget
     }
 
     /** Range from which ship should attack its target. */
