@@ -35,12 +35,12 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     private fun avoidPhased(): HoldFire? = when {
         (hit.target as? ShipAPI)?.isPhased != true -> fire
 
-        weapon.conserveAmmo -> HoldFire.AVOID_PHASED
+        weapon.conserveAmmo -> AVOID_PHASED
         weapon.isPD -> fire
         weapon.isBeam -> fire
         hit.target.fluxLevel > 0.9f -> fire
 
-        else -> HoldFire.AVOID_PHASED
+        else -> AVOID_PHASED
     }
 
     /** Do not waste PD ammo on ships, and non-PD ammo on fighters and missiles. */
@@ -48,7 +48,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
         weapon.isPD != hit.target.isShip -> fire
         weapon.hasAIHint(ANTI_FTR) && (hit.target as? ShipAPI)?.isFighter == true -> fire
         !weapon.usesAmmo() -> fire
-        !weapon.hasAmmoToSpare -> HoldFire.CONSERVE_AMMO
+        !weapon.hasAmmoToSpare -> CONSERVE_AMMO
         else -> fire
     }
 
@@ -62,8 +62,8 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     /** Ensure projectile will not hit shields. */
     private fun avoidShields(): HoldFire? = when {
         !hit.target.isShip -> fire
-        hit.type == SHIELD && weapon.conserveAmmo -> HoldFire.AVOID_SHIELDS
-        hit.type == SHIELD && shieldUptime(hit.target.shield) > 1.2f -> HoldFire.AVOID_SHIELDS
+        hit.type == SHIELD && weapon.conserveAmmo -> AVOID_SHIELDS
+        hit.type == SHIELD && shieldUptime(hit.target.shield) > 1.2f -> AVOID_SHIELDS
         else -> fire
     }
 
@@ -72,8 +72,8 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
         !hit.target.isShip -> fire
         weapon.size == LARGE && (hit.target as ShipAPI).isFrigateShip -> fire
         weapon.ship.system?.let { it.specAPI.id == "lidararray" && it.isOn } == true -> fire
-        hit.type == HULL -> HoldFire.AVOID_EXPOSED_HULL
-        shieldUptime(hit.target.shield) < min(0.8f, weapon.firingCycle.duration) -> HoldFire.AVOID_EXPOSED_HULL // avoid shield flicker
+        hit.type == HULL -> AVOID_EXPOSED_HULL
+        shieldUptime(hit.target.shield) < min(0.8f, weapon.firingCycle.duration) -> AVOID_EXPOSED_HULL // avoid shield flicker
         else -> fire
     }
 }
@@ -95,7 +95,10 @@ fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire?
         actual.target.owner == weapon.ship.owner -> AVOID_FF
 
         // Beams transiting to a new target are allowed to hit inert targets.
-        expected.type == EVENTUAL -> fire
+        expected.type == ROTATE_BEAM -> fire
+
+        // PD beam fire is allowed to hit inert targets.
+        weapon.isPD && weapon.isPlainBeam && expected.target.isPDTarget -> fire
 
         !actual.target.isAlive -> AVOID_FF_JUNK
 

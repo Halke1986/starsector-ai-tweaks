@@ -15,8 +15,6 @@ import org.lazywizard.lazylib.ext.minus
  * anticipates a miss or is out of range. */
 class RecklessAutofireAI(weapon: WeaponAPI) : AutofireAI(weapon) {
     override fun calculateShouldFire(): HoldFire? {
-        predictedHit = null
-
         val target: CombatEntityAPI = target ?: return HoldFire.NO_TARGET
         if (!target.isValidTarget) return HoldFire.NO_TARGET
 
@@ -28,17 +26,8 @@ class RecklessAutofireAI(weapon: WeaponAPI) : AutofireAI(weapon) {
         val expectedHit = analyzeHit(weapon, target, ballisticParams)
             ?: Hit(target, (target.location - weapon.location).length, if (target.shield?.isOn == true) SHIELD else HULL)
 
-        predictedHit = expectedHit
-
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, ballisticParams)
-        val hit: Hit = when {
-            actualHit == null -> expectedHit
-            actualHit.range > expectedHit.range -> expectedHit
-            else -> actualHit
-        }
-        predictedHit = hit
-
         avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
 
         if ((target.location - weapon.location).length > weapon.totalRange * 1.7f) return HoldFire.OUT_OF_RANGE

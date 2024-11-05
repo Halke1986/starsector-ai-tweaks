@@ -12,7 +12,7 @@ data class Hit(val target: CombatEntityAPI, val range: Float, val type: Type) {
     enum class Type {
         SHIELD,
         HULL,
-        EVENTUAL
+        ROTATE_BEAM // placeholder type for mock hit used by beams rotating to a new target
     }
 }
 

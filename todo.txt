@@ -27,10 +27,13 @@ Also it seems that the custom AI knows where the enemies are even if none are in
 [/quote]
 
 
-
-
 [quote author=Modo44 link=topic=28428.msg453640#msg453640 date=1730629311]
 The fleet cohesion mechanic needs work. Whenever a ship gets separated in a fight, it will keep running straight back
 just like vanilla AI would. You still have to make it move sideways using an order, otherwise it only stops at the edge
 of the map.
 [/quote]
+
+
+
+
+why invictus close to station? maybe admiral AI gave eliminate order?

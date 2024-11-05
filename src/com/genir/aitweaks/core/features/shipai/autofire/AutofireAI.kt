@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.WrapperShipAI
-import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.EVENTUAL
+import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.state.combatState
@@ -29,11 +29,10 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var intercept: Vector2f? = null
     private var aimPoint: Vector2f? = null
     var shouldHoldFire: HoldFire? = NO_TARGET
-    var predictedHit: Hit? = null
     private val interceptTracker = InterceptTracker(weapon)
 
     // Timers.
-    private var selectTargetInterval = Interval(0.25F, 0.50F)
+    private var updateTargetInterval = Interval(0.25F, 0.50F)
     private var shouldFireInterval = Interval(0.1F, 0.2F)
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
@@ -51,7 +50,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         // Advance intervals.
-        selectTargetInterval.advance(dt)
+        updateTargetInterval.advance(dt)
         shouldFireInterval.advance(dt)
 
         trackAttackTimes(dt)
@@ -66,7 +65,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             if (shouldUpdateTargetImmediately(target)) updateTarget(dt)
         }
 
-        if (selectTargetInterval.elapsed() && shouldUpdateTarget(target)) {
+        if (updateTargetInterval.elapsed() && shouldUpdateTarget(target)) {
             updateTarget(dt)
         }
     }
@@ -97,26 +96,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getTargetShip(): ShipAPI? = target as? ShipAPI
     override fun getWeapon(): WeaponAPI = weapon
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
-
-    private fun updateTarget(dt: Float) {
-        selectTargetInterval.reset()
-
-        val previousTarget = target
-        target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target
-
-        // Nothing changed, return early.
-        if (target == previousTarget) return
-
-        // Cleanup
-        attackTime = 0f
-        onTargetTime = 0f
-        interceptTracker.clear()
-
-        trackAttackTimes(dt)
-        updateAim(dt)
-
-        shouldHoldFire = calculateShouldFire()
-    }
 
     /** Make weapons sync fire in staggered firing mode. */
     private fun syncFire(syncState: SyncState): Boolean {
@@ -178,7 +157,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         else onTargetTime += dt
     }
 
-    /** Identify situations where the current target became invalid. */
     private fun shouldUpdateTargetImmediately(target: CombatEntityAPI?): Boolean {
         return when {
             // There is no current target.
@@ -188,9 +166,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             // Target can no longer be tracked. This does not apply to hardpoint weapons tracking ship attack target.
             (target != ship.attackTarget || weapon.slot.isTurret) && !canTrack(weapon, BallisticTarget.entity(target), currentParams()) -> true
-
-            // PD defense became impossible for some reason.
-            target.isPDTarget && weapon.isPD && shouldHoldFire != null -> true
 
             else -> false
         }
@@ -208,10 +183,28 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
     }
 
+    private fun updateTarget(dt: Float) {
+        updateTargetInterval.reset()
+
+        val previousTarget = target
+        target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target
+
+        // Nothing changed, return early.
+        if (target == previousTarget) return
+
+        // Cleanup
+        attackTime = 0f
+        onTargetTime = 0f
+        interceptTracker.clear()
+
+        trackAttackTimes(dt)
+        updateAim(dt)
+
+        shouldHoldFire = calculateShouldFire()
+    }
+
     protected open fun calculateShouldFire(): HoldFire? {
         shouldFireInterval.reset()
-
-        predictedHit = null
 
         val target: CombatEntityAPI = target ?: return NO_TARGET
         if (!target.isValidTarget) return NO_TARGET
@@ -222,12 +215,12 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
         val ballisticParams = currentParams()
-        var expectedHit: Hit? = analyzeHit(weapon, target, ballisticParams)
+        var expectedHit = analyzeHit(weapon, target, ballisticParams)
 
         // Mock an expected hit for beams that should keep firing when in transition between targets.
         if (expectedHit == null && shouldHoldBeam(target)) {
             val range = interceptRange(weapon, BallisticTarget.entity(target), currentParams())
-            expectedHit = Hit(target, range, EVENTUAL)
+            expectedHit = Hit(target, range, ROTATE_BEAM)
         }
 
         if (expectedHit == null) return NO_HIT_EXPECTED
@@ -241,7 +234,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             actualHit.range > expectedHit.range -> expectedHit
             else -> actualHit
         }
-        predictedHit = hit
 
         avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
 
@@ -278,6 +270,9 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         when {
             // PD weapons should fire with no delay.
             weapon.isPD || target!!.isPDTarget -> return null
+
+            // Normal beams are accurate enough to fire with no delay.
+            weapon.isPlainBeam -> return null
 
             // Weapon is on target for long enough already.
             onTargetTime >= min(2f, weapon.firingCycle.duration) -> return null
