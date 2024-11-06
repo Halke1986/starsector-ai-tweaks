@@ -40,11 +40,6 @@ fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: Ballisti
 
 /** Weapon aim location required to hit center point of a moving target. */
 fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f {
-    return interceptRelative(weapon, target, params) + weapon.location
-}
-
-/** Weapon aim location required to hit center point of a moving target. */
-fun interceptRelative(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f {
     val (p, v) = targetCoords(weapon, target, params)
     if (targetAboveWeapon(p, weapon, target)) return target.location
 
@@ -73,8 +68,8 @@ fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticPa
     val target2 = BallisticTarget(target.velocity, weapon.location + points.second, 0f)
 
     return Arc.fromTo(
-        interceptRelative(weapon, target1, params).facing,
-        interceptRelative(weapon, target2, params).facing,
+        intercept(weapon, target1, params).facing,
+        intercept(weapon, target2, params).facing,
     )
 }
 

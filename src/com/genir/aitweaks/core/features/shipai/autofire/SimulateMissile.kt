@@ -41,7 +41,7 @@ class SimulateMissile {
                 facing += error
             }
 
-            return unitVector(facing) * (target.location - weapon.location).length + weapon.location
+            return unitVector(facing) * (target.location - weapon.location).length
         }
 
         fun missilePath(weapon: WeaponAPI): Sequence<Frame> {

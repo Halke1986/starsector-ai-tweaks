@@ -14,6 +14,7 @@ import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
+import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
@@ -24,7 +25,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     // Aiming data.
     protected var target: CombatEntityAPI? = null
-    private var intercept: Vector2f? = null
     private var aimPoint: Vector2f? = null
     var shouldHoldFire: HoldFire? = NO_TARGET
     private val interceptTracker = InterceptTracker(weapon)
@@ -88,7 +88,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     override fun getTarget(): Vector2f? {
-        return aimPoint
+        return aimPoint?.let { it + weapon.location }
     }
 
     override fun getTargetShip(): ShipAPI? = target as? ShipAPI
@@ -217,7 +217,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         // Mock an expected hit for beams that should keep firing when in transition between targets.
         if (expectedHit == null && shouldHoldBeam(target)) {
-            val range = interceptRelative(weapon, BallisticTarget.entity(target), currentParams()).length
+            val range = intercept(weapon, BallisticTarget.entity(target), currentParams()).length
             expectedHit = Hit(target, range, ROTATE_BEAM)
         }
 
@@ -337,13 +337,11 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     private fun updateAim(dt: Float) {
-        intercept = null
         aimPoint = null
 
         val target = this.target ?: return
         val intercept = intercept(weapon, BallisticTarget.entity(target), currentParams())
 
-        this.intercept = intercept
         interceptTracker.advance(dt, intercept)
 
         aimPoint = when {
@@ -365,7 +363,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Therefore, the weapon angle needs to be adjusted for slot angular velocity
         // towards target.
         val r = Rotation(interceptTracker.interceptVelocity * dt)
-        return intercept.rotatedAroundPivot(r, weapon.location)
+        return intercept.rotated(r)
     }
 
     /** predictive aiming for hardpoints */
@@ -379,7 +377,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Vanilla AI lacks precise aiming, so hardpoints need flexibility to compensate.
         // Aim directly at the intercept point when the ship is close to aligned.
         if (customAIFacing == null && wrapperAIFacing == null) {
-            if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(intercept - weapon.location))
+            if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(intercept))
                 return intercept
         }
 
@@ -398,7 +396,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         fun advance(dt: Float, intercept: Vector2f?) {
             if (intercept == null) return
 
-            val angleToIntercept = shortestRotation(weapon.absoluteArcFacing, (intercept - weapon.location).facing)
+            val angleToIntercept = shortestRotation(weapon.absoluteArcFacing, intercept.facing)
             interceptVelocity = shortestRotation(prevAngleToIntercept ?: angleToIntercept, angleToIntercept) / dt
             prevAngleToIntercept = angleToIntercept
         }

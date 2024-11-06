@@ -11,10 +11,7 @@ import com.fs.starfarer.api.loading.WeaponGroupType.LINKED
 import com.fs.starfarer.campaign.CampaignEngine
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
-import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
-import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.features.shipai.autofire.intercept
+import com.genir.aitweaks.core.features.shipai.autofire.*
 import com.genir.aitweaks.core.utils.asteroidGrid
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.mousePosition
@@ -22,6 +19,7 @@ import com.genir.aitweaks.core.utils.shipGrid
 import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.ext.minus
+import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
@@ -120,8 +118,7 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
         // Aim and fire weapons in selected group.
         val selectedWeapons: List<WeaponAPI> = ship.selectedGroupAPI?.weaponsCopy ?: listOf()
         selectedWeapons.filter { it.shouldOverride }.forEach { weapon ->
-            val intercept: Vector2f = aimWeapon(weapon, target)
-            fireWeapon(weapon, intercept)
+            fireWeapon(weapon, aimWeapon(weapon, target))
         }
     }
 
@@ -139,13 +136,13 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
         }
 
         // Override the vanilla-computed weapon facing.
-        setTargetOverride(getAimTracker(weapon), intercept)
+        setTargetOverride(getAimTracker(weapon), intercept + weapon.location)
 
         return intercept
     }
 
     private fun fireWeapon(weapon: WeaponAPI, intercept: Vector2f) {
-        val interceptFacing = (intercept - weapon.location).facing - weapon.ship.facing
+        val interceptFacing = intercept.facing - weapon.ship.facing
         val group: WeaponGroupAPI = weapon.group ?: return
         val shouldFire: Boolean = when {
             !isFiring -> false

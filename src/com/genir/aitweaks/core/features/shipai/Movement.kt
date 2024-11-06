@@ -8,7 +8,7 @@ import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.features.shipai.autofire.interceptRelative
+import com.genir.aitweaks.core.features.shipai.autofire.intercept
 import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
@@ -442,7 +442,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
             val weapons: List<WeaponAPI> = weaponGroup.weapons.filter { it.slot.isHardpoint }.ifEmpty { weaponGroup.weapons }
 
             val solutions: Map<WeaponAPI, Float> = weapons.associateWith { weapon ->
-                interceptRelative(weapon, BallisticTarget.entity(target), defaultBallisticParams).facing
+                intercept(weapon, BallisticTarget.entity(target), defaultBallisticParams).facing
             }
 
             // Aim directly at target if no weapon firing solution is available.
