@@ -1,7 +1,10 @@
+Version 1.10.5
+
 - When a beam weapon switches targets, it may rotate the existing beam to the new target if it's faster than stopping and re-firing once aligned.
 - AI Tweaks hullmods have a manufacturer attribute set and can be filtered from Common hullmods. Suggested by MegaPenguin.
 - Weapons with firing cycle longer than 8 seconds are not eligible for staggered firing mode. This solves the issue with AI Tweaks not firing the Iron Shell Twin-Linked Railgun reported by StrikeEcho
 - Improved High Energy Focus ship system. Now it's more likely to activate when weapons are firing at a shielded target. Suggested by MegaPenguin.
+- Underlying math improvements for even more precision.
 
 Version 1.10.4
 
