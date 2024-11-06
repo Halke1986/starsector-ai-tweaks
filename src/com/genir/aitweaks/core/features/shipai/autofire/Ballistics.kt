@@ -19,7 +19,7 @@ import org.lwjgl.util.vector.Vector2f
 
 private const val cos90 = 0f
 private const val cos180 = -1f
-private const val approachesInfinity = 1e6f
+private const val approachesInfinity = 1e7f
 
 /** Weapon attack parameters: accuracy and delay until attack. */
 data class BallisticParams(val accuracy: Float, val delay: Float)

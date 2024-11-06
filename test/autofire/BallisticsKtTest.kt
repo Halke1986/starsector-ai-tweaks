@@ -43,7 +43,8 @@ class BallisticsKtTest {
             "getProjectileSpeed" to 3.4028236E36f,
             "getShip" to MockShipAPI("getVelocity" to Vector2f(2.2171297f, 65.96275f)),
             "getSlot" to MockWeaponSlotAPI("isHardpoint" to false),
-            "getSpec" to MockWeaponSpecAPI("getTurretFireOffsets" to listOf(Vector2f()))
+            "getSpec" to MockWeaponSpecAPI("getTurretFireOffsets" to listOf(Vector2f())),
+            "isBeam" to false,
         )
 
         val target = MockShipAPI(
@@ -56,7 +57,7 @@ class BallisticsKtTest {
         )
 
         val actual = willHitBounds(weapon, target, BallisticParams(1f, 0f))
-        assertEquals(1340.9565f, actual)
+        assertEquals(1340.9568f, actual)
     }
 
     @Test
@@ -67,7 +68,8 @@ class BallisticsKtTest {
             "getCurrAngle" to 90f,
             "getShip" to MockShipAPI("getVelocity" to Vector2f(0f, 0f)),
             "getSlot" to MockWeaponSlotAPI("isHardpoint" to false),
-            "getSpec" to MockWeaponSpecAPI("getTurretFireOffsets" to listOf(Vector2f()))
+            "getSpec" to MockWeaponSpecAPI("getTurretFireOffsets" to listOf(Vector2f())),
+            "isBeam" to false,
         )
 
         val target = BallisticTarget(
@@ -76,11 +78,11 @@ class BallisticsKtTest {
             radius = 3f,
         )
 
-        val approachesInfinity = 1e6f
+        val approachesInfinity = 1e7f
 
-        assertTrue(intercept(weapon, target, BallisticParams(1f, 0f)).length > approachesInfinity)
-        assertNull(interceptArc(weapon, target, BallisticParams(1f, 0f)))
-        assertNull(closestHitRange(weapon, target, BallisticParams(1f, 0f)))
+        assertTrue(intercept(weapon, target, BallisticParams(1f, 0f)).length >= approachesInfinity)
+        assertEquals(Arc(0f, weapon.currAngle), interceptArc(weapon, target, BallisticParams(1f, 0f)))
+        assertTrue(closestHitRange(weapon, target, BallisticParams(1f, 0f)) >= approachesInfinity)
         assertNull(willHitCircumference(weapon, target, BallisticParams(1f, 0f)))
     }
 
@@ -99,7 +101,8 @@ class BallisticsKtTest {
                 "getFacing" to 90f,
             ),
             "getSlot" to MockWeaponSlotAPI("isHardpoint" to false),
-            "getSpec" to MockWeaponSpecAPI("getTurretFireOffsets" to listOf(Vector2f()))
+            "getSpec" to MockWeaponSpecAPI("getTurretFireOffsets" to listOf(Vector2f())),
+            "isBeam" to false,
         )
 
         val target = BallisticTarget(

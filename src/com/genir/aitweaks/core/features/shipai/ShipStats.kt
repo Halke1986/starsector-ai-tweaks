@@ -2,7 +2,10 @@ package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.utils.extensions.*
+import com.genir.aitweaks.core.utils.extensions.isAngleInArc
+import com.genir.aitweaks.core.utils.extensions.isInFiringSequence
+import com.genir.aitweaks.core.utils.extensions.isPD
+import com.genir.aitweaks.core.utils.extensions.sumOf
 import com.genir.aitweaks.core.utils.shortestRotation
 import kotlin.math.abs
 import kotlin.math.max
