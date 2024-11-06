@@ -83,40 +83,14 @@ class UpdateTarget(
     }
 
     private fun selectEntity(grid: CollisionGridAPI, isTargetAcceptable: (CombatEntityAPI) -> Boolean): CombatEntityAPI? {
-        val targetFilter = fun(target: CombatEntityAPI?): Boolean {
-            val ballisticTarget = target?.let { BallisticTarget.entity(target) } ?: return false
-
-            return when {
-                !target.isValidTarget -> false
-                target.owner == weapon.ship.owner -> false
-
-                !isTargetAcceptable(target) -> false
-                !canTrack(weapon, ballisticTarget, params) -> false
-
-                // Do not track targets occluded by obstacles.
-                else -> {
-                    val intercept = intercept(weapon, ballisticTarget, params)
-                    val toIntercept = intercept - weapon.location
-
-                    getObstacleList().none { obstacle ->
-                        when {
-                            obstacle.origin == target -> false
-                            !obstacle.arc.contains(toIntercept.facing) -> false
-                            obstacle.dist > toIntercept.length -> false
-
-                            else -> true
-                        }
-                    }
-                }
-            }
-        }
+        val approve = { it: CombatEntityAPI? -> it != null && isTargetAcceptable(it) && isTargetAcceptableGeneric(it) }
 
         // Try tracking the current target.
-        if (targetFilter(current)) return current
+        if (approve(current)) return current
 
         // Find the closest enemy entity that can be tracked by the weapon.
         return closestEntityFinder(weapon.location, weapon.totalRange, grid) {
-            if (!targetFilter(it)) return@closestEntityFinder null
+            if (!approve(it)) return@closestEntityFinder null
 
             // Evaluate the target based on angle and distance.
             val target = BallisticTarget.entity(it)
@@ -128,7 +102,34 @@ class UpdateTarget(
             val dist = interceptRange(weapon, target, params)
             val evalDist = (dist / weapon.totalRange)
 
-            evalAngle + evalDist
+            Pair(evalAngle + evalDist, it)
+        } as? CombatEntityAPI
+    }
+
+    private fun isTargetAcceptableGeneric(target: CombatEntityAPI): Boolean {
+        val ballisticTarget = BallisticTarget.entity(target)
+
+        return when {
+            !target.isValidTarget -> false
+            target.owner == weapon.ship.owner -> false
+
+            !canTrack(weapon, ballisticTarget, params) -> false
+
+            // Do not track targets occluded by obstacles.
+            else -> {
+                val intercept = intercept(weapon, ballisticTarget, params)
+                val toIntercept = intercept - weapon.location
+
+                getObstacleList().none { obstacle ->
+                    when {
+                        obstacle.origin == target -> false
+                        !obstacle.arc.contains(toIntercept.facing) -> false
+                        obstacle.dist > toIntercept.length -> false
+
+                        else -> true
+                    }
+                }
+            }
         }
     }
 

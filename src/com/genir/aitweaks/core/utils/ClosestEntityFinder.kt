@@ -15,29 +15,27 @@ import com.genir.aitweaks.core.utils.extensions.totalRange
 import org.lwjgl.util.vector.Vector2f
 
 fun closestEntityFinder(
-    location: Vector2f, radius: Float, grid: CollisionGridAPI, evaluateEntity: (CombatEntityAPI) -> Float?
-): CombatEntityAPI? {
-    val entityIterator = grid.getCheckIterator(location, radius * 2.0f, radius * 2.0f)
-    val score = entityIterator.asSequence().filterIsInstance<CombatEntityAPI>().map { Pair(it, evaluateEntity(it)) }
-    return score.filter { it.second != null }.minWithOrNull(compareBy { it.second })?.first
+    location: Vector2f, radius: Float, grid: CollisionGridAPI, evaluateEntity: (CombatEntityAPI) -> Pair<Float, Any>?
+): Any? {
+    val entities = grid.getCheckIterator(location, radius * 2.0f, radius * 2.0f).asSequence()
+    val score = entities.filterIsInstance<CombatEntityAPI>().map { evaluateEntity(it) }
+    return score.filterNotNull().minWithOrNull(compareBy { it.first })?.second
 }
 
 fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: BallisticParams): Hit? {
-    val entity = closestEntityFinder(weapon.location, weapon.totalRange, shipGrid()) {
+    return closestEntityFinder(weapon.location, weapon.totalRange, shipGrid()) { entity ->
         when {
-            it !is ShipAPI -> null
-            it.isFighter -> null
-            it.isExpired -> null
-            it == weapon.ship -> null
-            weapon.ship.root == it.root -> null
+            entity !is ShipAPI -> null
+            entity.isFighter -> null
+            entity.isExpired -> null
+            entity == weapon.ship -> null
+            weapon.ship.root == entity.root -> null
 
-            it.owner == weapon.ship.owner -> analyzeAllyHit(weapon, it, params)
-            it.isPhased -> null
-            else -> analyzeHit(weapon, it, params)
-        }?.range
-    }
-
-    return entity?.let { analyzeHit(weapon, it, params) }
+            entity.owner == weapon.ship.owner -> analyzeAllyHit(weapon, entity, params)
+            entity.isPhased -> null
+            else -> analyzeHit(weapon, entity, params)
+        }?.let { Pair(it.range, it) }
+    } as? Hit
 }
 
 fun shipGrid(): CollisionGridAPI = Global.getCombatEngine().shipGrid
