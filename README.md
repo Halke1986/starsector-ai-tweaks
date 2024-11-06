@@ -30,8 +30,7 @@ To install AI Tweaks, just unzip the downloaded archive into Starsector mods fol
 
 AI Tweaks can be safely removed from the game without breaking existing saves.
 
-**NOTE:** There are mods incompatible with AI Tweaks, which may make it impossible to remove AI Tweaks from a save game
-without causing corruption.
+**NOTE:** Some mods may make it impossible to remove AI Tweaks from a save game without causing corruption.
 
 The only known incompatible mod is [Starship Legends](https://fractalsoftworks.com/forum/index.php?topic=15321.0).
 
@@ -98,6 +97,17 @@ rotates towards the enemy. All front-facing hardpoints are affected by the chang
 Example of the incorrect behavior, fixed by AI Tweaks. One of the Guardians High Intensity Lasers is aiming at the void:
 
 ![hardpoint miss](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/hardpoint_miss.jpg)
+
+#### Improved beam weapon target switching ####
+
+In Starsector, beam weapons have a finite travel speed, which can cause delays in reaching their targets. When a beam
+weapon switches targets, rotating the existing beam to the new target may be faster and more efficient than stopping and
+re-firing once aligned. This is particularly useful for point-defense (PD) beams, which often need to rapidly engage
+multiple incoming missiles.
+
+The improved AI applies only to normal beams, not burst or ammo based beams.  
+
+![beam weapon ai](https://player.vimeo.com/video/1026930513?h=9c69150945)
 
 #### Modified Heavy, Light and Storm Needler autofire AI ####
 
