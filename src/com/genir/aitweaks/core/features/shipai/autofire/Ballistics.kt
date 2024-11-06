@@ -17,7 +17,6 @@ import org.lwjgl.util.vector.Vector2f
  * collision radius.
  */
 
-private const val cos90 = 0f
 private const val cos180 = -1f
 private const val approachesInfinity = 1e7f
 
@@ -26,20 +25,11 @@ data class BallisticParams(val accuracy: Float, val delay: Float)
 
 val defaultBallisticParams = BallisticParams(1f, 0f)
 
-/** Range at which the projectile can collide with the center point of a moving target.
+/** Closest possible range at which the projectile can collide with the target
+ * circumference, for any weapon facing.
  * When the target's speed approaches the speed of the projectile, the intercept
  * time and location approach infinity. In such cases, the function assumes an
  * arbitrary long time period to approximate the target location. */
-fun interceptRange(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Float {
-    val pv = targetCoords(weapon, target, params)
-    if (targetAboveWeapon(pv.first, weapon, target)) return 0f
-
-    val rangeFromBarrel = solve(pv, weapon.barrelOffset, 1f, 0f, 0f)
-    return weapon.barrelOffset + (rangeFromBarrel ?: approachesInfinity)
-}
-
-/** Closest possible range at which the projectile can collide with the target
- * circumference, for any weapon facing. */
 fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Float {
     val pv = targetCoords(weapon, target, params)
     if (targetAboveWeapon(pv.first, weapon, target)) return 0f
@@ -50,13 +40,16 @@ fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: Ballisti
 
 /** Weapon aim location required to hit center point of a moving target. */
 fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f {
-    val pv = targetCoords(weapon, target, params)
-    if (targetAboveWeapon(pv.first, weapon, target)) return target.location
+    return interceptRelative(weapon, target, params) + weapon.location
+}
 
-    val range = solve(pv, weapon.barrelOffset, 1f, 0f, 0f) ?: approachesInfinity
-    val offset = pv.second * range
+/** Weapon aim location required to hit center point of a moving target. */
+fun interceptRelative(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f {
+    val (p, v) = targetCoords(weapon, target, params)
+    if (targetAboveWeapon(p, weapon, target)) return target.location
 
-    return target.location + (target.velocity - weapon.ship.velocity) * params.delay + offset
+    val range = solve(Pair(p, v), weapon.barrelOffset, 1f, 0f, 0f) ?: approachesInfinity
+    return p + v * range
 }
 
 /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
@@ -79,12 +72,9 @@ fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticPa
     val target1 = BallisticTarget(target.velocity, weapon.location + points.first, 0f)
     val target2 = BallisticTarget(target.velocity, weapon.location + points.second, 0f)
 
-    val intercept1 = intercept(weapon, target1, params)
-    val intercept2 = intercept(weapon, target2, params)
-
     return Arc.fromTo(
-        (intercept1 - weapon.location).facing,
-        (intercept2 - weapon.location).facing,
+        interceptRelative(weapon, target1, params).facing,
+        interceptRelative(weapon, target2, params).facing,
     )
 }
 

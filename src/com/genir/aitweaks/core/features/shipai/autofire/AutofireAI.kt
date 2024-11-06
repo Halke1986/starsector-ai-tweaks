@@ -217,7 +217,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         // Mock an expected hit for beams that should keep firing when in transition between targets.
         if (expectedHit == null && shouldHoldBeam(target)) {
-            val range = interceptRange(weapon, BallisticTarget.entity(target), currentParams())
+            val range = interceptRelative(weapon, BallisticTarget.entity(target), currentParams()).length
             expectedHit = Hit(target, range, ROTATE_BEAM)
         }
 

@@ -99,7 +99,7 @@ class UpdateTarget(
             val evalAngle = abs(angle) * angleWeight
 
             // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
-            val dist = interceptRange(weapon, target, params)
+            val dist = interceptRelative(weapon, target, params).length
             val evalDist = (dist / weapon.totalRange)
 
             Pair(evalAngle + evalDist, it)
@@ -117,14 +117,13 @@ class UpdateTarget(
 
             // Do not track targets occluded by obstacles.
             else -> {
-                val intercept = intercept(weapon, ballisticTarget, params)
-                val toIntercept = intercept - weapon.location
+                val intercept = interceptRelative(weapon, ballisticTarget, params)
 
                 getObstacleList().none { obstacle ->
                     when {
                         obstacle.origin == target -> false
-                        !obstacle.arc.contains(toIntercept.facing) -> false
-                        obstacle.dist > toIntercept.length -> false
+                        !obstacle.arc.contains(intercept.facing) -> false
+                        obstacle.dist > intercept.length -> false
 
                         else -> true
                     }
@@ -151,7 +150,7 @@ class UpdateTarget(
 
         return obstacles.map { obstacle ->
             val target = BallisticTarget(obstacle.velocity, obstacle.location, obstacle.boundsRadius * 0.8f)
-            val dist = interceptRange(weapon, target, params)
+            val dist = interceptRelative(weapon, target, params).length
             val arc = interceptArc(weapon, target, params)
 
             Obstacle(arc, dist, obstacle)
