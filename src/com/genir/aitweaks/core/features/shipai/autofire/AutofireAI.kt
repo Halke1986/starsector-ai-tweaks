@@ -3,14 +3,12 @@ package com.genir.aitweaks.core.features.shipai.autofire
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
-import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
@@ -178,8 +176,8 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             // Do not interrupt firing sequence.
             weapon.isInFiringSequence -> false
 
-            // Ensure the weapon is tracking a target specific to its type.
-            else -> !tracksPrimaryTarget()
+            // Outside above special circumstances, refresh target periodically.
+            else -> true
         }
     }
 
@@ -390,28 +388,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val v = target.timeAdjustedVelocity.rotated(r)
         val p = target.location.rotatedAroundPivot(r, weapon.ship.location)
         return intercept(weapon, BallisticTarget(v, p, target.collisionRadius), currentParams())
-    }
-
-    private fun tracksPrimaryTarget(): Boolean {
-        val target: CombatEntityAPI = this.target ?: return false
-        val attackTarget: ShipAPI? = weapon.ship.attackTarget
-
-        return when {
-            // Title screen
-            Global.getCurrentState() == GameState.TITLE && combatState.titleScreenFireIsOn -> target is CombatAsteroidAPI
-
-            // PD
-            weapon.isPD && weapon.hasAIHint(ANTI_FTR) -> target.isFighter
-            weapon.isPD -> target is MissileAPI
-
-            // Main weapons try to track ship target at all times.
-            attackTarget != null && canTrack(weapon, BallisticTarget.entity(attackTarget), currentParams()) -> target == attackTarget
-
-            // Non-PD anti fighter weapons can track ships and fighters with equal priority.
-            weapon.hasAIHint(ANTI_FTR) -> target.isFighter || target.isShip
-
-            else -> target.isShip
-        }
     }
 
     /** Tracks intercept angular velocity and angular distance in weapon slot frame of reference. */

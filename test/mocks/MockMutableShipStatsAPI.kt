@@ -42,6 +42,7 @@ class MockMutableShipStatsAPI(vararg values: Pair<String, Any?>) : MutableShipSt
 
     override fun getCRLossPerSecondPercent(): StatBonus = getMockValue(object {})!!
 
+    @Deprecated("Deprecated in Java")
     override fun getFluxDamageTakenMult(): MutableStat = getMockValue(object {})!!
 
     override fun getEmpDamageTakenMult(): MutableStat = getMockValue(object {})!!
@@ -160,8 +161,10 @@ class MockMutableShipStatsAPI(vararg values: Pair<String, Any?>) : MutableShipSt
 
     override fun getMaxCombatHullRepairFraction(): MutableStat = getMockValue(object {})!!
 
+    @Deprecated("Deprecated in Java")
     override fun getHullRepairRatePercentPerSecond(): MutableStat = getMockValue(object {})!!
 
+    @Deprecated("Deprecated in Java")
     override fun getMaxHullRepairFraction(): MutableStat = getMockValue(object {})!!
 
     override fun getEffectiveArmorBonus(): StatBonus = getMockValue(object {})!!
