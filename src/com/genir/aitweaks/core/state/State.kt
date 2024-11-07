@@ -4,8 +4,8 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.core.features.CustomAIManager
 import com.genir.aitweaks.core.features.FleetCohesion
-import com.genir.aitweaks.core.features.shipai.CustomAIManager
 import lunalib.lunaSettings.LunaSettings
 
 // Global combat state.
@@ -18,6 +18,7 @@ class State : BaseEveryFrameCombatPlugin() {
     val fleetCohesion: Array<FleetCohesion> = arrayOf(FleetCohesion(0), FleetCohesion(1))
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
 
+    // Config.
     val devMode: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
     val highlightCustomAI: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_highlight_custom_ai") ?: false
     val titleScreenFireIsOn: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_title_screen_fire") ?: false
@@ -29,7 +30,7 @@ class State : BaseEveryFrameCombatPlugin() {
         com.genir.aitweaks.core.features.AimAssist(),
         com.genir.aitweaks.core.features.AutoOmniShields(),
         com.genir.aitweaks.core.features.AutomatedShipAIManager(),
-        com.genir.aitweaks.core.features.OverrideAutofire(),
+        com.genir.aitweaks.core.features.OverrideAutofireManager(),
         com.genir.aitweaks.core.features.shipai.AttackCoord(),
     )
 

@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features.shipai
+package com.genir.aitweaks.core.features
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
@@ -7,6 +7,8 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
+import com.genir.aitweaks.core.features.shipai.CustomShipAI
+import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.state.combatState
 import com.genir.aitweaks.core.utils.extensions.assignment
 import com.genir.aitweaks.core.utils.extensions.isFrigateShip
