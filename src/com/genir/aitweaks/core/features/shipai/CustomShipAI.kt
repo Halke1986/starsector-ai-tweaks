@@ -10,7 +10,7 @@ import com.genir.aitweaks.core.debug.drawCircle
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.features.shipai.vanilla.Vanilla
-import com.genir.aitweaks.core.state.combatState
+import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
@@ -110,7 +110,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     override fun getConfig(): ShipAIConfig = ShipAIConfig()
 
     private fun debug() {
-        if (combatState.highlightCustomAI) drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
+        if (state.highlightCustomAI) drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
 //        debugPrint.clear()
 
 //        drawTurnLines(ship)
@@ -161,7 +161,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         if (maneuverTarget?.isValidTarget == true && systemAI?.holdTargets() == true) return
 
         // Try cohesion AI first.
-        val cohesionAI = combatState.fleetCohesion[ship.owner]
+        val cohesionAI = state.fleetCohesion[ship.owner]
         cohesionAI.findClosestTarget(ship)?.let {
             maneuverTarget = it
             return

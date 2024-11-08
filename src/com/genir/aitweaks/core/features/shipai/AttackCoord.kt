@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.features.shipai.Preset.Companion.collisionBuffer
-import com.genir.aitweaks.core.state.combatState
+import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.extensions.customShipAI
 import com.genir.aitweaks.core.utils.extensions.facing
@@ -29,7 +29,7 @@ interface Coordinable {
  */
 class AttackCoord : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        if (!combatState.customAIManager.customAIEnabled) return
+        if (!state.customAIManager.customAIEnabled) return
 
         val ships = Global.getCombatEngine().ships.asSequence()
         val movements = ships.mapNotNull { it.customShipAI?.movement }

@@ -4,7 +4,7 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
-import com.genir.aitweaks.core.state.combatState
+import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
@@ -20,7 +20,7 @@ class UpdateTarget(
     private val params: BallisticParams,
 ) {
     val target: CombatEntityAPI? = when {
-        Global.getCurrentState() == GameState.TITLE && combatState.titleScreenFireIsOn -> selectAsteroid()
+        Global.getCurrentState() == GameState.TITLE && state.titleScreenFireIsOn -> selectAsteroid()
 
         // Obligatory PD
         weapon.hasAIHint(PD_ONLY) && weapon.hasAIHint(ANTI_FTR) -> selectFighter() ?: selectMissile()

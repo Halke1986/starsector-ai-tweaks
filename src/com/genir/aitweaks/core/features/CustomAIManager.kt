@@ -9,7 +9,7 @@ import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.WrapperShipAI
-import com.genir.aitweaks.core.state.combatState
+import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.extensions.assignment
 import com.genir.aitweaks.core.utils.extensions.isFrigateShip
 import lunalib.lunaSettings.LunaSettings.getBoolean
@@ -49,7 +49,7 @@ class CustomAIManager {
 
             // Player
             ship.isAlly -> false
-            ship.owner == 0 && combatState.devMode -> true
+            ship.owner == 0 && state.devMode -> true
 
             else -> false
         }

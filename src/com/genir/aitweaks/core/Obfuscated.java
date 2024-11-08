@@ -22,6 +22,10 @@ public class Obfuscated {
         CombatEntity maneuver_getTarget();
     }
 
+    public interface Weapon {
+        AimTracker getAimTracker();
+    }
+
     public static class ThreatEvalAI {
     }
 
@@ -48,10 +52,6 @@ public class Obfuscated {
 
         public void cancelCurrentManeuver() {
         }
-    }
-
-    public interface Weapon {
-        AimTracker getAimTracker();
     }
 
     public static class AimTracker {

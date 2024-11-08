@@ -9,7 +9,7 @@ import com.genir.aitweaks.core.features.FleetCohesion
 import lunalib.lunaSettings.LunaSettings
 
 // Global combat state.
-var combatState: State = State()
+var state: State = State()
 
 class State : BaseEveryFrameCombatPlugin() {
     val customAIManager: CustomAIManager = CustomAIManager()
@@ -35,7 +35,7 @@ class State : BaseEveryFrameCombatPlugin() {
     )
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        combatState = this
+        state = this
         frameCount++
 
         // Advance plugins only in combat.
