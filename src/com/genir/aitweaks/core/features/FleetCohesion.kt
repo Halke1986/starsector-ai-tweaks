@@ -10,16 +10,15 @@ import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.shouldAttackFrigates
 import com.genir.aitweaks.core.features.shipai.slotRange
+import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.closestEntity
 import com.genir.aitweaks.core.utils.extensions.*
-import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 
 class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
-    private val enabled: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai") == true
     private val enemy: Int = side xor 1
 
     private val cohesionAssignments: MutableSet<AssignmentKey> = mutableSetOf()
@@ -38,7 +37,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         val engine = Global.getCombatEngine()
         when {
-            !enabled -> return
+            !state.config.enableFleetCohesion -> return
 
             engine.isSimulation -> return
 

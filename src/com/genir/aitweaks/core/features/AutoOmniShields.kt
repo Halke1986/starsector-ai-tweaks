@@ -8,7 +8,7 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.Misc
 import com.fs.starfarer.campaign.CampaignEngine
 import com.fs.starfarer.combat.CombatState.AUTO_OMNI_SHIELDS
-import lunalib.lunaSettings.LunaSettings
+import com.genir.aitweaks.core.state.state
 import org.lazywizard.lazylib.opengl.DrawUtils.drawArc
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
@@ -16,22 +16,21 @@ import java.util.*
 import kotlin.math.max
 
 class AutoOmniShields : BaseEveryFrameCombatPlugin() {
+    private var initialized = false
     private var doNotUseShields = false
     private var prevPlayerShip: ShipAPI? = null
-    private var keybind: Int? = null
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
         val engine = Global.getCombatEngine() ?: return
 
         // Finish initialization when SS classes are ready.
-        if (keybind == null) {
-            keybind = LunaSettings.getInt("aitweaks", "aitweaks_omni_shield_keybind") ?: return
-
+        if (!initialized) {
             val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
             AUTO_OMNI_SHIELDS = memory.getBoolean("\$aitweaks_AUTO_OMNI_SHIELDS")
+            initialized = true
         }
 
-        // Initialize omni shield plugin.
+        // Initialize omni shield render plugin.
         val id = "aitweaks_omni_shield"
         if (!engine.customData.containsKey(id)) {
             engine.addLayeredRenderingPlugin(RendererAutoShieldIndicator())
@@ -56,7 +55,7 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
                 it.isRMBDownEvent && AUTO_OMNI_SHIELDS -> doNotUseShields = shield.isOn
 
                 // Toggle auto omni shields and persist the setting to memory.
-                it.isKeyDownEvent && it.eventValue == keybind -> {
+                it.isKeyDownEvent && it.eventValue == state.config.omniShieldKeybind -> {
                     AUTO_OMNI_SHIELDS = !AUTO_OMNI_SHIELDS
                     val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
                     memory.set("\$aitweaks_AUTO_OMNI_SHIELDS", AUTO_OMNI_SHIELDS)

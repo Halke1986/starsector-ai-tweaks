@@ -6,17 +6,17 @@ import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.features.shipai.autofire.SyncState
+import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.extensions.customAI
 import com.genir.aitweaks.core.utils.extensions.isMissile
 import com.genir.aitweaks.core.utils.extensions.isPD
-import lunalib.lunaSettings.LunaSettings
 import org.lwjgl.util.vector.Vector2f
 import java.lang.reflect.Field
 
 class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
-    private val enabledStaggeredFire: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_staggered_fire") == true
+
     private val updateInterval: Interval = defaultAIInterval()
     private val weaponSyncMap: MutableMap<String, SyncState> = mutableMapOf()
 
@@ -52,7 +52,7 @@ class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
 
     /** Ensure all weapons that are to fire in staggered mode share an up-to date state. */
     private fun updateWeaponSync() {
-        if (!enabledStaggeredFire) return
+        if (!state.config.enabledStaggeredFire) return
 
         val weapons: Sequence<WeaponAPI> = ship.weaponGroupsCopy.flatMap { it.weaponsCopy }.asSequence()
         val syncWeapons = weapons.filter {

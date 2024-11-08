@@ -7,7 +7,6 @@ import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.extensions.isAutomated
-import lunalib.lunaSettings.LunaSettings
 
 /** Overriding automated ships AI and captain personality.
  * The override is done in BaseEveryFrameCombatPlugin because
@@ -17,7 +16,7 @@ class AutomatedShipAIManager : BaseEveryFrameCombatPlugin() {
     private val expectedPersonality: String
 
     init {
-        val setting = LunaSettings.getString("aitweaks", "aitweaks_ai_core_personality")
+        val setting = state.config.aiPersonality
         val allowed = listOf("timid", "cautious", "steady", "aggressive", "reckless")
         val default = "aggressive"
 

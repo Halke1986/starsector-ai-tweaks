@@ -15,11 +15,11 @@ import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.intercept
+import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.asteroidGrid
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.mousePosition
 import com.genir.aitweaks.core.utils.shipGrid
-import lunalib.lunaSettings.LunaSettings
 import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -28,10 +28,11 @@ import org.lwjgl.util.vector.Vector2f
 class AimAssist : BaseEveryFrameCombatPlugin() {
     var target: CombatEntityAPI? = null
 
+    private var initialized = false
     private var debugShipAI: CustomShipAI? = null
     private var isFiring: Boolean = false
     private var mouse: Vector2f = Vector2f()
-    private var keybind: Int? = null
+
     private var enableAimAssist = false
 
     private companion object {
@@ -40,11 +41,10 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         // Finish initialization when SS classes are ready.
-        if (keybind == null) {
-            keybind = LunaSettings.getInt("aitweaks", "aitweaks_aim_bot_keybind") ?: return
-
+        if (!initialized) {
             val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
             enableAimAssist = memory.getBoolean("\$aitweaks_enableAimBot")
+            initialized = true
         }
 
         val ship: ShipAPI = Global.getCombatEngine().playerShip ?: return
@@ -62,7 +62,7 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
                 it.isLMBUpEvent -> isFiring = false
 
                 // Toggle the aim bot and persist the setting to memory.
-                it.isKeyDownEvent && it.eventValue == keybind -> {
+                it.isKeyDownEvent && it.eventValue == state.config.aimAssistKeybind -> {
                     enableAimAssist = !enableAimAssist
                     val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
                     memory.set("\$aitweaks_enableAimBot", enableAimAssist)

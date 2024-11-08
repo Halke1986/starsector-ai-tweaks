@@ -6,22 +6,17 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.features.CustomAIManager
 import com.genir.aitweaks.core.features.FleetCohesion
-import lunalib.lunaSettings.LunaSettings
 
 // Global combat state.
 var state: State = State()
 
 class State : BaseEveryFrameCombatPlugin() {
+    val config: Config = Config()
     val customAIManager: CustomAIManager = CustomAIManager()
     var frameCount: Int = 0
 
     val fleetCohesion: Array<FleetCohesion> = arrayOf(FleetCohesion(0), FleetCohesion(1))
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
-
-    // Config.
-    val devMode: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") ?: false
-    val highlightCustomAI: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_highlight_custom_ai") ?: false
-    val titleScreenFireIsOn: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_title_screen_fire") ?: false
 
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
         fleetCohesion[0],

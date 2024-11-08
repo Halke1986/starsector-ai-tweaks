@@ -110,7 +110,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     override fun getConfig(): ShipAIConfig = ShipAIConfig()
 
     private fun debug() {
-        if (state.highlightCustomAI) drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
+        if (state.config.highlightCustomAI) drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
 //        debugPrint.clear()
 
 //        drawTurnLines(ship)

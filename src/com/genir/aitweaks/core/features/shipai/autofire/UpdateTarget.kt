@@ -20,7 +20,7 @@ class UpdateTarget(
     private val params: BallisticParams,
 ) {
     val target: CombatEntityAPI? = when {
-        Global.getCurrentState() == GameState.TITLE && state.titleScreenFireIsOn -> selectAsteroid()
+        Global.getCurrentState() == GameState.TITLE && state.config.enableTitleScreenFire -> selectAsteroid()
 
         // Obligatory PD
         weapon.hasAIHint(PD_ONLY) && weapon.hasAIHint(ANTI_FTR) -> selectFighter() ?: selectMissile()

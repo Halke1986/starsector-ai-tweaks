@@ -12,14 +12,11 @@ import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.extensions.assignment
 import com.genir.aitweaks.core.utils.extensions.isFrigateShip
-import lunalib.lunaSettings.LunaSettings.getBoolean
 
 class CustomAIManager {
-    val customAIEnabled: Boolean = getBoolean("aitweaks", "aitweaks_enable_custom_ship_ai") ?: false
-
     fun getCustomAIForShip(ship: ShipAPI): ShipAIPlugin? {
         return when {
-            !customAIEnabled -> null
+            !state.config.enableCustomAI -> null
             Global.getCurrentState() != GameState.COMBAT -> null
 
             shouldHaveCustomAI(ship) -> CustomShipAI(ship)
@@ -49,7 +46,7 @@ class CustomAIManager {
 
             // Player
             ship.isAlly -> false
-            ship.owner == 0 && state.devMode -> true
+            ship.owner == 0 && state.config.devMode -> true
 
             else -> false
         }

@@ -70,7 +70,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
     }
 
     private fun debug() {
-        if (state.highlightCustomAI) drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
+        if (state.config.highlightCustomAI) drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
     }
 
     private fun clearTurnCommands(ship: Any) {
