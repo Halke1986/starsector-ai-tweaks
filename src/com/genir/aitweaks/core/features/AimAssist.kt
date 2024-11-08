@@ -9,9 +9,12 @@ import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.loading.WeaponGroupType.ALTERNATING
 import com.fs.starfarer.api.loading.WeaponGroupType.LINKED
 import com.fs.starfarer.campaign.CampaignEngine
-import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
-import com.genir.aitweaks.core.features.shipai.autofire.*
+import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
+import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
+import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.intercept
 import com.genir.aitweaks.core.utils.asteroidGrid
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.mousePosition
@@ -21,9 +24,6 @@ import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.lang.invoke.MethodHandle
-import java.lang.invoke.MethodHandles
-import java.lang.reflect.Method
 
 class AimAssist : BaseEveryFrameCombatPlugin() {
     var target: CombatEntityAPI? = null
@@ -34,26 +34,8 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
     private var keybind: Int? = null
     private var enableAimAssist = false
 
-    private val getAimTracker: MethodHandle
-    private val setTargetOverride: MethodHandle
-
     private companion object {
         val statusKey = Object()
-    }
-
-    init {
-        // Get Weapon interface class from return type of Ship.getSelectedWeapon method.
-        val getSelectedWeapon: Method = Ship::class.java.methods.first { it.name == "getSelectedWeapon" }
-        val weaponClass: Class<*> = getSelectedWeapon.returnType
-
-        // Get AimTracker class from return type of Weapon.getAimTracker method.
-        val getAimTracker: Method = weaponClass.methods.first { it.name == "getAimTracker" }
-        val aimTrackerClass: Class<*> = getAimTracker.returnType
-
-        val setTargetOverride: Method = aimTrackerClass.methods.first { it.returnType == Void.TYPE && it.hasParameters(Vector2f::class.java) }
-
-        this.getAimTracker = MethodHandles.lookup().unreflect(getAimTracker)
-        this.setTargetOverride = MethodHandles.lookup().unreflect(setTargetOverride)
     }
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
@@ -136,7 +118,8 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
         }
 
         // Override the vanilla-computed weapon facing.
-        setTargetOverride(getAimTracker(weapon), intercept + weapon.location)
+        val aimTracker: Obfuscated.AimTracker = (weapon as Obfuscated.Weapon).aimTracker
+        aimTracker.aimTracker_setTargetOverride(intercept + weapon.location)
 
         return intercept
     }

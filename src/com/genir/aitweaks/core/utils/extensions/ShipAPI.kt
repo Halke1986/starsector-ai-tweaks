@@ -61,7 +61,7 @@ val ShipAPI.attackTarget: ShipAPI?
             val ai = basicShipAI!! as Obfuscated.BasicShipAI
             val maneuver: Obfuscated.Maneuver? = ai.currentManeuver
 
-            maneuver?.target_Maneuver as? ShipAPI
+            maneuver?.maneuver_getTarget() as? ShipAPI
         }
 
         // Fall back to using vanilla maneuver target flag.

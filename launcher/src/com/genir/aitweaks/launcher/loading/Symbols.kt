@@ -3,6 +3,7 @@ package com.genir.aitweaks.launcher.loading
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
+import org.lwjgl.util.vector.Vector2f
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
@@ -15,8 +16,9 @@ import java.lang.reflect.ParameterizedType
 class Symbols {
     private val ship: Class<*> = Ship::class.java
     private val basicShipAI: Class<*> = BasicShipAI::class.java
-    private val flockingAI: Class<*> = basicShipAI.getMethod("getFlockingAI").returnType
 
+    // Classes and interfaces.
+    val flockingAI: Class<*> = basicShipAI.getMethod("getFlockingAI").returnType
     val approachManeuver: Class<*> = findApproachManeuver()
     val autofireManager: Class<*> = AttackAIModule::class.java.declaredFields.first { it.type.isInterface && it.type.methods.size == 1 }.type
     val maneuver: Class<*> = basicShipAI.getMethod("getCurrentManeuver").returnType
@@ -24,10 +26,14 @@ class Symbols {
     val shipCommand: Class<*> = ship.getMethod("getBlockedCommands").genericReturnTypeArgument(0)
     val threatEvalAI: Class<*> = basicShipAI.getMethod("getThreatEvaluator").returnType
     val combatEntity: Class<*> = ship.getMethod("getEntity").returnType
+    val weapon: Class<*> = ship.getMethod("getSelectedWeapon").returnType
+    val aimTracker: Class<*> = weapon.getMethod("getAimTracker").returnType
 
-    val advance_AutofireManager: Method = autofireManager.methods.first { it.name != "<init>" }
-    val command_ShipCommandWrapper: Field = shipCommandWrapper.fields.first { it.type.isEnum }
-    val getTarget_Maneuver: Method = maneuver.methods.first { it.returnType == combatEntity }
+    // Methods and fields.
+    val autofireManager_advance: Method = autofireManager.methods.first { it.name != "<init>" }
+    val shipCommandWrapper_getCommand: Field = shipCommandWrapper.fields.first { it.type.isEnum }
+    val maneuver_getTarget: Method = maneuver.methods.first { it.returnType == combatEntity }
+    val aimTracker_setTargetOverride: Method = aimTracker.methods.first { it.returnType == Void.TYPE && it.hasParameters(Vector2f::class.java) }
 
     companion object {
         val Class<*>.classPath: String
@@ -36,6 +42,10 @@ class Symbols {
 
     private fun Method.genericReturnTypeArgument(idx: Int): Class<*> {
         return (genericReturnType as ParameterizedType).actualTypeArguments[idx] as Class<*>
+    }
+
+    private fun Method.hasParameters(vararg params: Class<*>): Boolean {
+        return parameterTypes.contentEquals(arrayOf(*params))
     }
 
     private fun findApproachManeuver(): Class<*> {

@@ -10,6 +10,7 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
     private val symbols = Symbols()
     private val obfuscator = Transformer(listOf(
         // Classes.
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$AimTracker", symbols.aimTracker.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ApproachManeuver", symbols.approachManeuver.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$AutofireManager", symbols.autofireManager.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$BasicShipAI", "com/fs/starfarer/combat/ai/BasicShipAI"),
@@ -19,11 +20,13 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ShipCommand", symbols.shipCommand.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Ship", "com/fs/starfarer/combat/entities/Ship"),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ThreatEvalAI", symbols.threatEvalAI.classPath),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Weapon", symbols.weapon.classPath),
 
         // Fields and methods.
-        Transformer.newTransform("advance_AutofireManager", symbols.advance_AutofireManager.name),
-        Transformer.newTransform("command_ShipCommandWrapper", symbols.command_ShipCommandWrapper.name),
-        Transformer.newTransform("getTarget_Maneuver", symbols.getTarget_Maneuver.name),
+        Transformer.newTransform("autofireManager_advance", symbols.autofireManager_advance.name),
+        Transformer.newTransform("shipCommandWrapper_getCommand", symbols.shipCommandWrapper_getCommand.name),
+        Transformer.newTransform("maneuver_getTarget", symbols.maneuver_getTarget.name),
+        Transformer.newTransform("aimTracker_setTargetOverride", symbols.aimTracker_setTargetOverride.name),
     ))
 
     override fun loadClass(name: String): Class<*> {

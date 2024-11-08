@@ -9,18 +9,17 @@ import java.util.List;
  */
 public class Obfuscated {
     public enum ShipCommand {
-        TURN_LEFT, TURN_RIGHT,
     }
 
     public interface AutofireManager {
-        void advance_AutofireManager(float dt, ThreatEvalAI threatEvalAI, Vector2f missileDangerDir);
+        void autofireManager_advance(float dt, ThreatEvalAI threatEvalAI, Vector2f missileDangerDir);
     }
 
     public interface CombatEntity {
     }
 
     public interface Maneuver {
-        CombatEntity getTarget_Maneuver();
+        CombatEntity maneuver_getTarget();
     }
 
     public static class ThreatEvalAI {
@@ -30,7 +29,7 @@ public class Obfuscated {
     }
 
     public static class ShipCommandWrapper {
-        public ShipCommand command_ShipCommandWrapper;
+        public ShipCommand shipCommandWrapper_getCommand;
     }
 
     public static class Ship {
@@ -48,6 +47,15 @@ public class Obfuscated {
         }
 
         public void cancelCurrentManeuver() {
+        }
+    }
+
+    public interface Weapon {
+        AimTracker getAimTracker();
+    }
+
+    public static class AimTracker {
+        public void aimTracker_setTargetOverride(Vector2f aim) {
         }
     }
 }

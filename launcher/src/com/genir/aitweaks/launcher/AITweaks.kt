@@ -32,7 +32,7 @@ class AITweaks : BaseModPlugin() {
     }
 
     override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin> {
-        val aiManagerClass = coreLoader.loadClass("com.genir.aitweaks.core.features.shipai.CustomAIManager")
+        val aiManagerClass = coreLoader.loadClass("com.genir.aitweaks.core.features.CustomAIManager")
         val aiManager = aiManagerClass.newInstance()
 
         val getCustomAIForShipType = MethodType.methodType(ShipAIPlugin::class.java, ShipAPI::class.java)

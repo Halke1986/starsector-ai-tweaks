@@ -10,16 +10,20 @@ class SymbolsTest {
     fun symbols() {
         val s = Symbols()
 
+        assertEquals("com/fs/starfarer/combat/ai/movement/oOOO", s.flockingAI.classPath)
         assertEquals("com/fs/starfarer/combat/ai/movement/maneuvers/B", s.approachManeuver.classPath)
         assertEquals("com/fs/starfarer/combat/ai/attack/D", s.autofireManager.classPath)
-        assertEquals("com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", s.threatEvalAI.classPath)
+        assertEquals("com/fs/starfarer/combat/ai/movement/maneuvers/oO0O", s.maneuver.classPath)
         assertEquals("com/fs/starfarer/combat/entities/Ship\$Oo", s.shipCommandWrapper.classPath)
         assertEquals("com/fs/starfarer/combat/entities/Ship\$oo", s.shipCommand.classPath)
-        assertEquals("com/fs/starfarer/combat/ai/movement/maneuvers/oO0O", s.maneuver.classPath)
+        assertEquals("com/fs/starfarer/combat/ai/O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", s.threatEvalAI.classPath)
         assertEquals("com/fs/starfarer/combat/o0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO/B", s.combatEntity.classPath)
+        assertEquals("com/fs/starfarer/combat/systems/thissuper", s.weapon.classPath)
+        assertEquals("com/fs/starfarer/combat/entities/ship/trackers/super", s.aimTracker.classPath)
 
-        assertEquals("o00000", s.advance_AutofireManager.name)
-        assertEquals("new", s.command_ShipCommandWrapper.name)
-        assertEquals("o00000", s.getTarget_Maneuver.name)
+        assertEquals("o00000", s.autofireManager_advance.name)
+        assertEquals("new", s.shipCommandWrapper_getCommand.name)
+        assertEquals("o00000", s.maneuver_getTarget.name)
+        assertEquals("new", s.aimTracker_setTargetOverride.name)
     }
 }

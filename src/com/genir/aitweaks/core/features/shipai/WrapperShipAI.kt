@@ -51,7 +51,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         if (currentManeuver !is StrafeTargetManeuverV2 && currentManeuver !is Obfuscated.ApproachManeuver) return
 
         // Find ship target and force a refresh if it's invalid.
-        val target: ShipAPI = currentManeuver.target_Maneuver as? ShipAPI ?: return
+        val target: ShipAPI = currentManeuver.maneuver_getTarget() as? ShipAPI ?: return
         if (!target.isValidTarget) {
             basicShipAI.cancelCurrentManeuver()
             return
@@ -76,7 +76,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
     private fun clearTurnCommands(ship: Any) {
         val commandWrappers: MutableIterator<Obfuscated.ShipCommandWrapper> = (ship as Obfuscated.Ship).commands.iterator()
         while (commandWrappers.hasNext()) {
-            val command: Obfuscated.ShipCommand = commandWrappers.next().command_ShipCommandWrapper
+            val command: Obfuscated.ShipCommand = commandWrappers.next().shipCommandWrapper_getCommand
             if (command.ordinal == 0 || command.ordinal == 1) commandWrappers.remove()
         }
     }
