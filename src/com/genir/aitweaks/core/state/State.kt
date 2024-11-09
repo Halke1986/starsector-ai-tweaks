@@ -4,15 +4,18 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.features.CustomAIManager
 import com.genir.aitweaks.core.features.FleetCohesion
 
 // Global combat state.
 var state: State = State()
 
 class State : BaseEveryFrameCombatPlugin() {
+    init {
+        // Register state to be used by plugins init method.
+        state = this
+    }
+
     val config: Config = Config()
-    val customAIManager: CustomAIManager = CustomAIManager()
     var frameCount: Int = 0
 
     val fleetCohesion: Array<FleetCohesion> = arrayOf(FleetCohesion(0), FleetCohesion(1))
@@ -30,7 +33,12 @@ class State : BaseEveryFrameCombatPlugin() {
     )
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
+        // Make sure the active combat state instance is accessible via the
+        // global variable. This is required because SS initializes multiple
+        // instances of EveryFrameCombatPlugin per combat but uses only one
+        // of them, not necessarily the latest.
         state = this
+
         frameCount++
 
         // Advance plugins only in combat.

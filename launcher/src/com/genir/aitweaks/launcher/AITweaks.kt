@@ -35,10 +35,10 @@ class AITweaks : BaseModPlugin() {
         val aiManagerClass = coreLoader.loadClass("com.genir.aitweaks.core.features.CustomAIManager")
         val aiManager = aiManagerClass.newInstance()
 
-        val getCustomAIForShipType = MethodType.methodType(ShipAIPlugin::class.java, ShipAPI::class.java)
-        val getCustomAIForShip = MethodHandles.lookup().findVirtual(aiManagerClass, "getCustomAIForShip", getCustomAIForShipType)
+        val getAIForShipType = MethodType.methodType(ShipAIPlugin::class.java, ShipAPI::class.java)
+        val getAIForShip = MethodHandles.lookup().findVirtual(aiManagerClass, "getAIForShip", getAIForShipType)
 
-        val customAI: ShipAIPlugin? = getCustomAIForShip.invoke(aiManager, ship) as? ShipAIPlugin
+        val customAI: ShipAIPlugin? = getAIForShip.invoke(aiManager, ship) as? ShipAIPlugin
         return PluginPick(customAI, PickPriority.MOD_GENERAL)
     }
 

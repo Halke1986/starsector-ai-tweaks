@@ -2,6 +2,11 @@ package com.genir.aitweaks.core.state
 
 import lunalib.lunaSettings.LunaSettings
 
+/**
+ * AI Tweaks configuration.
+ * Values are read only during combat, so there is no need to listen for changes in the campaign layer.
+ * However, the configuration must be refreshed at the beginning of each combat.
+ */
 class Config {
     val devMode: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode")!!
     val highlightCustomAI: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_highlight_custom_ai")!!

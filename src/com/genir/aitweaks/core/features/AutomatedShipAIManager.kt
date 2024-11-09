@@ -31,7 +31,7 @@ class AutomatedShipAIManager : BaseEveryFrameCombatPlugin() {
         // in BaseModPlugin.pickShipAI, but vanilla overrides the choice
         // with high priority.
         automatedShips.filter { it.ai is BasicShipAI }.forEach { ship ->
-            state.customAIManager.getCustomAIForShip(ship)?.let { ship.shipAI = it }
+            CustomAIManager().getAIForShip(ship)?.let { ship.shipAI = it }
         }
 
         // Replace only vanilla AI with incorrect personality

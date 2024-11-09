@@ -14,7 +14,7 @@ import com.genir.aitweaks.core.utils.extensions.assignment
 import com.genir.aitweaks.core.utils.extensions.isFrigateShip
 
 class CustomAIManager {
-    fun getCustomAIForShip(ship: ShipAPI): ShipAIPlugin? {
+    fun getAIForShip(ship: ShipAPI): ShipAIPlugin? {
         return when {
             !state.config.enableCustomAI -> null
             Global.getCurrentState() != GameState.COMBAT -> null
