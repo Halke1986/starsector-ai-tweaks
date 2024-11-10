@@ -248,7 +248,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
     /** Distance along burn vector at which collision with target bounds occurs. */
     private fun boundsCollision(position: Vector2f, velocity: Vector2f, target: ShipAPI): Float? {
-        val distanceRelative = com.genir.aitweaks.core.utils.boundsCollision(position, velocity, target)
+        val distanceRelative = Bounds.collision(position, velocity, target)
         return distanceRelative?.let { it * velocity.length }
     }
 }

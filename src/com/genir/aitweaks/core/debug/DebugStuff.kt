@@ -16,8 +16,7 @@ import com.genir.aitweaks.core.utils.extensions.resized
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.BLUE
-import java.awt.Color.GREEN
+import java.awt.Color.*
 
 /**
  *
@@ -39,11 +38,10 @@ import java.awt.Color.GREEN
 var prevToTargetFacing = 0f
 
 internal fun debug(dt: Float) {
-//    removeAsteroids()
+    val ship = Global.getCombatEngine().playerShip ?: return
 
-//    val ships = Global.getCombatEngine().ships.filter { !it.isFighter }
-//    ships.forEach {
-//    }
+    Debug.drawLine(Bounds.closestPoint(mousePosition(), ship), mousePosition(), CYAN)
+    Debug.drawBounds(ship, YELLOW)
 }
 
 var expectedFacing = 90f

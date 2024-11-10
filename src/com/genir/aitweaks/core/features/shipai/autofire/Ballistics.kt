@@ -106,7 +106,7 @@ fun willHitCautious(weapon: WeaponAPI, target: BallisticTarget, params: Ballisti
  * given current weapon facing. Collision range is returned, null if no collision. */
 fun willHitBounds(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): Float? {
     val (p, v) = projectileCoords(weapon, BallisticTarget.entity(target), params)
-    return boundsCollision(p, v, target)
+    return Bounds.collision(p, v, target)
 }
 
 /** Target location and velocity in weapon frame of reference. */

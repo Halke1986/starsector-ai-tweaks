@@ -45,12 +45,12 @@ object Debug {
         drawTurnLines(ship)
     }
 
-    fun drawBounds(entity: CombatEntityAPI) {
+    fun drawBounds(entity: CombatEntityAPI, color: Color = Color.YELLOW) {
         val bounds = entity.exactBounds ?: return
         bounds.update(entity.location, entity.facing)
 
         bounds.segments.forEach {
-            drawLine(it.p1, it.p2, Color.YELLOW)
+            drawLine(it.p1, it.p2, color)
         }
     }
 

@@ -59,7 +59,7 @@ fun solve(pv: Pair<Vector2f, Vector2f>, q: Float, w: Float, r: Float, cosA: Floa
 
 /** Time after which point p travelling with velocity v will be the closes to (0,0). */
 fun timeToOrigin(p: Vector2f, v: Vector2f): Float {
-    return -(p.x * v.x + p.y * v.y) / (v.x * v.x + v.y * v.y)
+    return -dotProduct(p, v) / v.lengthSquared
 }
 
 /**

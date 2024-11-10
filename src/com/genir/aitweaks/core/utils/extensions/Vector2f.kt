@@ -5,6 +5,7 @@ import com.genir.aitweaks.core.utils.atan2
 import com.genir.aitweaks.core.utils.clampAngle
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.sqrt
 
 fun Vector2f.resized(length: Float): Vector2f {
     if (isZeroVector()) return Vector2f()
@@ -31,7 +32,7 @@ val Vector2f.facing: Float
     }
 
 val Vector2f.length: Float
-    get() = length()
+    get() = sqrt(lengthSquared)
 
 val Vector2f.lengthSquared: Float
-    get() = lengthSquared()
+    get() = x * x + y * y

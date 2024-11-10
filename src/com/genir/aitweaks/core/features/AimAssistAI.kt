@@ -153,6 +153,9 @@ class AimAssistAI : BaseShipAIPlugin() {
     private fun selectTarget(): CombatEntityAPI? {
         val searchRadius = 500f
 
+//        Debug.print["zoom"] = Global.getCombatEngine().viewport.viewMult
+//        Debug.drawCircle(mousePosition(), searchRadius)
+
         val ships: Sequence<ShipAPI> = shipGrid().get<ShipAPI>(mousePosition(), searchRadius).filter {
             when {
                 !it.isValidTarget -> false
