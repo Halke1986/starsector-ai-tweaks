@@ -11,6 +11,7 @@ import com.genir.aitweaks.core.debug.drawCircle
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.Interval
+import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
@@ -60,7 +61,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         if (rangeThreshold * 1.75f < (target.location - ship.location).length) return
 
         // Remove vanilla turn commands.
-        clearTurnCommands(ship)
+        clearVanillaCommands(ship, "TURN_LEFT", "TURN_RIGHT")
 
         // Control the ship rotation.
         val ballisticTarget = BallisticTarget.entity(target)
@@ -70,14 +71,6 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
 
     private fun debug() {
         if (state.config.highlightCustomAI) drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
-    }
-
-    private fun clearTurnCommands(ship: Any) {
-        val commandWrappers: MutableIterator<Obfuscated.ShipCommandWrapper> = (ship as Obfuscated.Ship).commands.iterator()
-        while (commandWrappers.hasNext()) {
-            val command: Obfuscated.ShipCommand = commandWrappers.next().shipCommandWrapper_getCommand
-            if (command.ordinal == 0 || command.ordinal == 1) commandWrappers.remove()
-        }
     }
 
     companion object {

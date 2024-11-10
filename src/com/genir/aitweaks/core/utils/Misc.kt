@@ -3,6 +3,8 @@ package com.genir.aitweaks.core.utils
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
+import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import org.json.JSONObject
@@ -108,4 +110,13 @@ inline fun <reified T> closestEntity(entities: Collection<CombatEntityAPI>, p: V
  */
 fun averageFacing(facings: Collection<Float>): Float {
     return facings.fold(Vector2f()) { sum, f -> sum + unitVector(f) }.facing
+}
+
+/** Remove ship commands issued by AI or the player. Needs to be executed before Ship.advance() to take effect.*/
+fun clearVanillaCommands(ship: ShipAPI, vararg commands: String) {
+    val commandWrappers: MutableIterator<Obfuscated.ShipCommandWrapper> = (ship as Obfuscated.Ship).commands.iterator()
+    while (commandWrappers.hasNext()) {
+        val command: Obfuscated.ShipCommand = commandWrappers.next().shipCommandWrapper_getCommand
+        if (commands.contains(command.name)) commandWrappers.remove()
+    }
 }

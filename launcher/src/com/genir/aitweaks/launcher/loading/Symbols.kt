@@ -14,13 +14,15 @@ import java.lang.reflect.ParameterizedType
 
 @Suppress("PropertyName")
 class Symbols {
+    // Classes with un-obfuscated names.
     private val ship: Class<*> = Ship::class.java
     private val basicShipAI: Class<*> = BasicShipAI::class.java
+    private val attackAIModule: Class<*> = AttackAIModule::class.java
 
     // Classes and interfaces.
     val flockingAI: Class<*> = basicShipAI.getMethod("getFlockingAI").returnType
     val approachManeuver: Class<*> = findApproachManeuver()
-    val autofireManager: Class<*> = AttackAIModule::class.java.declaredFields.first { it.type.isInterface && it.type.methods.size == 1 }.type
+    val autofireManager: Class<*> = attackAIModule.declaredFields.first { it.type.isInterface && it.type.methods.size == 1 }.type
     val maneuver: Class<*> = basicShipAI.getMethod("getCurrentManeuver").returnType
     val shipCommandWrapper: Class<*> = ship.getMethod("getCommands").genericReturnTypeArgument(0)
     val shipCommand: Class<*> = ship.getMethod("getBlockedCommands").genericReturnTypeArgument(0)

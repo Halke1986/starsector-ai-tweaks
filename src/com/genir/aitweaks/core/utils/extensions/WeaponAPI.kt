@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.utils.extensions
 
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
+import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.utils.absShortestRotation
@@ -26,6 +27,12 @@ val WeaponAPI.isPDSpec: Boolean
 
 val WeaponAPI.isMissile: Boolean
     get() = type == WeaponAPI.WeaponType.MISSILE
+
+val WeaponAPI.isGuidedMissile: Boolean
+    get() {
+        val spec = spec.projectileSpec as? MissileSpecAPI ?: return false
+        return spec.maneuverabilityDisplayName != "None"
+    }
 
 val WeaponAPI.isPlainBeam: Boolean
     get() = isBeam && !conserveAmmo

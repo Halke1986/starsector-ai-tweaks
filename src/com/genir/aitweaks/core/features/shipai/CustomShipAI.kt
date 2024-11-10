@@ -24,7 +24,7 @@ import kotlin.math.max
 // TODO ships freeze when issued search and destroy assignment
 
 @Suppress("MemberVisibilityCanBePrivate")
-class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
+class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     // Subsystems.
     val movement: Movement = Movement(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
@@ -97,17 +97,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         vanilla.flags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
     }
 
-    override fun setDoNotFireDelay(amount: Float) = Unit
-
-    override fun forceCircumstanceEvaluation() = Unit
-
-    override fun needsRefit(): Boolean = false
-
     override fun getAIFlags(): ShipwideAIFlags = vanilla.flags
-
-    override fun cancelCurrentManeuver() = Unit
-
-    override fun getConfig(): ShipAIConfig = ShipAIConfig()
 
     private fun debug() {
         if (state.config.highlightCustomAI) drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)

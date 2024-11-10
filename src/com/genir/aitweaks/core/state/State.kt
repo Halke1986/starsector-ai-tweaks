@@ -25,7 +25,7 @@ class State : BaseEveryFrameCombatPlugin() {
         fleetCohesion[0],
         fleetCohesion[1],
         accelerationTracker,
-        com.genir.aitweaks.core.features.AimAssist(),
+        com.genir.aitweaks.core.features.AimAssistManager(),
         com.genir.aitweaks.core.features.AutoOmniShields(),
         com.genir.aitweaks.core.features.AutomatedShipAIManager(),
         com.genir.aitweaks.core.features.OverrideAutofireManager(),

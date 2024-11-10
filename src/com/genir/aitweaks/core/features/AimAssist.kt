@@ -117,7 +117,7 @@ class AimAssist : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        // Override the vanilla-computed weapon facing.
+        // Override vanilla-computed weapon facing.
         val aimTracker: Obfuscated.AimTracker = (weapon as Obfuscated.Weapon).aimTracker
         aimTracker.aimTracker_setTargetOverride(intercept + weapon.location)
 
