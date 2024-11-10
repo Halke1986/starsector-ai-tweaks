@@ -11,7 +11,6 @@ import com.genir.aitweaks.core.features.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.WeaponGroup
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.intercept
 import com.genir.aitweaks.core.utils.*
@@ -91,27 +90,30 @@ class AimAssistAI : BaseShipAIPlugin() {
         val manualWeapons: List<WeaponAPI> = ship.manualWeapons
 
         manualWeapons.forEach { weapon ->
-            // Aim all non-autofire weapons.
-            val intercept: Vector2f = aimWeapon(weapon, ballisticTarget)
+            when {
+                // Vanilla hardpoints obey player fire command regardless of arc,
+                // so there's no need to override their fire command.
+                weapon.slot.isHardpoint -> {
+                    // It's not possible to aim missile hardpoints.
+                    if (!weapon.isUnguidedMissile) {
+                        aimWeapon(weapon, ballisticTarget)
+                    }
+                }
 
-            // Fire selected weapons. Vanilla hardpoints  obey player fire command
-            // regardless of arc, so there's no need to change their behavior.
-            if (selectedWeapons.contains(weapon) && !weapon.slot.isHardpoint) {
-                fireWeapon(weapon, intercept)
+                // Override aim for all non-autofire turrets.
+                weapon.slot.isTurret -> {
+                    val intercept: Vector2f = aimWeapon(weapon, ballisticTarget)
+                    // Override fire command for manually operated turrets.
+                    if (selectedWeapons.contains(weapon)) {
+                        fireWeapon(weapon, intercept)
+                    }
+                }
             }
         }
     }
 
     private fun aimWeapon(weapon: WeaponAPI, ballisticTarget: BallisticTarget): Vector2f {
-        val intercept: Vector2f = when {
-            weapon.type == WeaponAPI.WeaponType.MISSILE -> {
-                SimulateMissile.missileIntercept(weapon, ballisticTarget)
-            }
-
-            else -> {
-                intercept(weapon, ballisticTarget, defaultBallisticParams)
-            }
-        }
+        val intercept: Vector2f = intercept(weapon, ballisticTarget, defaultBallisticParams)
 
         // Override vanilla-computed weapon facing.
         val aimTracker: Obfuscated.AimTracker = (weapon as Obfuscated.Weapon).aimTracker
@@ -207,7 +209,7 @@ class AimAssistAI : BaseShipAIPlugin() {
     }
 
     private val WeaponAPI.shouldAim: Boolean
-        get() = !isGuidedMissile
+        get() = type != WeaponAPI.WeaponType.MISSILE || isUnguidedMissile
 
     private val ShipAPI.manualWeapons: List<WeaponAPI>
         get() = weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weaponsCopy }.filter { it.shouldAim }

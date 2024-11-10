@@ -40,6 +40,8 @@ fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: Ballisti
 
 /** Weapon aim location required to hit center point of a moving target. */
 fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f {
+    if (weapon.isUnguidedMissile) return SimulateMissile.missileIntercept(weapon, target)
+
     val (p, v) = targetCoords(weapon, target, params)
     if (targetAboveWeapon(p, weapon, target)) return target.location
 

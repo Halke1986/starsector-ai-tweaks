@@ -28,10 +28,10 @@ val WeaponAPI.isPDSpec: Boolean
 val WeaponAPI.isMissile: Boolean
     get() = type == WeaponAPI.WeaponType.MISSILE
 
-val WeaponAPI.isGuidedMissile: Boolean
+val WeaponAPI.isUnguidedMissile: Boolean
     get() {
         val spec = spec.projectileSpec as? MissileSpecAPI ?: return false
-        return spec.maneuverabilityDisplayName != "None"
+        return spec.maneuverabilityDisplayName == "None"
     }
 
 val WeaponAPI.isPlainBeam: Boolean
