@@ -238,7 +238,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
         stats = ShipStats(ship)
 
         // Find the most similar weapon group to the current one after ship stats have been updated.
-        attackingGroup = stats.weaponGroups.minWithOrNull(compareBy { absShortestRotation(it.facing, attackingGroup.facing) })!!
+        attackingGroup = stats.weaponGroups.minWithOrNull(compareBy { absShortestRotation(it.defaultFacing, attackingGroup.defaultFacing) })!!
     }
 
     private fun updateIdleTime(dt: Float) {
@@ -377,7 +377,7 @@ class CustomShipAI(val ship: ShipAPI) : ShipAIPlugin {
     /** Evaluate if target is worth attacking. The lower the score, the better the target. */
     private fun evaluateTarget(target: ShipAPI, weaponGroup: WeaponGroup): Float {
         // Prioritize targets closer to ship facing.
-        val angle = ship.shortestRotationToTarget(target.location, weaponGroup.facing) * DEGREES_TO_RADIANS
+        val angle = ship.shortestRotationToTarget(target.location, weaponGroup.defaultFacing) * DEGREES_TO_RADIANS
         val angleWeight = 0.75f
         val evalAngle = abs(angle) * angleWeight
 

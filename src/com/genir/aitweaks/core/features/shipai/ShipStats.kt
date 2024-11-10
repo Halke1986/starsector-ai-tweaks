@@ -3,13 +3,11 @@ package com.genir.aitweaks.core.features.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.utils.extensions.isAngleInArc
+import com.genir.aitweaks.core.utils.extensions.isFrontFacing
 import com.genir.aitweaks.core.utils.extensions.isInFiringSequence
 import com.genir.aitweaks.core.utils.extensions.isPD
-import com.genir.aitweaks.core.utils.extensions.sumOf
-import com.genir.aitweaks.core.utils.shortestRotation
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.sign
 
 class ShipStats(private val ship: ShipAPI) {
     val significantWeapons: List<WeaponAPI> = findSignificantWeapons()
@@ -56,43 +54,24 @@ class ShipStats(private val ship: ShipAPI) {
 
     /** A ship can have multiple valid weapon groups. */
     private fun findWeaponGroups(): List<WeaponGroup> {
-        // Special case for front facing hardpoints.
-        if (significantWeapons.any { it.slot.isHardpoint && it.arcFacing == 0f }) {
-            return listOf(WeaponGroup(ship, significantWeapons, 0f))
-        }
+        when {
+            significantWeapons.isEmpty() -> return listOf(WeaponGroup(ship, listOf()))
 
-        // Find firing arc boundary closes to ship front for
-        // each weapon, or 0f for front facing weapons.
-        val attackAngles: Set<Float> = significantWeapons.flatMap { weapon ->
-            val facing = shortestRotation(0f, weapon.arcFacing)
-            val arc = weapon.arc
-
-            when {
-                // Assume hardpoints have no arc at all.
-                weapon.slot.isHardpoint -> listOf(facing)
-
-                // Ship front is within weapon arc.
-                abs(facing) < arc / 2f -> listOf(0f)
-
-                // Ship back is within weapon arc, return both angles.
-                180f - abs(facing) < arc / 2f -> listOf(facing - arc / 2f, facing + arc / 2f)
-
-                // Return weapon arc boundary closer to ship front.
-                else -> listOf(facing - facing.sign * (arc / 2f))
+            // Special case for front facing hardpoints.
+            significantWeapons.any { it.slot.isHardpoint && it.arcFacing == 0f } -> {
+                listOf(WeaponGroup(ship, significantWeapons.filter { it.isFrontFacing }))
             }
-        }.toSet() + 0f
-
-        data class AngleDPS(val angle: Float, val dps: Float)
-
-        // Calculate DPS for each attack angle.
-        val anglesDPS: List<AngleDPS> = attackAngles.map { angle ->
-            val dps = significantWeapons.filter { it.isAngleInArc(angle) }.sumOf { it.derivedStats.dps }
-            AngleDPS(angle, dps)
         }
+
+        // Find firing arc boundary closest to ship front for
+        // each weapon, or 0f for front facing weapons.
+        val attackAngles: Map<Float, Float> = WeaponGroup.attackAngles(significantWeapons).ifEmpty { return listOf() }
 
         // Find all weapon groups with acceptable DPS.
-        val bestWeaponGroup: AngleDPS = anglesDPS.maxWithOrNull(compareBy { it.dps })!!
-        val validWeaponGroups = anglesDPS.filter { it.dps >= bestWeaponGroup.dps * Preset.validWeaponGroupDPSThreshold }
-        return validWeaponGroups.map { WeaponGroup(ship, significantWeapons, it.angle) }
+        val bestWeaponGroup = attackAngles.maxWithOrNull(compareBy<Map.Entry<Float, Float>> { it.value }.thenBy { -abs(it.key) })!!
+        val validWeaponGroups = attackAngles.filter { it.value >= bestWeaponGroup.value * Preset.validWeaponGroupDPSThreshold }
+        return validWeaponGroups.map { (angle, _) ->
+            WeaponGroup(ship, significantWeapons.filter { it.isAngleInArc(angle) })
+        }
     }
 }

@@ -8,13 +8,11 @@ import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.drawCircle
+import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.defaultAIInterval
-import com.genir.aitweaks.core.utils.extensions.allGroupedWeapons
-import com.genir.aitweaks.core.utils.extensions.isMissile
-import com.genir.aitweaks.core.utils.extensions.isValidTarget
-import com.genir.aitweaks.core.utils.extensions.length
+import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
 import java.awt.Color
 
@@ -24,7 +22,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
     private val basicShipAI: Obfuscated.BasicShipAI = super.getAI() as Obfuscated.BasicShipAI
     private val engineController: BasicEngineController = BasicEngineController(ship)
     private val updateInterval: Interval = defaultAIInterval()
-    private var weaponGroup: WeaponGroup = WeaponGroup(ship, listOf(), 0f)
+    private var weaponGroup: WeaponGroup = WeaponGroup(ship, listOf())
 
     var expectedFacing: Float? = null
 
@@ -41,7 +39,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
 
             // Refresh the list of weapons to aim.
             val weapons = ship.allGroupedWeapons.filter { shouldAim(it) }
-            weaponGroup = WeaponGroup(ship, weapons, 0f)
+            weaponGroup = WeaponGroup(ship, weapons)
         }
 
         if (ship.fluxTracker.isOverloadedOrVenting) return
@@ -65,7 +63,8 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         clearTurnCommands(ship)
 
         // Control the ship rotation.
-        expectedFacing = Movement.aimShip(target, weaponGroup)
+        val ballisticTarget = BallisticTarget.entity(target)
+        expectedFacing = weaponGroup.attackFacing(ballisticTarget)
         engineController.facing(dt, expectedFacing!!)
     }
 
@@ -87,6 +86,9 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
                 weapon.isMissile -> false
                 weapon.isDisabled -> false
                 weapon.isPermanentlyDisabled -> false
+
+                // Aim ship according to front facing weapon arcs.
+                !weapon.isFrontFacing -> false
 
                 else -> true
             }

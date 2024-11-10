@@ -5,10 +5,7 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.features.shipai.autofire.intercept
 import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
@@ -110,7 +107,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
         expectedFacing = interpolateFacing.advance(dt) {
             val newFacing: Float = when {
-                // Let movement system determine ship facing.
+                // Let movement system determine the ship facing.
                 systemOverride != null -> {
                     systemOverride
                 }
@@ -118,7 +115,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 // Face the attack target.
                 currentAttackTarget != null -> {
                     // Average aim offset to avoid ship wobbling.
-                    val aimPointThisFrame = unitVector(aimShip(currentAttackTarget, weaponGroup)) * 100f + ship.location
+                    val ballisticTarget = BallisticTarget.entity(currentAttackTarget)
+                    val aimPointThisFrame = unitVector(weaponGroup.attackFacing(ballisticTarget)) * 100f + ship.location
                     val aimOffsetThisFrame = getShortestRotation(currentAttackTarget.location, ship.location, aimPointThisFrame)
                     val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
 
@@ -432,50 +430,6 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
         val t = ceil(v / a)
         return (v + a) * t * 0.5f
-    }
-
-    companion object {
-
-        /** Aim weapons with the entire ship, if possible. */
-        fun aimShip(target: CombatEntityAPI, weaponGroup: WeaponGroup): Float {
-            // Prioritize hardpoints if there are any in the weapon group.
-            val weapons: List<WeaponAPI> = weaponGroup.weapons.filter { it.slot.isHardpoint }.ifEmpty { weaponGroup.weapons }
-
-            val solutions: Map<WeaponAPI, Float> = weapons.associateWith { weapon ->
-                intercept(weapon, BallisticTarget.entity(target), defaultBallisticParams).facing
-            }
-
-            // Aim directly at target if no weapon firing solution is available.
-            if (solutions.isEmpty()) return (target.location - weaponGroup.ship.location).facing - weaponGroup.facing
-
-            // Start with aiming the weapon group at the average intercept point.
-            val averageIntercept: Float = averageFacing(solutions.values)
-            val defaultShipFacing: Float = averageIntercept - weaponGroup.facing
-
-            // Fine tune the facing to minimize the amount of weapons
-            // not able to aim at their calculated intercept point.
-            var offsetNegative = 0f
-            var offsetPositive = 0f
-            solutions.forEach {
-                val weapon = it.key
-                val localIntercept: Float = it.value - defaultShipFacing
-                if (weapon.isAngleInArc(localIntercept)) return@forEach
-
-                // Angle to nearest arc boundary.
-                val halfArc = weapon.arc / 2f
-                val angleArc1 = shortestRotation(weapon.arcFacing + halfArc, localIntercept)
-                val angleArc2 = shortestRotation(weapon.arcFacing - halfArc, localIntercept)
-                val outOfArc = if (abs(angleArc1) > abs(angleArc2)) angleArc2 else angleArc1
-
-                // Calculate offset if firing solution is outside weapon firing arc.
-                when {
-                    outOfArc < 0f -> offsetNegative = min(offsetNegative, outOfArc)
-                    outOfArc > 0f -> offsetPositive = max(offsetPositive, outOfArc)
-                }
-            }
-
-            return defaultShipFacing + offsetNegative + offsetPositive
-        }
     }
 
     /**
