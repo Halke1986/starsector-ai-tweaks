@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.loading.WeaponGroupType
 import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.Obfuscated
-import com.genir.aitweaks.core.debug.debugPrint
+import com.genir.aitweaks.core.debug.drawCircle
 import com.genir.aitweaks.core.features.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.WeaponGroup
@@ -19,11 +19,16 @@ import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 
-// TODO missiles miss
 // TODO 0.96
-// TODO setting to disable hardpoint aiming
-// TODO test turrets
+
+// TODO Hold target
+// TODO Target fighters
+// TODO Adaptable target selection radius
+
+// TODO setting to disable hardpoint aiming (maybe)
+// TODO setting to highlight target (maybe)
 
 class AimAssistAI : BaseShipAIPlugin() {
     private val keymap = VanillaKeymap()
@@ -53,11 +58,17 @@ class AimAssistAI : BaseShipAIPlugin() {
         isFiring = keymap.isKeyDown(VanillaKeymap.Action.SHIP_FIRE)
         isStrafeMode = keymap.isKeyDown(VanillaKeymap.Action.SHIP_STRAFE_KEY)
 
-        // Select target.
-        val target: CombatEntityAPI = selectTarget() ?: return
-        val ballisticTarget = BallisticTarget(target.timeAdjustedVelocity, mousePosition(), 0f)
+        // Select target. If there's no target, weapon leading
+        // will still account for the ship velocity.
+        val target: CombatEntityAPI? = selectTarget()
+        val targetVelocity: Vector2f = target?.timeAdjustedVelocity ?: Vector2f()
+        val ballisticTarget = BallisticTarget(targetVelocity, mousePosition(), 0f)
 
-        aimShip(dt, ship, ballisticTarget)
+        if (target !== null) {
+            drawCircle(target.location, target.collisionRadius / 2, Color.YELLOW)
+        }
+
+        if (isStrafeMode) aimShip(dt, ship, ballisticTarget)
         aimWeapons(ship, ballisticTarget)
     }
 
@@ -66,10 +77,6 @@ class AimAssistAI : BaseShipAIPlugin() {
 
 
     private fun aimShip(dt: Float, ship: ShipAPI, ballisticTarget: BallisticTarget) {
-        if (!isStrafeMode) return
-
-        val selectedWeapons = ship.selectedWeapons.ifEmpty { return }
-
         // Update engine controller if player ship changed.
         if (ship != prevPlayerShip) {
             prevPlayerShip = ship
@@ -80,16 +87,16 @@ class AimAssistAI : BaseShipAIPlugin() {
         clearVanillaCommands(ship, "TURN_LEFT", "TURN_RIGHT")
 
         // Control the ship rotation.
-        val weaponGroup = WeaponGroup(ship, selectedWeapons.toList())
+        val weaponGroup = WeaponGroup(ship, ship.selectedWeapons.toList())
         val expectedFacing = weaponGroup.attackFacing(ballisticTarget)
         engineController!!.facing(dt, expectedFacing)
     }
 
     private fun aimWeapons(ship: ShipAPI, ballisticTarget: BallisticTarget) {
         val selectedWeapons: Set<WeaponAPI> = ship.selectedWeapons
-        val manualWeapons: List<WeaponAPI> = ship.manualWeapons
+        val aimableWeapons: Set<WeaponAPI> = ship.nonAutofireWeapons + selectedWeapons
 
-        manualWeapons.forEach { weapon ->
+        aimableWeapons.forEach { weapon ->
             when {
                 // Vanilla hardpoints obey player fire command regardless of arc,
                 // so there's no need to override their fire command.
@@ -126,8 +133,6 @@ class AimAssistAI : BaseShipAIPlugin() {
         val interceptFacing = intercept.facing - weapon.ship.facing
         val group: WeaponGroupAPI = weapon.group ?: return
         val isFiring = keymap.isKeyDown(VanillaKeymap.Action.SHIP_FIRE)
-
-        debugPrint[weapon] = weapon.spec.weaponId
 
         val shouldFire: Boolean = when {
             !isFiring -> false
@@ -211,8 +216,8 @@ class AimAssistAI : BaseShipAIPlugin() {
     private val WeaponAPI.shouldAim: Boolean
         get() = type != WeaponAPI.WeaponType.MISSILE || isUnguidedMissile
 
-    private val ShipAPI.manualWeapons: List<WeaponAPI>
-        get() = weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weaponsCopy }.filter { it.shouldAim }
+    private val ShipAPI.nonAutofireWeapons: Set<WeaponAPI>
+        get() = weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weaponsCopy }.filter { it.shouldAim }.toSet()
 
     private val ShipAPI.selectedWeapons: Set<WeaponAPI>
         get() = selectedGroupAPI?.weaponsCopy?.filter { it.shouldAim }?.toSet() ?: setOf()
