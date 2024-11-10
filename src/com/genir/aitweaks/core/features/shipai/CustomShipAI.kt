@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.BACKING_OFF
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
-import com.genir.aitweaks.core.debug.drawCircle
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.features.shipai.vanilla.Vanilla
@@ -100,7 +100,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     override fun getAIFlags(): ShipwideAIFlags = vanilla.flags
 
     private fun debug() {
-        if (state.config.highlightCustomAI) drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
+        if (state.config.highlightCustomAI) Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
 //        debugPrint.clear()
 
 //        drawTurnLines(ship)

@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
-import com.genir.aitweaks.core.debug.drawCircle
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.Interval
@@ -70,7 +70,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
     }
 
     private fun debug() {
-        if (state.config.highlightCustomAI) drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
+        if (state.config.highlightCustomAI) Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
     }
 
     companion object {

@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.loading.WeaponGroupType
 import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.Obfuscated
-import com.genir.aitweaks.core.debug.drawCircle
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.features.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.WeaponGroup
@@ -20,8 +20,6 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-
-// TODO 0.96
 
 // TODO Hold target
 // TODO Target fighters
@@ -65,7 +63,7 @@ class AimAssistAI : BaseShipAIPlugin() {
         val ballisticTarget = BallisticTarget(targetVelocity, mousePosition(), 0f)
 
         if (target !== null) {
-            drawCircle(target.location, target.collisionRadius / 2, Color.YELLOW)
+            Debug.drawCircle(target.location, target.collisionRadius / 2, Color.YELLOW)
         }
 
         if (isStrafeMode) aimShip(dt, ship, ballisticTarget)

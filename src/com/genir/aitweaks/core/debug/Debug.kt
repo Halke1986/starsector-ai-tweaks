@@ -1,175 +1,153 @@
 package com.genir.aitweaks.core.debug
 
-import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.ShipAIConfig
-import com.fs.starfarer.api.combat.ShipAIPlugin
+import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
-import com.genir.aitweaks.core.features.shipai.BasicEngineController
-import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
+import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.resized
+import com.genir.aitweaks.core.utils.extensions.isPD
+import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.BLUE
-import java.awt.Color.GREEN
+import java.awt.Color
 
-/**
- *
- * FRAME UPDATE ORDER
- *
- * ship movement
- * AI
- * ship advance:
- *   engine controller process commands
- *   weapons:
- *      fire projectile
- *      update aim
- * (ship movement, AI, ship advance LOOP for fast time ships)
- *
- * EFSs
- *
- */
+object Debug {
+    internal var renderer: Renderer? = null
+    internal var plugin: DebugPlugin? = null
 
-var prevToTargetFacing = 0f
-
-internal fun debug(dt: Float) {
-//    removeAsteroids()
-
-//    val ships = Global.getCombatEngine().ships.filter { !it.isFighter }
-//    ships.forEach {
-//    }
-}
-
-var expectedFacing = 90f
-const val df = -1f * 60f
-
-class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller: BasicEngineController = BasicEngineController(ship)
-
-    override fun advance(dt: Float) {
-        expectedFacing += df * dt
-
-        drawLine(ship.location, ship.location + unitVector(expectedFacing) * 400f, GREEN)
-        drawLine(ship.location, ship.location + unitVector(ship.facing) * 400f, BLUE)
-        debugPrint["f"] = absShortestRotation(ship.facing, expectedFacing)
-
-        controller.facing(dt, expectedFacing)
-    }
-}
-
-class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller: BasicEngineController = BasicEngineController(ship)
-
-    override fun advance(dt: Float) {
-        val toMouse = mousePosition() - ship.location
-
-        val facing = if (toMouse.length > ship.collisionRadius / 2f) toMouse.facing
-        else controller.rotationStop
-
-        controller.facing(dt, facing)
-        controller.heading(dt, mousePosition())
-
-        drawEngineLines(ship)
+    object Print {
+        operator fun set(index: Any, value: Any?) {
+            plugin?.set(index, value)
+        }
     }
 
-    companion object {
-        fun install(ship: ShipAPI) {
-            if (((ship.ai as? ShipAIWrapper)?.ai !is FollowMouseAI)) {
-                ship.shipAI = FollowMouseAI(ship)
+    fun clear() = plugin?.clear()
+
+    val print: Print
+        get() = Print
+
+    fun drawCircle(pos: Vector2f, r: Float, color: Color = Color.CYAN) {
+        renderer?.circles?.add(Renderer.Circle(pos, r, color))
+    }
+
+    fun drawArc(pos: Vector2f, r: Float, a: Arc, color: Color = Color.CYAN) {
+        renderer?.arcs?.add(Renderer.Arc(pos, r, a, color))
+    }
+
+    fun drawLine(a: Vector2f, b: Vector2f, color: Color = Color.YELLOW) {
+        renderer?.lines?.add(Renderer.Line(a, b, color))
+    }
+
+    fun drawEngineLines(ship: ShipAPI) {
+        drawAccelerationLines(ship)
+        drawTurnLines(ship)
+    }
+
+    fun drawBounds(entity: CombatEntityAPI) {
+        val bounds = entity.exactBounds ?: return
+        bounds.update(entity.location, entity.facing)
+
+        bounds.segments.forEach {
+            drawLine(it.p1, it.p2, Color.YELLOW)
+        }
+    }
+
+    fun drawAccelerationLines(ship: ShipAPI) {
+        if (renderer == null) return
+
+        val r = Rotation(ship.facing - 90f)
+        val engine = ship.engineController
+
+        listOfNotNull(
+            if (engine.isAccelerating) Vector2f(0f, 1f) else null,
+            if (engine.isAcceleratingBackwards) Vector2f(0f, -1f) else null,
+            if (engine.isStrafingLeft) Vector2f(-1f, 0f) else null,
+            if (engine.isStrafingRight) Vector2f(1f, 0f) else null,
+        ).forEach {
+            drawLine(ship.location, ship.location + (it * ship.collisionRadius * 1.2f).rotated(r), Color.BLUE)
+        }
+    }
+
+    fun drawTurnLines(ship: ShipAPI) {
+        if (renderer == null) return
+
+        val r = Rotation(ship.facing - 90f)
+        val engine = ship.engineController
+
+        listOfNotNull(
+            if (engine.isTurningLeft) Vector2f(-0.75f, 0.20f) else null,
+            if (engine.isTurningRight) Vector2f(0.75f, 0.20f) else null,
+        ).forEach {
+            drawLine(ship.location, ship.location + (it * ship.collisionRadius * 1.2f).rotated(r), Color.CYAN)
+        }
+    }
+
+    fun drawCollisionRadius(entity: CombatEntityAPI, color: Color = Color.CYAN) {
+        if (renderer == null) return
+
+        drawCircle(entity.location, entity.collisionRadius, color)
+    }
+
+    fun drawWeaponLines(ship: ShipAPI) {
+        if (renderer == null) return
+
+        val ais = ship.weaponGroupsCopy.flatMap { it.aiPlugins }.filter { it is AutofireAI && it.target != null }
+        ais.forEach { drawLine(it.weapon.location, it.target!!, if (it.weapon.isPD) Color.YELLOW else Color.RED) }
+    }
+
+    private data class Edge(val src: Int, val dest: Int, val weight: Float)
+
+    fun drawBattleGroup(group: Set<ShipAPI>, color: Color = Color.YELLOW) {
+        if (renderer == null) return
+
+        val ts = group.toTypedArray()
+        val es: MutableList<Edge> = mutableListOf()
+
+        for (i in ts.indices) {
+            for (j in i + 1 until ts.size) {
+                val w = (ts[i].location - ts[j].location).lengthSquared()
+                es.add(Edge(i, j, w))
             }
         }
-    }
-}
 
-var trail: Sequence<SimulateMissile.Frame>? = null
-
-fun debugMissilePath(dt: Float) {
-    val ship = Global.getCombatEngine().playerShip ?: return
-    val weapon = ship.allWeapons.firstOrNull() ?: return
-
-    if (trail != null) {
-        var prev = trail!!.firstOrNull()!!.location
-        trail?.forEach { frame ->
-            drawLine(prev, frame.location, BLUE)
-            prev = frame.location
+        kruskal(es, ts.size).forEach {
+            drawLine(ts[it.src].location, ts[it.dest].location, color)
         }
     }
 
-    if (Global.getCombatEngine().missiles.isNotEmpty())
-        return
+    private fun kruskal(graph: List<Edge>, numVertices: Int): List<Edge> {
+        val sortedEdges = graph.sortedBy { it.weight }
+        val disjointSet = IntArray(numVertices) { -1 }
+        val mst = mutableListOf<Edge>()
 
-    trail = SimulateMissile.missilePath(weapon)
-}
-
-class DroneFormationAI(private val drone: ShipAPI, val ship: ShipAPI, private val offset: Vector2f) : BaseEngineControllerAI() {
-    private val controller: BasicEngineController = BasicEngineController(drone)
-
-    override fun advance(dt: Float) {
-        val currentOffset = offset.rotated(Rotation(ship.facing))
-
-        controller.heading(dt, ship.location + currentOffset)
-        controller.facing(dt, currentOffset.facing)
-    }
-}
-
-private fun makeDroneFormation() {
-    if (Global.getCombatEngine().getTotalElapsedTime(false) < 8f) return
-
-    val ship = Global.getCombatEngine().playerShip ?: return
-    val drones = Global.getCombatEngine().ships.filter { it.isFighter }
-
-    val angle = 360f / drones.size
-
-    for (i in drones.indices) {
-        val drone = drones[i]
-
-        if (((drone.ai as? ShipAIWrapper)?.ai !is DroneFormationAI)) {
-            val offset = Vector2f(0f, 500f).rotated(Rotation(angle * i))
-            drone.shipAI = DroneFormationAI(drone, ship, offset)
+        fun find(parents: IntArray, i: Int): Int {
+            if (parents[i] < 0) return i
+            return find(parents, parents[i]).also { parents[i] = it }
         }
 
-        drawEngineLines(drone)
-    }
-}
+        fun union(parents: IntArray, i: Int, j: Int) {
+            val root1 = find(parents, i)
+            val root2 = find(parents, j)
+            if (root1 != root2) {
+                if (parents[root1] < parents[root2]) {
+                    parents[root1] += parents[root2]
+                    parents[root2] = root1
+                } else {
+                    parents[root2] += parents[root1]
+                    parents[root1] = root2
+                }
+            }
+        }
 
-fun removeAsteroids() {
-    val engine = Global.getCombatEngine()
-    engine.asteroids.forEach {
-        engine.removeEntity(it)
-    }
-}
-
-private fun speedupAsteroids() {
-    val asteroids = Global.getCombatEngine().asteroids
-    for (i in asteroids.indices) {
-        val a = asteroids[i]
-        a.mass = 0f
-        a.velocity.set(a.velocity.resized(1200f))
-    }
-}
-
-abstract class BaseEngineControllerAI : ShipAIPlugin {
-    override fun setDoNotFireDelay(amount: Float) = Unit
-
-    override fun forceCircumstanceEvaluation() = Unit
-
-    override fun needsRefit(): Boolean = false
-
-    override fun getAIFlags(): ShipwideAIFlags = ShipwideAIFlags()
-
-    override fun cancelCurrentManeuver() = Unit
-
-    override fun getConfig(): ShipAIConfig = ShipAIConfig()
-}
-
-inline fun <reified T : ShipAIPlugin> installAI(ship: ShipAPI, aiFactory: () -> T) {
-    if (((ship.ai as? ShipAIWrapper)?.ai !is T)) {
-        ship.shipAI = aiFactory()
+        for (edge in sortedEdges) {
+            if (mst.size >= numVertices - 1) break
+            if (find(disjointSet, edge.src) != find(disjointSet, edge.dest)) {
+                union(disjointSet, edge.src, edge.dest)
+                mst.add(edge)
+            }
+        }
+        return mst
     }
 }

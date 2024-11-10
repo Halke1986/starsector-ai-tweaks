@@ -11,8 +11,6 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
 
-var debugRenderer: Renderer? = null
-
 class Renderer : BaseCombatLayeredRenderingPlugin() {
     data class Line(val a: Vector2f, val b: Vector2f, val color: Color)
     data class Circle(val pos: Vector2f, val r: Float, val color: Color)
@@ -27,7 +25,7 @@ class Renderer : BaseCombatLayeredRenderingPlugin() {
     private var prevArcs: MutableSet<Arc> = mutableSetOf()
 
     override fun advance(dt: Float) {
-        debugRenderer = this
+        Debug.renderer = this
     }
 
     override fun render(layer: CombatEngineLayers?, viewport: ViewportAPI?) {

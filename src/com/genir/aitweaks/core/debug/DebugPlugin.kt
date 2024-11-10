@@ -8,18 +8,6 @@ import org.lazywizard.lazylib.ui.LazyFont
 import java.awt.Color
 import java.util.*
 
-val debugPrint = Print()
-
-class Print {
-    operator fun set(index: Any, value: Any?) {
-        debugPlugin?.set(index, value)
-    }
-
-    fun clear() = debugPlugin?.clear()
-}
-
-private var debugPlugin: DebugPlugin? = null
-
 // DebugPlugin is used to render debug information during combat.
 class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var font: LazyFont? = null
@@ -42,7 +30,7 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         if (font == null) {
             font = LazyFont.loadFont("graphics/fonts/insignia15LTaa.fnt")
-            debugPlugin = this
+            Debug.plugin = this
         }
 
         // Initialize debug renderer.

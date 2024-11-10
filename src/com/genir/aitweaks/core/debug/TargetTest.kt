@@ -74,7 +74,7 @@ class ShipAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() 
         ship.command(ShipCommand.TURN_RIGHT)
 //        ship.command(ShipCommand.TURN_LEFT)
 
-        drawEngineLines(ship)
+        Debug.drawEngineLines(ship)
     }
 }
 
