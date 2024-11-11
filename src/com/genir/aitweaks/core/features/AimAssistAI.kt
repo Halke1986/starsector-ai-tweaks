@@ -24,23 +24,16 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
-class AimAssistAI : BaseShipAIPlugin() {
-    private val keymap = VanillaKeymap()
-
+class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     private var prevPlayerShip: ShipAPI? = null
     private var engineController: BasicEngineController? = null
 
-    private var isFiring: Boolean = false
-    private var isStrafeMode: Boolean = false
-
     override fun advance(dt: Float) {
-        // Decide if aim assist should run.
         val engine = Global.getCombatEngine()
-        val ship = engine.playerShip
-        when {
-            engine.isPaused -> return
+        val ship = engine.playerShip ?: return
 
-            ship == null -> return
+        // Decide if aim assist should run.
+        when {
             !ship.isAlive -> return
             !ship.isUnderManualControl -> return
 
@@ -48,15 +41,11 @@ class AimAssistAI : BaseShipAIPlugin() {
             !CampaignEngine.getInstance().memoryWithoutUpdate.getBoolean("\$aitweaks_enableAimBot") -> return
         }
 
-        // Read player input.
-        isFiring = keymap.isKeyDown(SHIP_FIRE)
-        isStrafeMode = keymap.isKeyDown(SHIP_STRAFE_KEY)
-
         // Estimate player target selection.
         val target: CombatEntityAPI? = selectTarget()
         target?.let { Debug.drawCircle(it.location, it.collisionRadius / 2, Color.YELLOW) }
 
-        if (isStrafeMode && state.config.aimAssistRotateShip) aimShip(dt, ship, target)
+        if (manager.strafeModeOn && state.config.aimAssistRotateShip) aimShip(dt, ship, target)
 
         // Override weapon behavior if there is a target.
         // Otherwise, let vanilla control the weapons.
@@ -82,6 +71,7 @@ class AimAssistAI : BaseShipAIPlugin() {
         val right = Vector2f(0f, -1e4f).rotated(r)
 
         var expectedHeading = ship.location.copy
+        val keymap = state.vanillaKeymap
         if (keymap.isKeyDown(SHIP_ACCELERATE)) expectedHeading += front
         if (keymap.isKeyDown(SHIP_ACCELERATE_BACKWARDS)) expectedHeading += back
         if (keymap.isKeyDown(SHIP_TURN_LEFT) || keymap.isKeyDown(SHIP_STRAFE_LEFT_NOTURN)) expectedHeading += left
@@ -144,7 +134,7 @@ class AimAssistAI : BaseShipAIPlugin() {
     private fun fireWeapon(weapon: WeaponAPI, intercept: Vector2f) {
         val interceptFacing = intercept.facing - weapon.ship.facing
         val group: WeaponGroupAPI = weapon.group ?: return
-        val isFiring = keymap.isKeyDown(VanillaKeymap.Action.SHIP_FIRE)
+        val isFiring = state.vanillaKeymap.isKeyDown(VanillaKeymap.Action.SHIP_FIRE)
 
         val shouldFire: Boolean = when {
             !isFiring -> false

@@ -8,9 +8,14 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.state.state
+import com.genir.aitweaks.core.utils.VanillaKeymap
 
 class AimAssistManager : BaseEveryFrameCombatPlugin() {
     private var aiDrone: ShipAPI? = null
+
+    // Strafe mode config.
+    private var strafeKeyDown: Boolean = false
+    var strafeModeOn: Boolean = false
 
     private companion object {
         val statusKey = Object()
@@ -39,6 +44,22 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
                 memory.set("\$aitweaks_enableAimBot", !enableAimAssist)
             }
         }
+
+        updateStrafeMode()
+    }
+
+    private fun updateStrafeMode() {
+        val strafeKeyDown = state.vanillaKeymap.isKeyDown(VanillaKeymap.Action.SHIP_STRAFE_KEY)
+        val strafeLock: Boolean = Global.getSettings().isStrafeKeyAToggle
+        val autoturnMode: Boolean = Global.getSettings().isAutoTurnMode
+
+        if (strafeLock) {
+            if (strafeKeyDown && !this.strafeKeyDown) strafeModeOn = !strafeModeOn
+            this.strafeKeyDown = strafeKeyDown
+        } else {
+            strafeModeOn = strafeKeyDown
+            if (autoturnMode) strafeModeOn != strafeModeOn
+        }
     }
 
     private fun makeAIDrone(): ShipAPI {
@@ -52,7 +73,7 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
         aiDrone.collisionClass = CollisionClass.NONE
 
         aiDrone.location.y = -1e7f
-        aiDrone.shipAI = AimAssistAI()
+        aiDrone.shipAI = AimAssistAI(this)
 
         return aiDrone
     }

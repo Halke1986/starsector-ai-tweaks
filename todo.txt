@@ -40,3 +40,4 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 
 use vanilla keymap for auto omni shield
+omni shield up not working in some cases
