@@ -149,7 +149,7 @@ class UpdateTarget(
         val obstacles = ships.filterIsInstance<ShipAPI>().filter { it.root != weapon.ship.root && !it.isFighter }
 
         return obstacles.map { obstacle ->
-            val target = BallisticTarget(obstacle.velocity, obstacle.location, obstacle.boundsRadius * 0.8f)
+            val target = BallisticTarget(obstacle.location, obstacle.velocity, obstacle.boundsRadius * 0.8f)
             val dist = intercept(weapon, target, params).length
             val arc = interceptArc(weapon, target, params)
 

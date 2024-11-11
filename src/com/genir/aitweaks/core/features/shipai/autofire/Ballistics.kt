@@ -66,8 +66,8 @@ fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticPa
     val (p, _) = targetCoords(weapon, target, params)
     val points = pointsOfTangency(p, target.radius) ?: return Arc(360f, 0f)
 
-    val target1 = BallisticTarget(target.velocity, weapon.location + points.first, 0f)
-    val target2 = BallisticTarget(target.velocity, weapon.location + points.second, 0f)
+    val target1 = BallisticTarget(weapon.location + points.first, target.velocity, 0f)
+    val target2 = BallisticTarget(weapon.location + points.second, target.velocity, 0f)
 
     return Arc.fromTo(
         intercept(weapon, target1, params).facing,

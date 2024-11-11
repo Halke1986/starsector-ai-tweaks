@@ -56,7 +56,7 @@ class AimAssistAI : BaseShipAIPlugin() {
         // will still account for the ship velocity.
         val target: CombatEntityAPI? = selectTarget()
         val targetVelocity: Vector2f = target?.timeAdjustedVelocity ?: Vector2f()
-        val ballisticTarget = BallisticTarget(targetVelocity, mousePosition(), 0f)
+        val ballisticTarget = BallisticTarget(mousePosition(), targetVelocity, 0f)
 
         if (target !== null) {
             Debug.drawCircle(target.location, target.collisionRadius / 2, Color.YELLOW)

@@ -385,7 +385,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val r = Rotation(shortestRotation(expectedFacing, ship.facing))
         val v = target.timeAdjustedVelocity.rotated(r)
         val p = target.location.rotatedAroundPivot(r, weapon.ship.location)
-        return intercept(weapon, BallisticTarget(v, p, target.collisionRadius), currentParams())
+        return intercept(weapon, BallisticTarget(p, v, target.collisionRadius), currentParams())
     }
 
     /** Tracks intercept angular velocity and angular distance in weapon slot frame of reference. */

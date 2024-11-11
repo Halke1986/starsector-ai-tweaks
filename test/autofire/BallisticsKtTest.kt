@@ -73,8 +73,8 @@ class BallisticsKtTest {
         )
 
         val target = BallisticTarget(
-            location = Vector2f(0f, 10f),
             velocity = Vector2f(0f, 10f),
+            location = Vector2f(0f, 10f),
             radius = 3f,
         )
 
@@ -106,8 +106,8 @@ class BallisticsKtTest {
         )
 
         val target = BallisticTarget(
-            location = Vector2f(0f, 10f),
             velocity = Vector2f(0f, 10f),
+            location = Vector2f(0f, 10f),
             radius = 30f,
         )
 
