@@ -3,26 +3,47 @@ package com.genir.aitweaks.core.features.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.extensions.copy
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.resized
+import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.sign
 
+/** Engine Controller for AI piloted ships. */
 class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
+    private var prevFacing: Float = 0f
+    private var prevHeading: Vector2f = Vector2f()
+
+    /** Values used to decelerate the ship to standstill. */
+    val allStop: Vector2f = Vector2f(Float.MAX_VALUE, Float.MAX_VALUE)
+    val rotationStop: Float = Float.MAX_VALUE
+
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
     data class Limit(val heading: Float, val speed: Float)
 
-    /** Set ship heading towards selected location. Appropriate target
-     * leading is calculated based on estimated target velocity. If ship
-     * is already at 'heading' location, it will match the target velocity.
-     * Limits are used to restrict the velocity, e.g. for collision avoidance
-     * purposes. Returns the calculated expected velocity. */
     fun heading(dt: Float, heading: Vector2f, limits: List<Limit> = listOf()): Vector2f {
-        return super.heading(dt, heading) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
+        if (heading == allStop) return heading(dt, ship.location, Vector2f())
+
+        // Estimate target linear velocity.
+        val vt = (heading - prevHeading) / dt
+        prevHeading = heading.copy
+
+        return heading(dt, heading, vt) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
+    }
+
+    fun facing(dt: Float, facing: Float) {
+        if (facing == rotationStop) return facing(dt, ship.facing, 0f)
+
+        // Estimate target angular velocity.
+        val wt = shortestRotation(prevFacing, facing) / dt
+        prevFacing = facing
+
+        facing(dt, facing, wt)
     }
 
     private fun limitVelocity(dt: Float, toShipFacing: Float, expectedVelocity: Vector2f, absLimits: List<Limit>): Vector2f {

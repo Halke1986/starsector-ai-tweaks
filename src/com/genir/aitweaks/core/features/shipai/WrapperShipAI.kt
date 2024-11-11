@@ -21,7 +21,7 @@ import java.awt.Color
  * Currently, it is used to aim hardpoint weapons on frigates. */
 class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings().createDefaultShipAI(ship, ShipAIConfig())) {
     private val basicShipAI: Obfuscated.BasicShipAI = super.getAI() as Obfuscated.BasicShipAI
-    private val engineController: BasicEngineController = BasicEngineController(ship)
+    private val engineController: EngineController = EngineController(ship)
     private val updateInterval: Interval = defaultAIInterval()
     private var weaponGroup: WeaponGroup = WeaponGroup(ship, listOf())
 

@@ -6,7 +6,6 @@ import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.div
-import com.genir.aitweaks.core.utils.extensions.copy
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.times
@@ -19,34 +18,22 @@ import kotlin.math.*
 import kotlin.random.Random
 
 /**
- * Engine Controller controls the ship heading and facing
+ * Basic Engine Controller controls the ship heading and facing
  * by issuing appropriate engine commands.
  *
  * Note: Due to Starsector combat engine order of operations,
  * the controller works better when called from ship AI, as
  * opposed to every frame combat plugin.
- *
- * heading and facing methods should be called once per frame
- * each frame.
  */
 open class BasicEngineController(val ship: ShipAPI) {
-    private var prevFacing: Float = 0f
-    private var prevHeading: Vector2f = Vector2f()
-
-    /** Values used to decelerate the ship to standstill. */
-    val allStop: Vector2f = Vector2f(Float.MAX_VALUE, Float.MAX_VALUE)
-    val rotationStop: Float = Float.MAX_VALUE
-
     /**
      * Set ship heading towards selected location. Appropriate target
-     * leading is calculated based on estimated target velocity. If the ship
+     * leading is calculated based on provided target velocity. If the ship
      * is already at 'heading' location, it will match the target velocity.
      * `limitVelocity` lambda is used to restrict the velocity, e.g. for
      * collision avoidance purposes. Returns the calculated expected velocity.
      */
-    fun heading(dt: Float, heading: Vector2f, limitVelocity: ((Float, Vector2f) -> Vector2f)? = null): Vector2f {
-        if (heading == allStop) return stop()
-
+    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Float, Vector2f) -> Vector2f)? = null): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val af = ship.acceleration * dt * dt
@@ -62,10 +49,7 @@ open class BasicEngineController(val ship: ShipAPI) {
         val r = Rotation(toShipFacing)
         val d = (heading - ship.location).rotated(r)
         val v = (ship.velocity).rotated(r) * dt
-
-        // Estimate target linear velocity.
-        val vt = (heading - prevHeading).rotated(r)
-        prevHeading = heading.copy
+        val vt = targetVelocity.rotated(r) * dt
 
         // Maximum velocity towards target for both axis of movement.
         // Any higher velocity would lead to overshooting target location.
@@ -85,7 +69,10 @@ open class BasicEngineController(val ship: ShipAPI) {
         // change unit. Stop is applied regardless of distance to
         // target in case the low velocity is the result of a
         // collision avoidance speed limit.
-        if (vec.length < af / 2f) return stop()
+        if (vec.length < af / 2f) {
+            if (!ship.velocity.isZeroVector()) ship.command(DECELERATE)
+            return Vector2f()
+        }
 
         // Proportional thrust required to achieve
         // the expected velocity change.
@@ -113,9 +100,7 @@ open class BasicEngineController(val ship: ShipAPI) {
      * with changing facing values, effectively extrapolating the expected ship
      * facing to the next frame.
      */
-    fun facing(dt: Float, facing: Float) {
-        if (facing == rotationStop && ship.angularVelocity == 0f) return
-
+    fun facing(dt: Float, facing: Float, targetAngularVelocity: Float) {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val w = ship.angularVelocity * dt
@@ -123,14 +108,13 @@ open class BasicEngineController(val ship: ShipAPI) {
         val d = min(abs(w), ship.turnDeceleration * dt * dt) * -sign(w)
 
         // Estimate target angular velocity.
-        val wt = shortestRotation(prevFacing, facing)
-        prevFacing = facing
+        val wt = targetAngularVelocity * dt
 
         // Angular distance between expected facing and ship facing.
         val r = shortestRotation(ship.facing, facing)
 
         // Expected velocity change.
-        val we = if (facing == rotationStop) 0f else sign(r) * vMax(abs(r), a) + wt
+        val we = sign(r) * vMax(abs(r), a) + wt
         val dw = we - w
 
         // Compare each possible movement option
@@ -144,12 +128,6 @@ open class BasicEngineController(val ship: ShipAPI) {
             el < ed -> ship.command(TURN_LEFT)
             else -> Unit // Let the ship decelerate.
         }
-    }
-
-    /** Decelerate the ship to standstill. */
-    private fun stop(): Vector2f {
-        if (!ship.velocity.isZeroVector()) ship.command(DECELERATE)
-        return Vector2f()
     }
 
     /** Calculates the maximum velocity in a given direction to avoid

@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
-import com.genir.aitweaks.core.features.shipai.BasicEngineController
+import com.genir.aitweaks.core.features.shipai.EngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
@@ -16,7 +16,8 @@ import com.genir.aitweaks.core.utils.extensions.resized
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.*
+import java.awt.Color.BLUE
+import java.awt.Color.GREEN
 
 /**
  *
@@ -48,7 +49,7 @@ var expectedFacing = 90f
 const val df = -1f * 60f
 
 class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller: BasicEngineController = BasicEngineController(ship)
+    private val controller = EngineController(ship)
 
     override fun advance(dt: Float) {
         expectedFacing += df * dt
@@ -62,7 +63,7 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
 }
 
 class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller: BasicEngineController = BasicEngineController(ship)
+    private val controller = EngineController(ship)
 
     override fun advance(dt: Float) {
         val toMouse = mousePosition() - ship.location
@@ -106,7 +107,7 @@ fun debugMissilePath(dt: Float) {
 }
 
 class DroneFormationAI(private val drone: ShipAPI, val ship: ShipAPI, private val offset: Vector2f) : BaseEngineControllerAI() {
-    private val controller: BasicEngineController = BasicEngineController(drone)
+    private val controller = EngineController(drone)
 
     override fun advance(dt: Float) {
         val currentOffset = offset.rotated(Rotation(ship.facing))

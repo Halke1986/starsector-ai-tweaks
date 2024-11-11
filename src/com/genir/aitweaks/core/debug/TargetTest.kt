@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.genir.aitweaks.core.features.shipai.BasicEngineController
+import com.genir.aitweaks.core.features.shipai.EngineController
 import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.utils.div
@@ -42,7 +42,7 @@ fun targetTest(dt: Float) {
 }
 
 class ShipAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
-    private val controller: BasicEngineController = BasicEngineController(ship)
+    private val controller = EngineController(ship)
     private val flags = ShipwideAIFlags()
 
     val location = Vector2f(0f, -1000f)
@@ -79,7 +79,7 @@ class ShipAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() 
 }
 
 class TargetAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller: BasicEngineController = BasicEngineController(ship)
+    private val controller = EngineController(ship)
 
     val x = 2000f
     private val y = 0f

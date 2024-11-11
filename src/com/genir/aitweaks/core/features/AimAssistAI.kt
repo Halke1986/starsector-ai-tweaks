@@ -83,7 +83,7 @@ class AimAssistAI : BaseShipAIPlugin() {
         // Control the ship rotation.
         val weaponGroup = WeaponGroup(ship, ship.selectedWeapons.toList())
         val expectedFacing = weaponGroup.attackFacing(ballisticTarget)
-        engineController!!.facing(dt, expectedFacing)
+        engineController!!.facing(dt, expectedFacing, 0f)
     }
 
     private fun aimWeapons(ship: ShipAPI, ballisticTarget: BallisticTarget) {
