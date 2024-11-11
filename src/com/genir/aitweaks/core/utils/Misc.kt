@@ -113,10 +113,24 @@ fun averageFacing(facings: Collection<Float>): Float {
 }
 
 /** Remove ship commands issued by AI or the player. Needs to be executed before Ship.advance() to take effect.*/
-fun clearVanillaCommands(ship: ShipAPI, vararg commands: String) {
+fun clearVanillaCommands(ship: ShipAPI, vararg commands: VanillaShipCommand) {
     val commandWrappers: MutableIterator<Obfuscated.ShipCommandWrapper> = (ship as Obfuscated.Ship).commands.iterator()
     while (commandWrappers.hasNext()) {
         val command: Obfuscated.ShipCommand = commandWrappers.next().shipCommandWrapper_getCommand
-        if (commands.contains(command.name)) commandWrappers.remove()
+
+        if (commands.any { command == Obfuscated.ShipCommand.valueOf(it.name) }) {
+            commandWrappers.remove()
+        }
+
+//        if (commands.contains(command.name)) commandWrappers.remove()
     }
+}
+
+enum class VanillaShipCommand {
+    TURN_LEFT,
+    TURN_RIGHT,
+    STRAFE_LEFT,
+    STRAFE_RIGHT,
+    ACCELERATE,
+    ACCELERATE_BACKWARDS,
 }

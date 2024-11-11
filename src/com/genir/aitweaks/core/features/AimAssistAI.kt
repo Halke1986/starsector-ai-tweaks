@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.features
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.loading.WeaponGroupType
 import com.fs.starfarer.campaign.CampaignEngine
@@ -14,6 +13,9 @@ import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.intercept
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.VanillaKeymap.Action.*
+import com.genir.aitweaks.core.utils.VanillaShipCommand.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.ext.minus
@@ -22,7 +24,6 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
 // TODO setting to disable hardpoint aiming (maybe)
-// TODO setting to highlight target (maybe)
 
 class AimAssistAI : BaseShipAIPlugin() {
     private val keymap = VanillaKeymap()
@@ -45,48 +46,66 @@ class AimAssistAI : BaseShipAIPlugin() {
             !ship.isUnderManualControl -> return
 
             // Is aim assist enabled.
-            !campaignMemory.getBoolean("\$aitweaks_enableAimBot") -> return
+            !CampaignEngine.getInstance().memoryWithoutUpdate.getBoolean("\$aitweaks_enableAimBot") -> return
         }
 
         // Read player input.
-        isFiring = keymap.isKeyDown(VanillaKeymap.Action.SHIP_FIRE)
-        isStrafeMode = keymap.isKeyDown(VanillaKeymap.Action.SHIP_STRAFE_KEY)
+        isFiring = keymap.isKeyDown(SHIP_FIRE)
+        isStrafeMode = keymap.isKeyDown(SHIP_STRAFE_KEY)
 
-        // Select target. If there's no target, weapon leading
-        // will still account for the ship velocity.
+        // Estimate player target selection.
         val target: CombatEntityAPI? = selectTarget()
-        val targetVelocity: Vector2f = target?.timeAdjustedVelocity ?: Vector2f()
-        val ballisticTarget = BallisticTarget(mousePosition(), targetVelocity, 0f)
+        target?.let { Debug.drawCircle(it.location, it.collisionRadius / 2, Color.YELLOW) }
 
-        if (target !== null) {
-            Debug.drawCircle(target.location, target.collisionRadius / 2, Color.YELLOW)
-        }
+        if (isStrafeMode) aimShip(dt, ship, target)
 
-        if (isStrafeMode) aimShip(dt, ship, ballisticTarget)
-        aimWeapons(ship, ballisticTarget)
+        // Override weapon behavior if there is a target.
+        // Otherwise, let vanilla control the weapons.
+        if (target != null) aimWeapons(ship, target)
     }
 
-    private val campaignMemory: MemoryAPI
-        get() = CampaignEngine.getInstance().memoryWithoutUpdate
-
-
-    private fun aimShip(dt: Float, ship: ShipAPI, ballisticTarget: BallisticTarget) {
+    private fun aimShip(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
         // Update engine controller if player ship changed.
         if (ship != prevPlayerShip) {
             prevPlayerShip = ship
             engineController = BasicEngineController(ship)
         }
 
-        // Remove vanilla turn commands.
-        clearVanillaCommands(ship, "TURN_LEFT", "TURN_RIGHT")
+        // Remove vanilla move commands.
+        clearVanillaCommands(ship, TURN_LEFT, TURN_RIGHT, STRAFE_LEFT, STRAFE_RIGHT, ACCELERATE, ACCELERATE_BACKWARDS)
+
+        // Compensate ship movement for the fact the ship
+        // is not necessary facing the target directly.
+        val r = Rotation((mousePosition() - ship.location).facing)
+        val front = Vector2f(1e4f, 0f).rotated(r)
+        val back = Vector2f(-1e4f, 0f).rotated(r)
+        val left = Vector2f(0f, 1e4f).rotated(r)
+        val right = Vector2f(0f, -1e4f).rotated(r)
+
+        var expectedHeading = ship.location.copy
+        if (keymap.isKeyDown(SHIP_ACCELERATE)) expectedHeading += front
+        if (keymap.isKeyDown(SHIP_ACCELERATE_BACKWARDS)) expectedHeading += back
+        if (keymap.isKeyDown(SHIP_TURN_LEFT) || keymap.isKeyDown(SHIP_STRAFE_LEFT_NOTURN)) expectedHeading += left
+        if (keymap.isKeyDown(SHIP_TURN_RIGHT) || keymap.isKeyDown(SHIP_STRAFE_RIGHT_NOTURN)) expectedHeading += right
+
+        engineController!!.heading(dt, expectedHeading, Vector2f())
 
         // Control the ship rotation.
         val weaponGroup = WeaponGroup(ship, ship.selectedWeapons.toList())
-        val expectedFacing = weaponGroup.attackFacing(ballisticTarget)
-        engineController!!.facing(dt, expectedFacing, 0f)
+        if (target != null) {
+            // Rotate ship to face the target intercept with the selected weapon group.
+            val expectedFacing = weaponGroup.attackFacing(BallisticTarget(mousePosition(), target.velocity, 0f))
+            val facingChange = angularVelocity(target.location - ship.location, target.velocity - ship.velocity)
+            engineController!!.facing(dt, expectedFacing, facingChange)
+        } else {
+            // If there's no target, rotate the ship to face the mouse position with the selected weapon group.
+            val expectedFacing = (mousePosition() - ship.location).facing - weaponGroup.defaultFacing
+            engineController!!.facing(dt, expectedFacing, 0f)
+        }
     }
 
-    private fun aimWeapons(ship: ShipAPI, ballisticTarget: BallisticTarget) {
+    private fun aimWeapons(ship: ShipAPI, target: CombatEntityAPI) {
+        val ballisticTarget = BallisticTarget(mousePosition(), target.velocity, 0f)
         val selectedWeapons: Set<WeaponAPI> = ship.selectedWeapons
         val aimableWeapons: Set<WeaponAPI> = ship.nonAutofireWeapons + selectedWeapons
 

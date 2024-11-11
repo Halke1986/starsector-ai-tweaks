@@ -41,6 +41,9 @@ var prevToTargetFacing = 0f
 internal fun debug(dt: Float) {
     val ship = Global.getCombatEngine().playerShip ?: return
 
+//    Debug.drawEngineLines(ship)
+//    Debug.drawLine(ship.location, ship.location + ship.velocity, GREEN)
+
 //    Debug.drawLine(Bounds.closestPoint(mousePosition(), ship), mousePosition(), CYAN)
 //    Debug.drawBounds(ship, YELLOW)
 }

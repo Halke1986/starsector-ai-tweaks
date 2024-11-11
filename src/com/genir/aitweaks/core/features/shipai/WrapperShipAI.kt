@@ -11,6 +11,8 @@ import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.Interval
+import com.genir.aitweaks.core.utils.VanillaShipCommand.TURN_LEFT
+import com.genir.aitweaks.core.utils.VanillaShipCommand.TURN_RIGHT
 import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.extensions.*
@@ -61,7 +63,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         if (rangeThreshold * 1.75f < (target.location - ship.location).length) return
 
         // Remove vanilla turn commands.
-        clearVanillaCommands(ship, "TURN_LEFT", "TURN_RIGHT")
+        clearVanillaCommands(ship, TURN_LEFT, TURN_RIGHT)
 
         // Control the ship rotation.
         val ballisticTarget = BallisticTarget.entity(target)
