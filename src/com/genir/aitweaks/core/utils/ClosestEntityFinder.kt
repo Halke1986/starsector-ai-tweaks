@@ -9,9 +9,10 @@ import com.genir.aitweaks.core.features.shipai.autofire.BallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.Hit
 import com.genir.aitweaks.core.features.shipai.autofire.analyzeAllyHit
 import com.genir.aitweaks.core.features.shipai.autofire.analyzeHit
-import com.genir.aitweaks.core.utils.extensions.get
+import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import com.genir.aitweaks.core.utils.extensions.root
 import com.genir.aitweaks.core.utils.extensions.totalRange
+import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 
 fun closestEntityFinder(
@@ -44,4 +45,8 @@ fun missileGrid(): CollisionGridAPI = Global.getCombatEngine().missileGrid
 
 fun asteroidGrid(): CollisionGridAPI = Global.getCombatEngine().asteroidGrid
 
-fun shipSequence(p: Vector2f, r: Float): Sequence<ShipAPI> = shipGrid().get<ShipAPI>(p, r)
+/** Get filtered entities of a given type within radius r of the point p. */
+inline fun <reified T : CombatEntityAPI> CollisionGridAPI.get(p: Vector2f, r: Float, crossinline filter: (T) -> Boolean): Sequence<T> {
+    val entities = getCheckIterator(p, r * 2, r * 2).asSequence().filterIsInstance<T>()
+    return entities.filter { filter(it) && (it.location - p).lengthSquared <= r * r }
+}

@@ -253,7 +253,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     }
 
     private fun updateThreats() {
-        threats = shipSequence(ship.location, stats.threatSearchRange).filter { isThreat(it) }.toSet()
+        threats = shipGrid().get<ShipAPI>(ship.location, stats.threatSearchRange) { isThreat(it) }.toSet()
     }
 
     /** The threat vector should be updated every frame, as it is used
@@ -343,7 +343,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
             // Try to find a target near move location.
             assignmentLocation != null -> {
-                shipSequence(assignmentLocation!!, 200f).firstOrNull { isThreat(it) }
+                shipGrid().get<ShipAPI>(assignmentLocation!!, 200f) { isThreat(it) }.firstOrNull()
             }
 
             else -> null

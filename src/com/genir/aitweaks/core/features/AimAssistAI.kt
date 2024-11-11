@@ -156,7 +156,7 @@ class AimAssistAI : BaseShipAIPlugin() {
 //        Debug.print["zoom"] = Global.getCombatEngine().viewport.viewMult
 //        Debug.drawCircle(mousePosition(), searchRadius)
 
-        val ships: Sequence<ShipAPI> = shipGrid().get<ShipAPI>(mousePosition(), searchRadius).filter {
+        val ships: Sequence<ShipAPI> = shipGrid().get<ShipAPI>(mousePosition(), searchRadius) {
             when {
                 !it.isValidTarget -> false
                 it.owner == 0 -> false
@@ -168,7 +168,7 @@ class AimAssistAI : BaseShipAIPlugin() {
 
         closestTarget(ships)?.let { return it }
 
-        val hulks = shipGrid().get<ShipAPI>(mousePosition(), searchRadius).filter {
+        val hulks: Sequence<ShipAPI> = shipGrid().get(mousePosition(), searchRadius) {
             when {
                 it.isExpired -> false
                 it.owner != 100 -> false
@@ -180,7 +180,7 @@ class AimAssistAI : BaseShipAIPlugin() {
 
         closestTarget(hulks)?.let { return it }
 
-        val asteroids: Sequence<CombatAsteroidAPI> = asteroidGrid().get<CombatAsteroidAPI>(mousePosition(), searchRadius).filter {
+        val asteroids: Sequence<CombatAsteroidAPI> = asteroidGrid().get(mousePosition(), searchRadius) {
             when {
                 it.isExpired -> false
 
