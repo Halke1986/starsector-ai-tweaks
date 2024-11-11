@@ -21,10 +21,6 @@ import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
-// TODO Hold target
-// TODO Target fighters
-// TODO Adaptable target selection radius
-
 // TODO setting to disable hardpoint aiming (maybe)
 // TODO setting to highlight target (maybe)
 
@@ -153,14 +149,21 @@ class AimAssistAI : BaseShipAIPlugin() {
     private fun selectTarget(): CombatEntityAPI? {
         val searchRadius = 500f
 
-//        Debug.print["zoom"] = Global.getCombatEngine().viewport.viewMult
-//        Debug.drawCircle(mousePosition(), searchRadius)
-
-        val ships: Sequence<ShipAPI> = shipGrid().get<ShipAPI>(mousePosition(), searchRadius) {
+        // If mouse is over ship bounds, consider it the target.
+        shipGrid().get<ShipAPI>(mousePosition(), searchRadius) {
             when {
                 !it.isValidTarget -> false
                 it.owner == 0 -> false
                 it.isFighter -> false
+
+                else -> CollisionUtils.isPointWithinBounds(mousePosition(), it)
+            }
+        }.firstOrNull()?.let { return it }
+
+        val ships: Sequence<ShipAPI> = shipGrid().get(mousePosition(), searchRadius) {
+            when {
+                !it.isValidTarget -> false
+                it.owner == 0 -> false
 
                 else -> true
             }
@@ -192,26 +195,17 @@ class AimAssistAI : BaseShipAIPlugin() {
     }
 
     private fun closestTarget(entities: Sequence<CombatEntityAPI>): CombatEntityAPI? {
-        val targetEnvelope = 150f
-        val closeEntities: Sequence<CombatEntityAPI> = entities.filter {
-            (it.location - mousePosition()).length <= (it.collisionRadius + targetEnvelope)
+        val distances = entities.map { entity ->
+            val closestPoint = if (!entity.isShip) entity.location
+            else Bounds.closestPoint(mousePosition(), entity as ShipAPI)
+            Pair(entity, (closestPoint - mousePosition()).length)
         }
 
-        var closestEntity: CombatEntityAPI? = null
-        var closestDist = Float.MAX_VALUE
+        val closest = distances.minWithOrNull(compareBy { it.second }) ?: return null
+        val targetEnvelope = 170f * Global.getCombatEngine().viewport.viewMult
 
-        closeEntities.forEach {
-            // If mouse is over ship bounds, consider it the target.
-            if (CollisionUtils.isPointWithinBounds(mousePosition(), it)) return it
-
-            val dist = (it.location - mousePosition()).lengthSquared
-            if (dist < closestDist) {
-                closestDist = dist
-                closestEntity = it
-            }
-        }
-
-        return closestEntity
+        return if (closest.second > targetEnvelope) null
+        else closest.first
     }
 
     private val WeaponAPI.shouldAim: Boolean
