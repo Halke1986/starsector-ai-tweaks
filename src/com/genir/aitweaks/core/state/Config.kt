@@ -14,6 +14,7 @@ class Config {
     val enableCustomAI: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_custom_ship_ai")!!
     val enableFleetCohesion: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai")!!
     val enabledStaggeredFire: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_staggered_fire")!!
+    val aimAssistRotateShip: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_aim_bot_rotate_ship")!!
 
     val aiPersonality: String? = LunaSettings.getString("aitweaks", "aitweaks_ai_core_personality")
 

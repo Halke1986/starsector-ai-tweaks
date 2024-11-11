@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.features.shipai.WeaponGroup
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.intercept
+import com.genir.aitweaks.core.state.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.VanillaKeymap.Action.*
@@ -22,8 +23,6 @@ import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-
-// TODO setting to disable hardpoint aiming (maybe)
 
 class AimAssistAI : BaseShipAIPlugin() {
     private val keymap = VanillaKeymap()
@@ -57,7 +56,7 @@ class AimAssistAI : BaseShipAIPlugin() {
         val target: CombatEntityAPI? = selectTarget()
         target?.let { Debug.drawCircle(it.location, it.collisionRadius / 2, Color.YELLOW) }
 
-        if (isStrafeMode) aimShip(dt, ship, target)
+        if (isStrafeMode && state.config.aimAssistRotateShip) aimShip(dt, ship, target)
 
         // Override weapon behavior if there is a target.
         // Otherwise, let vanilla control the weapons.
