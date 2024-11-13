@@ -2,7 +2,6 @@ package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.features.shipai.autofire.SyncState
@@ -13,7 +12,6 @@ import com.genir.aitweaks.core.utils.extensions.customAI
 import com.genir.aitweaks.core.utils.extensions.isMissile
 import com.genir.aitweaks.core.utils.extensions.isPD
 import org.lwjgl.util.vector.Vector2f
-import java.lang.reflect.Field
 
 class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
 
@@ -76,19 +74,6 @@ class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
 
             state.weapons++
             autofireAI.syncState = state
-        }
-    }
-
-    companion object {
-        /** Replace vanilla autofire manager with AI Tweaks adapter. */
-        fun inject(ship: ShipAPI, attackModule: AttackAIModule) {
-            // Find the obfuscated AttackAIModule.autofireManager field.
-            val fields: Array<Field> = AttackAIModule::class.java.declaredFields
-            val field = fields.first { it.type.isInterface && it.type.methods.size == 1 }
-            field.setAccessible(true)
-
-            if (AutofireManager::class.java.isInstance(field.get(attackModule))) return
-            field.set(attackModule, AutofireManager(ship))
         }
     }
 }

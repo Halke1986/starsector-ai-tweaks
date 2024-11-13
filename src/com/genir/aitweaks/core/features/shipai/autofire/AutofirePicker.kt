@@ -4,10 +4,10 @@ import com.fs.starfarer.api.PluginPick
 import com.fs.starfarer.api.campaign.CampaignPlugin
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.loading.MissileSpecAPI
 
 class AutofirePicker {
     private val autofireBlacklist = setOf(
-        "fragbomb", // Stinger-class Proximity Mine is classified as a ballistic weapon, but works like a missile.
         "cryoflux", // Cryoflamer has a custom script that makes the projectiles incompatible with ballistic calculations.
     )
 
@@ -21,6 +21,9 @@ class AutofirePicker {
     fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
         val ai = when {
             weapon.type == WeaponAPI.WeaponType.MISSILE -> null
+
+            // Missile weapons pretending to be ballistics.
+            weapon.spec.projectileSpec is MissileSpecAPI -> null
 
             autofireBlacklist.contains(weapon.id) -> null
 

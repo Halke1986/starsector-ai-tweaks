@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
-import com.genir.aitweaks.core.features.shipai.AutofireManager
+import com.genir.aitweaks.core.features.shipai.AutofireManagerOverride
 import com.genir.aitweaks.core.utils.extensions.facing
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
@@ -34,7 +34,7 @@ class Vanilla(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
         this.avoidMissiles = MethodHandles.lookup().unreflect(avoidMissiles)
 
         // Ensure AI Tweaks is in control of autofire management.
-        AutofireManager.inject(ship, basicShipAI.attackAI)
+        AutofireManagerOverride.inject(ship, basicShipAI.attackAI)
     }
 
     // TODO method handles are slow
