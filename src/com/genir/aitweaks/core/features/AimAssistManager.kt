@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.campaign.CampaignEngine
-import com.genir.aitweaks.core.state.state
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.VanillaKeymap
 
 class AimAssistManager : BaseEveryFrameCombatPlugin() {

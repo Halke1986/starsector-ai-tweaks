@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.core.state.state
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.extensions.isAutomated
 
 /** Overriding automated ships AI and captain personality.

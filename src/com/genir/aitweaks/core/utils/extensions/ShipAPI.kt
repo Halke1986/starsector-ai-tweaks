@@ -104,14 +104,3 @@ val ShipAPI.isUnderManualControl: Boolean
 
 val ShipAPI.allGroupedWeapons: List<WeaponAPI>
     get() = weaponGroupsCopy.flatMap { it.weaponsCopy }
-
-val ShipAPI.boundsRadius: Float
-    get() {
-        val key = "aitweaks_bounds_radius"
-        customData[key]?.let { return it as Float }
-
-        val newRadius = exactBounds.origSegments.flatMap { listOf(it.p1, it.p2) }.maxOfOrNull { it.length } ?: 0f
-        setCustomData(key, newRadius)
-
-        return newRadius
-    }

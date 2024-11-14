@@ -4,7 +4,7 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
-import com.genir.aitweaks.core.state.state
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
 import com.genir.aitweaks.core.utils.Grid
@@ -147,7 +147,7 @@ class UpdateTarget(
         val obstacles = Grid.ships(weapon.location, weapon.totalRange).filter { it.root != weapon.ship.root && !it.isFighter }
 
         return obstacles.map { obstacle ->
-            val target = BallisticTarget(obstacle.location, obstacle.velocity, obstacle.boundsRadius * 0.8f)
+            val target = BallisticTarget(obstacle.location, obstacle.velocity, state.bounds.radius(obstacle) * 0.8f)
             val dist = intercept(weapon, target, params).length
             val arc = interceptArc(weapon, target, params)
 

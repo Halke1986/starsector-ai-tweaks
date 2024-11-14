@@ -23,7 +23,7 @@ class AutofirePicker {
             weapon.type == WeaponAPI.WeaponType.MISSILE -> null
 
             // Missile weapons pretending to be ballistics.
-            weapon.spec.projectileSpec is MissileSpecAPI -> null
+            weapon.spec?.projectileSpec is MissileSpecAPI -> null
 
             autofireBlacklist.contains(weapon.id) -> null
 

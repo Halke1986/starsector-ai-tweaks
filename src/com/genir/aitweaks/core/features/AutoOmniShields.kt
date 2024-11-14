@@ -8,7 +8,7 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.Misc
 import com.fs.starfarer.campaign.CampaignEngine
 import com.fs.starfarer.combat.CombatState.AUTO_OMNI_SHIELDS
-import com.genir.aitweaks.core.state.state
+import com.genir.aitweaks.core.state.State.Companion.state
 import org.lazywizard.lazylib.opengl.DrawUtils.drawArc
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color

@@ -8,6 +8,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.features.shipai.EngineController
 import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.facing
@@ -36,16 +37,50 @@ import java.awt.Color.GREEN
  *
  */
 
-var prevToTargetFacing = 0f
-
 internal fun debug(dt: Float) {
     val ship = Global.getCombatEngine().playerShip ?: return
+    val ships = Global.getCombatEngine().ships.filter { !it.isFighter }
 
-//    Debug.drawEngineLines(ship)
-//    Debug.drawLine(ship.location, ship.location + ship.velocity, GREEN)
+    ships.forEach { obstacle ->
 
-//    Debug.drawLine(Bounds.closestPoint(mousePosition(), ship), mousePosition(), CYAN)
-//    Debug.drawBounds(ship, YELLOW)
+        Debug.drawBounds(obstacle)
+
+        if (state.bounds.isPointWithin(mousePosition(), obstacle)) {
+            Debug.drawBounds(obstacle, BLUE)
+        }
+
+
+//        Debug.drawLine(state.bounds.closestPoint(mousePosition(), obstacle), mousePosition())
+    }
+
+//    val v = unitVector((mousePosition() - ship.location).facing) * 10f
+//
+//    val collisions = ships.mapNotNull { obstacle ->
+//        if (obstacle == ship) return@mapNotNull null
+//
+//        Debug.drawBounds(obstacle, YELLOW)
+//
+//        val p = ship.location - obstacle.location
+//        val collision = state.bounds.collision(p, v, obstacle) ?: return@mapNotNull null
+//
+//        Pair(obstacle, collision)
+//    }
+//
+//    collisions.forEach {
+//        Debug.print[it.first] = "${it.first.hullSpec.hullId} ${it.second}"
+//    }
+//
+//    if (collisions.isEmpty()) {
+//        Debug.drawLine(ship.location, mousePosition())
+//    } else {
+//        val (obstacle, dist) = collisions.minWithOrNull(compareBy { it.second })!!
+//        val collision = ship.location + v * dist
+//
+//        if ((collision - ship.location).length <= (mousePosition() - ship.location).length) {
+//            Debug.drawBounds(obstacle, BLUE)
+//            Debug.drawLine(ship.location, ship.location + v * dist)
+//        }
+//    }
 }
 
 var expectedFacing = 90f

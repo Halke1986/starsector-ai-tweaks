@@ -9,7 +9,7 @@ import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.state.state
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.VanillaShipCommand.TURN_LEFT
 import com.genir.aitweaks.core.utils.VanillaShipCommand.TURN_RIGHT

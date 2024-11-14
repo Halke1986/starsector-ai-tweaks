@@ -5,12 +5,15 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.features.FleetCohesion
+import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.VanillaKeymap
 
-// Global combat state.
-var state: State = State()
-
 class State : BaseEveryFrameCombatPlugin() {
+    companion object {
+        // Global combat state.
+        var state: State = State()
+    }
+
     init {
         // Register state to be used by plugins init method.
         state = this
@@ -18,6 +21,7 @@ class State : BaseEveryFrameCombatPlugin() {
 
     val config: Config = Config()
     val vanillaKeymap = VanillaKeymap()
+    val bounds = Bounds()
     var frameCount: Int = 0
 
     val fleetCohesion: Array<FleetCohesion> = arrayOf(FleetCohesion(0), FleetCohesion(1))

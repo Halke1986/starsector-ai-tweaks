@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.command
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.*
@@ -248,7 +249,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
     /** Distance along burn vector at which collision with target bounds occurs. */
     private fun boundsCollision(position: Vector2f, velocity: Vector2f, target: ShipAPI): Float? {
-        val distanceRelative = Bounds.collision(position, velocity, target)
+        val distanceRelative = state.bounds.collision(position, velocity, target)
         return distanceRelative?.let { it * velocity.length }
     }
 }

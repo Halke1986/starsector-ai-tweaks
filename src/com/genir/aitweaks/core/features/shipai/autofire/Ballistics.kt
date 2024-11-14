@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.features.shipai.autofire
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
@@ -106,7 +107,7 @@ fun willHitCautious(weapon: WeaponAPI, target: BallisticTarget, params: Ballisti
  * given current weapon facing. Collision range is returned, null if no collision. */
 fun willHitBounds(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): Float? {
     val (p, v) = projectileCoords(weapon, BallisticTarget.entity(target), params)
-    return Bounds.collision(p, v, target)
+    return state.bounds.collision(p, v, target)
 }
 
 /** Target location and velocity in weapon frame of reference. */

@@ -15,13 +15,12 @@ import com.genir.aitweaks.core.features.shipai.WeaponGroup
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.intercept
-import com.genir.aitweaks.core.state.state
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.VanillaKeymap.Action.*
 import com.genir.aitweaks.core.utils.VanillaShipCommand.*
 import com.genir.aitweaks.core.utils.extensions.*
-import org.lazywizard.lazylib.CollisionUtils
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
@@ -167,7 +166,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
                 it.owner == 0 -> false
                 it.isFighter -> false
 
-                else -> CollisionUtils.isPointWithinBounds(mousePosition(), it)
+                else -> state.bounds.isPointWithin(mousePosition(), it)
             }
         }.firstOrNull()?.let { return it }
 
@@ -208,7 +207,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     private fun closestTarget(entities: Sequence<CombatEntityAPI>): CombatEntityAPI? {
         val distances = entities.map { entity ->
             val closestPoint = if (!entity.isShip) entity.location
-            else Bounds.closestPoint(mousePosition(), entity as ShipAPI)
+            else state.bounds.closestPoint(mousePosition(), entity as ShipAPI)
             Pair(entity, (closestPoint - mousePosition()).length)
         }
 

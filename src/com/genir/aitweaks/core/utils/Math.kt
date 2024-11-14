@@ -57,21 +57,32 @@ fun solve(pv: Pair<Vector2f, Vector2f>, q: Float, w: Float, r: Float, cosA: Floa
     }
 }
 
+fun dotProduct(a: Vector2f, b: Vector2f): Float {
+    return a.x * b.x + a.y * b.y
+}
+
+/** Calculates the z-axis component of the cross product of two vectors. */
+fun crossProductZ(a: Vector2f, b: Vector2f): Float {
+    return a.x * b.y - a.y * b.x
+}
+
 /** Time after which point p travelling with velocity v will be the closes to (0,0). */
 fun timeToOrigin(p: Vector2f, v: Vector2f): Float {
     return -dotProduct(p, v) / v.lengthSquared
 }
 
-/**
- *  Find the distance between point (0,0)
- *  and point p traveling with velocity v.
- *
- *  Returns null if v points away from (0,0).
- */
-fun distanceToOrigin(p: Vector2f, v: Vector2f): Float? {
+/** Calculates the minimum distance between a point `p`, moving with velocity `v`, and the origin (0,0).
+ *  If the velocity vector `v` points away from the origin, the current distance of point `p` is returned. */
+fun distanceToOrigin(p: Vector2f, v: Vector2f): Float {
+    // return abs(crossProductZ(p, v)) / v.length
     val t = timeToOrigin(p, v)
-    return if (t >= 0) (p + v * t).length
-    else null
+    return (p + v * max(0f, t)).length
+}
+
+/** Angular velocity of point 'p' moving with a linear
+ * velocity 'v' in relation to the origin (0, 0). */
+fun angularVelocity(p: Vector2f, v: Vector2f): Float {
+    return crossProductZ(p, v) / p.lengthSquared * RADIANS_TO_DEGREES
 }
 
 /** Vector projection of 'a' onto 'b' */
@@ -92,15 +103,6 @@ fun vectorProjectionLength(a: Vector2f, b: Vector2f): Float {
     return dotProduct(p, b).sign * p.length
 }
 
-fun dotProduct(a: Vector2f, b: Vector2f): Float {
-    return a.x * b.x + a.y * b.y
-}
-
-/** Calculates the z-axis component of the cross product of two vectors. */
-fun crossProductZ(a: Vector2f, b: Vector2f): Float {
-    return a.x * b.y - a.y * b.x
-}
-
 /** Angular size of a circle, as observed from point (0,0). */
 fun angularSize(distanceSqr: Float, radius: Float): Float {
     val radiusSqr = radius * radius
@@ -108,12 +110,6 @@ fun angularSize(distanceSqr: Float, radius: Float): Float {
 
     val adjacent = sqrt(distanceSqr - radius * radius)
     return atan(radius / adjacent) * RADIANS_TO_DEGREES * 2f
-}
-
-/** Angular velocity of point 'p' moving with a linear
- * velocity 'v' in relation to the origin (0, 0). */
-fun angularVelocity(p: Vector2f, v: Vector2f): Float {
-    return crossProductZ(p, v) / p.lengthSquared * RADIANS_TO_DEGREES
 }
 
 /** Calculates the points of tangency for a circle centered at point `p`
