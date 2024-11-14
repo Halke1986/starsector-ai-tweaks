@@ -14,7 +14,6 @@ import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.closestEntity
 import com.genir.aitweaks.core.utils.extensions.*
-import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 

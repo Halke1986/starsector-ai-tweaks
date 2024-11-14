@@ -8,14 +8,9 @@ import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.genir.aitweaks.core.features.shipai.*
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.extensions.addLength
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.resized
-import com.genir.aitweaks.core.utils.extensions.root
+import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lazywizard.lazylib.ext.isZeroVector
-import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
 

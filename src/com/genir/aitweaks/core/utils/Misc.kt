@@ -10,13 +10,9 @@ import com.genir.aitweaks.core.features.shipai.autofire.BallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.Hit
 import com.genir.aitweaks.core.features.shipai.autofire.analyzeAllyHit
 import com.genir.aitweaks.core.features.shipai.autofire.analyzeHit
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.lengthSquared
-import com.genir.aitweaks.core.utils.extensions.root
-import com.genir.aitweaks.core.utils.extensions.totalRange
+import com.genir.aitweaks.core.utils.extensions.*
 import org.json.JSONObject
-import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
+
 import org.lwjgl.util.vector.Vector2f
 
 fun shieldUptime(shield: ShieldAPI?): Float {

@@ -7,6 +7,9 @@ import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.sqrt
 
+operator fun Vector2f.plus(other: Vector2f): Vector2f = Vector2f(x + other.x, y + other.y)
+operator fun Vector2f.minus(other: Vector2f): Vector2f = Vector2f(x - other.x, y - other.y)
+
 fun Vector2f.resized(length: Float): Vector2f {
     if (isZeroVector()) return Vector2f()
     val scale = length / this.length

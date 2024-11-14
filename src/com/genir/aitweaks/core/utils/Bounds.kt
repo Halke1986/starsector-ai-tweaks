@@ -5,8 +5,8 @@ import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.lengthSquared
-import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
+import com.genir.aitweaks.core.utils.extensions.minus
+import com.genir.aitweaks.core.utils.extensions.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.Float.Companion.MAX_VALUE
 import kotlin.math.min

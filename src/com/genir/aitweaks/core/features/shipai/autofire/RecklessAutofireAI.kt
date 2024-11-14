@@ -6,9 +6,9 @@ import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.HULL
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.utils.extensions.isValidTarget
 import com.genir.aitweaks.core.utils.extensions.length
+import com.genir.aitweaks.core.utils.extensions.minus
 import com.genir.aitweaks.core.utils.extensions.totalRange
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
-import org.lazywizard.lazylib.ext.minus
 
 /** Specialized AutofireAI implementation for weapons that are most
  * effective when very trigger-happy. The AI will fire even if it

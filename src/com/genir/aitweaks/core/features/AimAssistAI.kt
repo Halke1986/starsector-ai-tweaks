@@ -21,8 +21,6 @@ import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.VanillaKeymap.Action.*
 import com.genir.aitweaks.core.utils.VanillaShipCommand.*
 import com.genir.aitweaks.core.utils.extensions.*
-import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 

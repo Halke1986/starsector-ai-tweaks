@@ -11,11 +11,7 @@ import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.resized
-import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
+import com.genir.aitweaks.core.utils.extensions.*
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
 import java.awt.Color.GREEN

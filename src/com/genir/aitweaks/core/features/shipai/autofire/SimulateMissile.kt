@@ -7,15 +7,10 @@ import com.fs.starfarer.api.combat.ShipHullSpecAPI.EngineSpecAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.utils.div
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.lengthSquared
-import com.genir.aitweaks.core.utils.extensions.resized
+import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.getShortestRotation
 import com.genir.aitweaks.core.utils.times
 import com.genir.aitweaks.core.utils.unitVector
-import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 

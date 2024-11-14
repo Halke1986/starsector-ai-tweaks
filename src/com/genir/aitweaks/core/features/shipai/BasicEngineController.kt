@@ -7,12 +7,12 @@ import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.length
+import com.genir.aitweaks.core.utils.extensions.minus
+import com.genir.aitweaks.core.utils.extensions.plus
 import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.ext.clampLength
 import org.lazywizard.lazylib.ext.isZeroVector
-import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 import kotlin.random.Random

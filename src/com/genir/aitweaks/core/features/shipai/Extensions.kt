@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.features.shipai
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shortestRotation
-import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 

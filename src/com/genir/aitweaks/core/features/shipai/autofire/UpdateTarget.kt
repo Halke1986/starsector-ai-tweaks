@@ -10,7 +10,6 @@ import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
 import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shortestRotation
-import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 

@@ -16,7 +16,7 @@ import com.genir.aitweaks.core.utils.VanillaShipCommand.TURN_RIGHT
 import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.extensions.*
-import org.lazywizard.lazylib.ext.minus
+
 import java.awt.Color
 
 /** Ship AI implementation that wraps around vanilla BasicShipAI and overrides certain decisions.

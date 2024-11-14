@@ -13,8 +13,6 @@ import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.log
 import com.genir.aitweaks.core.utils.quad
 import com.genir.aitweaks.core.utils.times
-import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min

@@ -8,9 +8,9 @@ import com.genir.aitweaks.core.features.shipai.autofire.intercept
 import com.genir.aitweaks.core.utils.averageFacing
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.isAngleInArc
+import com.genir.aitweaks.core.utils.extensions.minus
 import com.genir.aitweaks.core.utils.extensions.sumOf
 import com.genir.aitweaks.core.utils.shortestRotation
-import org.lazywizard.lazylib.ext.minus
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

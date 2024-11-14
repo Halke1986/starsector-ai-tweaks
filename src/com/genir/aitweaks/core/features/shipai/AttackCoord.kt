@@ -6,13 +6,9 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.features.shipai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.utils.angularSize
-import com.genir.aitweaks.core.utils.extensions.customShipAI
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.resized
+import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.unitVector
-import org.lazywizard.lazylib.ext.minus
-import org.lazywizard.lazylib.ext.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
