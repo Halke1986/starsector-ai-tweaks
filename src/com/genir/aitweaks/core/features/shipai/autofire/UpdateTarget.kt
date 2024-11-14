@@ -5,8 +5,11 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.state.state
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
+import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.extensions.*
+import com.genir.aitweaks.core.utils.shortestRotation
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
@@ -44,15 +47,15 @@ class UpdateTarget(
     private fun selectAsteroid(): CombatEntityAPI? {
         val inViewport = { location: Vector2f -> Global.getCombatEngine().viewport.isNearViewport(location, 0f) }
         if (!inViewport(weapon.location)) return null
-        return selectEntity(asteroidGrid()) { it is CombatAsteroidAPI && inViewport(it.location) }
+        return selectEntity(CombatAsteroidAPI::class.java) { inViewport(it.location) }
     }
 
     private fun selectMissile(): CombatEntityAPI? {
-        return selectEntity(missileGrid()) { it is MissileAPI && (!it.isFlare || !weapon.ignoresFlares) }
+        return selectEntity(MissileAPI::class.java) { it is MissileAPI && (!it.isFlare || !weapon.ignoresFlares) }
     }
 
     private fun selectFighter(): CombatEntityAPI? {
-        return selectEntity(shipGrid()) { it is ShipAPI && it.isFighter }
+        return selectEntity(ShipAPI::class.java) { it.isFighter }
     }
 
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
@@ -79,19 +82,15 @@ class UpdateTarget(
         if (selectPriorityTarget) return priorityTarget
 
         // Select alternative target.
-        return selectEntity(shipGrid()) { it is ShipAPI && (!it.isFighter || alsoFighter) }
+        return selectEntity(ShipAPI::class.java) { !it.isFighter || alsoFighter }
     }
 
-    private fun selectEntity(grid: CollisionGridAPI, isTargetAcceptable: (CombatEntityAPI) -> Boolean): CombatEntityAPI? {
-        val approve = { it: CombatEntityAPI? -> it != null && isTargetAcceptable(it) && isTargetAcceptableGeneric(it) }
-
+    private fun selectEntity(c: Class<*>, filter: (CombatEntityAPI) -> Boolean): CombatEntityAPI? {
         // Try tracking the current target.
-        if (approve(current)) return current
+        if (current != null && c.isInstance(current) && filter(current) && isTargetAcceptable(current)) return current
 
-        // Find the closest enemy entity that can be tracked by the weapon.
-        return closestEntityFinder(weapon.location, weapon.totalRange, grid) {
-            if (!approve(it)) return@closestEntityFinder null
-
+        val opportunities = Grid.entities(c, weapon.location, weapon.totalRange)
+        val evaluated = opportunities.filter { filter(it) && isTargetAcceptable(it) }.map {
             // Evaluate the target based on angle and distance.
             val target = BallisticTarget.entity(it)
             val angle = shortestRotation((target.location - weapon.location).facing, weapon.currAngle) * DEGREES_TO_RADIANS
@@ -102,11 +101,13 @@ class UpdateTarget(
             val dist = intercept(weapon, target, params).length
             val evalDist = (dist / weapon.totalRange)
 
-            Pair(evalAngle + evalDist, it)
-        } as? CombatEntityAPI
+            Pair(it, evalAngle + evalDist)
+        }
+
+        return evaluated.minWithOrNull(compareBy { it.second })?.first
     }
 
-    private fun isTargetAcceptableGeneric(target: CombatEntityAPI): Boolean {
+    private fun isTargetAcceptable(target: CombatEntityAPI): Boolean {
         val ballisticTarget = BallisticTarget.entity(target)
 
         return when {
@@ -133,8 +134,7 @@ class UpdateTarget(
     }
 
     private fun getObstacleList(): List<Obstacle> {
-        if (obstacleList == null)
-            obstacleList = makeObstacleList()
+        if (obstacleList == null) obstacleList = makeObstacleList()
 
         return obstacleList!!
     }
@@ -144,9 +144,7 @@ class UpdateTarget(
     private data class Obstacle(val arc: Arc, val dist: Float, val origin: CombatEntityAPI)
 
     private fun makeObstacleList(): List<Obstacle> {
-        val radius = weapon.totalRange
-        val ships = shipGrid().getCheckIterator(weapon.location, radius * 2.0f, radius * 2.0f).asSequence()
-        val obstacles = ships.filterIsInstance<ShipAPI>().filter { it.root != weapon.ship.root && !it.isFighter }
+        val obstacles = Grid.ships(weapon.location, weapon.totalRange).filter { it.root != weapon.ship.root && !it.isFighter }
 
         return obstacles.map { obstacle ->
             val target = BallisticTarget(obstacle.location, obstacle.velocity, obstacle.boundsRadius * 0.8f)

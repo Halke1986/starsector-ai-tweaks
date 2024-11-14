@@ -7,6 +7,7 @@ import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.Method
 
+// TODO compile
 class VanillaKeymap {
     private val isKeyDown: MethodHandle
     private val actions: Map<String, Any>

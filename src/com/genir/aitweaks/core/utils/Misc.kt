@@ -4,9 +4,16 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.Obfuscated
+import com.genir.aitweaks.core.features.shipai.autofire.BallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.Hit
+import com.genir.aitweaks.core.features.shipai.autofire.analyzeAllyHit
+import com.genir.aitweaks.core.features.shipai.autofire.analyzeHit
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.lengthSquared
+import com.genir.aitweaks.core.utils.extensions.root
+import com.genir.aitweaks.core.utils.extensions.totalRange
 import org.json.JSONObject
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -89,6 +96,28 @@ fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Float {
     return shortestRotation((from - pivot).facing, (to - pivot).facing)
 }
 
+fun firstShipAlongLineOfFire(weapon: WeaponAPI, params: BallisticParams): Hit? {
+    val obstacles = Grid.ships(weapon.location, weapon.totalRange).filter { ship ->
+        when {
+            ship.isFighter -> false
+            ship.isExpired -> false
+            ship == weapon.ship -> false
+            weapon.ship.root == ship.root -> false
+
+            ship.owner == weapon.ship.owner -> true
+            ship.isPhased -> false
+            else -> true
+        }
+    }
+
+    val evaluated = obstacles.mapNotNull { ship ->
+        if (ship.owner == weapon.ship.owner) analyzeAllyHit(weapon, ship, params)
+        else analyzeHit(weapon, ship, params)
+    }
+
+    return evaluated.minWithOrNull(compareBy { it.range })
+}
+
 fun mousePosition(): Vector2f {
     val viewport = Global.getCombatEngine().viewport
     val settings = Global.getSettings()
@@ -121,8 +150,6 @@ fun clearVanillaCommands(ship: ShipAPI, vararg commands: VanillaShipCommand) {
         if (commands.any { command == Obfuscated.ShipCommand.valueOf(it.name) }) {
             commandWrappers.remove()
         }
-
-//        if (commands.contains(command.name)) commandWrappers.remove()
     }
 }
 

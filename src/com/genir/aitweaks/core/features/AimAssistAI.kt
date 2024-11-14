@@ -1,7 +1,10 @@
 package com.genir.aitweaks.core.features
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.WeaponGroupType
 import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.Obfuscated
@@ -158,7 +161,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val searchRadius = 500f
 
         // If mouse is over ship bounds, consider it the target.
-        shipGrid().get<ShipAPI>(mousePosition(), searchRadius) {
+        Grid.ships(mousePosition(), searchRadius).filter {
             when {
                 !it.isValidTarget -> false
                 it.owner == 0 -> false
@@ -168,7 +171,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
             }
         }.firstOrNull()?.let { return it }
 
-        val ships: Sequence<ShipAPI> = shipGrid().get(mousePosition(), searchRadius) {
+        val ships = Grid.ships(mousePosition(), searchRadius).filter {
             when {
                 !it.isValidTarget -> false
                 it.owner == 0 -> false
@@ -179,7 +182,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
 
         closestTarget(ships)?.let { return it }
 
-        val hulks: Sequence<ShipAPI> = shipGrid().get(mousePosition(), searchRadius) {
+        val hulks = Grid.ships(mousePosition(), searchRadius).filter {
             when {
                 it.isExpired -> false
                 it.owner != 100 -> false
@@ -191,7 +194,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
 
         closestTarget(hulks)?.let { return it }
 
-        val asteroids: Sequence<CombatAsteroidAPI> = asteroidGrid().get(mousePosition(), searchRadius) {
+        val asteroids = Grid.asteroids(mousePosition(), searchRadius).filter {
             when {
                 it.isExpired -> false
 

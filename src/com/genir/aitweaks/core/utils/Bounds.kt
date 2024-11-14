@@ -3,6 +3,8 @@ package com.genir.aitweaks.core.utils
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
+import com.genir.aitweaks.core.utils.extensions.boundsRadius
+import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.lengthSquared
 import org.lazywizard.lazylib.ext.minus
 import org.lazywizard.lazylib.ext.plus
@@ -15,6 +17,8 @@ object Bounds {
     fun collision(position: Vector2f, direction: Vector2f, target: ShipAPI): Float? {
         val bounds = target.exactBounds ?: return null
 
+        if (target.boundsRadius < (distanceToOrigin(position, direction) ?: position.length)) return null
+
         // Rotate vector coordinates from target frame of reference
         // to target bounds frame of reference. That way the target
         // bounds don't need to be transformed.
@@ -23,7 +27,8 @@ object Bounds {
         val vr = direction.rotated(r)
         val q2 = q1 + vr
 
-        return bounds.origSegments.fold(null, fun(closest: Float?, segment): Float? {
+        var closest: Float? = null
+        bounds.origSegments.forEach { segment ->
             // Both sides of the following equation set represent the collision point:
             // p1 + k(p2-p1) = q1 + t(q2-q1)
             // Solve if for k and t.
@@ -39,12 +44,13 @@ object Bounds {
             val qpx = q1.x - p1.x
 
             val k = (pqy * dq.x + qpx * dq.y) / d
-            if (k < 0f || k > 1f) return closest // no collision
+            if (k < 0f || k > 1f) return@forEach // no collision
 
             val t = (pqy * dp.x + qpx * dp.y) / d
-            return if (t > 0 && (closest == null || t < closest)) t
-            else closest
-        })
+            if (t > 0 && (closest == null || t < closest!!)) closest = t
+        }
+
+        return closest
     }
 
     /** Point on ship bounds closest to 'position'.

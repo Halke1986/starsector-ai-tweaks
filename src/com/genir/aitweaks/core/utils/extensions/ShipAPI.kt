@@ -111,7 +111,7 @@ val ShipAPI.boundsRadius: Float
         customData[key]?.let { return it as Float }
 
         val newRadius = exactBounds.origSegments.flatMap { listOf(it.p1, it.p2) }.maxOfOrNull { it.length } ?: 0f
-        customData[key] = newRadius
+        setCustomData(key, newRadius)
 
         return newRadius
     }

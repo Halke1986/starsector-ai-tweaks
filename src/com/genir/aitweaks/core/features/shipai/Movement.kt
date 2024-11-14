@@ -162,7 +162,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         val toHeadingAngle = toHeadingVector.facing
         val dist = toHeadingVector.length
 
-        val hulks: Sequence<ShipAPI> = shipGrid().get<ShipAPI>(maneuverTarget.location, dist) {
+        val hulks: Sequence<ShipAPI> = Grid.ships(maneuverTarget.location, dist).filter {
             when {
                 !it.isHulk -> false
 

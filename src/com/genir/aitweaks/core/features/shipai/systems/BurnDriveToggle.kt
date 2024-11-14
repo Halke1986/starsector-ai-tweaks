@@ -160,7 +160,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), Coordinable {
     }
 
     private fun findObstacles(center: Vector2f, radius: Float): Sequence<ShipAPI> {
-        return shipGrid().get(center, radius) {
+        return Grid.ships(center, radius).filter {
             when {
                 // Self
                 it == ship -> false
