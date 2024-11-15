@@ -25,7 +25,7 @@ class Math {
         for (i in -1000..1000) {
             if (i == 0) continue
 
-            val z = i / 1000.0f
+            val z = i / 500.0f
             val err = atan(z) - kotlin.math.atan(z)
 
             Assertions.assertTrue(abs(err) < 1E-4)

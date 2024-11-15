@@ -139,7 +139,7 @@ fun pointsOfTangency(p: Vector2f, r: Float): Pair<Vector2f, Vector2f>? {
 
 fun atan(z: Float): Float {
     // extend atanApprox range from [-1,1]
-    return if (z <= 1) atanApprox(z)
+    return if (abs(z) <= 1) atanApprox(z)
     else z.sign * PI / 2 - atanApprox(1 / z)
 }
 
