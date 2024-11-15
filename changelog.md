@@ -1,3 +1,7 @@
+- Aim assist now rotates the player ship to correctly aim the selected weapon group when using "auto-turn to cursor" mode. This works with all non-guided weapons, even ones not facing the front. And yes, aim assist can make Venture Mk. II fly backwards.
+- Aim assist will target fighters. Suggested by TANK6110.
+- Performance improvements.
+
 Version 1.10.5
 
 - When a beam weapon switches targets, it may rotate the existing beam to the new target if it's faster than stopping and re-firing once aligned.

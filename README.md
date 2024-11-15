@@ -172,6 +172,37 @@ reached by a Graviton Beam. The precious HEF charges will be preserved for big g
 the mighty Executor. With two linked Gigacannons and officer with System Expertise almost every salvo will be spiced up
 by High Energy Focus!
 
+Player Assist
+-------------
+
+### 1. Automatic omni shields for player ship ###
+
+Vanilla AI is notoriously good at controlling omni shields, often better than the player himself.
+
+Now, with AI Tweaks it's possible to pilot ship manually while leaving omni shield in AI control. Be warned though.
+According to playtesters the feature may be a bit too powerful. Still, "it's not so OP that it's unusable" as playtester
+snark said.
+
+Automatic omni shields are toggled with `]` (right bracket) key by default. Keybinding can be configured via LunaLib
+settings. When AI is in control, a circular indicator is displayed around the ship. The player can override AI and force
+the shields to drop with right mouse button.
+
+![auto omni shields](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/autoomni.jpg)
+
+### 2. Aim Assist ###
+
+With aim assist you can point the mouse at enemy ship and fire without worrying about target leading. AI will
+automatically offset each manually controlled weapon to account for ship velocity, greatly increasing accuracy. Aim
+assist works for projectile weapons and unguided missiles in turret slots. Each weapon is offset individually to account
+for different projectile speeds. That way it's possible to put weapons with different projectile speeds or even beams in
+one group and still be able to hit will all of them.
+
+Aim assist is toggled with `[` (left bracket) key by default.
+
+There's an AIM ASSIST status icon displayed when the system is active:
+
+![aim assist](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/aim_assist.png)
+
 AI Configuration
 ----------------
 
@@ -214,37 +245,6 @@ System Shunt prevents AI from using the ship system:
 "A set of officer instructions and software modifications that prevent the use of the ship's system unless directly
 ordered by the fleet's first-in-command. Note: This protocol may be activated if the system's usage is deemed
 detrimental to the ship's performance in combat."
-
-Player Assist
--------------
-
-### 1. Automatic omni shields for player ship ###
-
-Vanilla AI is notoriously good at controlling omni shields, often better than the player himself.
-
-Now, with AI Tweaks it's possible to pilot ship manually while leaving omni shield in AI control. Be warned though.
-According to playtesters the feature may be a bit too powerful. Still, "it's not so OP that it's unusable" as playtester
-snark said.
-
-Automatic omni shields are toggled with `]` (right bracket) key by default. Keybinding can be configured via LunaLib
-settings. When AI is in control, a circular indicator is displayed around the ship. The player can override AI and force
-the shields to drop with right mouse button.
-
-![auto omni shields](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/autoomni.jpg)
-
-### 2. Aim Assist ###
-
-With aim assist you can point the mouse at enemy ship and fire without worrying about target leading. AI will
-automatically offset each manually controlled weapon to account for ship velocity, greatly increasing accuracy. Aim
-assist works for projectile weapons and unguided missiles in turret slots. Each weapon is offset individually to account
-for different projectile speeds. That way it's possible to put weapons with different projectile speeds or even beams in
-one group and still be able to hit will all of them.
-
-Aim assist is toggled with `[` (left bracket) key by default.
-
-There's an AIM ASSIST status icon displayed when the system is active:
-
-![aim assist](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/aim_assist.png)
 
 WIP
 ---
