@@ -1,4 +1,5 @@
 - Aim assist now rotates the player ship to correctly aim the selected weapon group when using "auto-turn to cursor" mode. This works with all non-guided weapons, even ones not facing the front. And yes, aim assist can make Venture Mk. II fly backwards.
+- Aim assist ship rotation can be disabled in LunaLib settings.
 - Aim assist will target fighters. Suggested by TANK6110.
 - Performance improvements.
 

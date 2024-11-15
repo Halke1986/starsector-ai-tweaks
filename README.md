@@ -44,7 +44,17 @@ even more customizable weapon behavior, AdvancedGunneryControl has it!
 AI Improvements
 ---------------
 
-### 1. Autofire AI ###
+### 1. Hardpoint aiming ###
+
+With AI Tweaks frigates can finally aim hardpoints. Just imagine how strong an LP Brawler is when it can actually hit
+its target!
+
+The fix works for ballistic and beam weapons, not for missiles. Frigates will also rotate to optimize turrets firing
+arcs.
+
+![Starsector frigates correctly aiming hardpoint weapons](https://vimeo.com/1030111629)
+
+### 2. Autofire AI ###
 
 AI Tweaks provides weapon AI implemented from scratch. It aims at fixing various vanilla AI deficiencies. The most
 noticeable differences from vanilla autofire AI are:
@@ -105,7 +115,7 @@ weapon switches targets, rotating the existing beam to the new target may be fas
 re-firing once aligned. This is particularly useful for point-defense (PD) beams, which often need to rapidly engage
 multiple incoming missiles.
 
-The improved AI applies only to normal beams, not burst or ammo based beams.  
+The improved AI applies only to normal beams, not burst or ammo based beams.
 
 ![beam weapon ai](https://player.vimeo.com/video/1026930513?h=9c69150945)
 
@@ -130,7 +140,7 @@ intentional. In no specific order:
 * shield hits are correctly predicted even for modular ships like stations, improving behavior of weapons that are
   supposed to attack shields only, or avoid shields
 
-### 2. Fleet Cohesion AI ###
+### 3. Fleet Cohesion AI ###
 
 Fleet Cohesion AI fixes one of the more frustrating aspects of vanilla AI: cruisers and capital ships leaving the main
 battle line and chasing lone frigates and destroyers to the edge of the map. With the fixed AI the fleet stays together
@@ -143,7 +153,7 @@ Additional details:
 * Fleet Cohesion AI applies only to player fleet. Enemy fleet keeps the vanilla Admiral AI.
 * Fleet Cohesion AI is disabled during full assault and when at least one AVOID order is issued.
 
-### 3. Fixed Invictus and Lidar Array AI ###
+### 4. Fixed Invictus and Lidar Array AI ###
 
 "Cuz my problem with ai invictus is it just wastes it’s system 9/10 times" - niceman121454 on Discord.
 
@@ -164,7 +174,7 @@ Invictus aiming hardpoint weapons with the entire ship, note the aim is not cent
 
 ![target lead](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/target_lead.png)
 
-### 4. Improved High Energy Focus ship system AI ###
+### 5. Improved High Energy Focus ship system AI ###
 
 This mod changes the way AI controlled ships use their High Energy Focus system. AI will no longer be tempted to
 activate HEF just because there's a fighter or missile in range of PD beams or because an enemy ship can barely be
@@ -191,15 +201,17 @@ the shields to drop with right mouse button.
 
 ### 2. Aim Assist ###
 
-With aim assist you can point the mouse at enemy ship and fire without worrying about target leading. AI will
-automatically offset each manually controlled weapon to account for ship velocity, greatly increasing accuracy. Aim
-assist works for projectile weapons and unguided missiles in turret slots. Each weapon is offset individually to account
-for different projectile speeds. That way it's possible to put weapons with different projectile speeds or even beams in
-one group and still be able to hit will all of them.
+Aim Assist helps the player by automating target leading. With Aim Assist, you can simply point the mouse at an enemy
+ship and fire without worrying about projectile travel time. The AI automatically offsets manually controlled weapons to
+account for both target and projectile velocity, significantly improving accuracy.
 
-Aim assist is toggled with `[` (left bracket) key by default.
+Aim Assist also enhances hardpoint aiming by adjusting the player ship’s rotation in "auto-turn to cursor" mode. This
+works with all non-guided weapons, even those not facing forward. And yes, Aim Assist can make the Venture Mk. II fly
+backwards. You can disable this ship-rotation feature in LunaLib settings.
 
-There's an AIM ASSIST status icon displayed when the system is active:
+Aim Assist is toggled using the `[` (left bracket) key by default.
+
+When active, an AIM ASSIST status icon is displayed.:
 
 ![aim assist](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/aim_assist.png)
 
