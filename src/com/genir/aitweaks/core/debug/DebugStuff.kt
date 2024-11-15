@@ -34,20 +34,20 @@ import java.awt.Color.GREEN
  */
 
 internal fun debug(dt: Float) {
-    val ship = Global.getCombatEngine().playerShip ?: return
-    val ships = Global.getCombatEngine().ships.filter { !it.isFighter }
-
-    ships.forEach { obstacle ->
-
-        Debug.drawBounds(obstacle)
-
-        if (state.bounds.isPointWithin(mousePosition(), obstacle)) {
-            Debug.drawBounds(obstacle, BLUE)
-        }
-
-
-//        Debug.drawLine(state.bounds.closestPoint(mousePosition(), obstacle), mousePosition())
-    }
+//    val ship = Global.getCombatEngine().playerShip ?: return
+//    val ships = Global.getCombatEngine().ships.filter { !it.isFighter }
+//
+//    ships.forEach { obstacle ->
+//
+//        Debug.drawBounds(obstacle)
+//
+//        if (state.bounds.isPointWithin(mousePosition(), obstacle)) {
+//            Debug.drawBounds(obstacle, BLUE)
+//        }
+//
+//
+////        Debug.drawLine(state.bounds.closestPoint(mousePosition(), obstacle), mousePosition())
+//    }
 
 //    val v = unitVector((mousePosition() - ship.location).facing) * 10f
 //

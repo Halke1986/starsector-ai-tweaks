@@ -27,6 +27,7 @@ import java.awt.Color
 class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     private var prevPlayerShip: ShipAPI? = null
     private var engineController: BasicEngineController? = null
+    private var currentTarget: CombatEntityAPI? = null
 
     override fun advance(dt: Float) {
         val engine = Global.getCombatEngine()
@@ -50,6 +51,8 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         // Override weapon behavior if there is a target.
         // Otherwise, let vanilla control the weapons.
         if (target != null) aimWeapons(ship, target)
+
+        this.currentTarget = target
     }
 
     private fun aimShip(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
@@ -206,11 +209,16 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val distances = entities.map { entity ->
             val closestPoint = if (!entity.isShip) entity.location
             else state.bounds.closestPoint(mousePosition(), entity as ShipAPI)
-            Pair(entity, (closestPoint - mousePosition()).length)
+
+            // Apply target switching hysteresis.
+            val currentTargetBonus = if (entity == currentTarget) 2 else 1
+            val dist = (closestPoint - mousePosition()).length / currentTargetBonus
+
+            Pair(entity, dist)
         }
 
         val closest = distances.minWithOrNull(compareBy { it.second }) ?: return null
-        val targetEnvelope = 170f * Global.getCombatEngine().viewport.viewMult
+        val targetEnvelope = 200f * Global.getCombatEngine().viewport.viewMult
 
         return if (closest.second > targetEnvelope) null
         else closest.first

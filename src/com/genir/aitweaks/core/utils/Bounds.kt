@@ -88,7 +88,7 @@ class Bounds {
         return count and 1 == 1
     }
 
-    /** Radius of a circle encompassing ship bounds. */
+    /** Radius of a circle encompassing the ship bounds. */
     fun radius(ship: ShipAPI): Float {
         radiusCache[ship]?.let { return it }
 
