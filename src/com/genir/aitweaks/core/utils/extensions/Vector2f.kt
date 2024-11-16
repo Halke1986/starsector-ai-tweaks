@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.utils.extensions
 import com.genir.aitweaks.core.utils.RADIANS_TO_DEGREES
 import com.genir.aitweaks.core.utils.atan2
 import com.genir.aitweaks.core.utils.clampAngle
-import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.sqrt
 
@@ -26,14 +25,13 @@ fun Vector2f.addLength(toAdd: Float): Vector2f {
 }
 
 val Vector2f.facing: Float
-    get() {
-        if (this.isZeroVector()) return 0f
-
-        return clampAngle(atan2(y, x) * RADIANS_TO_DEGREES)
-    }
+    get() = if (isZero) 0f else clampAngle(atan2(y, x) * RADIANS_TO_DEGREES)
 
 val Vector2f.length: Float
     get() = sqrt(lengthSquared)
 
 val Vector2f.lengthSquared: Float
     get() = x * x + y * y
+
+val Vector2f.isZero: Boolean
+    get() = x == 0f && y == 0f

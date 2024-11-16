@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.genir.aitweaks.core.features.shipai.AutofireManagerOverride
 import com.genir.aitweaks.core.utils.extensions.facing
-import org.lazywizard.lazylib.ext.isZeroVector
+import com.genir.aitweaks.core.utils.extensions.isZero
 import org.lwjgl.util.vector.Vector2f
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
@@ -49,7 +49,7 @@ class Vanilla(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
         fighterPullbackModule?.advance(dt, attackTarget)
 
         // Vanilla ship systems read maneuvers planned by ship AI through the flockingAI.
-        flockingAI.setDesiredHeading(if (expectedVelocity.isZeroVector()) Float.MAX_VALUE else expectedVelocity.facing)
+        flockingAI.setDesiredHeading(if (expectedVelocity.isZero) Float.MAX_VALUE else expectedVelocity.facing)
         flockingAI.setDesiredSpeed(expectedVelocity.length())
         flockingAI.setDesiredFacing(expectedFacing)
         flockingAI.advanceCollisionAnalysisModule(dt)

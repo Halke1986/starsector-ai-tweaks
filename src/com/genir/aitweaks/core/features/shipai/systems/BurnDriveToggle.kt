@@ -10,7 +10,6 @@ import com.genir.aitweaks.core.features.shipai.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
-import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
 
@@ -112,7 +111,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), Coordinable {
 
             !ship.canUseSystemThisFrame() -> false
 
-            headingPoint.isZeroVector() -> false
+            headingPoint.isZero -> false
 
             ai.isBackingOff -> false
 

@@ -10,7 +10,6 @@ import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.extensions.*
-import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 
@@ -59,7 +58,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 // If there's no threat, the ship will continue to coast.
                 ai.isBackingOff -> {
                     val farAway = 2048f
-                    if (ai.threatVector.isZeroVector()) ship.location + ship.velocity.resized(farAway)
+                    if (ai.threatVector.isZero) ship.location + ship.velocity.resized(farAway)
                     else ship.location - ai.threatVector.resized(farAway)
                 }
 
@@ -122,7 +121,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 }
 
                 // Face threat vector when no target.
-                !ai.threatVector.isZeroVector() -> {
+                !ai.threatVector.isZero -> {
                     (-ai.threatVector).facing
                 }
 

@@ -6,13 +6,13 @@ import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.div
+import com.genir.aitweaks.core.utils.extensions.isZero
 import com.genir.aitweaks.core.utils.extensions.length
 import com.genir.aitweaks.core.utils.extensions.minus
 import com.genir.aitweaks.core.utils.extensions.plus
 import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.ext.clampLength
-import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 import kotlin.random.Random
@@ -70,7 +70,7 @@ open class BasicEngineController(val ship: ShipAPI) {
         // target in case the low velocity is the result of a
         // collision avoidance speed limit.
         if (vec.length < af / 2f) {
-            if (!ship.velocity.isZeroVector()) ship.command(DECELERATE)
+            if (!ship.velocity.isZero) ship.command(DECELERATE)
             return Vector2f()
         }
 
