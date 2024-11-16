@@ -1,3 +1,5 @@
+Version 1.10.7
+
 - Aim Assist correctly handles alternating weapon groups.
 - Ship under Aim Assist no longer decelerates when issued no commands.
 
