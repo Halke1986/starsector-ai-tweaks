@@ -1,8 +1,7 @@
 package com.genir.aitweaks.core.features.shipai.vanilla
 
 import com.fs.starfarer.combat.ai.BasicShipAI
-import com.genir.aitweaks.core.utils.loading.Bytecode
-import com.genir.aitweaks.core.utils.loading.Bytecode.getMethodsInOrder
+import com.genir.aitweaks.launcher.loading.Bytecode
 import org.lwjgl.util.vector.Vector2f
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
@@ -21,7 +20,7 @@ class FlockingAI(basicShipAI: BasicShipAI) {
     init {
         val c = flockingAI::class.java
         val lookup: Lookup = MethodHandles.lookup()
-        val bytecodeMethods: List<Bytecode.Method> = getMethodsInOrder(c)
+        val bytecodeMethods: List<Bytecode.Method> = Bytecode.getMethodsInOrder(c)
 
         val setterNames = bytecodeMethods.filter { it.desc == "(F)V" }
         val setterType = MethodType.methodType(Void.TYPE, Float::class.java)

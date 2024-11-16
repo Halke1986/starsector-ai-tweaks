@@ -101,25 +101,6 @@ class Transformer(transforms: List<Transform>) {
             return Transform(from, to)
         }
 
-        @Throws(IOException::class)
-        fun readClassBuffer(cl: ClassLoader, className: String): ByteArray {
-            val classPath = className.replace('.', '/') + ".class"
-            val stream = cl.getResourceAsStream(classPath)
-
-            var size = 0
-            var buffer = ByteArray(1024)
-            while (stream.available() > 0) {
-                size += stream.read(buffer, size, buffer.size - size)
-                if (size == buffer.size) {
-                    buffer += ByteArray(buffer.size)
-                }
-            }
-
-            val classData = buffer.sliceArray(IntRange(0, size - 1))
-
-            return classData
-        }
-
         private fun readUnsignedShort(buf: ByteArray, offset: Int): Int {
             return ((buf[offset].toInt() and 0xFF) shl 8) or (buf[offset + 1].toInt() and 0xFF)
         }

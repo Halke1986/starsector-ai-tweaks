@@ -1,6 +1,6 @@
 package deobfuscate
 
-import com.genir.aitweaks.core.utils.extensions.classPath
+import com.genir.aitweaks.launcher.loading.Bytecode.classPath
 import com.genir.aitweaks.launcher.loading.Symbols
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

@@ -1,7 +1,7 @@
 package com.genir.aitweaks.launcher.loading
 
 import com.fs.starfarer.api.Global
-import com.genir.aitweaks.launcher.loading.Symbols.Companion.classPath
+import com.genir.aitweaks.launcher.loading.Bytecode.classPath
 import java.net.URL
 import java.net.URLClassLoader
 
@@ -47,7 +47,7 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
             c = ClassLoader.getSystemClassLoader().loadClass(name)
         } catch (_: ClassNotFoundException) {
             // Load and transform AI Tweaks core logic classes.
-            val classBuffer = Transformer.readClassBuffer(this, name)
+            val classBuffer = Bytecode.readClassBuffer(this, name)
             val obfuscated = obfuscator.apply(classBuffer)
             c = defineClass(name, obfuscated, 0, obfuscated.size)
         }

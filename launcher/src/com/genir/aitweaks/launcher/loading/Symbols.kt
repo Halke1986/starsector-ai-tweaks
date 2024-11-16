@@ -3,6 +3,7 @@ package com.genir.aitweaks.launcher.loading
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.launcher.loading.Bytecode.classPath
 import org.lwjgl.util.vector.Vector2f
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -37,11 +38,6 @@ class Symbols {
     val maneuver_getTarget: Method = maneuver.methods.first { it.returnType == combatEntity }
     val aimTracker_setTargetOverride: Method = aimTracker.methods.first { it.returnType == Void.TYPE && it.hasParameters(Vector2f::class.java) }
 
-    companion object {
-        val Class<*>.classPath: String
-            get() = this.name.replace('.', '/')
-    }
-
     private fun Method.genericReturnTypeArgument(idx: Int): Class<*> {
         return (genericReturnType as ParameterizedType).actualTypeArguments[idx] as Class<*>
     }
@@ -51,7 +47,7 @@ class Symbols {
     }
 
     private fun findApproachManeuver(): Class<*> {
-        val aiReader = ClassReader(Transformer.readClassBuffer(this::class.java.classLoader, "com.fs.starfarer.combat.ai.BasicShipAI"))
+        val aiReader = ClassReader(Bytecode.readClassBuffer(this::class.java.classLoader, basicShipAI.classPath))
         val maneuvers = mutableListOf<String>()
 
         // Find all maneuver classes used by ship AI.
@@ -70,7 +66,7 @@ class Symbols {
         // Gather all possible candidate classes for approach maneuver.
         val candidates = mutableSetOf<String>()
         maneuvers.forEach { className ->
-            val reader = ClassReader(Transformer.readClassBuffer(this::class.java.classLoader, className.replace("/", ".")))
+            val reader = ClassReader(Bytecode.readClassBuffer(this::class.java.classLoader, className))
 
             reader.accept(object : ClassVisitor(Opcodes.ASM4) {
                 override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {

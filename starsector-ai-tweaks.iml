@@ -30,6 +30,6 @@
     </orderEntry>
     <orderEntry type="library" name="LunaLib" level="project" />
     <orderEntry type="library" name="asm-4.0" level="project" />
-    <orderEntry type="module" module-name="launcher" scope="TEST" />
+    <orderEntry type="module" module-name="launcher" />
   </component>
 </module>

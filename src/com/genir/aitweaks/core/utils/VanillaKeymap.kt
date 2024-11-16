@@ -1,8 +1,8 @@
 package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.campaign.ui.fleet.FleetMemberView
-import com.genir.aitweaks.core.utils.extensions.classPath
-import com.genir.aitweaks.core.utils.loading.Bytecode
+import com.genir.aitweaks.launcher.loading.Bytecode
+import com.genir.aitweaks.launcher.loading.Bytecode.classPath
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.Method

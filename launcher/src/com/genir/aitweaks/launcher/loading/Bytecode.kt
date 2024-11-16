@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.utils.loading
+package com.genir.aitweaks.launcher.loading
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -13,7 +13,7 @@ object Bytecode {
     fun getMethodsInOrder(c: Class<*>): List<Method> {
         val methods: MutableList<Method> = mutableListOf()
 
-        ClassReader(readClassBuffer(c)).accept(object : ClassVisitor(Opcodes.ASM4) {
+        ClassReader(readClassBuffer(c.classLoader, c.name)).accept(object : ClassVisitor(Opcodes.ASM4) {
             override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
                 methods.add(Method(name, desc))
                 return null
@@ -23,9 +23,12 @@ object Bytecode {
         return methods
     }
 
-    private fun readClassBuffer(c: Class<*>): ByteArray {
-        val classPath = c.canonicalName.replace('.', '/') + ".class"
-        val stream = c.classLoader.getResourceAsStream(classPath)
+    val Class<*>.classPath: String
+        get() = this.name.replace('.', '/')
+
+    fun readClassBuffer(cl: ClassLoader, className: String): ByteArray {
+        val classPath = className.replace('.', '/') + ".class"
+        val stream = cl.getResourceAsStream(classPath)
 
         var size = 0
         var buffer = ByteArray(1024)
