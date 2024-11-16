@@ -108,8 +108,8 @@ fun angularSize(distanceSqr: Float, radius: Float): Float {
     val radiusSqr = radius * radius
     if (radiusSqr >= distanceSqr) return 360f
 
-    val adjacent = sqrt(distanceSqr - radius * radius)
-    return atan(radius / adjacent) * RADIANS_TO_DEGREES * 2f
+    val adjacent = sqrt(distanceSqr - radiusSqr)
+    return atan(radius / adjacent) * RADIANS_TO_DEGREES * 2
 }
 
 /** Calculates the points of tangency for a circle centered at point `p`

@@ -93,9 +93,10 @@ class Bounds {
         radiusCache[ship]?.let { return it }
 
         val bounds = ship.exactBounds ?: return 0f
-        val radius = bounds.origSegments.flatMap { listOf(it.p1, it.p2) }.maxOfOrNull { it.length } ?: 0f
-        radiusCache[ship] = radius
+        val points = bounds.origSegments.flatMap { listOf(it.p1, it.p2) }
+        val radius = points.maxOfOrNull { it.length } ?: 0f
 
+        radiusCache[ship] = radius
         return radius
     }
 }
