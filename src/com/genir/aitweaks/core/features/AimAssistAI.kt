@@ -5,7 +5,8 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponGroupAPI
-import com.fs.starfarer.api.loading.WeaponGroupType
+import com.fs.starfarer.api.loading.WeaponGroupType.ALTERNATING
+import com.fs.starfarer.api.loading.WeaponGroupType.LINKED
 import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
@@ -27,7 +28,9 @@ import java.awt.Color
 class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     private var prevPlayerShip: ShipAPI? = null
     private var engineController: BasicEngineController? = null
+
     private var currentTarget: CombatEntityAPI? = null
+    private var currentAlternatingWeapon: WeaponAPI? = null
 
     override fun advance(dt: Float) {
         val engine = Global.getCombatEngine()
@@ -65,6 +68,11 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         // Remove vanilla move commands.
         clearVanillaCommands(ship, TURN_LEFT, TURN_RIGHT, STRAFE_LEFT, STRAFE_RIGHT, ACCELERATE, ACCELERATE_BACKWARDS)
 
+        controlShipHeading(dt, ship)
+        controlShipFacing(dt, ship, target)
+    }
+
+    private fun controlShipHeading(dt: Float, ship: ShipAPI) {
         // Compensate ship movement for the fact the ship
         // is not necessary facing the target directly.
         val r = Rotation((mousePosition() - ship.location).facing)
@@ -81,9 +89,30 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         if (keymap.isKeyDown(SHIP_TURN_RIGHT) || keymap.isKeyDown(SHIP_STRAFE_RIGHT_NOTURN)) expectedHeading += right
 
         engineController!!.heading(dt, expectedHeading, Vector2f())
+    }
 
-        // Control the ship rotation.
-        val weaponGroup = WeaponGroup(ship, ship.selectedWeapons.toList())
+    private fun controlShipFacing(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
+        // Continue aiming with an alternating weapon until it finishes its firing sequence.
+        val holdCurrent = currentAlternatingWeapon?.isInFiringSequence == true
+        if (!holdCurrent) currentAlternatingWeapon = null
+
+        // Select weapons to aim.
+        val selectedGroup = ship.selectedGroupAPI
+        val activeWeapon = selectedGroup?.activeWeapon
+        val weapons: List<WeaponAPI> = when {
+            holdCurrent -> listOf(currentAlternatingWeapon!!)
+            selectedGroup == null -> listOf()
+            selectedGroup.type == LINKED -> selectedGroup.weaponsCopy.filter { it.shouldAim }
+            selectedGroup.type == ALTERNATING && activeWeapon?.shouldAim == true -> {
+                currentAlternatingWeapon = activeWeapon
+                listOf(activeWeapon)
+            }
+
+            else -> listOf()
+        }
+
+        // Aim the weapons by rotating the ship.
+        val weaponGroup = WeaponGroup(ship, weapons.filter { it.shouldAim })
         if (target != null) {
             // Rotate ship to face the target intercept with the selected weapon group.
             val expectedFacing = weaponGroup.attackFacing(BallisticTarget(mousePosition(), target.velocity, 0f))
@@ -143,11 +172,11 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
             !isFiring -> false
 
             // Fire active alternating group weapon. Same behavior as vanilla.
-            group.type == WeaponGroupType.ALTERNATING && weapon == group.activeWeapon -> true
+            group.type == ALTERNATING && weapon == group.activeWeapon -> true
 
             // Fire linked weapons if target is in arc, regardless if weapon
             // is actually pointed at the target. Same behavior as vanilla.
-            group.type == WeaponGroupType.LINKED && weapon.isAngleInArc(interceptFacing) -> true
+            group.type == LINKED && weapon.isAngleInArc(interceptFacing) -> true
 
             else -> false
         }
