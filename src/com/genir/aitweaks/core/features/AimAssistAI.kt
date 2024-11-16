@@ -20,6 +20,7 @@ import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.VanillaKeymap.Action.*
+import com.genir.aitweaks.core.utils.VanillaKeymap.isKeyDown
 import com.genir.aitweaks.core.utils.VanillaShipCommand.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lwjgl.util.vector.Vector2f
@@ -82,11 +83,10 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val right = Vector2f(0f, -1e4f).rotated(r)
 
         var direction = Vector2f()
-        val keymap = state.vanillaKeymap
-        if (keymap.isKeyDown(SHIP_ACCELERATE)) direction += front
-        if (keymap.isKeyDown(SHIP_ACCELERATE_BACKWARDS)) direction += back
-        if (keymap.isKeyDown(SHIP_TURN_LEFT) || keymap.isKeyDown(SHIP_STRAFE_LEFT_NOTURN)) direction += left
-        if (keymap.isKeyDown(SHIP_TURN_RIGHT) || keymap.isKeyDown(SHIP_STRAFE_RIGHT_NOTURN)) direction += right
+        if (isKeyDown(SHIP_ACCELERATE)) direction += front
+        if (isKeyDown(SHIP_ACCELERATE_BACKWARDS)) direction += back
+        if (isKeyDown(SHIP_TURN_LEFT) || isKeyDown(SHIP_STRAFE_LEFT_NOTURN)) direction += left
+        if (isKeyDown(SHIP_TURN_RIGHT) || isKeyDown(SHIP_STRAFE_RIGHT_NOTURN)) direction += right
 
         if (direction.isNotZero) {
             val heading = ship.location + direction
@@ -169,7 +169,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     private fun fireWeapon(weapon: WeaponAPI, intercept: Vector2f) {
         val interceptFacing = intercept.facing - weapon.ship.facing
         val group: WeaponGroupAPI = weapon.group ?: return
-        val isFiring = state.vanillaKeymap.isKeyDown(VanillaKeymap.Action.SHIP_FIRE)
+        val isFiring = isKeyDown(SHIP_FIRE)
 
         val shouldFire: Boolean = when {
             !isFiring -> false

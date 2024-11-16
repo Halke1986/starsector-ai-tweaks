@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.features.FleetCohesion
 import com.genir.aitweaks.core.utils.Bounds
-import com.genir.aitweaks.core.utils.VanillaKeymap
 
 class State : BaseEveryFrameCombatPlugin() {
     companion object {
@@ -20,7 +19,6 @@ class State : BaseEveryFrameCombatPlugin() {
     }
 
     val config: Config = Config()
-    val vanillaKeymap = VanillaKeymap()
     val bounds = Bounds()
     var frameCount: Int = 0
 

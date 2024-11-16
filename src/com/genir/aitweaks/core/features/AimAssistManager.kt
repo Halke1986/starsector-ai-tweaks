@@ -49,7 +49,7 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
     }
 
     private fun updateStrafeMode() {
-        val strafeKeyDown = state.vanillaKeymap.isKeyDown(VanillaKeymap.Action.SHIP_STRAFE_KEY)
+        val strafeKeyDown = VanillaKeymap.isKeyDown(VanillaKeymap.Action.SHIP_STRAFE_KEY)
         val strafeLock: Boolean = Global.getSettings().isStrafeKeyAToggle
         val autoturnMode: Boolean = Global.getSettings().isAutoTurnMode
 

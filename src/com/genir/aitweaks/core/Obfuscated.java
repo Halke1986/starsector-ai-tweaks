@@ -8,8 +8,9 @@ import java.util.List;
  * Collection of placeholders for obfuscated type names.
  */
 public class Obfuscated {
-    public enum ShipCommand {
-    }
+    public enum ShipCommand {}
+
+    public enum PlayerAction {}
 
     public interface AutofireManager {
         void autofireManager_advance(float dt, ThreatEvalAI threatEvalAI, Vector2f missileDangerDir);
@@ -56,6 +57,12 @@ public class Obfuscated {
 
     public static class AimTracker {
         public void aimTracker_setTargetOverride(Vector2f aim) {
+        }
+    }
+
+    public static class Keymap {
+        public static boolean keymap_isKeyDown(PlayerAction action) {
+            return false;
         }
     }
 }

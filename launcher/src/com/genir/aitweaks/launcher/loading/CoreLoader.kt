@@ -15,7 +15,9 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$AutofireManager", symbols.autofireManager.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$BasicShipAI", "com/fs/starfarer/combat/ai/BasicShipAI"),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$CombatEntity", symbols.combatEntity.classPath),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Keymap", symbols.keymap.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Maneuver", symbols.maneuver.classPath),
+        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$PlayerAction", symbols.playerAction.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ShipCommandWrapper", symbols.shipCommandWrapper.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ShipCommand", symbols.shipCommand.classPath),
         Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Ship", "com/fs/starfarer/combat/entities/Ship"),
@@ -27,6 +29,7 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
         Transformer.newTransform("shipCommandWrapper_getCommand", symbols.shipCommandWrapper_getCommand.name),
         Transformer.newTransform("maneuver_getTarget", symbols.maneuver_getTarget.name),
         Transformer.newTransform("aimTracker_setTargetOverride", symbols.aimTracker_setTargetOverride.name),
+        Transformer.newTransform("keymap_isKeyDown", symbols.keymap_isKeyDown.name),
     ))
 
     override fun loadClass(name: String): Class<*> {

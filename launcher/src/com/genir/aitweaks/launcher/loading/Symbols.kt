@@ -1,5 +1,6 @@
 package com.genir.aitweaks.launcher.loading
 
+import com.fs.starfarer.campaign.ui.fleet.FleetMemberView
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
@@ -19,6 +20,7 @@ class Symbols {
     private val ship: Class<*> = Ship::class.java
     private val basicShipAI: Class<*> = BasicShipAI::class.java
     private val attackAIModule: Class<*> = AttackAIModule::class.java
+    private val fleetMemberView: Class<*> = FleetMemberView::class.java
 
     // Classes and interfaces.
     val flockingAI: Class<*> = basicShipAI.getMethod("getFlockingAI").returnType
@@ -31,12 +33,16 @@ class Symbols {
     val combatEntity: Class<*> = ship.getMethod("getEntity").returnType
     val weapon: Class<*> = ship.getMethod("getSelectedWeapon").returnType
     val aimTracker: Class<*> = weapon.getMethod("getAimTracker").returnType
+    val button: Class<*> = fleetMemberView.getMethod("getButton").returnType
+    val playerAction: Class<*> = button.getMethod("getShortcut").returnType
+    val keymap: Class<*> = playerAction.enclosingClass
 
     // Methods and fields.
     val autofireManager_advance: Method = autofireManager.methods.first { it.name != "<init>" }
     val shipCommandWrapper_getCommand: Field = shipCommandWrapper.fields.first { it.type.isEnum }
     val maneuver_getTarget: Method = maneuver.methods.first { it.returnType == combatEntity }
     val aimTracker_setTargetOverride: Method = aimTracker.methods.first { it.returnType == Void.TYPE && it.hasParameters(Vector2f::class.java) }
+    val keymap_isKeyDown: Method = findKeymapIsKeyDown()
 
     private fun Method.genericReturnTypeArgument(idx: Int): Class<*> {
         return (genericReturnType as ParameterizedType).actualTypeArguments[idx] as Class<*>
@@ -83,5 +89,10 @@ class Symbols {
         // The expected maneuver has the higher number of methods
         val candidateClasses: List<Class<*>> = candidates.map { this::class.java.classLoader.loadClass(it.replace("/", ".")) }
         return candidateClasses.maxWithOrNull { a, b -> a.declaredMethods.size - b.declaredMethods.size }!!
+    }
+
+    private fun findKeymapIsKeyDown(): Method {
+        val isKeyDownName = Bytecode.getMethodsInOrder(keymap).first { it.desc == "(L${playerAction.classPath};)Z" }
+        return keymap.methods.first { it.name == isKeyDownName.name && it.parameterTypes.contentEquals(arrayOf(playerAction)) }
     }
 }
