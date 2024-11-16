@@ -121,7 +121,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 }
 
                 // Face threat vector when no target.
-                !ai.threatVector.isZero -> {
+                ai.threatVector.isNotZero -> {
                     (-ai.threatVector).facing
                 }
 

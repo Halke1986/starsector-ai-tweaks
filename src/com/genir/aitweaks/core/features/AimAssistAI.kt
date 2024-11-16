@@ -81,14 +81,17 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val left = Vector2f(0f, 1e4f).rotated(r)
         val right = Vector2f(0f, -1e4f).rotated(r)
 
-        var expectedHeading = ship.location.copy
+        var direction = Vector2f()
         val keymap = state.vanillaKeymap
-        if (keymap.isKeyDown(SHIP_ACCELERATE)) expectedHeading += front
-        if (keymap.isKeyDown(SHIP_ACCELERATE_BACKWARDS)) expectedHeading += back
-        if (keymap.isKeyDown(SHIP_TURN_LEFT) || keymap.isKeyDown(SHIP_STRAFE_LEFT_NOTURN)) expectedHeading += left
-        if (keymap.isKeyDown(SHIP_TURN_RIGHT) || keymap.isKeyDown(SHIP_STRAFE_RIGHT_NOTURN)) expectedHeading += right
+        if (keymap.isKeyDown(SHIP_ACCELERATE)) direction += front
+        if (keymap.isKeyDown(SHIP_ACCELERATE_BACKWARDS)) direction += back
+        if (keymap.isKeyDown(SHIP_TURN_LEFT) || keymap.isKeyDown(SHIP_STRAFE_LEFT_NOTURN)) direction += left
+        if (keymap.isKeyDown(SHIP_TURN_RIGHT) || keymap.isKeyDown(SHIP_STRAFE_RIGHT_NOTURN)) direction += right
 
-        engineController!!.heading(dt, expectedHeading, Vector2f())
+        if (direction.isNotZero) {
+            val heading = ship.location + direction
+            engineController!!.heading(dt, heading, Vector2f())
+        }
     }
 
     private fun controlShipFacing(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {

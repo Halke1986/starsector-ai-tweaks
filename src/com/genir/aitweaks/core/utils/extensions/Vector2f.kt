@@ -35,3 +35,6 @@ val Vector2f.lengthSquared: Float
 
 val Vector2f.isZero: Boolean
     get() = x == 0f && y == 0f
+
+val Vector2f.isNotZero: Boolean
+    get() = x != 0f || y != 0f
