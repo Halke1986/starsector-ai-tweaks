@@ -8,13 +8,13 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.VanillaKeymap
+import com.genir.aitweaks.core.state.VanillaKeymap.Action.SHIP_STRAFE_KEY
+import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDown
+import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDownEvent
 
 class AimAssistManager : BaseEveryFrameCombatPlugin() {
     private var aiDrone: ShipAPI? = null
 
-    // Strafe mode config.
-    private var strafeKeyDown: Boolean = false
     var strafeModeOn: Boolean = false
 
     private companion object {
@@ -49,16 +49,11 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
     }
 
     private fun updateStrafeMode() {
-        val strafeKeyDown = VanillaKeymap.isKeyDown(VanillaKeymap.Action.SHIP_STRAFE_KEY)
-        val strafeLock: Boolean = Global.getSettings().isStrafeKeyAToggle
-        val autoturnMode: Boolean = Global.getSettings().isAutoTurnMode
-
-        if (strafeLock) {
-            if (strafeKeyDown && !this.strafeKeyDown) strafeModeOn = !strafeModeOn
-            this.strafeKeyDown = strafeKeyDown
+        if (Global.getSettings().isStrafeKeyAToggle) {
+            if (isKeyDownEvent(SHIP_STRAFE_KEY)) strafeModeOn = !strafeModeOn
         } else {
-            strafeModeOn = strafeKeyDown
-            if (autoturnMode) strafeModeOn != strafeModeOn
+            strafeModeOn = isKeyDown(SHIP_STRAFE_KEY)
+            if (Global.getSettings().isAutoTurnMode) strafeModeOn = !strafeModeOn
         }
     }
 

@@ -17,10 +17,10 @@ import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.intercept
 import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.state.VanillaKeymap.Action.*
+import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDown
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
-import com.genir.aitweaks.core.utils.VanillaKeymap.Action.*
-import com.genir.aitweaks.core.utils.VanillaKeymap.isKeyDown
 import com.genir.aitweaks.core.utils.VanillaShipCommand.*
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lwjgl.util.vector.Vector2f

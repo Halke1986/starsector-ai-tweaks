@@ -46,7 +46,9 @@ class State : BaseEveryFrameCombatPlugin() {
         frameCount++
 
         // Advance plugins only in combat.
-        if (Global.getCurrentState() == GameState.COMBAT)
+        if (Global.getCurrentState() == GameState.COMBAT) {
+            VanillaKeymap.advance()
             plugins.forEach { it.advance(dt, events) }
+        }
     }
 }
