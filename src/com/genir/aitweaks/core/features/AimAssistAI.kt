@@ -13,9 +13,7 @@ import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.features.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.WeaponGroup
-import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.features.shipai.autofire.intercept
+import com.genir.aitweaks.core.features.shipai.autofire.*
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.state.VanillaKeymap.Action.*
 import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDown
@@ -129,57 +127,45 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     }
 
     private fun aimWeapons(ship: ShipAPI, target: CombatEntityAPI) {
-        val ballisticTarget = BallisticTarget(mousePosition(), target.velocity, 0f)
+        val ballisticTarget = BallisticTarget(mousePosition(), target.velocity, target.collisionRadius)
         val selectedWeapons: Set<WeaponAPI> = ship.selectedWeapons
         val aimableWeapons: Set<WeaponAPI> = ship.nonAutofireWeapons + selectedWeapons
+        val params = defaultBallisticParams
 
         aimableWeapons.forEach { weapon ->
-            when {
-                // Vanilla hardpoints obey player fire command regardless of arc,
-                // so there's no need to override their fire command.
-                weapon.slot.isHardpoint -> {
-                    // It's not possible to aim missile hardpoints.
-                    if (!weapon.isUnguidedMissile) {
-                        aimWeapon(weapon, ballisticTarget)
-                    }
-                }
+            // Override aim for all non-autofire weapons except missile missile hardpoints.
+            if (weapon.slot.isTurret || !weapon.isUnguidedMissile) {
+                aimWeapon(weapon, ballisticTarget, params)
+            }
 
-                // Override aim for all non-autofire turrets.
-                weapon.slot.isTurret -> {
-                    val intercept: Vector2f = aimWeapon(weapon, ballisticTarget)
-                    // Override fire command for manually operated turrets.
-                    if (selectedWeapons.contains(weapon)) {
-                        fireWeapon(weapon, intercept)
-                    }
-                }
+            // Override fire command for manually operated turrets.
+            // Vanilla hardpoints obey player fire command regardless of arc,
+            // so there's no need to override their fire command.
+            if (weapon.slot.isTurret && selectedWeapons.contains(weapon)) {
+                fireWeapon(weapon, ballisticTarget, params)
             }
         }
     }
 
-    private fun aimWeapon(weapon: WeaponAPI, ballisticTarget: BallisticTarget): Vector2f {
-        val intercept: Vector2f = intercept(weapon, ballisticTarget, defaultBallisticParams)
+    private fun aimWeapon(weapon: WeaponAPI, ballisticTarget: BallisticTarget, params: BallisticParams) {
+        val intercept: Vector2f = intercept(weapon, ballisticTarget, params)
 
         // Override vanilla-computed weapon facing.
         val aimTracker: Obfuscated.AimTracker = (weapon as Obfuscated.Weapon).aimTracker
         aimTracker.aimTracker_setTargetOverride(intercept + weapon.location)
-
-        return intercept
     }
 
-    private fun fireWeapon(weapon: WeaponAPI, intercept: Vector2f) {
-        val interceptFacing = intercept.facing - weapon.ship.facing
+    private fun fireWeapon(weapon: WeaponAPI, ballisticTarget: BallisticTarget, params: BallisticParams) {
         val group: WeaponGroupAPI = weapon.group ?: return
-        val isFiring = isKeyDown(SHIP_FIRE)
 
         val shouldFire: Boolean = when {
-            !isFiring -> false
+            !isKeyDown(SHIP_FIRE) -> false
 
             // Fire active alternating group weapon. Same behavior as vanilla.
             group.type == ALTERNATING && weapon == group.activeWeapon -> true
 
-            // Fire linked weapons if target is in arc, regardless if weapon
-            // is actually pointed at the target. Same behavior as vanilla.
-            group.type == LINKED && weapon.isAngleInArc(interceptFacing) -> true
+            // Fire linked weapons if it's possible to hit the target.
+            group.type == LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.currAngle) -> true
 
             else -> false
         }

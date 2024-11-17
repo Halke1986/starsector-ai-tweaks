@@ -1,6 +1,8 @@
+- Aim-assisted turreted weapons will not attack when wildly off target.
+
 Version 1.10.8
 
-- Aim assist correctly handles "auto-turn to cursor" inverted mode.
+- Aim Assist correctly handles "auto-turn to cursor" inverted mode.
 - Improved the UI for the player's automatic omni shield. It is now impossible to force it into a broken state through incorrect input combinations.
 - The automatic omni shield now draws an indication circle around the player's ship at all times when the AI is active. When the automatic omni shield is enabled but manually deactivated by pressing the right mouse button, the indication circle becomes fainter.
 - The automatic omni shield UI is now aware of vanilla keymap.
