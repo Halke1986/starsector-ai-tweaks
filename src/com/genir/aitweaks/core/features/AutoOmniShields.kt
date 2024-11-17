@@ -94,7 +94,8 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
             // Update shield controller if player ship changed.
             if (ship!! != prevPlayerShip) {
                 prevPlayerShip = ship
-                shieldAI = OmniShieldControlAI(ship as Ship, ShipwideAIFlags())
+                val flags = ShipwideAIFlags()
+                shieldAI = OmniShieldControlAI(ship as Ship, flags)
             }
 
             // Clear player manual command.
@@ -129,7 +130,7 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
             GL11.glEnable(GL11.GL_BLEND)
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
 
-            Misc.setColor(Color.CYAN, if (forceShieldOff) 30 else 100)
+            Misc.setColor(Color.CYAN, if (forceShieldOff) 40 else 110)
 
             GL11.glLineWidth(2f / Global.getCombatEngine().viewport.viewMult)
 
