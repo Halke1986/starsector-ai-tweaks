@@ -1,10 +1,7 @@
 package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.ShieldAPI
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.Hit
@@ -156,4 +153,21 @@ enum class VanillaShipCommand {
     STRAFE_RIGHT,
     ACCELERATE,
     ACCELERATE_BACKWARDS,
+    TOGGLE_SHIELD,
+}
+
+fun makeAIDrone(ai: ShipAIPlugin): ShipAPI {
+    val spec = Global.getSettings().getHullSpec("dem_drone")
+    val v = Global.getSettings().createEmptyVariant("dem_drone", spec)
+    val aiDrone = Global.getCombatEngine().createFXDrone(v)
+
+    aiDrone.owner = 0
+    aiDrone.mutableStats.hullDamageTakenMult.modifyMult("aitweaks_ai_drone", 0f) // so it's non-targetable
+    aiDrone.isDrone = true
+    aiDrone.collisionClass = CollisionClass.NONE
+    aiDrone.location.y = -1e7f
+
+    aiDrone.shipAI = ai
+
+    return aiDrone
 }

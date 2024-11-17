@@ -34,11 +34,11 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     private var currentAlternatingWeapon: WeaponAPI? = null
 
     override fun advance(dt: Float) {
-        val engine = Global.getCombatEngine()
-        val ship = engine.playerShip ?: return
+        val ship = Global.getCombatEngine().playerShip
 
         // Decide if aim assist should run.
         when {
+            ship == null -> return
             !ship.isAlive -> return
             !ship.isUnderManualControl -> return
 

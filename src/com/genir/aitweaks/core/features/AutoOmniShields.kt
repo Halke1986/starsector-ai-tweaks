@@ -3,64 +3,111 @@ package com.genir.aitweaks.core.features
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.combat.ShieldAPI.ShieldType
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.Misc
 import com.fs.starfarer.campaign.CampaignEngine
-import com.fs.starfarer.combat.CombatState.AUTO_OMNI_SHIELDS
-import com.genir.aitweaks.core.state.State.Companion.state
-import org.lazywizard.lazylib.opengl.DrawUtils.drawArc
-import org.lwjgl.opengl.GL11.*
+import com.fs.starfarer.combat.ai.OmniShieldControlAI
+import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.core.features.shipai.BaseShipAIPlugin
+import com.genir.aitweaks.core.features.shipai.command
+import com.genir.aitweaks.core.state.State
+import com.genir.aitweaks.core.state.VanillaKeymap
+import com.genir.aitweaks.core.state.VanillaKeymap.Action.SHIP_SHIELDS
+import com.genir.aitweaks.core.utils.VanillaShipCommand
+import com.genir.aitweaks.core.utils.clearVanillaCommands
+import com.genir.aitweaks.core.utils.extensions.isUnderManualControl
+import com.genir.aitweaks.core.utils.makeAIDrone
+import org.lazywizard.lazylib.opengl.DrawUtils
+import org.lwjgl.opengl.GL11
 import java.awt.Color
 import java.util.*
 import kotlin.math.max
 
 class AutoOmniShields : BaseEveryFrameCombatPlugin() {
-    private var initialized = false
-    private var doNotUseShields = false
-    private var prevPlayerShip: ShipAPI? = null
+    private var aiDrone: ShipAPI? = null
+
+    private var enableShieldAssist = false
+    private var forceShieldOff = false
+
+    companion object {
+        const val ENABLE_SHIELD_ASSIST_KEY = "\$aitweaks_AUTO_OMNI_SHIELDS"
+        const val RENDER_PLUGIN_KEY = "aitweaks_shield_assist_renderer"
+    }
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
-        val engine = Global.getCombatEngine() ?: return
-
-        // Finish initialization when SS classes are ready.
-        if (!initialized) {
-            val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
-            AUTO_OMNI_SHIELDS = memory.getBoolean("\$aitweaks_AUTO_OMNI_SHIELDS")
-            initialized = true
-        }
-
-        // Initialize omni shield render plugin.
-        val id = "aitweaks_omni_shield"
-        if (!engine.customData.containsKey(id)) {
-            engine.addLayeredRenderingPlugin(RendererAutoShieldIndicator())
-            engine.customData[id] = true
-        }
-
-        // Player ship has changed.
-        if (engine.playerShip != prevPlayerShip) {
-            prevPlayerShip = engine.playerShip
-            doNotUseShields = false
-        }
-
-        // Do work only for ships with omni shields under player control.
-        val shield = engine.playerShip?.shield ?: return
-        if (shield.type != ShieldType.OMNI || !engine.isUIAutopilotOn) return
+        // Load shield assist setting from memory.
+        val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
+        enableShieldAssist = memory.getBoolean(ENABLE_SHIELD_ASSIST_KEY)
 
         // Handle input.
         events?.forEach {
-            when {
-                it.isConsumed -> Unit
-
-                it.isRMBDownEvent && AUTO_OMNI_SHIELDS -> doNotUseShields = shield.isOn
-
-                // Toggle auto omni shields and persist the setting to memory.
-                it.isKeyDownEvent && it.eventValue == state.config.omniShieldKeybind -> {
-                    AUTO_OMNI_SHIELDS = !AUTO_OMNI_SHIELDS
-                    val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
-                    memory.set("\$aitweaks_AUTO_OMNI_SHIELDS", AUTO_OMNI_SHIELDS)
-                }
+            // Toggle the shield assist and persist the setting to memory.
+            if (!it.isConsumed && it.isKeyDownEvent && it.eventValue == State.state.config.omniShieldKeybind) {
+                enableShieldAssist = !enableShieldAssist
+                memory.set(ENABLE_SHIELD_ASSIST_KEY, enableShieldAssist)
             }
+        }
+
+        // Nothing to do, exit early.
+        if (!enableShieldAssist) return
+
+        // Make a drone to hold player ship shield AI.
+        if (aiDrone == null) {
+            aiDrone = makeAIDrone(ShieldAssistAI())
+            Global.getCombatEngine().addEntity(aiDrone)
+        }
+
+        // Initialize shield assist rendering plugin.
+        val engine = Global.getCombatEngine()
+        if (!engine.customData.containsKey(RENDER_PLUGIN_KEY)) {
+            engine.addLayeredRenderingPlugin(RendererAutoShieldIndicator())
+            engine.customData[RENDER_PLUGIN_KEY] = true
+        }
+    }
+
+    inner class ShieldAssistAI : BaseShipAIPlugin() {
+        private var prevPlayerShip: ShipAPI? = null
+        private var shieldAI: OmniShieldControlAI? = null
+
+        override fun advance(dt: Float) {
+            val ship: ShipAPI? = Global.getCombatEngine().playerShip
+            val shield: ShieldAPI? = ship?.shield
+
+            // Decide if shield assist should run.
+            val controlShield = when {
+                ship == null -> false
+                !ship.isAlive -> false
+                !ship.isUnderManualControl -> false
+
+                shield == null -> false
+                shield.type != ShieldAPI.ShieldType.OMNI -> false
+                !enableShieldAssist -> false
+
+                else -> true
+            }
+
+            if (!controlShield) {
+                forceShieldOff = false
+                return
+            }
+
+            // Update shield controller if player ship changed.
+            if (ship!! != prevPlayerShip) {
+                prevPlayerShip = ship
+                shieldAI = OmniShieldControlAI(ship as Ship, ShipwideAIFlags())
+            }
+
+            // Clear player manual command.
+            clearVanillaCommands(ship, VanillaShipCommand.TOGGLE_SHIELD)
+
+            // Handle input.
+            if (VanillaKeymap.isKeyDownEvent(SHIP_SHIELDS)) {
+                forceShieldOff = !forceShieldOff
+                if (forceShieldOff == shield!!.isOn) ship.command(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK)
+            }
+
+            // Control the omni shield.
+            if (!forceShieldOff) shieldAI!!.advance(dt)
         }
     }
 
@@ -71,23 +118,23 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
             val shield = ship.shield ?: return
 
             when {
-                shield.type != ShieldType.OMNI -> return
-                !AUTO_OMNI_SHIELDS -> return
+                shield.type != ShieldAPI.ShieldType.OMNI -> return
                 !engine.isUIAutopilotOn -> return
-                doNotUseShields -> return
+                !enableShieldAssist -> return
             }
 
-            glPushAttrib(GL_ALL_ATTRIB_BITS)
+            GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
-            glDisable(GL_TEXTURE_2D)
-            glEnable(GL_BLEND)
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            GL11.glDisable(GL11.GL_TEXTURE_2D)
+            GL11.glEnable(GL11.GL_BLEND)
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
 
-            Misc.setColor(Color.CYAN, 100)
-            glLineWidth(2f / Global.getCombatEngine().viewport.viewMult)
+            Misc.setColor(Color.CYAN, if (forceShieldOff) 30 else 100)
+
+            GL11.glLineWidth(2f / Global.getCombatEngine().viewport.viewMult)
 
             val arc = if (shield.activeArc > 2f) shield.activeArc + 10f else 0f
-            drawArc(
+            DrawUtils.drawArc(
                 shield.location.x,
                 shield.location.y,
                 shield.radius - 5f,
@@ -97,7 +144,7 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
                 false,
             )
 
-            glPopAttrib()
+            GL11.glPopAttrib()
         }
 
         override fun getRenderRadius(): Float = 1e6f
