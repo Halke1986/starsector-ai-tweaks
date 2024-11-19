@@ -12,7 +12,7 @@ import com.genir.aitweaks.core.features.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.state.VanillaKeymap
-import com.genir.aitweaks.core.state.VanillaKeymap.Action.SHIP_SHIELDS
+import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction.SHIP_SHIELDS
 import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.extensions.isUnderManualControl

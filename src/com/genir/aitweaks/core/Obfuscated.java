@@ -2,6 +2,7 @@ package com.genir.aitweaks.core;
 
 import org.lwjgl.util.vector.Vector2f;
 
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -39,6 +40,10 @@ public class Obfuscated {
 
     public static class Ship {
         public List<ShipCommandWrapper> getCommands() {
+            return null;
+        }
+
+        public EnumSet<ShipCommand> getBlockedCommands() {
             return null;
         }
     }

@@ -3,7 +3,7 @@ package com.genir.aitweaks.core.state
 import com.genir.aitweaks.core.Obfuscated
 
 object VanillaKeymap {
-    enum class Action(var prev: Boolean = KEY_UP, var current: Boolean = KEY_UP) {
+    enum class PlayerAction(var prev: Boolean = KEY_UP, var current: Boolean = KEY_UP) {
         SHIP_STRAFE_KEY,
         SHIP_FIRE,
         SHIP_TURN_LEFT,
@@ -12,24 +12,25 @@ object VanillaKeymap {
         SHIP_STRAFE_RIGHT_NOTURN,
         SHIP_ACCELERATE,
         SHIP_ACCELERATE_BACKWARDS,
-        SHIP_SHIELDS,
+        SHIP_SHIELDS;
+
+        val obfuscated = Obfuscated.PlayerAction.valueOf(name)
     }
 
     fun advance() {
-        Action.values().forEach { action ->
+        PlayerAction.values().forEach { action ->
             action.prev = action.current
-            val obfAction = Obfuscated.PlayerAction.valueOf(action.name)
-            action.current = Obfuscated.Keymap.keymap_isKeyDown(obfAction)
+            action.current = Obfuscated.Keymap.keymap_isKeyDown(action.obfuscated)
         }
     }
 
-    fun isKeyUp(action: Action) = action.current == KEY_UP
+    fun isKeyUp(action: PlayerAction) = action.current == KEY_UP
 
-    fun isKeyDown(action: Action) = action.current == KEY_DOWN
+    fun isKeyDown(action: PlayerAction) = action.current == KEY_DOWN
 
-    fun isKeyUpEvent(action: Action) = action.prev == KEY_DOWN && action.current == KEY_UP
+    fun isKeyUpEvent(action: PlayerAction) = action.prev == KEY_DOWN && action.current == KEY_UP
 
-    fun isKeyDownEvent(action: Action) = action.prev == KEY_UP && action.current == KEY_DOWN
+    fun isKeyDownEvent(action: PlayerAction) = action.prev == KEY_UP && action.current == KEY_DOWN
 
     private const val KEY_DOWN = true
     private const val KEY_UP = !KEY_DOWN

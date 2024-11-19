@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.state.VanillaKeymap.Action.SHIP_STRAFE_KEY
+import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction.SHIP_STRAFE_KEY
 import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDown
 import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDownEvent
 import com.genir.aitweaks.core.utils.makeAIDrone

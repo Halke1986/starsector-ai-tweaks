@@ -15,7 +15,7 @@ import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.WeaponGroup
 import com.genir.aitweaks.core.features.shipai.autofire.*
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.state.VanillaKeymap.Action.*
+import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction.*
 import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDown
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
@@ -64,14 +64,19 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
             engineController = BasicEngineController(ship)
         }
 
-        // Remove vanilla move commands.
-        clearVanillaCommands(ship, TURN_LEFT, TURN_RIGHT, STRAFE_LEFT, STRAFE_RIGHT, ACCELERATE, ACCELERATE_BACKWARDS)
-
         controlShipHeading(dt, ship)
         controlShipFacing(dt, ship, target)
     }
 
     private fun controlShipHeading(dt: Float, ship: ShipAPI) {
+        // Do not attempt to override the ship movement if any of the movement commands is blocked.
+        val commands = arrayOf(STRAFE_LEFT, STRAFE_RIGHT, ACCELERATE, ACCELERATE_BACKWARDS)
+        val blockedCommands = (ship as Obfuscated.Ship).blockedCommands
+        if (commands.any { blockedCommands.contains(it.obfuscated) }) return
+
+        // Remove vanilla move commands.
+        clearVanillaCommands(ship, *commands)
+
         // Compensate ship movement for the fact the ship
         // is not necessary facing the target directly.
         val r = Rotation((mousePosition() - ship.location).facing)
@@ -93,6 +98,14 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     }
 
     private fun controlShipFacing(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
+        // Do not attempt to override the ship movement if any of the movement commands is blocked.
+        val commands = arrayOf(TURN_LEFT, TURN_RIGHT)
+        val blockedCommands = (ship as Obfuscated.Ship).blockedCommands
+        if (commands.any { blockedCommands.contains(it.obfuscated) }) return
+
+        // Remove vanilla move commands.
+        clearVanillaCommands(ship, *commands)
+
         // Continue aiming with an alternating weapon until it finishes its firing sequence.
         val holdCurrent = currentAlternatingWeapon?.isInFiringSequence == true
         if (!holdCurrent) currentAlternatingWeapon = null

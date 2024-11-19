@@ -140,7 +140,7 @@ fun clearVanillaCommands(ship: ShipAPI, vararg commands: VanillaShipCommand) {
     while (commandWrappers.hasNext()) {
         val command: Obfuscated.ShipCommand = commandWrappers.next().shipCommandWrapper_getCommand
 
-        if (commands.any { command == Obfuscated.ShipCommand.valueOf(it.name) }) {
+        if (commands.any { command == it.obfuscated }) {
             commandWrappers.remove()
         }
     }
@@ -153,7 +153,10 @@ enum class VanillaShipCommand {
     STRAFE_RIGHT,
     ACCELERATE,
     ACCELERATE_BACKWARDS,
-    TOGGLE_SHIELD,
+    DECELERATE,
+    TOGGLE_SHIELD;
+
+    val obfuscated = Obfuscated.ShipCommand.valueOf(name)
 }
 
 fun makeAIDrone(ai: ShipAIPlugin): ShipAPI {
