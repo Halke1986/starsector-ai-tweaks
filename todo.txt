@@ -1,8 +1,7 @@
 ships avoid collisions with very large modded shields
 ff when attacking fighters with main weapons
 
-PD change target when blocked by junk
-
+----------------------------------------------------------------
 
 TIDAL
  —
@@ -15,7 +14,7 @@ more hullmods
 amazigh ship foundry
 prv starworks
 
-
+----------------------------------------------------------------
 
 [quote author=mora link=topic=28428.msg453502#msg453502 date=1730436801]
 From what I observed, the Invictus custom AI target selection simply ignores the eliminate command; It seems to have a
@@ -26,6 +25,7 @@ Even worse cases are the Invictus doing a 180 and showing their rear towards the
 Also it seems that the custom AI knows where the enemies are even if none are in in-combat sensor range.
 [/quote]
 
+----------------------------------------------------------------
 
 [quote author=Modo44 link=topic=28428.msg453640#msg453640 date=1730629311]
 The fleet cohesion mechanic needs work. Whenever a ship gets separated in a fight, it will keep running straight back
@@ -33,11 +33,20 @@ just like vanilla AI would. You still have to make it move sideways using an ord
 of the map.
 [/quote]
 
-
-
+----------------------------------------------------------------
 
 why invictus close to station? maybe admiral AI gave eliminate order?
 
+----------------------------------------------------------------
 
-use vanilla keymap for auto omni shield
-omni shield up not working in some cases
+Hi Genir. Thanks for such a cool mod! Can't wait to see what you will do with it in future.
+
+Some feedback:
+I've noticed that no matter what I do my fighters are constantly dead. Even those that I keep close to me, just for fire support. Fighters that are intended for fighting, fast and heavily shielded.
+For some context I tend to fly brawler cruisers with SO, in last couple of runs Sparrowhawk specifically. Fighters in question are Fire Beetle from Bladebreakers or Nimbus from VRI. Both are tough and survivable by vanilla standards. But in this run with AI Tweaks I feel like the moment I approach something bigger than a destroyer my fighters just disappear. And non-shielded fighters usually don't even have enough time to do anything useful before they are gone. Is this caused by more precise targeting algorithm on enemy ships, right?
+
+Would it be possible to add LunaLib option to tune it down a bit or revert back to vanilla? Cause I have a feeling that this invalidates some factions that heavily rely on fighters, like UAF or ScalarTech. If no... any tips on how to run a carrier fleet in such circumstances?
+
+----------------------------------------------------------------
+
+From what I observed, the Invictus custom AI target selection simply ignores the eliminate command; It seems to have a strong bias towards whatever is the nearest to them which usually ends up in the ship trying to shoot frigates and destroyers while getting blasted by the enemy capital right in front of them.

@@ -1,4 +1,5 @@
 - Aim-assisted turreted weapons will not attack when wildly off target.
+- Invictus and other ships controller by custom ship AI aggressively follow the eliminate order. Issue reported by mora.
 
 Version 1.10.8
 

@@ -1,8 +1,11 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
+import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipCommand
+import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.BACKING_OFF
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
@@ -19,7 +22,6 @@ import kotlin.math.abs
 import kotlin.math.max
 
 // TODO coord around stations
-// TODO ships freeze when issued search and destroy assignment
 
 @Suppress("MemberVisibilityCanBePrivate")
 class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
@@ -33,7 +35,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     private val updateInterval: Interval = defaultAIInterval()
 
     // Standing orders.
-    var assignment: CombatFleetManagerAPI.AssignmentInfo? = null
     var assignmentLocation: Vector2f? = null // Assignment takes priority over maneuver target.
     var maneuverTarget: ShipAPI? = null
     var attackTarget: CombatEntityAPI? = null
@@ -99,54 +100,59 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
     private fun debug() {
         if (state.config.highlightCustomAI) Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
-//        debugPrint.clear()
 
-//        drawTurnLines(ship)
-//        drawCircle(movement.headingPoint, ship.collisionRadius)
+//        Debug.drawTurnLines(ship)
+//        Debug.drawCircle(movement.headingPoint, ship.collisionRadius)
 
-//        drawCircle(ship.location, stats.threatSearchRange)
+//        Debug.drawCircle(ship.location, stats.threatSearchRange)
 
-//        drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
-//        drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
-//        drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
+//        Debug.drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
+//        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
+//        Debug.drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 
-//        drawLine(ship.location, ship.location + (maneuverTarget?.velocity ?: ship.location), Color.GREEN)
-//        drawLine(ship.location, movement.headingPoint, Color.YELLOW)
+//        Debug.drawLine(ship.location, ship.location + (maneuverTarget?.velocity ?: ship.location), Color.GREEN)
+//        Debug.drawLine(ship.location, movement.headingPoint, Color.YELLOW)
 
-//        drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, Color.GREEN)
-//        drawLine(ship.location, ship.location + unitVector(movement.expectedFacing) * 600f, Color.YELLOW)
+//        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, Color.GREEN)
+//        Debug.drawLine(ship.location, ship.location + unitVector(movement.expectedFacing) * 600f, Color.YELLOW)
 
-//        drawLine(ship.location, ship.location + unitVector(ship.facing + attackingGroup.facing) * 600f, Color.BLUE)
-//        drawLine(ship.location, ship.location + (movement.expectedVelocity).resized(300f), Color.GREEN)
-//        drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
-//        drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
+//        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing + attackingGroup.facing) * 600f, Color.BLUE)
+//        Debug.drawLine(ship.location, ship.location + (movement.expectedVelocity).resized(300f), Color.GREEN)
+//        Debug.drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
+//        Debug.drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
     }
 
     private fun updateAssignment() {
-        this.assignment = ship.assignment
+        assignmentLocation = null
+        val assignment = ship.assignment ?: return
+        val location = assignment.target?.location
 
-        val assignment = ship.assignment
-        if (assignment == null) {
-            assignmentLocation = null
-            return
+        assignmentLocation = when (assignment.type) {
+            DEFEND, RALLY_TASK_FORCE, RALLY_CARRIER, RALLY_CIVILIAN, RALLY_STRIKE_FORCE -> location
+            RALLY_FIGHTERS, STRIKE, HARASS, LIGHT_ESCORT, MEDIUM_ESCORT -> location
+            HEAVY_ESCORT, CAPTURE, CONTROL, ASSAULT, ENGAGE -> location
+
+            // Assignments handled explicitly in code.
+            INTERCEPT -> null
+
+            // Ignored and unimplemented assignments.
+            RECON, AVOID, RETREAT, REPAIR_AND_REFIT, SEARCH_AND_DESTROY -> null
+
+            else -> null
         }
-
-        when (assignment.type) {
-            RECON, AVOID, RETREAT, REPAIR_AND_REFIT, SEARCH_AND_DESTROY -> return
-
-            DEFEND, RALLY_TASK_FORCE, RALLY_CARRIER, RALLY_CIVILIAN, RALLY_STRIKE_FORCE -> Unit
-            RALLY_FIGHTERS, STRIKE, INTERCEPT, HARASS, LIGHT_ESCORT, MEDIUM_ESCORT -> Unit
-            HEAVY_ESCORT, CAPTURE, CONTROL, ASSAULT, ENGAGE -> Unit
-
-            else -> return
-        }
-
-        assignmentLocation = assignment.target?.location
     }
 
     private fun updateManeuverTarget() {
         // Don't change target when movement system is on.
-        if (maneuverTarget?.isValidTarget == true && systemAI?.holdTargets() == true) return
+        if (maneuverTarget?.isValidTarget == true && systemAI?.holdTargets() == true) {
+            return
+        }
+
+        // Eliminate assignment target.
+        ship.eliminateAssignment?.let {
+            maneuverTarget = it
+            return
+        }
 
         // Try cohesion AI first.
         val cohesionAI = state.fleetCohesion[ship.owner]
@@ -364,40 +370,45 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
     /** Evaluate if target is worth attacking. The lower the score, the better the target. */
     private fun evaluateTarget(target: ShipAPI, weaponGroup: WeaponGroup): Float {
+        var evaluation = 0f
+
         // Prioritize targets closer to ship facing.
         val angle = ship.shortestRotationToTarget(target.location, weaponGroup.defaultFacing) * DEGREES_TO_RADIANS
         val angleWeight = 0.75f
-        val evalAngle = abs(angle) * angleWeight
+        evaluation += abs(angle) * angleWeight
 
         // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
         val dist = range(target)
         val distWeight = 1f / weaponGroup.dpsFractionAtRange(dist)
-        val evalDist = (dist / weaponGroup.maxRange) * distWeight
+        evaluation += (dist / weaponGroup.maxRange) * distWeight
 
         // Prioritize targets high on flux. Avoid hunting low flux phase ships.
         val fluxLeft = (1f - target.fluxLevel)
         val fluxFactor = if (target.phaseCloak?.specAPI?.isPhaseCloak == true) 2f else 0.5f
-        val evalFlux = fluxLeft * fluxFactor
+        evaluation += fluxLeft * fluxFactor
 
         // Avoid attacking bricks, especially Monitors.
-        val evalDamper = if (target.system?.id == "damper" && !target.isFrigateShip) 1f else 0f
-        val evalShunt = if (target.variant.hasHullMod("fluxshunt") && target.isFrigateShip) 256f else 0f
+        evaluation += if (target.system?.id == "damper" && !target.isFrigateShip) 1f else 0f
+        evaluation += if (target.variant.hasHullMod("fluxshunt") && target.isFrigateShip) 16f else 0f
 
         // Assign lower priority to frigates.
-        val evalType = if (!ship.shouldAttackFrigates && target.isFrigateShip) 1f else 0f
+        evaluation += if (!ship.shouldAttackFrigates && target.isFrigateShip) 1f else 0f
 
         // Avoid attacking ships with no weapons (mostly station armor modules).
-        val noWeapons = if (target.allWeapons.isEmpty()) 2f else 0f
+        evaluation += if (target.allWeapons.isEmpty()) 2f else 0f
 
         // Finish helpless target.
-        val evalVent = if (target.fluxTracker.isOverloadedOrVenting) -2f else 0f
+        evaluation += if (target.fluxTracker.isOverloadedOrVenting) -2f else 0f
 
         // Try to stay on target.
-        val evalCurrentTarget = if (target == attackTarget && range(target) <= weaponGroup.effectiveRange) -2f else 0f
+        evaluation += if (target == attackTarget && range(target) <= weaponGroup.effectiveRange) -2f else 0f
+
+        // Strongly prioritize eliminate assignment.
+        evaluation += if (target == ship.eliminateAssignment) -16f else 0f
 
         // TODO avoid wrecks
 
-        return evalAngle + evalDist + evalFlux + evalDamper + evalShunt + evalType + noWeapons + evalVent + evalCurrentTarget
+        return evaluation
     }
 
     /** Range from which ship should attack its target. */

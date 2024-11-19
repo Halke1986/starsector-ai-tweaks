@@ -2,7 +2,6 @@ package com.genir.aitweaks.core.utils.extensions
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
@@ -37,9 +36,6 @@ private val ShipAPI.taskManager: CombatTaskManagerAPI
 
 val ShipAPI.assignment: CombatFleetManagerAPI.AssignmentInfo?
     get() = taskManager.getAssignmentFor(this)
-
-val ShipAPI.hasEscortAssignment: Boolean
-    get() = assignment?.type.let { it == LIGHT_ESCORT || it == MEDIUM_ESCORT || it == HEAVY_ESCORT }
 
 val ShipAPI.deployedFleetMember: DeployedFleetMemberAPI?
     get() = Global.getCombatEngine().getFleetManager(owner).getDeployedFleetMember(this)
