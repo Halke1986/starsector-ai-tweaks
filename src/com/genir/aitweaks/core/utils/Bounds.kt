@@ -9,6 +9,7 @@ import com.genir.aitweaks.core.utils.extensions.minus
 import com.genir.aitweaks.core.utils.extensions.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.Float.Companion.MAX_VALUE
+import kotlin.math.max
 import kotlin.math.min
 
 class Bounds {
@@ -77,12 +78,13 @@ class Bounds {
 
         // Count the number of segments below the point p.
         val count = bounds.origSegments.count { segment ->
-            if ((segment.p1.x - p.x) * (segment.p2.x - p.x) >= 0) return@count false
+            val x1 = min(segment.p1.x, segment.p2.x)
+            val x2 = max(segment.p1.x, segment.p2.x)
+            if (p.x < x1 || p.x >= x2) return@count false
 
-            val q = segment.p1 - p
+            val q = p - segment.p1
             val d = segment.p2 - segment.p1
-
-            q.x * d.y / d.x < q.y
+            q.x * d.y / d.x <= q.y
         }
 
         return count and 1 == 1
