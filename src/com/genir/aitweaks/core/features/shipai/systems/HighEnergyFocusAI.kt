@@ -40,7 +40,7 @@ class HighEnergyFocusAI : ShipSystemAIScript {
         // All weapons are in cooldown.
         if (weapons.all { it.cooldownRemaining > 0f }) return false
 
-        val dpsTotal = weapons.sumOf { (if (it.damageType == FRAGMENTATION) 0.25f else 1f) * it.derivedStats.dps }
+        val dpsTotal = weapons.sumOf { it.effectiveDPS }
         val dpsHef = weapons.sumOf { (it.derivedStats.dps * dpsMultiplier(it)) }
 
         // Too small portion of the total DPS is affected by HEF.

@@ -6,10 +6,7 @@ import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.intercept
 import com.genir.aitweaks.core.utils.averageFacing
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.isAngleInArc
-import com.genir.aitweaks.core.utils.extensions.minus
-import com.genir.aitweaks.core.utils.extensions.sumOf
+import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shortestRotation
 import kotlin.math.abs
 import kotlin.math.max
@@ -19,7 +16,7 @@ import kotlin.math.sign
 /** A group of weapons that should be able to focus on a single attack angle. */
 class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
     val defaultFacing: Float = defaultAttackFacing()
-    val dps: Float = weapons.sumOf { it.derivedStats.dps }
+    val dps: Float = weapons.sumOf { it.effectiveDPS }
     val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)
     val minRange: Float = weapons.minOfOrNull { it.slotRange } ?: 0f
     val maxRange: Float = weapons.maxOfOrNull { it.slotRange } ?: 0f
@@ -30,7 +27,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         var inRange = 0f
 
         weapons.forEach {
-            val dps = it.derivedStats.dps
+            val dps = it.effectiveDPS
             all += dps
             if (it.slotRange >= range) inRange += dps
         }
@@ -91,7 +88,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
 
         var dpsInRange = dps
         weapons.sortedWith(compareBy { it.slotRange }).forEach { weapon ->
-            dpsInRange -= weapon.derivedStats.dps
+            dpsInRange -= weapon.effectiveDPS
             if (dpsInRange / dps <= effectiveDpsThreshold) {
                 return weapon.slotRange
             }
@@ -125,7 +122,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
             }
 
             return angles.toSet().associateWith { angle ->
-                weapons.filter { it.isAngleInArc(angle) }.sumOf { it.derivedStats.dps }
+                weapons.filter { it.isAngleInArc(angle) }.sumOf { it.effectiveDPS }
             }
         }
     }

@@ -1,7 +1,11 @@
 package com.genir.aitweaks.core.utils.extensions
 
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.AutofireAIPlugin
+import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.DamageType.*
+import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
+import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
@@ -9,10 +13,10 @@ import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.clampAngle
 
 val WeaponAPI.isAntiArmor: Boolean
-    get() = damageType == DamageType.HIGH_EXPLOSIVE || hasAIHint(USE_LESS_VS_SHIELDS)
+    get() = damageType == HIGH_EXPLOSIVE || hasAIHint(USE_LESS_VS_SHIELDS)
 
 val WeaponAPI.isAntiShield: Boolean
-    get() = damageType == DamageType.KINETIC || isStrictlyAntiShield
+    get() = damageType == KINETIC || isStrictlyAntiShield
 
 val WeaponAPI.isStrictlyAntiShield: Boolean
     get() = spec.hasTag("aitweaks_anti_shield")
@@ -127,3 +131,6 @@ val WeaponAPI.barrelOffset: Float
         else spec.turretFireOffsets
         return offsets[0]?.x ?: 0f
     }
+
+val WeaponAPI.effectiveDPS: Float
+    get() = derivedStats.dps * if (damageType == FRAGMENTATION) 0.25f else 1f
