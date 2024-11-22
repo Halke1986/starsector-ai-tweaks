@@ -8,7 +8,7 @@ import kotlin.math.max
 
 /** Weapon range from the center of the ship. */
 val WeaponAPI.slotRange: Float
-    get() = totalRange + slot.location.x
+    get() = range + barrelOffset + slot.location.x
 
 val WeaponAPI.maxReloadTime: Float
     get() {

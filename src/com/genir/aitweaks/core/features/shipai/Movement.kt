@@ -67,14 +67,9 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 // Chase the target if there are no other enemy ships around.
                 // Strafe target randomly if in range and no other threat.
                 maneuverTarget != null -> {
-                    // Strafe the target randomly, when it's the only threat.
-                    val strafeVector = calculateStrafeVector()
-                    val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
-                    val attackPositionOffset = if (shouldStrafe) strafeVector.rotated(strafeRotation)
-                    else strafeVector
-
                     // Let the attack coordinator review the calculated heading point.
-                    proposedHeadingPoint = maneuverTarget.location + attackPositionOffset.resized(ai.attackRange)
+                    val attackVector = calculateAttackVector(maneuverTarget)
+                    proposedHeadingPoint = maneuverTarget.location + attackVector.resized(ai.attackRange)
 
                     val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
                     reviewedHeadingPoint = null
@@ -140,14 +135,20 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         engineController.facing(dt, expectedFacing)
     }
 
-    private fun calculateStrafeVector(): Vector2f {
+    private fun calculateAttackVector(maneuverTarget: ShipAPI): Vector2f {
         // Strafe away from map border, prefer the map center.
         val engine = Global.getCombatEngine()
         val borderDistX = (ship.location.x * ship.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
         val borderDistY = (ship.location.y * ship.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
         val borderWeight = max(borderDistX, borderDistY) * 2f
 
-        return -(ai.threatVector + ship.location.resized(borderWeight))
+        // Try to move away from the threat.
+        val attackVector = -(ai.threatVector + ship.location.resized(borderWeight))
+
+        // Strafe the target randomly, when it's the only threat.
+        val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
+        return if (!shouldStrafe) attackVector.rotated(strafeRotation)
+        else attackVector
     }
 
     private fun shouldHeadToAssigment(location: Vector2f?): Boolean {
