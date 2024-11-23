@@ -36,7 +36,7 @@ class UpdateTarget(
         weapon.hasAIHint(ANTI_FTR) -> selectShip(alsoTargetFighters)
         weapon.hasAIHint(STRIKE) -> selectShip()
         weapon.ship.hullSpec.hullId.startsWith("guardian") -> selectShip()
-        weapon.ship.customShipAI != null -> selectShip() // Custom AI doesn't attack fighters with main weapons, for now.
+        // weapon.ship.customShipAI != null -> selectShip()
 
         else -> selectShip() ?: selectFighter()?.let { if (!it.isSupportFighter) it else null }
     }
