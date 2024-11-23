@@ -11,6 +11,7 @@ operator fun Vector2f.minus(other: Vector2f): Vector2f = Vector2f(x - other.x, y
 operator fun Vector2f.unaryMinus() = Vector2f(-x, -y)
 
 fun Vector2f.resized(length: Float): Vector2f {
+    if (isZero) return Vector2f()
     val scale = length / this.length
     return Vector2f(x * scale, y * scale)
 }

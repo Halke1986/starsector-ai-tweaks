@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
+import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.utils.absShortestRotation
@@ -134,3 +135,7 @@ val WeaponAPI.barrelOffset: Float
 
 val WeaponAPI.effectiveDPS: Float
     get() = derivedStats.dps * if (damageType == FRAGMENTATION) 0.25f else 1f
+
+/** The true projectile speed, which may differ from the value returned by vanilla WeaponAPI.projectileSpeed. */
+val WeaponAPI.trueProjectileSpeed: Float
+    get() = (spec.projectileSpec as? ProjectileSpecAPI)?.getMoveSpeed(ship.mutableStats, this) ?: projectileSpeed
