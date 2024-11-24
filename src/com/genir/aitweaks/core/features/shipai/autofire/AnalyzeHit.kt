@@ -4,14 +4,14 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.HULL
-import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.SHIELD
+import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.*
 import com.genir.aitweaks.core.utils.extensions.isShip
 
 data class Hit(val target: CombatEntityAPI, val range: Float, val type: Type) {
     enum class Type {
         SHIELD,
         HULL,
+        ALLY,
         ROTATE_BEAM // placeholder type for mock hit used by beams rotating to a new target
     }
 }
@@ -34,7 +34,7 @@ fun analyzeAllyHit(weapon: WeaponAPI, ally: ShipAPI, params: BallisticParams): H
         weapon.projectileCollisionClass == CollisionClass.PROJECTILE_FIGHTER -> null
         weapon.projectileCollisionClass == CollisionClass.RAY_FIGHTER -> null
         !willHitCautious(weapon, target, params) -> null
-        else -> Hit(ally, closestHitRange(weapon, target, params), HULL)
+        else -> Hit(ally, closestHitRange(weapon, target, params), ALLY)
     }
 }
 
