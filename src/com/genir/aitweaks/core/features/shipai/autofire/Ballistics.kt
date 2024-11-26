@@ -68,9 +68,12 @@ fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticPa
     val target1 = BallisticTarget(weapon.location + points.first, target.velocity, 0f)
     val target2 = BallisticTarget(weapon.location + points.second, target.velocity, 0f)
 
+    // Attack delay was accounted for when calculating points of tangency.
+    val noDelayParams = BallisticParams(params.accuracy, 0f)
+
     return Arc.fromTo(
-        intercept(weapon, target1, params).facing,
-        intercept(weapon, target2, params).facing,
+        intercept(weapon, target1, noDelayParams).facing,
+        intercept(weapon, target2, noDelayParams).facing,
     )
 }
 
@@ -92,13 +95,6 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
     val hitPoint = p + v * range
 
     return if (Arc(shield.activeArc, shield.facing).contains(hitPoint)) range else null
-}
-
-/** Calculates if an inaccurate projectile may collide with target,
- * given current weapon facing. Weapon range is ignored. */
-fun willHitCautious(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Boolean {
-    val interceptArc = interceptArc(weapon, target, params)
-    return Arc(weapon.spec.maxSpread + 2f, weapon.currAngle).overlaps(interceptArc)
 }
 
 /** Calculates if a perfectly accurate projectile will collide with target bounds,

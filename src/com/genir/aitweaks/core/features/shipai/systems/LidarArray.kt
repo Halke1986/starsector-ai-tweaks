@@ -57,17 +57,18 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun shouldUseSystem(): Boolean {
+        val target = ship.attackTarget
         return when {
             // System is not ready.
             !canUseSystemThisFrame(ship) -> false
 
             // Does ship wave a valid target.
-            ship.attackTarget?.isValidTarget != true -> false
+            target?.isValidTarget != true -> false
 
-            ship.attackTarget?.isFighter == true -> false
+            target.isFighter -> false
 
             // All weapons are on target.
-            else -> applyLidarRangeBonus { weaponsOnTarget(ship.attackTarget!!) && weaponsNotBlocked() }
+            else -> applyLidarRangeBonus { weaponsOnTarget(target) && weaponsNotBlocked(target) }
         }
     }
 
@@ -89,12 +90,12 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
         return lidarWeapons.firstOrNull { !canTrack(it, BallisticTarget.entity(target), defaultBallisticParams, it.totalRange * weaponRangeFraction) } == null
     }
 
-    private fun weaponsNotBlocked(): Boolean {
-        return lidarWeapons.firstOrNull { isWeaponBlocked(it) } == null
+    private fun weaponsNotBlocked(target: ShipAPI): Boolean {
+        return lidarWeapons.firstOrNull { isWeaponBlocked(it, target) } == null
     }
 
-    private fun isWeaponBlocked(weapon: WeaponAPI): Boolean {
-        val hit = firstShipAlongLineOfFire(weapon, defaultBallisticParams)?.target
+    private fun isWeaponBlocked(weapon: WeaponAPI, target: ShipAPI): Boolean {
+        val hit = firstShipAlongLineOfFire(weapon, target, defaultBallisticParams)?.target
         return when {
             hit == null -> false
             hit !is ShipAPI -> false

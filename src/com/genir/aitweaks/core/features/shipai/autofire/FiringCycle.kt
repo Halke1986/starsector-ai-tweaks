@@ -17,9 +17,9 @@ val WeaponAPI.firingCycle: FiringCycle
             val reducedPowerDuration = spec.beamChargeupTime + chargeDownDuration
 
             val warmupDuration = 0f
-            val burstDuration = spec.burstDuration
+            val burstDuration = spec.burstDuration + reducedPowerDuration
             val damage = damage.damage * (spec.burstDuration + reducedPowerDuration / 3f)
-            val duration = spec.burstDuration + reducedPowerDuration + cooldownDuration
+            val duration = spec.burstDuration + cooldownDuration
 
             FiringCycle(damage, warmupDuration, burstDuration, duration)
         }
@@ -28,7 +28,7 @@ val WeaponAPI.firingCycle: FiringCycle
         isBeam -> {
             val damage = damage.damage
             val warmupDuration = 0f
-            val burstDuration = 1f
+            val burstDuration = 0f
             val duration = 1f
 
             FiringCycle(damage, warmupDuration, burstDuration, duration)

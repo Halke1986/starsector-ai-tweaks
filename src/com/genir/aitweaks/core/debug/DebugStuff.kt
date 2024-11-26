@@ -33,7 +33,15 @@ import java.awt.Color.GREEN
  */
 
 internal fun debug(dt: Float) {
+    //FFTest.advance(dt)
+
 //    val ship = Global.getCombatEngine().playerShip ?: return
+//
+//    ship.allGroupedWeapons.forEach {
+//        Debug.print[it] = it.autofirePlugin?.let { ai -> ai::class.java.name }
+//    }
+
+
 //    val ships = Global.getCombatEngine().ships.filter { !it.isFighter }
 //
 //    ships.forEach { obstacle ->

@@ -19,6 +19,10 @@ data class Arc(val angle: Float, val facing: Float) {
         return contains(v.facing)
     }
 
+    fun increasedBy(degrees: Float): Arc {
+        return Arc((angle + degrees).coerceIn(0f, 360f), facing)
+    }
+
     val half: Float
         get() = angle * 0.5f
 

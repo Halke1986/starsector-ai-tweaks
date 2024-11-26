@@ -10,6 +10,7 @@ import com.genir.aitweaks.core.utils.extensions.isPD
 import com.genir.aitweaks.core.utils.extensions.minus
 import com.genir.aitweaks.core.utils.extensions.plus
 import com.genir.aitweaks.core.utils.times
+import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
@@ -34,6 +35,11 @@ object Debug {
 
     fun drawArc(pos: Vector2f, r: Float, a: Arc, color: Color = Color.CYAN) {
         renderer?.arcs?.add(Renderer.Arc(pos, r, a, color))
+    }
+
+    fun drawArcArms(pos: Vector2f, r: Float, a: Arc, color: Color = Color.CYAN) {
+        renderer?.lines?.add(Renderer.Line(pos, pos + unitVector(a.facing - a.half) * r, color))
+        renderer?.lines?.add(Renderer.Line(pos, pos + unitVector(a.facing + a.half) * r, color))
     }
 
     fun drawLine(a: Vector2f, b: Vector2f, color: Color = Color.YELLOW) {

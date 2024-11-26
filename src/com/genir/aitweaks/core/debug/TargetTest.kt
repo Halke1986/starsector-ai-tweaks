@@ -1,127 +1,143 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipCommand
-import com.fs.starfarer.api.combat.ShipwideAIFlags
+import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.features.shipai.EngineController
-import com.genir.aitweaks.core.features.shipai.WrapperShipAI
-import com.genir.aitweaks.core.features.shipai.command
-import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.extensions.*
-import com.genir.aitweaks.core.utils.log
-import com.genir.aitweaks.core.utils.quad
-import com.genir.aitweaks.core.utils.times
+import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.max
-import kotlin.math.min
 
-var targetV = Vector2f()
+object TargetTest {
+    private val projectilesCache: MutableSet<DamagingProjectileAPI> = mutableSetOf()
 
-fun targetTest(dt: Float) {
-    removeAsteroids()
+    fun advance(dt: Float) {
+        removeAsteroids()
+        installAI()
 
-    val engine = Global.getCombatEngine()
-    val ship: ShipAPI = engine.playerShip ?: return
-    val target: ShipAPI = engine.ships.firstOrNull { it.owner == 1 } ?: return
+        val engine = Global.getCombatEngine()
+        val ship: ShipAPI = engine.playerShip ?: return
+        val ally: ShipAPI = engine.ships.firstOrNull { it.isShip && it.owner == 0 && it != ship } ?: return
+        val target: ShipAPI? = engine.ships.firstOrNull { it.owner == 1 }
 
-    if (!ship.isUnderManualControl) {
-        installAI(ship) { ShipAI(ship, target) }
+        val projectiles = engine.projectiles
+
+//        projectiles.forEach { proj ->
+//            if (!projectilesCache.contains(proj)) {
+//                projectilesCache.add(proj)
+//
+//                val p = proj.location - ally.shieldCenterEvenIfNoShield
+//                val v = proj.velocity - ally.velocity
+//
+//                val d = distanceToOrigin(p, v) ?: 0f
+//                val e = d - ally.shieldRadiusEvenIfNoShield
+//                debugPrint["estimate"] = "e $e"
+//
+//                log("e ${proj.location} ${proj.velocity} ${ally.velocity} ${ally.shieldCenterEvenIfNoShield} ${ally.shieldRadiusEvenIfNoShield} $e")
+//
+//
+////                log("e ${getFacingStrict(proj.velocity)} $e")
+//                log("------------------")
+//            }
+//
+////            val l = (ally.shieldCenterEvenIfNoShield - proj.location).length
+////            val d = l - ally.shieldRadiusEvenIfNoShield
+////            if (d < 0)
+////                debugPrint["d"] = d
+
+        val p = ally.location - ship.location
+        val r = ally.shieldRadiusEvenIfNoShield
+
+        Debug.drawCircle(ally.location, r)
+
+//        val ts = tangents(p, r)
+
+//        drawLine(ship.location, ship.location + ts!!.first, RED)
+//        drawLine(ship.location, ship.location + ts!!.second, RED)
+
+//        }
     }
 
-    val weapon = ship.allGroupedWeapons.firstOrNull() ?: return
+    class ShipAI(val ship: ShipAPI) : BaseEngineControllerAI() {
+        private val controller: EngineController = EngineController(ship)
 
-//    val err = shortestRotation(weapon.currAngle, expectedRelativeFacing)
-//    debugPrint["err"] = ("${abs(err)}")
-//    log("$err")
+        override fun advance(dt: Float) {
+//            ship.shield.toggleOn()
+            ship.weaponGroupsCopy.forEach { it.toggleOn() }
+            (ship as Ship).setNoWeaponSelected()
 
-    installAI(target) { TargetAI(target) }
-}
+            Debug.print["hold"] = ship.allGroupedWeapons.firstOrNull()!!.customAI!!.shouldHoldFire ?: ""
 
-class ShipAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = EngineController(ship)
-    private val flags = ShipwideAIFlags()
+            controller.heading(dt, Vector2f(0f, -1000f))
+            controller.facing(dt, 90f)
 
-    val location = Vector2f(0f, -1000f)
-
-    override fun getAIFlags(): ShipwideAIFlags = flags
-
-    override fun advance(dt: Float) {
-//        drawCircle(ship.location, ship.collisionRadius / 2f, Color.GREEN)
-        ship.weaponGroupsCopy.forEach { it.toggleOn() }
-        flags.advance(dt)
-//        ship.shipTarget = target
-        aiFlags.setFlag(ShipwideAIFlags.AIFlags.MANEUVER_TARGET, 1f, target)
-
-        targetV = target.velocity.copy
-
-
-        controller.heading(dt, location)
-//        controller.facing(dt, 90f)
-
-//        controller.facing(dt, aimShip(ship, target))
-
-        val weapon = ship.allGroupedWeapons.firstOrNull() ?: return
-//        val intercept = weapon.customAI!!.plotIntercept(target)
-
-//        val err = shortestRotation(weapon.currAngle, (intercept - weapon.location).facing)
-//        debugPrint["e"] = "e ${abs(err)}"
-//        log(err)
-
-        ship.command(ShipCommand.TURN_RIGHT)
-//        ship.command(ShipCommand.TURN_LEFT)
-
-        Debug.drawEngineLines(ship)
+            Debug.drawEngineLines(ship)
+        }
     }
-}
 
-class TargetAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = EngineController(ship)
+    class TargetAI(val ship: ShipAPI) : BaseEngineControllerAI() {
+        private val controller: EngineController = EngineController(ship)
 
-    val x = 2000f
-    private val y = 0f
+        val x = 2000f
+        private val y = 1000f
 
-    val location = Vector2f(x, y)
+        val location = Vector2f(x, y)
 
-    override fun advance(dt: Float) {
-        ship.weaponGroupsCopy.forEach { it.toggleOff() }
+        override fun advance(dt: Float) {
+            ship.weaponGroupsCopy.forEach { it.toggleOff() }
+            (ship as Ship).setNoWeaponSelected()
 
-        if ((ship.location - location).length < 10f) {
-            log("--------------------")
-            location.x = -location.x
+            val toLocation = (location - ship.location)
+            if (toLocation.length < 10f) {
+                location.x = -location.x
+            }
+
+            controller.heading(dt, location)
+            controller.facing(dt, toLocation.facing)
+        }
+    }
+
+    class AllyAI(val ship: ShipAPI) : BaseEngineControllerAI() {
+        private val controller: EngineController = EngineController(ship)
+
+        val x = 1500f
+        private val y = 0f
+
+        val location = Vector2f(x, y)
+
+        override fun advance(dt: Float) {
+            ship.weaponGroupsCopy.forEach { it.toggleOff() }
+            (ship as Ship).setNoWeaponSelected()
+
+            val toLocation = (location - ship.location)
+            if (toLocation.length < 10f) {
+                location.x = -location.x
+            }
+
+//            debugPrint["ally speed"] = "ally ${ship.velocity.length}"
+
+            controller.heading(dt, location)
+            controller.facing(dt, toLocation.facing)
+        }
+    }
+
+    private fun installAI() {
+        val engine = Global.getCombatEngine()
+
+        val ship: ShipAPI? = engine.playerShip
+        if (ship != null && !ship.isUnderManualControl) {
+            installAI(ship) { ShipAI(ship) }
         }
 
-        controller.heading(dt, location)
-        controller.facing(dt, (location - ship.location).facing)
+        val target: ShipAPI? = engine.ships.firstOrNull { it.owner == 1 }
+        if (target != null) {
+            installAI(target) { TargetAI(target) }
+        }
+
+        val ally: ShipAPI? = engine.ships.firstOrNull { it.isShip && it.owner == 0 && it != ship }
+        if (ally != null) {
+            installAI(ally) { AllyAI(ally) }
+        }
     }
 }
-
-private fun aimShip(ship: ShipAPI, target: CombatEntityAPI): Float {
-    val weapon = ship.allGroupedWeapons.first { WrapperShipAI.shouldAim(it) }
-
-    val p = (target.location - weapon.ship.location)
-    val v = (target.velocity - weapon.ship.velocity) / (weapon.projectileSpeed)
-    val h = weapon.slot.location.x + weapon.barrelOffset
-
-    // (px + t vx)² + (py + t vy)² = (h + t)²
-    // (px² + 2 t px vx + t² vx²) + (py² + 2 t py vy + t² vy²) = (h² + 2 t h + t²)
-    // 0 = t² (vx² + vy² - 1) + t 2 (px vx + py vy - h) + (px² + py² - h²)
-
-    val a = (v.x * v.x) + (v.y * v.y) - 1f
-    val b = (p.x * v.x) + (p.y * v.y) - h
-    val c = (p.x * p.x) + (p.y * p.y) - h * h
-
-    val t = quad(a, b + b, c)?.smallerPositive ?: 0f
-    val intercept = target.location + v * t
-
-    return (intercept - ship.location).facing
-}
-
-val Pair<Float, Float>.smallerPositive: Float?
-    get() = when {
-        first >= 0 && second >= 0 -> min(first, second)
-        first <= 0 != second <= 0 -> max(first, second)
-        else -> null
-    }
-

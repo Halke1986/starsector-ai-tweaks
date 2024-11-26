@@ -5,6 +5,8 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.*
+import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.isShip
 
 data class Hit(val target: CombatEntityAPI, val range: Float, val type: Type) {
@@ -28,14 +30,44 @@ fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, params: BallisticPara
     return willHitBounds(weapon, target as ShipAPI, params)?.let { Hit(target, it, HULL) }
 }
 
-fun analyzeAllyHit(weapon: WeaponAPI, ally: ShipAPI, params: BallisticParams): Hit? {
-    val target = BallisticTarget.shield(ally)
+fun analyzeAllyHit(weapon: WeaponAPI, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Hit? {
     return when {
         weapon.projectileCollisionClass == CollisionClass.PROJECTILE_FIGHTER -> null
         weapon.projectileCollisionClass == CollisionClass.RAY_FIGHTER -> null
-        !willHitCautious(weapon, target, params) -> null
-        else -> Hit(ally, closestHitRange(weapon, target, params), ALLY)
+        !canHitAlly(weapon, target, ally, params) -> null
+        else -> Hit(ally, closestHitRange(weapon, BallisticTarget.shield(ally), params), ALLY)
     }
+}
+
+/** Calculates if an inaccurate projectile may collide with allay ship */
+private fun canHitAlly(weapon: WeaponAPI, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Boolean {
+    val (_, burstEnd) = weaponBurstInterval(weapon)
+    val startParams = BallisticParams(params.accuracy, params.delay)
+    val endParams = BallisticParams(params.accuracy, params.delay + burstEnd)
+
+    val ballisticTarget = BallisticTarget.entity(target)
+    val ballisticAlly = BallisticTarget.shield(ally)
+
+    val allyArc = Arc.merge(
+        interceptArc(weapon, ballisticAlly, startParams),
+        interceptArc(weapon, ballisticAlly, endParams),
+    )
+
+    val enemyArc = Arc.fromTo(weapon.currAngle, intercept(weapon, ballisticTarget, endParams).facing)
+
+    val spread = weapon.spec.maxSpread + 2f
+    return allyArc.increasedBy(spread).overlaps(enemyArc)
+}
+
+/** Calculates the time intervals between receiving a fire command
+ * and the start and end of a burst for the given weapon. */
+private fun weaponBurstInterval(weapon: WeaponAPI): Pair<Float, Float> {
+    // Don't bother with interruptible burst weapons.
+    // They are rare and difficult to account for.
+    if (weapon.spec.isInterruptibleBurst) return Pair(0f, 0f)
+
+    val cycle = weapon.firingCycle
+    return Pair(cycle.warmupDuration, cycle.warmupDuration + cycle.burstDuration)
 }
 
 /** Workaround for hulks retaining outdated ShieldAPI. */

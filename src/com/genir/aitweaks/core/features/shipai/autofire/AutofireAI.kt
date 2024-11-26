@@ -222,7 +222,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (expectedHit == null) return NO_HIT_EXPECTED
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
-        val actualHit = firstShipAlongLineOfFire(weapon, ballisticParams)
+        val actualHit = firstShipAlongLineOfFire(weapon, target, ballisticParams)
 
         // Rest of the should-fire decisioning will be based on the actual hit.
         val hit = when {

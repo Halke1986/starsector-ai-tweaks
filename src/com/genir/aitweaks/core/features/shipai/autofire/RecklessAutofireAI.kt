@@ -27,7 +27,7 @@ class RecklessAutofireAI(weapon: WeaponAPI) : AutofireAI(weapon) {
             ?: Hit(target, (target.location - weapon.location).length, if (target.shield?.isOn == true) SHIELD else HULL)
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
-        val actualHit = firstShipAlongLineOfFire(weapon, ballisticParams)
+        val actualHit = firstShipAlongLineOfFire(weapon, target, ballisticParams)
         avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
 
         if ((target.location - weapon.location).length > weapon.totalRange * 1.7f) return HoldFire.OUT_OF_RANGE

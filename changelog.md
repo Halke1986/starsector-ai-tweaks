@@ -1,3 +1,5 @@
+- The Weapon AI has been improved to reduce the number of friendly fire incidents, but the overall occurrence is still significant.
+
 Version 1.10.9
 
 - Aim-assisted turret weapons will not attack when wildly off target.
