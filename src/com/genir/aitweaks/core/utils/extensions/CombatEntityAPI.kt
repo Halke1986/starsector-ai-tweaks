@@ -12,15 +12,17 @@ val CombatEntityAPI.isValidTarget: Boolean
     get() = when {
         isExpired -> false
 
-        collisionClass == CollisionClass.NONE -> false
-
         this is CombatAsteroidAPI -> true
 
         owner == 100 -> false
 
-        this is ShipAPI -> isHullDamageable && isAlive
+        this is ShipAPI -> {
+            isHullDamageable && isAlive
+        }
 
-        this is MissileAPI -> Global.getCombatEngine().isMissileAlive(this)
+        this is MissileAPI -> {
+            collisionClass != CollisionClass.NONE && Global.getCombatEngine().isMissileAlive(this)
+        }
 
         else -> false
     }
@@ -32,7 +34,7 @@ val CombatEntityAPI.isSupportFighter: Boolean
     get() = (this is ShipAPI) && wing?.spec?.isSupport == true
 
 val CombatEntityAPI.isPDTarget: Boolean
-    get() = this is MissileAPI || (this is ShipAPI) && isFighter
+    get() = this is MissileAPI || isFighter
 
 val CombatEntityAPI.timeAdjustedVelocity: Vector2f
     get() = (this as? ShipAPI)?.timeAdjustedVelocity ?: velocity

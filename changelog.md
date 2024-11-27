@@ -1,5 +1,5 @@
-- The Weapon AI has been improved to reduce the number of friendly fire incidents, though they still do happen often.
-- Autofire weapons no longer attack combat entities with NONE collision class, like prv Starworks Frasare bombs. Reported by swwu.
+- The Weapon AI has been improved to reduce the number of friendly fire incidents, though they still do happen.
+- Autofire weapons no longer attack missiles with NONE collision class, like prv Starworks Frasare bombs. Reported by swwu.
 
 Version 1.10.9
 
