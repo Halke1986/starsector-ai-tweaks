@@ -1,3 +1,5 @@
+Version 1.10.11
+
 - Fixed a bug in the automatic omni shield AI that caused interference with manual weapon aiming. Reported by Android9k.
 
 Version 1.10.10
