@@ -1,3 +1,5 @@
+- Fixed a bug in the automatic omni shield AI that caused interference with manual weapon aiming. Reported by Android9k.
+
 Version 1.10.10
 
 - The Weapon AI has been improved to reduce the number of friendly fire incidents, though they still do happen.

@@ -17,6 +17,7 @@ import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.extensions.isUnderManualControl
 import com.genir.aitweaks.core.utils.makeAIDrone
+import com.genir.aitweaks.core.utils.mousePosition
 import org.lazywizard.lazylib.opengl.DrawUtils
 import org.lwjgl.opengl.GL11
 import java.awt.Color
@@ -70,29 +71,23 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
         private var shieldAI: OmniShieldControlAI? = null
 
         override fun advance(dt: Float) {
-            val ship: ShipAPI? = Global.getCombatEngine().playerShip
-            val shield: ShieldAPI? = ship?.shield
+            val prevForceShieldOff = forceShieldOff
+            forceShieldOff = false
+
+            val ship: ShipAPI = Global.getCombatEngine().playerShip ?: return
+            val shield: ShieldAPI = ship.shield ?: return
 
             // Decide if shield assist should run.
-            val controlShield = when {
-                ship == null -> false
-                !ship.isAlive -> false
-                !ship.isUnderManualControl -> false
+            when {
+                !ship.isAlive -> return
+                !ship.isUnderManualControl -> return
 
-                shield == null -> false
-                shield.type != ShieldAPI.ShieldType.OMNI -> false
-                !enableShieldAssist -> false
-
-                else -> true
+                shield.type != ShieldAPI.ShieldType.OMNI -> return
+                !enableShieldAssist -> return
             }
 
-            if (!controlShield) {
-                forceShieldOff = false
-                return
-            }
-
-            // Update shield controller if player ship changed.
-            if (ship!! != prevPlayerShip) {
+            // Update shield controller if the player ship changed.
+            if (ship != prevPlayerShip) {
                 prevPlayerShip = ship
                 val flags = ShipwideAIFlags()
                 shieldAI = OmniShieldControlAI(ship as Ship, flags)
@@ -102,13 +97,21 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
             clearVanillaCommands(ship, VanillaShipCommand.TOGGLE_SHIELD)
 
             // Handle input.
+            forceShieldOff = prevForceShieldOff
             if (VanillaKeymap.isKeyDownEvent(SHIP_SHIELDS)) {
                 forceShieldOff = !forceShieldOff
-                if (forceShieldOff == shield!!.isOn) ship.command(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK)
+                if (forceShieldOff == shield.isOn) ship.command(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK)
             }
 
+            if (forceShieldOff) return
+
             // Control the omni shield.
-            if (!forceShieldOff) shieldAI!!.advance(dt)
+            shieldAI!!.advance(dt)
+            ship.mouseTarget?.let { ship.setShieldTargetOverride(it.x, it.y) }
+
+            // Shield AI overrides the player ship mouse position.
+            // The position needs to be restored.
+            ship.mouseTarget.set(mousePosition())
         }
     }
 
