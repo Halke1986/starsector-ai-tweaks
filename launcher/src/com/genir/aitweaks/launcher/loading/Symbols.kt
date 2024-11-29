@@ -17,10 +17,10 @@ import java.lang.reflect.ParameterizedType
 @Suppress("PropertyName")
 class Symbols {
     // Classes with un-obfuscated names.
-    private val ship: Class<*> = Ship::class.java
-    private val basicShipAI: Class<*> = BasicShipAI::class.java
-    private val attackAIModule: Class<*> = AttackAIModule::class.java
-    private val fleetMemberView: Class<*> = FleetMemberView::class.java
+    val ship: Class<*> = Ship::class.java
+    val basicShipAI: Class<*> = BasicShipAI::class.java
+    val attackAIModule: Class<*> = AttackAIModule::class.java
+    val fleetMemberView: Class<*> = FleetMemberView::class.java
 
     // Classes and interfaces.
     val flockingAI: Class<*> = basicShipAI.getMethod("getFlockingAI").returnType
@@ -29,13 +29,18 @@ class Symbols {
     val maneuver: Class<*> = basicShipAI.getMethod("getCurrentManeuver").returnType
     val shipCommandWrapper: Class<*> = ship.getMethod("getCommands").genericReturnTypeArgument(0)
     val shipCommand: Class<*> = ship.getMethod("getBlockedCommands").genericReturnTypeArgument(0)
-    val threatEvalAI: Class<*> = basicShipAI.getMethod("getThreatEvaluator").returnType
     val combatEntity: Class<*> = ship.getMethod("getEntity").returnType
     val weapon: Class<*> = ship.getMethod("getSelectedWeapon").returnType
     val aimTracker: Class<*> = weapon.getMethod("getAimTracker").returnType
     val button: Class<*> = fleetMemberView.getMethod("getButton").returnType
     val playerAction: Class<*> = button.getMethod("getShortcut").returnType
     val keymap: Class<*> = playerAction.enclosingClass
+    val fighterPullbackModule: Class<*> = basicShipAI.getDeclaredField("fighterPullbackModule").type
+    val systemAI: Class<*> = basicShipAI.getDeclaredField("systemAI").type
+    val shieldAI: Class<*> = basicShipAI.getMethod("getShieldAI").returnType
+    val ventModule: Class<*> = basicShipAI.getDeclaredField("ventModule").type
+    val threatEvaluator: Class<*> = basicShipAI.getMethod("getThreatEvaluator").returnType
+    val threatResponseManeuver: Class<*> = threatEvaluator.methods.first { it.hasParameters(Float::class.java) }.returnType
 
     // Methods and fields.
     val autofireManager_advance: Method = autofireManager.methods.first { it.name != "<init>" }
@@ -43,6 +48,17 @@ class Symbols {
     val maneuver_getTarget: Method = maneuver.methods.first { it.returnType == combatEntity }
     val aimTracker_setTargetOverride: Method = aimTracker.methods.first { it.returnType == Void.TYPE && it.hasParameters(Vector2f::class.java) }
     val keymap_isKeyDown: Method = findKeymapIsKeyDown()
+    val attackAIModule_advance: Method = attackAIModule.methods.first { it.hasParameters(Float::class.java, threatEvaluator, Vector2f::class.java) }
+    val fighterPullbackModule_advance: Method = fighterPullbackModule.methods.first { it.hasParameters(Float::class.java, Ship::class.java) }
+    val systemAI_advance: Method = systemAI.methods.first { it.hasParameters(Float::class.java, Vector2f::class.java, Vector2f::class.java, Ship::class.java) }
+    val shieldAI_advance: Method = shieldAI.methods.first { it.parameterTypes.firstOrNull() == Float::class.java }
+    val ventModule_advance: Method = ventModule.methods.first { it.hasParameters(Float::class.java, Ship::class.java) }
+    val threatEvaluator_advance: Method = threatEvaluator.methods.first { it.hasParameters(Float::class.java) }
+    val flockingAI_setDesiredHeading: Method = flockingAI.methods.first { it.name == flockingAISetterNames(1) && it.hasParameters(Float::class.java) }
+    val flockingAI_setDesiredFacing: Method = flockingAI.methods.first { it.name == flockingAISetterNames(2) && it.hasParameters(Float::class.java) }
+    val flockingAI_setDesiredSpeed: Method = flockingAI.methods.first { it.name == flockingAISetterNames(4) && it.hasParameters(Float::class.java) }
+    val flockingAI_advanceCollisionAnalysisModule: Method = flockingAI.methods.first { it.name == flockingAISetterNames(3) && it.hasParameters(Float::class.java) }
+    val flockingAI_getMissileDangerDir: Method = flockingAI.methods.first { it.name == Bytecode.getMethodsInOrder(flockingAI).first { it.desc == "()Lorg/lwjgl/util/vector/Vector2f;" }.name && it.returnType == Vector2f::class.java && it.hasParameters() }
 
     private fun Method.genericReturnTypeArgument(idx: Int): Class<*> {
         return (genericReturnType as ParameterizedType).actualTypeArguments[idx] as Class<*>
@@ -94,5 +110,10 @@ class Symbols {
     private fun findKeymapIsKeyDown(): Method {
         val isKeyDownName = Bytecode.getMethodsInOrder(keymap).first { it.desc == "(L${playerAction.classPath};)Z" }
         return keymap.methods.first { it.name == isKeyDownName.name && it.parameterTypes.contentEquals(arrayOf(playerAction)) }
+    }
+
+    private fun flockingAISetterNames(idx: Int): String {
+        val bytecodeMethods: List<Bytecode.Method> = Bytecode.getMethodsInOrder(flockingAI)
+        return bytecodeMethods.filter { it.desc == "(F)V" }[idx].name
     }
 }

@@ -14,7 +14,7 @@ public class Obfuscated {
     public enum PlayerAction {}
 
     public interface AutofireManager {
-        void autofireManager_advance(float dt, ThreatEvalAI threatEvalAI, Vector2f missileDangerDir);
+        void autofireManager_advance(float dt, ThreatEvaluator threatEvalAI, Vector2f missileDangerDir);
     }
 
     public interface CombatEntity {
@@ -28,7 +28,13 @@ public class Obfuscated {
         AimTracker getAimTracker();
     }
 
-    public static class ThreatEvalAI {
+    public interface ThreatResponseManeuver {
+    }
+
+    public static class ThreatEvaluator {
+        public ThreatResponseManeuver threatEvaluator_advance(float dt) {
+            return null;
+        }
     }
 
     public static class ApproachManeuver {
@@ -57,6 +63,63 @@ public class Obfuscated {
         }
 
         public void cancelCurrentManeuver() {
+        }
+
+        public AttackAIModule getAttackAI() {
+            return null;
+        }
+
+        public ShieldAI getShieldAI() {
+            return null;
+        }
+
+        public ThreatEvaluator getThreatEvaluator() {
+            return null;
+        }
+
+        public FlockingAI getFlockingAI() {
+            return null;
+        }
+    }
+
+    public static class FlockingAI {
+        public void flockingAI_setDesiredHeading(float heading) {
+        }
+
+        public void flockingAI_setDesiredFacing(float facing) {
+        }
+
+        public void flockingAI_setDesiredSpeed(float speed) {
+        }
+
+        public void flockingAI_advanceCollisionAnalysisModule(float dt) {
+        }
+
+        public Vector2f flockingAI_getMissileDangerDir() {
+            return null;
+        }
+    }
+
+    public static class AttackAIModule {
+        public void attackAIModule_advance(float dt, ThreatEvaluator threatEvalAI, Vector2f missileDangerDir) {
+        }
+    }
+
+    public static class FighterPullbackModule {
+        public void fighterPullbackModule_advance(float dt, Ship attackTarget) {
+        }
+    }
+
+    public interface SystemAI {
+        void systemAI_advance(float dt, Vector2f missileDangerDir, Vector2f collisionDangerDir, Ship target);
+    }
+
+    public interface ShieldAI {
+        void shieldAI_advance(float dt, ThreatEvaluator threatEvalAI, Vector2f missileDangerDir, Vector2f collisionDangerDir, Ship target);
+    }
+
+    public static class VentModule {
+        public void ventModule_advance(float dt, Ship target) {
         }
     }
 

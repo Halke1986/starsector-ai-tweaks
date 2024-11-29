@@ -19,7 +19,7 @@ class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
     private val weaponSyncMap: MutableMap<String, SyncState> = mutableMapOf()
     private var autofireCount = 0
 
-    override fun autofireManager_advance(dt: Float, threatEvalAI: Obfuscated.ThreatEvalAI?, missileDangerDir: Vector2f?) {
+    override fun autofireManager_advance(dt: Float, threatEvalAI: Obfuscated.ThreatEvaluator?, missileDangerDir: Vector2f?) {
         updateInterval.advance(dt)
         if (updateInterval.elapsed()) {
             updateInterval.reset()

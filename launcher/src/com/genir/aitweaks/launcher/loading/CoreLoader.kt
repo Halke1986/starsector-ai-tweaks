@@ -8,21 +8,30 @@ import java.net.URLClassLoader
 class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
     private val cache: MutableMap<String, Class<*>> = mutableMapOf()
     private val symbols = Symbols()
+    private val core = "com/genir/aitweaks/core/Obfuscated"
+
     private val obfuscator = Transformer(listOf(
         // Classes.
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$AimTracker", symbols.aimTracker.classPath),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ApproachManeuver", symbols.approachManeuver.classPath),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$AutofireManager", symbols.autofireManager.classPath),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$BasicShipAI", "com/fs/starfarer/combat/ai/BasicShipAI"),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$CombatEntity", symbols.combatEntity.classPath),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Keymap", symbols.keymap.classPath),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Maneuver", symbols.maneuver.classPath),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$PlayerAction", symbols.playerAction.classPath),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ShipCommandWrapper", symbols.shipCommandWrapper.classPath),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ShipCommand", symbols.shipCommand.classPath),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Ship", "com/fs/starfarer/combat/entities/Ship"),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$ThreatEvalAI", symbols.threatEvalAI.classPath),
-        Transformer.newTransform("com/genir/aitweaks/core/Obfuscated\$Weapon", symbols.weapon.classPath),
+        Transformer.newTransform("$core\$AimTracker", symbols.aimTracker.classPath),
+        Transformer.newTransform("$core\$ApproachManeuver", symbols.approachManeuver.classPath),
+        Transformer.newTransform("$core\$AutofireManager", symbols.autofireManager.classPath),
+        Transformer.newTransform("$core\$AttackAIModule", symbols.attackAIModule.classPath),
+        Transformer.newTransform("$core\$BasicShipAI", symbols.basicShipAI.classPath),
+        Transformer.newTransform("$core\$CombatEntity", symbols.combatEntity.classPath),
+        Transformer.newTransform("$core\$FighterPullbackModule", symbols.fighterPullbackModule.classPath),
+        Transformer.newTransform("$core\$FlockingAI", symbols.flockingAI.classPath),
+        Transformer.newTransform("$core\$Keymap", symbols.keymap.classPath),
+        Transformer.newTransform("$core\$Maneuver", symbols.maneuver.classPath),
+        Transformer.newTransform("$core\$PlayerAction", symbols.playerAction.classPath),
+        Transformer.newTransform("$core\$ShipCommandWrapper", symbols.shipCommandWrapper.classPath),
+        Transformer.newTransform("$core\$ShipCommand", symbols.shipCommand.classPath),
+        Transformer.newTransform("$core\$Ship", symbols.ship.classPath),
+        Transformer.newTransform("$core\$ShieldAI", symbols.shieldAI.classPath),
+        Transformer.newTransform("$core\$SystemAI", symbols.systemAI.classPath),
+        Transformer.newTransform("$core\$ThreatEvaluator", symbols.threatEvaluator.classPath),
+        Transformer.newTransform("$core\$ThreatResponseManeuver", symbols.threatResponseManeuver.classPath),
+        Transformer.newTransform("$core\$VentModule", symbols.ventModule.classPath),
+        Transformer.newTransform("$core\$Weapon", symbols.weapon.classPath),
 
         // Fields and methods.
         Transformer.newTransform("autofireManager_advance", symbols.autofireManager_advance.name),
@@ -30,6 +39,17 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
         Transformer.newTransform("maneuver_getTarget", symbols.maneuver_getTarget.name),
         Transformer.newTransform("aimTracker_setTargetOverride", symbols.aimTracker_setTargetOverride.name),
         Transformer.newTransform("keymap_isKeyDown", symbols.keymap_isKeyDown.name),
+        Transformer.newTransform("attackAIModule_advance", symbols.attackAIModule_advance.name),
+        Transformer.newTransform("fighterPullbackModule_advance", symbols.fighterPullbackModule_advance.name),
+        Transformer.newTransform("systemAI_advance", symbols.systemAI_advance.name),
+        Transformer.newTransform("shieldAI_advance", symbols.shieldAI_advance.name),
+        Transformer.newTransform("ventModule_advance", symbols.ventModule_advance.name),
+        Transformer.newTransform("threatEvaluator_advance", symbols.threatEvaluator_advance.name),
+        Transformer.newTransform("flockingAI_setDesiredHeading", symbols.flockingAI_setDesiredHeading.name),
+        Transformer.newTransform("flockingAI_setDesiredFacing", symbols.flockingAI_setDesiredFacing.name),
+        Transformer.newTransform("flockingAI_setDesiredSpeed", symbols.flockingAI_setDesiredSpeed.name),
+        Transformer.newTransform("flockingAI_advanceCollisionAnalysisModule", symbols.flockingAI_advanceCollisionAnalysisModule.name),
+        Transformer.newTransform("flockingAI_getMissileDangerDir", symbols.flockingAI_getMissileDangerDir.name),
     ))
 
     override fun loadClass(name: String): Class<*> {
@@ -51,7 +71,7 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
         } catch (_: ClassNotFoundException) {
             // Load and transform AI Tweaks core logic classes.
             val classBuffer = Bytecode.readClassBuffer(this, name)
-            val obfuscated = obfuscator.apply(classBuffer)
+            val obfuscated = obfuscator.apply(obfuscator.apply(classBuffer))
             c = defineClass(name, obfuscated, 0, obfuscated.size)
         }
 
