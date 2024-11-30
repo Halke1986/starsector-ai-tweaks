@@ -1,3 +1,5 @@
+Version 1.10.12
+
 - Fixed a bug where AI would not fire no-friendly-fire weapons (e.g., fighter weapons, Paladin) over allies. Reported by ºOnLooker.
 
 Version 1.10.11

@@ -3,11 +3,11 @@
   "modThreadId": "28428",
   "masterVersionFile": "https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/aitweaks.version",
   "changelogURL": "https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/changelog.md",
-  "directDownloadURL": "https://github.com/Halke1986/starsector-ai-tweaks/releases/download/v1.10.11/AITweaks_v1.10.11.zip",
+  "directDownloadURL": "https://github.com/Halke1986/starsector-ai-tweaks/releases/download/v1.10.12/AITweaks_v1.10.12.zip",
   "modVersion":
     {
       "major": "1",
       "minor": "10",
-      "patch": "11"
+      "patch": "12"
     }
 }
