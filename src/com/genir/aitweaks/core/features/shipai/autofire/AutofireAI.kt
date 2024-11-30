@@ -40,7 +40,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     override fun advance(dt: Float) {
         when {
-            // Don't operate the weapon in refit screen.
+            // Don't operate the weapon in the refit screen.
             Global.getCurrentState() == GameState.CAMPAIGN -> return
             Global.getCombatEngine().isPaused -> return
         }

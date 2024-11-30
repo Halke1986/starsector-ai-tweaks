@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.utils.extensions
 
 import com.fs.starfarer.api.combat.AutofireAIPlugin
+import com.fs.starfarer.api.combat.CollisionClass.*
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.DamageType.*
 import com.fs.starfarer.api.combat.WeaponAPI
@@ -139,3 +140,13 @@ val WeaponAPI.effectiveDPS: Float
 /** The true projectile speed, which may differ from the value returned by vanilla WeaponAPI.projectileSpeed. */
 val WeaponAPI.trueProjectileSpeed: Float
     get() = (spec.projectileSpec as? ProjectileSpecAPI)?.getMoveSpeed(ship.mutableStats, this) ?: projectileSpeed
+
+/** Can the weapon shoot over allied ships. */
+val WeaponAPI.noFF: Boolean
+    get() = when (projectileCollisionClass) {
+        MISSILE_NO_FF -> true
+        PROJECTILE_NO_FF -> true
+        RAY_FIGHTER -> true
+        PROJECTILE_FIGHTER -> true
+        else -> false
+    }

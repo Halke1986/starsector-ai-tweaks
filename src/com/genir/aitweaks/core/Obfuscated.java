@@ -31,6 +31,14 @@ public class Obfuscated {
     public interface ThreatResponseManeuver {
     }
 
+    public interface SystemAI {
+        void systemAI_advance(float dt, Vector2f missileDangerDir, Vector2f collisionDangerDir, Ship target);
+    }
+
+    public interface ShieldAI {
+        void shieldAI_advance(float dt, ThreatEvaluator threatEvalAI, Vector2f missileDangerDir, Vector2f collisionDangerDir, Ship target);
+    }
+
     public static class ThreatEvaluator {
         public ThreatResponseManeuver threatEvaluator_advance(float dt) {
             return null;
@@ -108,14 +116,6 @@ public class Obfuscated {
     public static class FighterPullbackModule {
         public void fighterPullbackModule_advance(float dt, Ship attackTarget) {
         }
-    }
-
-    public interface SystemAI {
-        void systemAI_advance(float dt, Vector2f missileDangerDir, Vector2f collisionDangerDir, Ship target);
-    }
-
-    public interface ShieldAI {
-        void shieldAI_advance(float dt, ThreatEvaluator threatEvalAI, Vector2f missileDangerDir, Vector2f collisionDangerDir, Ship target);
     }
 
     public static class VentModule {

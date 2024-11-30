@@ -1,6 +1,5 @@
 package com.genir.aitweaks.core.features.shipai.autofire
 
-import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
@@ -8,6 +7,7 @@ import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.*
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.isShip
+import com.genir.aitweaks.core.utils.extensions.noFF
 
 data class Hit(val target: CombatEntityAPI, val range: Float, val type: Type) {
     enum class Type {
@@ -32,8 +32,7 @@ fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, params: BallisticPara
 
 fun analyzeAllyHit(weapon: WeaponAPI, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Hit? {
     return when {
-        weapon.projectileCollisionClass == CollisionClass.PROJECTILE_FIGHTER -> null
-        weapon.projectileCollisionClass == CollisionClass.RAY_FIGHTER -> null
+        weapon.noFF -> null
         !canHitAlly(weapon, target, ally, params) -> null
         else -> Hit(ally, closestHitRange(weapon, BallisticTarget.shield(ally), params), ALLY)
     }

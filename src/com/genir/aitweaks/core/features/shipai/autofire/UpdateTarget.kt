@@ -36,7 +36,6 @@ class UpdateTarget(
         weapon.hasAIHint(ANTI_FTR) -> selectShip(alsoTargetFighters)
         weapon.hasAIHint(STRIKE) -> selectShip()
         weapon.ship.hullSpec.hullId.startsWith("guardian") -> selectShip()
-        // weapon.ship.customShipAI != null -> selectShip()
 
         else -> selectShip() ?: selectFighter()?.let { if (!it.isSupportFighter) it else null }
     }
@@ -143,7 +142,19 @@ class UpdateTarget(
     private data class Obstacle(val arc: Arc, val dist: Float, val origin: CombatEntityAPI)
 
     private fun makeObstacleList(): List<Obstacle> {
-        val obstacles = Grid.ships(weapon.location, weapon.totalRange).filter { it.root != weapon.ship.root && !it.isFighter }
+        val obstacles = Grid.ships(weapon.location, weapon.totalRange).filter {
+            when {
+                // Same ship.
+                it.root == weapon.ship.root -> false
+
+                it.isFighter -> false
+
+                // Weapon fires over allies.
+                weapon.noFF && it.owner == weapon.ship.owner -> false
+
+                else -> true
+            }
+        }
 
         return obstacles.map { obstacle ->
             val target = BallisticTarget(obstacle.location, obstacle.velocity, state.bounds.radius(obstacle) * 0.8f)
