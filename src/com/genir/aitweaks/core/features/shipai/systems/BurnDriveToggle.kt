@@ -73,8 +73,8 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), Coordinable {
 
         // Choose new burn destination.
         val newDestination = when {
-            ai.assignmentLocation != null -> {
-                ai.assignmentLocation
+            ai.assignment.navigateTo != null -> {
+                ai.assignment.navigateTo
             }
 
             // Charge straight at the maneuver target, disregard fleet coordination.
@@ -116,7 +116,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), Coordinable {
             ai.isBackingOff -> false
 
             // Don't burn to move order location if not facing the location.
-            ai.assignmentLocation != null && destinationFacing > maxAngleToTarget -> false
+            ai.assignment.navigateTo != null && destinationFacing > maxAngleToTarget -> false
 
             // Don't burn to maneuver target if it's different from the attack target.
             ai.maneuverTarget != null && ai.maneuverTarget != ai.attackTarget -> false
@@ -139,7 +139,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), Coordinable {
             system.state != ACTIVE -> false
 
             // No target, stop.
-            ai.assignmentLocation == null && ai.maneuverTarget == null -> true
+            ai.assignment.navigateTo == null && ai.maneuverTarget == null -> true
 
             // Veered off course, stop.
             destinationFacing > maxAngleToTarget -> true

@@ -1,7 +1,7 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.CombatAssignmentType.*
+import com.fs.starfarer.api.combat.CombatAssignmentType.RETREAT
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
@@ -26,6 +26,7 @@ import kotlin.math.max
 class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     // Subsystems.
     val movement: Movement = Movement(this)
+    val assignment: Assignment = Assignment(ship)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
     val vanilla: Vanilla = Vanilla(ship, systemAI != null)
 
@@ -34,7 +35,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     private val updateInterval: Interval = defaultAIInterval()
 
     // Standing orders.
-    var assignmentLocation: Vector2f? = null // Assignment takes priority over maneuver target.
     var maneuverTarget: ShipAPI? = null
     var attackTarget: CombatEntityAPI? = null
 
@@ -81,7 +81,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             ventIfNeeded()
 
             // Update targets.
-            updateAssignment()
             updateManeuverTarget()
             updateAttackTarget()
             updateFinishBurstTarget()
@@ -89,6 +88,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
         // Advance subsystems.
         vanilla.advance(dt, attackTarget as? ShipAPI, movement.expectedVelocity, movement.expectedFacing)
+        assignment.advance()
         systemAI?.advance(dt)
         movement.advance(dt)
 
@@ -121,26 +121,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 //        Debug.drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
     }
 
-    private fun updateAssignment() {
-        assignmentLocation = null
-        val assignment = ship.assignment ?: return
-        val location = assignment.target?.location
-
-        assignmentLocation = when (assignment.type) {
-            DEFEND, RALLY_TASK_FORCE, RALLY_CARRIER, RALLY_CIVILIAN, RALLY_STRIKE_FORCE -> location
-            RALLY_FIGHTERS, STRIKE, HARASS, LIGHT_ESCORT, MEDIUM_ESCORT -> location
-            HEAVY_ESCORT, CAPTURE, CONTROL, ASSAULT, ENGAGE -> location
-
-            // Assignments handled explicitly in code.
-            INTERCEPT -> null
-
-            // Ignored and unimplemented assignments.
-            RECON, AVOID, RETREAT, REPAIR_AND_REFIT, SEARCH_AND_DESTROY -> null
-
-            else -> null
-        }
-    }
-
     private fun updateManeuverTarget() {
         // Don't change target when movement system is on.
         if (maneuverTarget?.isValidTarget == true && systemAI?.holdTargets() == true) {
@@ -148,7 +128,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }
 
         // Eliminate assignment target.
-        ship.eliminateAssignment?.let {
+        assignment.eliminate?.let {
             maneuverTarget = it
             return
         }
@@ -345,8 +325,8 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             maneuverTarget != null -> maneuverTarget
 
             // Try to find a target near move location.
-            assignmentLocation != null -> {
-                Grid.ships(assignmentLocation!!, 200f).filter { isThreat(it) }.firstOrNull()
+            assignment.navigateTo != null -> {
+                Grid.ships(assignment.navigateTo!!, 200f).filter { isThreat(it) }.firstOrNull()
             }
 
             else -> null
@@ -403,7 +383,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         evaluation += if (target == attackTarget && range(target) <= weaponGroup.effectiveRange) -2f else 0f
 
         // Strongly prioritize eliminate assignment.
-        evaluation += if (target == ship.eliminateAssignment) -16f else 0f
+        evaluation += if (target == assignment.eliminate) -16f else 0f
 
         // TODO avoid wrecks
 

@@ -34,12 +34,12 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
     private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
 
     fun advance(dt: Float) {
-        setHeading(dt, ai.maneuverTarget, ai.assignmentLocation)
+        setHeading(dt, ai.maneuverTarget)
         setFacing(dt)
         manageMobilitySystems()
     }
 
-    private fun setHeading(dt: Float, maneuverTarget: ShipAPI?, assignmentLocation: Vector2f?) {
+    private fun setHeading(dt: Float, maneuverTarget: ShipAPI?) {
         val systemOverride: Vector2f? = ai.systemAI?.overrideHeading()
 
         headingPoint = interpolateHeading.advance(dt) {
@@ -50,8 +50,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 }
 
                 // For player ships the heading to assignment location takes priority.
-                ship.owner == 0 && !ship.isAlly && shouldHeadToAssigment(assignmentLocation) -> {
-                    assignmentLocation!!
+                ship.owner == 0 && !ship.isAlly && ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> {
+                    ai.assignment.navigateTo!!
                 }
 
                 // Move opposite to threat direction when backing off.
@@ -78,8 +78,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 }
 
                 // Move directly to assignment location.
-                assignmentLocation != null -> {
-                    assignmentLocation
+                ai.assignment.navigateTo != null -> {
+                    ai.assignment.navigateTo!!
                 }
 
                 // Nothing to do, stop the ship.
@@ -121,8 +121,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 }
 
                 // Face movement target location.
-                ai.assignmentLocation != null -> {
-                    (ai.assignmentLocation!! - ship.location).facing
+                ai.assignment.navigateTo != null -> {
+                    (ai.assignment.navigateTo!! - ship.location).facing
                 }
 
                 // Nothing to do. Stop rotation.
@@ -149,10 +149,6 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
         val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
         return if (!shouldStrafe) attackVector.rotated(strafeRotation)
         else attackVector
-    }
-
-    private fun shouldHeadToAssigment(location: Vector2f?): Boolean {
-        return location != null && (location - ship.location).length > Preset.arrivedAtLocationRadius
     }
 
     private fun avoidHulks(maneuverTarget: CombatEntityAPI, proposedHeading: Vector2f): Vector2f? {
