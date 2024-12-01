@@ -35,8 +35,8 @@ class Assignment(private val ship: ShipAPI) {
             CONTROL -> navigate(assignment)
             ENGAGE -> navigate(assignment)
 
-            CAPTURE -> navigate(assignment)
-            ASSAULT -> navigate(assignment)
+            CAPTURE -> takeControl(assignment)
+            ASSAULT -> takeControl(assignment)
 
             INTERCEPT -> eliminate = (assignment.target as? DeployedFleetMemberAPI)?.ship
 
@@ -55,5 +55,11 @@ class Assignment(private val ship: ShipAPI) {
     private fun navigate(assignment: CombatFleetManagerAPI.AssignmentInfo) {
         navigateTo = assignment.target?.location
         arrivedAt = navigateTo != null && (navigateTo!! - ship.location).length < Preset.arrivedAtLocationRadius
+    }
+
+    /** Take control of battle objective by unconditionally moving over it. */
+    private fun takeControl(assignment: CombatFleetManagerAPI.AssignmentInfo) {
+        navigateTo = assignment.target?.location
+        arrivedAt = false
     }
 }

@@ -104,6 +104,15 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                     systemOverride
                 }
 
+                // Face movement target location.
+                ai.threatVector.isZero && ai.assignment.navigateTo != null -> {
+                    // If already at the assignment location, face the center of the map.
+                    val lookAt = if (ai.assignment.arrivedAt) Vector2f()
+                    else ai.assignment.navigateTo!!
+
+                    (lookAt - ship.location).facing
+                }
+
                 // Face the attack target.
                 currentAttackTarget != null -> {
                     // Average aim offset to avoid ship wobbling.
@@ -120,11 +129,6 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                     (-ai.threatVector).facing
                 }
 
-                // Face movement target location.
-                ai.assignment.navigateTo != null -> {
-                    (ai.assignment.navigateTo!! - ship.location).facing
-                }
-
                 // Nothing to do. Stop rotation.
                 else -> engineController.rotationStop
             }
@@ -136,6 +140,10 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
     }
 
     private fun calculateAttackVector(maneuverTarget: ShipAPI): Vector2f {
+        // If the ship is near the navigation objective, it should
+        // position itself between the objective and the target.
+        ai.assignment.navigateTo?.let { return maneuverTarget.location - it }
+
         // Strafe away from map border, prefer the map center.
         val engine = Global.getCombatEngine()
         val borderDistX = (ship.location.x * ship.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)

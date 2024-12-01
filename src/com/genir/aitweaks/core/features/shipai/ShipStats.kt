@@ -16,9 +16,10 @@ class ShipStats(private val ship: ShipAPI) {
     val weaponGroups: List<WeaponGroup> = findWeaponGroups()
 
     private fun calculateThreatSearchRange(): Float {
-        val rangeEnvelope = 1000f
+        val rangeEnvelope = 1.5f
         val totalMaxRange = significantWeapons.maxOfOrNull { it.slotRange } ?: 0f
-        return max(Preset.threatEvalRadius, totalMaxRange + rangeEnvelope)
+
+        return max(Preset.threatSearchRange, totalMaxRange * rangeEnvelope)
     }
 
     /** Weapons that can be used by the ship to conduct attacks, as opposed to PD, decoratives, etc. */

@@ -244,7 +244,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
      * should change smoothly to avoid erratic velocity changes. */
     private fun updateThreatVector() {
         val maxThreatDistSqr = stats.threatSearchRange * stats.threatSearchRange
-        threatVector = (threats + maneuverTarget).asSequence().filterNotNull().fold(Vector2f()) { sum, threat ->
+        threatVector = threats.fold(Vector2f()) { sum, threat ->
             val dp = max(1f, threat.deploymentPoints)
             val toThreat = threat.location - ship.location
 
@@ -255,7 +255,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             // a weight of 1, preventing situations where the threat vector becomes undefined.
             val weight = max(maxThreatDistSqr - toThreat.lengthSquared, 0f) / maxThreatDistSqr
 
-            val dir = toThreat.resized(if (threat == maneuverTarget) 1f else weight)
+            val dir = toThreat.resized(weight)
             sum + dir * dp * dp
         }.resized(1f)
     }

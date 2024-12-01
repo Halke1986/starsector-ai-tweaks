@@ -236,7 +236,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     }
 
     private fun closeToEnemy(ship: ShipAPI, target: ShipAPI): Boolean {
-        val maxRange = max(max(Preset.threatEvalRadius, ship.maxRange * 2f), target.maxRange)
+        val maxRange = max(max(Preset.threatSearchRange, ship.maxRange * 2f), target.maxRange)
         return (ship.location - target.location).lengthSquared() <= maxRange * maxRange
     }
 
