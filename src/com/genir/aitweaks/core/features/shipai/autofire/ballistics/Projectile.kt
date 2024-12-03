@@ -46,15 +46,6 @@ class Projectile(weapon: WeaponAPI) : Ballistics(weapon) {
         return p + v * range
     }
 
-    /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
-    override fun canTrack(target: Target, params: BallisticParams, rangeOverride: Float?): Boolean {
-        val closestHit = closestHitRange(target, params)
-        if (closestHit > (rangeOverride ?: weapon.totalRange)) return false
-
-        val interceptArc = interceptArc(target, params)
-        return Arc(weapon.arc, weapon.absoluteArcFacing).overlaps(interceptArc)
-    }
-
     /** Calculates the target intercept arc. If weapon facing is within this arc,
      * the weapon projectile will collide with the target circumference.
      * Similar to intercept point, but not restricted to target center point.
@@ -63,8 +54,8 @@ class Projectile(weapon: WeaponAPI) : Ballistics(weapon) {
         val (p, _) = targetCoords(target, params)
         val points = pointsOfTangency(p, target.radius) ?: return Arc(360f, 0f)
 
-        val target1 = Target(weapon.location + points.first, target.velocity, 0f)
-        val target2 = Target(weapon.location + points.second, target.velocity, 0f)
+        val target1 = Target(weapon.location + points.first, target.velocity, 0f, target.entity)
+        val target2 = Target(weapon.location + points.second, target.velocity, 0f, target.entity)
 
         // Attack delay was accounted for when calculating points of tangency.
         val noDelayParams = BallisticParams(params.accuracy, 0f)
@@ -123,12 +114,5 @@ class Projectile(weapon: WeaponAPI) : Ballistics(weapon) {
         val v = vProj + vAbs / (weapon.trueProjectileSpeed * params.accuracy)
 
         return Pair(p, v)
-    }
-
-    /** True if target collision radius is above weapon barrel radius.  */
-    private fun targetAboveWeapon(locationRelative: Vector2f, weapon: WeaponAPI, target: Target): Boolean {
-        val d2 = locationRelative.lengthSquared
-        val r = weapon.barrelOffset + target.radius
-        return d2 < r * r
     }
 }

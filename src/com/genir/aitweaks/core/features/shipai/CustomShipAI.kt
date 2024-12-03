@@ -352,8 +352,8 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         var evaluation = 0f
 
         // Prioritize targets closer to ship facing.
-        val angle = ship.shortestRotationToTarget(target.location, weaponGroup.defaultFacing) * DEGREES_TO_RADIANS
-        val angleWeight = 0.75f
+        val angle = ship.shortestRotationToTarget(target.location, weaponGroup.defaultFacing) / ship.maxTurnRate
+        val angleWeight = 0.25f
         evaluation += abs(angle) * angleWeight
 
         // Prioritize closer targets. Avoid attacking targets out of effective weapons range.

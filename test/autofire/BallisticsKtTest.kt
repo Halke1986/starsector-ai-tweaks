@@ -69,6 +69,7 @@ class BallisticsKtTest {
             velocity = Vector2f(0f, 10f),
             location = Vector2f(0f, 10f),
             radius = 3f,
+            entity = MockShipAPI(),
         )
 
         val approachesInfinity = 1e7f
@@ -103,6 +104,7 @@ class BallisticsKtTest {
             velocity = Vector2f(0f, 10f),
             location = Vector2f(0f, 10f),
             radius = 30f,
+            entity = MockShipAPI(),
         )
 
         val ballistics = weapon.ballistics

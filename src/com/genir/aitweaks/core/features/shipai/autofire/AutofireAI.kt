@@ -11,6 +11,7 @@ import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.features.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Ballistics.Companion.ballistics
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.ProjectilePD
 import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Target
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
@@ -29,7 +30,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var aimPoint: Vector2f? = null
     var shouldHoldFire: HoldFire? = NO_TARGET
     private val interceptTracker = InterceptTracker(weapon)
-    protected val ballistics = weapon.ballistics
+    protected val ballistics = if (weapon.isPD) ProjectilePD(weapon) else weapon.ballistics
 
     // Timers.
     private var updateTargetInterval = Interval(0.25F, 0.50F)
@@ -54,6 +55,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         shouldFireInterval.advance(dt)
 
         trackAttackTimes(dt)
+        (ballistics as? ProjectilePD)?.advance(dt, target?.let { Target.entity(it) }, currentParams())
         updateAim(dt)
 
         // Calculate if weapon should fire at the current target.
@@ -386,7 +388,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val r = Rotation(shortestRotation(expectedFacing, ship.facing))
         val v = target.timeAdjustedVelocity.rotated(r)
         val p = target.location.rotatedAroundPivot(r, weapon.ship.location)
-        return ballistics.intercept(Target(p, v, target.collisionRadius), currentParams())
+        return ballistics.intercept(Target(p, v, target.collisionRadius, target), currentParams())
     }
 
     /** Tracks intercept angular velocity and angular distance in weapon slot frame of reference. */

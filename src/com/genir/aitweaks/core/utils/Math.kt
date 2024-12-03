@@ -21,8 +21,7 @@ fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
     }
 }
 
-/** Time after which point P travelling with velocity V
- * will find itself at R distance from (0,0). */
+/** Time after which point P travelling with velocity V will find itself at distance R from (0,0). */
 fun solve(pv: Pair<Vector2f, Vector2f>, r: Float) = solve(pv, 0f, 0f, r, 0f)
 
 /**

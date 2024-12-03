@@ -131,7 +131,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val weaponGroup = WeaponGroup(ship, weapons.filter { it.shouldAim })
         if (target != null) {
             // Rotate ship to face the target intercept with the selected weapon group.
-            val expectedFacing = weaponGroup.attackFacing(Target(mousePosition(), target.velocity, 0f))
+            val expectedFacing = weaponGroup.attackFacing(Target(mousePosition(), target.velocity, 0f, target))
             val facingChange = angularVelocity(target.location - ship.location, target.velocity - ship.velocity)
             engineController!!.facing(dt, expectedFacing, facingChange)
         } else {
@@ -142,7 +142,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     }
 
     private fun aimWeapons(ship: ShipAPI, target: CombatEntityAPI) {
-        val ballisticTarget = Target(mousePosition(), target.velocity, target.collisionRadius)
+        val ballisticTarget = Target(mousePosition(), target.velocity, target.collisionRadius, target)
         val selectedWeapons: Set<WeaponAPI> = ship.selectedWeapons
         val aimableWeapons: Set<WeaponAPI> = ship.nonAutofireWeapons + selectedWeapons
         val params = BallisticParams.default

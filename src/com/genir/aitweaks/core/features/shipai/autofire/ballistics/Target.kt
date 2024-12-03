@@ -6,14 +6,14 @@ import com.genir.aitweaks.core.utils.extensions.timeAdjustedVelocity
 import org.lwjgl.util.vector.Vector2f
 
 /** Simplified representation of a circular, moving target. */
-data class Target(val location: Vector2f, val velocity: Vector2f, val radius: Float) {
+data class Target(val location: Vector2f, val velocity: Vector2f, val radius: Float, val entity: CombatEntityAPI) {
     companion object {
         fun entity(entity: CombatEntityAPI): Target {
-            return Target(entity.location, entity.timeAdjustedVelocity, entity.collisionRadius)
+            return Target(entity.location, entity.timeAdjustedVelocity, entity.collisionRadius, entity)
         }
 
         fun shield(ship: ShipAPI): Target {
-            return Target(ship.shieldCenterEvenIfNoShield, ship.timeAdjustedVelocity, ship.shieldRadiusEvenIfNoShield)
+            return Target(ship.shieldCenterEvenIfNoShield, ship.timeAdjustedVelocity, ship.shieldRadiusEvenIfNoShield, ship)
         }
     }
 }
