@@ -13,7 +13,9 @@ import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.features.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.WeaponGroup
-import com.genir.aitweaks.core.features.shipai.autofire.*
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Ballistics.Companion.ballistics
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Target
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction.*
 import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDown
@@ -129,7 +131,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val weaponGroup = WeaponGroup(ship, weapons.filter { it.shouldAim })
         if (target != null) {
             // Rotate ship to face the target intercept with the selected weapon group.
-            val expectedFacing = weaponGroup.attackFacing(BallisticTarget(mousePosition(), target.velocity, 0f))
+            val expectedFacing = weaponGroup.attackFacing(Target(mousePosition(), target.velocity, 0f))
             val facingChange = angularVelocity(target.location - ship.location, target.velocity - ship.velocity)
             engineController!!.facing(dt, expectedFacing, facingChange)
         } else {
@@ -140,10 +142,10 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     }
 
     private fun aimWeapons(ship: ShipAPI, target: CombatEntityAPI) {
-        val ballisticTarget = BallisticTarget(mousePosition(), target.velocity, target.collisionRadius)
+        val ballisticTarget = Target(mousePosition(), target.velocity, target.collisionRadius)
         val selectedWeapons: Set<WeaponAPI> = ship.selectedWeapons
         val aimableWeapons: Set<WeaponAPI> = ship.nonAutofireWeapons + selectedWeapons
-        val params = defaultBallisticParams
+        val params = BallisticParams.default
 
         aimableWeapons.forEach { weapon ->
             // Override aim for all non-autofire weapons except missile missile hardpoints.
@@ -160,15 +162,15 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         }
     }
 
-    private fun aimWeapon(weapon: WeaponAPI, ballisticTarget: BallisticTarget, params: BallisticParams) {
-        val intercept: Vector2f = intercept(weapon, ballisticTarget, params)
+    private fun aimWeapon(weapon: WeaponAPI, ballisticTarget: Target, params: BallisticParams) {
+        val intercept: Vector2f = weapon.ballistics.intercept(ballisticTarget, params)
 
         // Override vanilla-computed weapon facing.
         val aimTracker: Obfuscated.AimTracker = (weapon as Obfuscated.Weapon).aimTracker
         aimTracker.aimTracker_setTargetOverride(intercept + weapon.location)
     }
 
-    private fun fireWeapon(weapon: WeaponAPI, ballisticTarget: BallisticTarget, params: BallisticParams) {
+    private fun fireWeapon(weapon: WeaponAPI, ballisticTarget: Target, params: BallisticParams) {
         val group: WeaponGroupAPI = weapon.group ?: return
 
         val shouldFire: Boolean = when {
@@ -178,7 +180,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
             group.type == ALTERNATING && weapon == group.activeWeapon -> true
 
             // Fire linked weapons if it's possible to hit the target.
-            group.type == LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.currAngle) -> true
+            group.type == LINKED && weapon.ballistics.interceptArc(ballisticTarget, params).contains(weapon.currAngle) -> true
 
             else -> false
         }

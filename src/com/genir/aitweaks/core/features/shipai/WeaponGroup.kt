@@ -2,9 +2,9 @@ package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.features.shipai.autofire.intercept
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Ballistics.Companion.ballistics
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Target
 import com.genir.aitweaks.core.utils.averageFacing
 import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shortestRotation
@@ -36,12 +36,12 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
     }
 
     /** Calculate facing that maximizes DPS delivered to target, according to ballistic calculations. */
-    fun attackFacing(target: BallisticTarget): Float {
+    fun attackFacing(target: Target): Float {
         // Prioritize hardpoints if there are any in the weapon group.
         val weapons: List<WeaponAPI> = weapons.filter { it.slot.isHardpoint }.ifEmpty { weapons }
 
         val solutions: Map<WeaponAPI, Float> = weapons.associateWith { weapon ->
-            intercept(weapon, target, defaultBallisticParams).facing
+            weapon.ballistics.intercept(target, BallisticParams.default).facing
         }
 
         // Aim directly at target if no weapon firing solution is available.

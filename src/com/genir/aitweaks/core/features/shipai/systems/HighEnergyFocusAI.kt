@@ -6,8 +6,8 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.DamageType.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
-import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.features.shipai.autofire.willHitShield
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Ballistics.Companion.ballistics
 import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.combat.AIUtils
 import org.lwjgl.util.vector.Vector2f
@@ -76,7 +76,7 @@ class HighEnergyFocusAI : ShipSystemAIScript {
 
     private fun dpsMultiplier(weapon: WeaponAPI): Float {
         val target: ShipAPI = (weapon.target as? ShipAPI) ?: return 0f
-        val params = defaultBallisticParams
+        val params = BallisticParams.default
 
         return when {
             // Check custom AI decision.
@@ -95,8 +95,8 @@ class HighEnergyFocusAI : ShipSystemAIScript {
             weapon.damageType == ENERGY -> 1f
             weapon.damageType == OTHER -> 1f
             target.isFighter -> 1f
-            weapon.damageType == HIGH_EXPLOSIVE && willHitShield(weapon, target, params) == null -> 2f
-            weapon.damageType == KINETIC && willHitShield(weapon, target, params) != null -> 2f
+            weapon.damageType == HIGH_EXPLOSIVE && weapon.ballistics.willHitShield(target, params) == null -> 2f
+            weapon.damageType == KINETIC && weapon.ballistics.willHitShield(target, params) != null -> 2f
             else -> 0.5f
         }
     }

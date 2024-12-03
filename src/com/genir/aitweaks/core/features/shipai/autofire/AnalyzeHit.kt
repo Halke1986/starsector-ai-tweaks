@@ -4,6 +4,9 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.*
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Ballistics
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Target
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.extensions.facing
 import com.genir.aitweaks.core.utils.extensions.isShip
@@ -19,42 +22,42 @@ data class Hit(val target: CombatEntityAPI, val range: Float, val type: Type) {
 }
 
 /** Analyzes the potential collision between projectile and target. Null if no collision. */
-fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, params: BallisticParams): Hit? {
+fun analyzeHit(ballistics: Ballistics, target: CombatEntityAPI, params: BallisticParams): Hit? {
     // Simple circumference collision is enough for missiles and fighters.
-    if (!target.isShip) return willHitCircumference(weapon, BallisticTarget.entity(target), params)?.let { Hit(target, it, HULL) }
+    if (!target.isShip) return ballistics.willHitCircumference(Target.entity(target), params)?.let { Hit(target, it, HULL) }
 
     // Check shield hit.
-    if (hasShield(target)) willHitShield(weapon, target as ShipAPI, params)?.let { return Hit(target, it, SHIELD) }
+    if (hasShield(target)) ballistics.willHitShield(target as ShipAPI, params)?.let { return Hit(target, it, SHIELD) }
 
     // Check bounds hit.
-    return willHitBounds(weapon, target as ShipAPI, params)?.let { Hit(target, it, HULL) }
+    return ballistics.willHitBounds(target as ShipAPI, params)?.let { Hit(target, it, HULL) }
 }
 
-fun analyzeAllyHit(weapon: WeaponAPI, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Hit? {
+fun analyzeAllyHit(ballistics: Ballistics, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Hit? {
     return when {
-        weapon.noFF -> null
-        !canHitAlly(weapon, target, ally, params) -> null
-        else -> Hit(ally, closestHitRange(weapon, BallisticTarget.shield(ally), params), ALLY)
+        ballistics.weapon.noFF -> null
+        !canHitAlly(ballistics, target, ally, params) -> null
+        else -> Hit(ally, ballistics.closestHitRange(Target.shield(ally), params), ALLY)
     }
 }
 
 /** Calculates if an inaccurate projectile may collide with allay ship */
-private fun canHitAlly(weapon: WeaponAPI, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Boolean {
-    val (_, burstEnd) = weaponBurstInterval(weapon)
+private fun canHitAlly(ballistics: Ballistics, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Boolean {
+    val (_, burstEnd) = weaponBurstInterval(ballistics.weapon)
     val startParams = BallisticParams(params.accuracy, params.delay)
     val endParams = BallisticParams(params.accuracy, params.delay + burstEnd)
 
-    val ballisticTarget = BallisticTarget.entity(target)
-    val ballisticAlly = BallisticTarget.shield(ally)
+    val ballisticTarget = Target.entity(target)
+    val ballisticAlly = Target.shield(ally)
 
     val allyArc = Arc.merge(
-        interceptArc(weapon, ballisticAlly, startParams),
-        interceptArc(weapon, ballisticAlly, endParams),
+        ballistics.interceptArc(ballisticAlly, startParams),
+        ballistics.interceptArc(ballisticAlly, endParams),
     )
 
-    val enemyArc = Arc.fromTo(weapon.currAngle, intercept(weapon, ballisticTarget, endParams).facing)
+    val enemyArc = Arc.fromTo(ballistics.weapon.currAngle, ballistics.intercept(ballisticTarget, endParams).facing)
 
-    val spread = weapon.spec.maxSpread + 2f
+    val spread = ballistics.weapon.spec.maxSpread + 2f
     return allyArc.increasedBy(spread).overlaps(enemyArc)
 }
 

@@ -2,8 +2,14 @@ package com.genir.aitweaks.core.features.shipai.autofire
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.CombatAsteroidAPI
+import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.MissileAPI
+import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Ballistics
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Target
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
@@ -16,11 +22,13 @@ import kotlin.math.abs
 private const val alsoTargetFighters = true
 
 class UpdateTarget(
-    private val weapon: WeaponAPI,
+    private val ballistics: Ballistics,
     private val current: CombatEntityAPI?,
     private val attackTarget: ShipAPI?,
     private val params: BallisticParams,
 ) {
+    val weapon = ballistics.weapon
+
     val target: CombatEntityAPI? = when {
         Global.getCurrentState() == GameState.TITLE && state.config.enableTitleScreenFire -> selectAsteroid()
 
@@ -72,7 +80,7 @@ class UpdateTarget(
             weapon.slot.isHardpoint -> true
 
             // Turreted weapons select ship target if it can be tracked.
-            canTrack(weapon, BallisticTarget.entity(priorityTarget), params) -> true
+            ballistics.canTrack(Target.entity(priorityTarget), params) -> true
 
             else -> false
         }
@@ -90,13 +98,13 @@ class UpdateTarget(
         val opportunities = Grid.entities(c, weapon.location, weapon.totalRange)
         val evaluated = opportunities.filter { filter(it) && isTargetAcceptable(it) }.map {
             // Evaluate the target based on angle and distance.
-            val target = BallisticTarget.entity(it)
+            val target = Target.entity(it)
             val angle = shortestRotation((target.location - weapon.location).facing, weapon.currAngle) * DEGREES_TO_RADIANS
             val angleWeight = 0.75f
             val evalAngle = abs(angle) * angleWeight
 
             // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
-            val dist = intercept(weapon, target, params).length
+            val dist = ballistics.intercept(target, params).length
             val evalDist = (dist / weapon.totalRange)
 
             Pair(it, evalAngle + evalDist)
@@ -106,17 +114,17 @@ class UpdateTarget(
     }
 
     private fun isTargetAcceptable(target: CombatEntityAPI): Boolean {
-        val ballisticTarget = BallisticTarget.entity(target)
+        val ballisticTarget = Target.entity(target)
 
         return when {
             !target.isValidTarget -> false
             target.owner == weapon.ship.owner -> false
 
-            !canTrack(weapon, ballisticTarget, params) -> false
+            !ballistics.canTrack(ballisticTarget, params) -> false
 
             // Do not track targets occluded by obstacles.
             else -> {
-                val intercept = intercept(weapon, ballisticTarget, params)
+                val intercept = ballistics.intercept(ballisticTarget, params)
 
                 getObstacleList().none { obstacle ->
                     when {
@@ -157,9 +165,9 @@ class UpdateTarget(
         }
 
         return obstacles.map { obstacle ->
-            val target = BallisticTarget(obstacle.location, obstacle.velocity, state.bounds.radius(obstacle) * 0.8f)
-            val dist = intercept(weapon, target, params).length
-            val arc = interceptArc(weapon, target, params)
+            val target = Target(obstacle.location, obstacle.velocity, state.bounds.radius(obstacle) * 0.8f)
+            val dist = ballistics.intercept(target, params).length
+            val arc = ballistics.interceptArc(target, params)
 
             Obstacle(arc, dist, obstacle)
         }.toList()

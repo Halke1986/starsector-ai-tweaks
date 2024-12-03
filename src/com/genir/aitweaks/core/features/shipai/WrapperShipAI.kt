@@ -8,7 +8,7 @@ import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
-import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Target
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.VanillaShipCommand.TURN_LEFT
@@ -66,7 +66,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         clearVanillaCommands(ship, TURN_LEFT, TURN_RIGHT)
 
         // Control the ship rotation.
-        val ballisticTarget = BallisticTarget.entity(target)
+        val ballisticTarget = Target.entity(target)
         expectedFacing = weaponGroup.attackFacing(ballisticTarget)
         engineController.facing(dt, expectedFacing!!)
     }

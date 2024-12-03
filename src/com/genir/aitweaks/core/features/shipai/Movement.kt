@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
-import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Target
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
@@ -116,7 +116,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 // Face the attack target.
                 currentAttackTarget != null -> {
                     // Average aim offset to avoid ship wobbling.
-                    val ballisticTarget = BallisticTarget.entity(currentAttackTarget)
+                    val ballisticTarget = Target.entity(currentAttackTarget)
                     val aimPointThisFrame = unitVector(weaponGroup.attackFacing(ballisticTarget)) * 100f + ship.location
                     val aimOffsetThisFrame = getShortestRotation(currentAttackTarget.location, ship.location, aimPointThisFrame)
                     val aimOffset = averageAimOffset.update(aimOffsetThisFrame)

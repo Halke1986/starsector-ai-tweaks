@@ -29,7 +29,7 @@ enum class HoldFire {
     SAVE_FLUX
 }
 
-class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private val params: BallisticParams) {
+class AttackRules(private val weapon: WeaponAPI, private val hit: Hit) {
     val shouldHoldFire = avoidPhased() ?: conservePDAmmo() ?: avoidWrongDamageType()
 
     private fun avoidPhased(): HoldFire? = when {

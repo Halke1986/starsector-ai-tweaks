@@ -1,9 +1,9 @@
-package com.genir.aitweaks.core.features.shipai.autofire
+package com.genir.aitweaks.core.features.shipai.autofire.ballistics
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.MutableStat
-import com.fs.starfarer.api.combat.ShipHullSpecAPI.EngineSpecAPI
+import com.fs.starfarer.api.combat.ShipHullSpecAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.utils.div
@@ -23,7 +23,7 @@ class SimulateMissile {
 
         /** Iteratively calculate the intercept point for dumb-fire missile weapon.
          * Note: the operation is computationally expensive. */
-        fun missileIntercept(weapon: WeaponAPI, target: BallisticTarget): Vector2f {
+        fun missileIntercept(weapon: WeaponAPI, target: Target): Vector2f {
             // Missile path is always computed using global time rate;
             // make sure not to use ship-specific time rate.
             val dt: Float = Global.getCombatEngine().elapsedInLastFrame
@@ -46,7 +46,7 @@ class SimulateMissile {
 
         /** Calculate the angular distance between missile path and
          * target location at the point where the two are the closest. */
-        private fun angularDistanceToPath(dt: Float, weapon: WeaponAPI, target: BallisticTarget, path: Sequence<Frame>): Float {
+        private fun angularDistanceToPath(dt: Float, weapon: WeaponAPI, target: Target, path: Sequence<Frame>): Float {
             val p0: Vector2f = target.location
             val v: Vector2f = target.velocity * dt
 
@@ -110,7 +110,7 @@ class SimulateMissile {
 
             init {
                 val missileSpec: MissileSpecAPI = weapon.spec.projectileSpec as MissileSpecAPI
-                val engineSpec: EngineSpecAPI = missileSpec.hullSpec.engineSpec
+                val engineSpec: ShipHullSpecAPI.EngineSpecAPI = missileSpec.hullSpec.engineSpec
                 val shipStats: MutableShipStatsAPI = weapon.ship.mutableStats
 
                 val maxSpeedStat = MutableStat(engineSpec.maxSpeed)

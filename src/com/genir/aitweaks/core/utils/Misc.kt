@@ -3,10 +3,11 @@ package com.genir.aitweaks.core.utils
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.Obfuscated
-import com.genir.aitweaks.core.features.shipai.autofire.BallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.Hit
 import com.genir.aitweaks.core.features.shipai.autofire.analyzeAllyHit
 import com.genir.aitweaks.core.features.shipai.autofire.analyzeHit
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Ballistics
 import com.genir.aitweaks.core.utils.extensions.*
 import org.json.JSONObject
 
@@ -89,7 +90,8 @@ fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Float {
     return shortestRotation((from - pivot).facing, (to - pivot).facing)
 }
 
-fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, params: BallisticParams): Hit? {
+fun firstShipAlongLineOfFire(ballistics: Ballistics, target: CombatEntityAPI, params: BallisticParams): Hit? {
+    val weapon = ballistics.weapon
     val obstacles = Grid.ships(weapon.location, weapon.totalRange).filter { ship ->
         when {
             ship.isFighter -> false
@@ -104,8 +106,8 @@ fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, params:
     }
 
     val evaluated = obstacles.mapNotNull { ship ->
-        if (ship.owner == weapon.ship.owner) analyzeAllyHit(weapon, target, ship, params)
-        else analyzeHit(weapon, ship, params)
+        if (ship.owner == weapon.ship.owner) analyzeAllyHit(ballistics, target, ship, params)
+        else analyzeHit(ballistics, ship, params)
     }
 
     return evaluated.minWithOrNull(compareBy { it.range })

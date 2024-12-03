@@ -8,9 +8,9 @@ import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
-import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.features.shipai.autofire.canTrack
-import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Ballistics.Companion.ballistics
+import com.genir.aitweaks.core.features.shipai.autofire.ballistics.Target
 import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.features.shipai.slotRange
 import com.genir.aitweaks.core.utils.Interval
@@ -87,7 +87,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun weaponsOnTarget(target: ShipAPI): Boolean {
-        return lidarWeapons.firstOrNull { !canTrack(it, BallisticTarget.entity(target), defaultBallisticParams, it.totalRange * weaponRangeFraction) } == null
+        return lidarWeapons.firstOrNull { !it.ballistics.canTrack(Target.entity(target), BallisticParams.default, it.totalRange * weaponRangeFraction) } == null
     }
 
     private fun weaponsNotBlocked(target: ShipAPI): Boolean {
@@ -95,7 +95,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun isWeaponBlocked(weapon: WeaponAPI, target: ShipAPI): Boolean {
-        val hit = firstShipAlongLineOfFire(weapon, target, defaultBallisticParams)?.target
+        val hit = firstShipAlongLineOfFire(weapon.ballistics, target, BallisticParams.default)?.target
         return when {
             hit == null -> false
             hit !is ShipAPI -> false
