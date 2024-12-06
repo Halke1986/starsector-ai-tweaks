@@ -10,29 +10,30 @@ import kotlin.math.max
 val WeaponAPI.slotRange: Float
     get() = range + barrelOffset + slot.location.x
 
-val WeaponAPI.maxReloadTime: Float
+/** Total time required for the weapon to reload from empty to full ammunition. */
+val WeaponAPI.totalReloadTime: Float
     get() {
-        // Weapon does not use ammo, or has ammo to spare.
+        // Weapon does not use ammo.
         if (!usesAmmo()) return cooldown
 
         // Weapon is permanently out if ammo.
         val tracker = ammoTracker!!
         if (tracker.ammoPerSecond <= 0f) return Float.MAX_VALUE
 
-        val reloadTime = tracker.reloadSize / tracker.ammoPerSecond
+        val reloadTime = tracker.maxAmmo / tracker.ammoPerSecond
         return max(reloadTime, cooldown)
     }
 
-val WeaponAPI.reloadTimeRemaining: Float
+val WeaponAPI.totalReloadTimeRemaining: Float
     get() {
-        // Weapon does not use ammo, or has ammo to spare.
-        if (!usesAmmo() || ammo > 0) return cooldownRemaining
+        // Weapon does not use ammo.
+        if (!usesAmmo()) return cooldownRemaining
 
         // Weapon is permanently out if ammo.
         val tracker = ammoTracker!!
         if (tracker.ammoPerSecond <= 0f) return Float.MAX_VALUE
 
-        val reloadTime = (1f - tracker.reloadProgress) * tracker.reloadSize / tracker.ammoPerSecond
+        val reloadTime = (tracker.maxAmmo - (tracker.ammo + tracker.reloadProgress * tracker.reloadSize)) / tracker.ammoPerSecond
         return max(reloadTime, cooldownRemaining)
     }
 

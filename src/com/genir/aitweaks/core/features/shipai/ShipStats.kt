@@ -2,10 +2,7 @@ package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.utils.extensions.isAngleInArc
-import com.genir.aitweaks.core.utils.extensions.isFrontFacing
-import com.genir.aitweaks.core.utils.extensions.isInFiringSequence
-import com.genir.aitweaks.core.utils.extensions.isPD
+import com.genir.aitweaks.core.utils.extensions.*
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -24,12 +21,8 @@ class ShipStats(private val ship: ShipAPI) {
 
     /** Weapons that can be used by the ship to conduct attacks, as opposed to PD, decoratives, etc. */
     private fun findSignificantWeapons(): List<WeaponAPI> {
-        val weapons = ship.allWeapons.filter { weapon ->
+        val weapons = ship.allGroupedWeapons.filter { weapon ->
             when {
-                weapon.slot.isHidden -> false
-                weapon.slot.isDecorative -> false
-                weapon.slot.isSystemSlot -> false
-                weapon.slot.isStationModule -> false
                 weapon.type == WeaponAPI.WeaponType.MISSILE -> false
                 weapon.derivedStats.dps == 0f -> false
                 else -> true
@@ -51,7 +44,15 @@ class ShipStats(private val ship: ShipAPI) {
     }
 
     private val WeaponAPI.isInLongReload: Boolean
-        get() = maxReloadTime >= Preset.weaponMaxReloadTime && reloadTimeRemaining >= 2f && !isInFiringSequence
+        get() = when {
+            isInFiringCycle -> false
+
+            totalReloadTimeRemaining < 2f -> false
+            totalReloadTime < Preset.weaponMaxReloadTime -> false
+            ammo >= maxAmmo / 2 -> false
+
+            else -> true
+        }
 
     /** A ship can have multiple valid weapon groups. */
     private fun findWeaponGroups(): List<WeaponGroup> {

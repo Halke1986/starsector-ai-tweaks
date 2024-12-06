@@ -28,11 +28,11 @@ To install AI Tweaks, just unzip the downloaded archive into Starsector mods fol
 
 ### Uninstallation ###
 
-AI Tweaks can be safely removed from the game without breaking existing saves.
+AI Tweaks can be safely uninstalled without affecting existing save games.
 
-**NOTE:** Some mods may make it impossible to remove AI Tweaks from a save game without causing corruption.
-
-The only known incompatible mod is [Starship Legends](https://fractalsoftworks.com/forum/index.php?topic=15321.0).
+**NOTE:** Uninstalling AI Tweaks from a save that also
+uses [Starship Legends](https://fractalsoftworks.com/forum/index.php?topic=15321.0) may result in save game corruption.
+Otherwise, AI Tweaks and Starship Legends are fully compatible.
 
 ### Credits ###
 
