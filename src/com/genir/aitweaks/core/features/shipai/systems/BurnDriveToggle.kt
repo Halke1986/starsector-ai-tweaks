@@ -114,7 +114,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoord.Coordinable 
 
             headingPoint.isZero -> false
 
-            ai.isBackingOff -> false
+            ai.backoff.isBackingOff -> false
 
             // Don't burn to move order location if not facing the location.
             ai.assignment.navigateTo != null && destinationFacing > maxAngleToTarget -> false

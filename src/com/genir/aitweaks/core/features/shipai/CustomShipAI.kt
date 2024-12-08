@@ -4,9 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatAssignmentType.RETREAT
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.BACKING_OFF
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.util.IntervalUtil
@@ -28,11 +26,11 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     // Subsystems.
     val movement: Movement = Movement(this)
     val assignment: Assignment = Assignment(ship)
+    val backoff: Backoff = Backoff(ship)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
     val vanilla: Vanilla = Vanilla(ship, systemAI != null)
 
     // Helper classes.
-    private val damageTracker: DamageTracker = DamageTracker(ship)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     // Standing orders.
@@ -48,10 +46,9 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     var stats: ShipStats = ShipStats(ship)
     var attackingGroup: WeaponGroup = stats.weaponGroups[0]
     var attackRange: Float = 0f
-    var isBackingOff: Boolean = false
+
     var isAvoidingBorder: Boolean = false
     var is1v1: Boolean = false
-    var idleTime = 0f
     var threats: Set<ShipAPI> = setOf()
     var threatVector = Vector2f()
 
@@ -66,8 +63,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }
 
         // Update state.
-        damageTracker.advance()
-        updateIdleTime(dt)
         updateThreatVector()
 
         updateInterval.advance(dt)
@@ -75,9 +70,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             updateThreats()
             updateShipStats()
             updateAttackRange()
-            updateBackoffStatus()
             update1v1Status()
-            ventIfNeeded()
 
             // Update targets.
             updateManeuverTarget()
@@ -88,6 +81,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         // Advance subsystems.
         vanilla.advance(dt, attackTarget as? ShipAPI, movement.expectedVelocity, movement.expectedFacing)
         assignment.advance()
+        backoff.advance(dt)
         systemAI?.advance(dt)
         movement.advance(dt)
 
@@ -174,38 +168,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         attackingGroup = newWeaponGroup
     }
 
-    /** Decide if ships needs to back off due to high flux level */
-    private fun updateBackoffStatus() {
-        val fluxLevel = ship.fluxTracker.fluxLevel
-        val underFire = damageTracker.damage / ship.maxFlux > 0.2f
-
-        isBackingOff = when {
-            // Enemy is routing, keep the pressure.
-            Global.getCombatEngine().isEnemyInFullRetreat -> false
-
-            // Ship with no shield backs off when it can't fire anymore.
-            ship.shield == null && ship.allWeapons.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft } -> true
-
-            // High flux.
-            ship.shield != null && fluxLevel > Preset.backoffUpperThreshold -> true
-
-            // Shields down and received damage.
-            underFire && ship.shield != null && ship.shield.isOff -> true
-
-            // Started venting under fire.
-            underFire && ship.fluxTracker.isVenting -> true
-
-            // Stop backing off.
-            fluxLevel <= Preset.backoffLowerThreshold -> false
-
-            // Continue current backoff status.
-            else -> isBackingOff
-        }
-
-        if (isBackingOff) vanilla.flags.setFlag(BACKING_OFF)
-        else vanilla.flags.unsetFlag(BACKING_OFF)
-    }
-
     private fun updateShipStats() {
         stats = ShipStats(ship)
 
@@ -213,19 +175,11 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         attackingGroup = stats.weaponGroups.minWithOrNull(compareBy { absShortestRotation(it.defaultFacing, attackingGroup.defaultFacing) })!!
     }
 
-    private fun updateIdleTime(dt: Float) {
-        val shieldIsUp = ship.shield?.isOn == true && shieldUptime(ship.shield) > Preset.shieldFlickerThreshold
-        val pdIsFiring = ship.allWeapons.firstOrNull { it.isPD && it.isFiring } != null
-
-        idleTime = if (shieldIsUp || pdIsFiring) 0f
-        else idleTime + dt
-    }
-
     /** Is ship engaged in 1v1 duel with the target. */
     private fun update1v1Status() {
         is1v1 = when {
             isAvoidingBorder -> false
-            isBackingOff -> false
+            backoff.isBackingOff -> false
             attackTarget == null -> false
             attackTarget != maneuverTarget -> false
             (attackTarget as? ShipAPI)?.isFrigateShip != ship.isFrigateShip -> false
@@ -269,36 +223,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
         val continueBurst = finishBurstWeaponGroup?.weapons?.any { it.isInFiringSequence && it.target == finishBurstTarget }
         if (continueBurst != true) finishBurstTarget = null
-    }
-
-    /** Force vent when the ship is backing off,
-     * not shooting and with shields down. */
-    private fun ventIfNeeded() {
-        val shouldVent = when {
-            // Already venting.
-            ship.fluxTracker.isVenting -> false
-
-            // No need to vent.
-            ship.fluxLevel < Preset.backoffLowerThreshold -> false
-
-            // Don't interrupt the ship system.
-            ship.system?.isOn == true -> false
-
-            !isBackingOff -> false
-
-            // Vent regardless of situation when already passively
-            // dissipated below Preset.backoffLowerThreshold
-            ship.fluxLevel < Preset.forceVentThreshold -> true
-
-            idleTime < Preset.shieldDownVentTime -> false
-
-            // Don't vent when defending from missiles.
-            ship.allWeapons.any { it.autofirePlugin?.targetMissile != null } -> false
-
-            else -> true
-        }
-
-        if (shouldVent) ship.command(ShipCommand.VENT_FLUX)
     }
 
     private fun findNewAttackTarget(): Pair<WeaponGroup, ShipAPI?> {

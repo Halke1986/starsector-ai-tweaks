@@ -57,7 +57,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
 
                 // Move opposite to threat direction when backing off.
                 // If there's no threat, the ship will continue to coast.
-                ai.isBackingOff -> {
+                ai.backoff.isBackingOff -> {
                     val farAway = 2048f
                     if (ai.threatVector.isZero) ship.location + ship.velocity.resized(farAway)
                     else ship.location - ai.threatVector.resized(farAway)
@@ -214,7 +214,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
                     ship.blockCommandForOneFrame(USE_SYSTEM)
                 }
 
-                if (ai.isBackingOff) ship.blockCommandForOneFrame(USE_SYSTEM)
+                if (ai.backoff.isBackingOff) ship.blockCommandForOneFrame(USE_SYSTEM)
             }
 
             else -> Unit
@@ -258,7 +258,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
         val target = ai.maneuverTarget ?: return null
 
         // Do not be paralyzed by frigates when trying to backoff.
-        if (ai.isBackingOff && target.isFrigateShip) return null
+        if (ai.backoff.isBackingOff && target.isFrigateShip) return null
 
         val distance = max(ai.stats.totalCollisionRadius + target.totalCollisionRadius + Preset.collisionBuffer, ai.attackRange * 0.8f)
         return vMaxToObstacle(dt, target, distance)
@@ -292,7 +292,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
             else obstacle
 
             when {
-                blocked.isBackingOff -> return@forEach
+                blocked.backoff.isBackingOff -> return@forEach
 
                 // Too far from obstacle line of fire to consider blocking.
                 absShortestRotation(facing, obstacleFacing) >= 90f -> return@forEach
@@ -361,7 +361,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
 
         // Allow chasing targets into the border zone.
         val tgtLoc = ai.maneuverTarget?.location
-        if (tgtLoc != null && !ai.isBackingOff && abs(getShortestRotation(tgtLoc - ship.location, borderIntrusion)) < 90f) {
+        if (tgtLoc != null && !ai.backoff.isBackingOff && abs(getShortestRotation(tgtLoc - ship.location, borderIntrusion)) < 90f) {
             return null
         }
 
