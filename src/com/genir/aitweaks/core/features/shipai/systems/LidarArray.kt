@@ -7,18 +7,18 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
+import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.canTrack
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 
 class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
-    private val updateInterval: Interval = defaultAIInterval()
+    private val updateInterval: IntervalUtil = defaultAIInterval()
     private var lidarWeapons: List<WeaponAPI> = listOf()
     private var zeroFluxBoostMode: Boolean = false
 
@@ -34,8 +34,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
         // Use weapons only during lidar burst, to preserve zero flux boost.
         if (zeroFluxBoostMode && !system.isOn) lidarWeapons.forEach { it.autofirePlugin?.forceOff() }
 
-        if (updateInterval.elapsed()) {
-            updateInterval.reset()
+        if (updateInterval.intervalElapsed()) {
             lidarWeapons = getLidarWeapons()
 
             if (lidarWeapons.isEmpty() || system.isActive) return

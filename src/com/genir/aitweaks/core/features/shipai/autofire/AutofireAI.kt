@@ -4,6 +4,7 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
+import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.WrapperShipAI
 import com.genir.aitweaks.core.features.shipai.Preset
@@ -28,8 +29,8 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val interceptTracker = InterceptTracker(weapon)
 
     // Timers.
-    private var updateTargetInterval = Interval(0.25F, 0.50F)
-    private var shouldFireInterval = Interval(0.1F, 0.2F)
+    private var updateTargetInterval = IntervalUtil(0.25F, 0.50F)
+    private var shouldFireInterval = IntervalUtil(0.1F, 0.2F)
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
     private var idleFrames: Int = 0
@@ -53,7 +54,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         updateAim(dt)
 
         // Calculate if weapon should fire at the current target.
-        if (shouldFireInterval.elapsed()) {
+        if (shouldFireInterval.intervalElapsed()) {
             shouldHoldFire = calculateShouldFire()
 
             // Possibly update the target and calculate a new firing solution
@@ -61,7 +62,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             if (shouldUpdateTargetImmediately(target)) updateTarget(dt)
         }
 
-        if (updateTargetInterval.elapsed() && shouldUpdateTarget(target)) {
+        if (updateTargetInterval.intervalElapsed() && shouldUpdateTarget(target)) {
             updateTarget(dt)
         }
     }
@@ -180,8 +181,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     private fun updateTarget(dt: Float) {
-        updateTargetInterval.reset()
-
         val previousTarget = target
         target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target()
 
@@ -200,8 +199,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     protected open fun calculateShouldFire(): HoldFire? {
-        shouldFireInterval.reset()
-
         val target: CombatEntityAPI = target ?: return NO_TARGET
         if (!target.isValidTarget) return NO_TARGET
 

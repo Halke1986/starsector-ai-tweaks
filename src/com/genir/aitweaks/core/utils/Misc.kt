@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticParams
@@ -26,7 +27,7 @@ class Log
 
 fun log(message: Any) = Global.getLogger(Log().javaClass).info(message)
 
-fun defaultAIInterval() = Interval(0.25f, 0.33f)
+fun defaultAIInterval() = IntervalUtil(0.25f, 0.33f)
 
 class RollingAverageVector(private val historySize: Int) {
     private var history: MutableList<Vector2f> = mutableListOf()

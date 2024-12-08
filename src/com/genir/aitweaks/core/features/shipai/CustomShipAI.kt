@@ -9,6 +9,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.BACKING_OFF
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
+import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
@@ -32,7 +33,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
     // Helper classes.
     private val damageTracker: DamageTracker = DamageTracker(ship)
-    private val updateInterval: Interval = defaultAIInterval()
+    private val updateInterval: IntervalUtil = defaultAIInterval()
 
     // Standing orders.
     var maneuverTarget: ShipAPI? = null
@@ -70,9 +71,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         updateThreatVector()
 
         updateInterval.advance(dt)
-        if (updateInterval.elapsed()) {
-            updateInterval.reset()
-
+        if (updateInterval.intervalElapsed()) {
             updateThreats()
             updateShipStats()
             updateAttackRange()

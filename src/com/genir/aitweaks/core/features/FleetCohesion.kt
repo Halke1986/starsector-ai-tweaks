@@ -6,11 +6,11 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.CombatAssignmentType
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.closestEntity
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
@@ -27,7 +27,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     private var allBigTargets: List<ShipAPI> = listOf()
     private var allTargets: List<ShipAPI> = listOf()
 
-    private val advanceInterval = Interval(0.75f, 1f)
+    private val advanceInterval = IntervalUtil(0.75f, 1f)
 
     private data class AssignmentKey(val ship: ShipAPI, val location: Vector2f?, val type: CombatAssignmentType)
 
@@ -44,8 +44,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         identifyBattleGroups()
 
         advanceInterval.advance(dt)
-        if (!advanceInterval.elapsed()) return
-        advanceInterval.reset()
+        if (!advanceInterval.intervalElapsed()) return
 
         // Cleanup of previous iteration assignments and waypoints.
         validGroups = listOf()

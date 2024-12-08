@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.features.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.customAI
@@ -10,20 +11,17 @@ import com.genir.aitweaks.core.extensions.isMissile
 import com.genir.aitweaks.core.extensions.isPD
 import com.genir.aitweaks.core.features.shipai.autofire.SyncState
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import org.lwjgl.util.vector.Vector2f
 
 class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
-    private val updateInterval: Interval = defaultAIInterval()
+    private val updateInterval: IntervalUtil = defaultAIInterval()
     private val weaponSyncMap: MutableMap<String, SyncState> = mutableMapOf()
     private var autofireCount = 0
 
     override fun autofireManager_advance(dt: Float, threatEvalAI: Obfuscated.ThreatEvaluator?, missileDangerDir: Vector2f?) {
         updateInterval.advance(dt)
-        if (updateInterval.elapsed()) {
-            updateInterval.reset()
-
+        if (updateInterval.intervalElapsed()) {
             autofireCount = ensureAutofire()
             updateWeaponSync()
         }

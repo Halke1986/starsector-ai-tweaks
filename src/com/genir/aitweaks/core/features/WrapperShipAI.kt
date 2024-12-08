@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
@@ -13,7 +14,6 @@ import com.genir.aitweaks.core.features.shipai.EngineController
 import com.genir.aitweaks.core.features.shipai.WeaponGroup
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.State
-import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.defaultAIInterval
@@ -24,7 +24,7 @@ import java.awt.Color
 class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings().createDefaultShipAI(ship, ShipAIConfig())) {
     private val basicShipAI: Obfuscated.BasicShipAI = super.getAI() as Obfuscated.BasicShipAI
     private val engineController: EngineController = EngineController(ship)
-    private val updateInterval: Interval = defaultAIInterval()
+    private val updateInterval: IntervalUtil = defaultAIInterval()
     private var weaponGroup: WeaponGroup = WeaponGroup(ship, listOf())
 
     var expectedFacing: Float? = null
@@ -37,8 +37,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
 
         expectedFacing = null
 
-        if (updateInterval.elapsed()) {
-            updateInterval.reset()
+        if (updateInterval.intervalElapsed()) {
 
             // Refresh the list of weapons to aim.
             val weapons = ship.allGroupedWeapons.filter { shouldAim(it) }
