@@ -305,20 +305,22 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     private fun findNewAttackTarget(): Pair<WeaponGroup, ShipAPI?> {
         val opportunities: Set<ShipAPI> = threats.map { selectModuleToAttack(it) }.toSet()
 
-        // Find best attack opportunity for each weapon group.
-        val weaponGroupTargets: Map<WeaponGroup, ShipAPI> = stats.weaponGroups.associateWith { weaponGroup ->
-            val groupOpportunities = opportunities.filter { range(it) < weaponGroup.maxRange }
+        val allies = Global.getCombatEngine().ships.filter { it != ship && it.owner == ship.owner && !it.isFighter && !it.isFrigate }
+        val targetedEnemies = allies.mapNotNull { it.attackTarget }.filter { it.isBig }.toSet()
 
-            val foldInit: Pair<ShipAPI?, Float> = Pair(null, Float.MAX_VALUE)
-            groupOpportunities.fold(foldInit) { best, it ->
-                val eval = evaluateTarget(it, weaponGroup)
-                if (eval < best.second) Pair(it, eval)
-                else best
-            }.first
+        // Find best attack opportunity for each weapon group.
+        val weaponGroupTargets: Map<WeaponGroup, Map.Entry<ShipAPI, Float>> = stats.weaponGroups.associateWith { weaponGroup ->
+            val obstacles = getObstacles(weaponGroup)
+            val groupOpportunities = opportunities.asSequence().filter { range(it) < weaponGroup.maxRange }
+            val evaluatedOpportunities = groupOpportunities.associateWith {
+                evaluateTarget(it, weaponGroup, obstacles, targetedEnemies)
+            }
+
+            evaluatedOpportunities.maxWithOrNull(compareBy { it.value })
         }.filterValues { it != null }.mapValues { it.value!! }
 
-        val bestTarget = weaponGroupTargets.minOfWithOrNull(compareBy { evaluateTarget(it.value, it.key) }) { it }
-        if (bestTarget != null) return bestTarget.toPair()
+        val bestTarget = weaponGroupTargets.maxOfWithOrNull(compareBy { it.value.value }) { it }
+        if (bestTarget != null) return Pair(bestTarget.key, bestTarget.value.key)
 
         // No good attack target found. Try alternatives.
         val altTarget: ShipAPI? = when {
@@ -334,6 +336,41 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         return Pair(stats.weaponGroups[0], altTarget)
     }
 
+    private inner class Obstacle(val arc: Arc, val dist: Float) {
+        fun occludes(target: ShipAPI): Boolean {
+            val toTarget = target.location - ship.location
+            return arc.contains(toTarget.facing) && dist < toTarget.length
+        }
+    }
+
+    private fun getObstacles(weaponGroup: WeaponGroup): List<Obstacle> {
+        val obstacles = Grid.ships(ship.location, weaponGroup.maxRange).filter { obstacle ->
+            when {
+                // Same ship.
+                obstacle.root == ship.root -> false
+
+                // Don't consider enemy ships as obstacles. Try to shoot
+                // through them, as long as they're possible to damage.
+                !obstacle.isHullDamageable -> true
+                obstacle.owner xor ship.owner == 1 -> false
+
+                obstacle.isFighter -> false
+                obstacle.isFrigateShip -> false
+
+                else -> true
+            }
+        }
+
+        // Use simple approximate calculations instead of ballistics for simplicity.
+        return obstacles.map { obstacle ->
+            val toObstacle = obstacle.location - ship.location
+            val dist = toObstacle.length
+            val arc = Arc(angularSize(dist * dist, state.bounds.radius(obstacle) * 0.8f), toObstacle.facing)
+
+            Obstacle(arc, dist)
+        }.toList()
+    }
+
     /** If attacking a modular ship, select a module to attack. The main purpose of this
      * method is avoiding situations when a ship tries to attack a module occluded by
      * station vast bulk. */
@@ -347,45 +384,69 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         return modules.minOfWithOrNull(compareBy { (it.location - ship.location).lengthSquared }) { it }!!
     }
 
-    /** Evaluate if target is worth attacking. The lower the score, the better the target. */
-    private fun evaluateTarget(target: ShipAPI, weaponGroup: WeaponGroup): Float {
+    /** Evaluate if target is worth attacking. The higher the score, the better the target. */
+    private fun evaluateTarget(target: ShipAPI, weaponGroup: WeaponGroup, obstacles: List<Obstacle>, targetedEnemies: Set<ShipAPI>): Float {
         var evaluation = 0f
 
         // Prioritize targets closer to ship facing.
         val angle = ship.shortestRotationToTarget(target.location, weaponGroup.defaultFacing) / ship.maxTurnRate
-        val angleWeight = 0.25f
-        evaluation += abs(angle) * angleWeight
+        val angleWeight = 0.2f
+        evaluation -= abs(angle) * angleWeight
 
         // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
         val dist = range(target)
         val distWeight = 1f / weaponGroup.dpsFractionAtRange(dist)
-        evaluation += (dist / weaponGroup.maxRange) * distWeight
+        evaluation -= (dist / weaponGroup.maxRange) * distWeight
 
         // Prioritize targets high on flux. Avoid hunting low flux phase ships.
         val fluxLeft = (1f - target.fluxLevel)
         val fluxFactor = if (target.phaseCloak?.specAPI?.isPhaseCloak == true) 2f else 0.5f
-        evaluation += fluxLeft * fluxFactor
+        evaluation -= fluxLeft * fluxFactor
 
         // Avoid attacking bricks, especially Monitors.
-        evaluation += if (target.system?.id == "damper" && !target.isFrigateShip) 1f else 0f
-        evaluation += if (target.variant.hasHullMod("fluxshunt") && target.isFrigateShip) 16f else 0f
+        if (target.system?.id == "damper" && !target.isFrigateShip) {
+            evaluation += -1f
+        }
+        if (target.variant.hasHullMod("fluxshunt") && target.isFrigateShip) {
+            evaluation += -16f
+        }
 
-        // Assign lower priority to frigates.
-        evaluation += if (!ship.shouldAttackFrigates && target.isFrigateShip) 1f else 0f
+        // Assign higher priority to large targets for slow ships.
+        if ((ship.isCruiser || ship.isCapital) && !ship.shouldAttackFrigates) when {
+            target.isFrigateShip -> evaluation += -1f
+            target.isCruiser -> evaluation += 0.5f
+            target.isCapital -> evaluation += 1f
+        }
+
+        // Sync attack with allies.
+        if (targetedEnemies.contains(target)) {
+            evaluation += 1f
+        }
 
         // Avoid attacking ships with no weapons (mostly station armor modules).
-        evaluation += if (target.allWeapons.isEmpty()) 2f else 0f
+        if (target.allWeapons.isEmpty()) {
+            evaluation += -2f
+        }
 
         // Finish helpless target.
-        evaluation += if (target.fluxTracker.isOverloadedOrVenting) -2f else 0f
+        if (target.fluxTracker.isOverloadedOrVenting) {
+            evaluation += 2f
+        }
 
         // Try to stay on target.
-        evaluation += if (target == attackTarget && range(target) <= weaponGroup.effectiveRange) -2f else 0f
+        if (target == attackTarget && range(target) <= weaponGroup.effectiveRange) {
+            evaluation += 1f
+        }
 
         // Strongly prioritize eliminate assignment.
-        evaluation += if (target == assignment.eliminate) -16f else 0f
+        if (target == assignment.eliminate) {
+            evaluation += 16f
+        }
 
-        // TODO avoid wrecks
+        // Do not attempt to attack occluded targets.
+        if (obstacles.any { it.occludes(target) }) {
+            evaluation += -16f
+        }
 
         return evaluation
     }

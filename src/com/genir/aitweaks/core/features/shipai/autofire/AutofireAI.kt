@@ -183,7 +183,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         updateTargetInterval.reset()
 
         val previousTarget = target
-        target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target
+        target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target()
 
         // Nothing changed, return early.
         if (target == previousTarget) return

@@ -36,52 +36,22 @@ internal fun debug(dt: Float) {
     //FFTest.advance(dt)
 
 //    val ship = Global.getCombatEngine().playerShip ?: return
+
+//    Debug.print[ship] = ship.assignment?.type
 //
 //    ship.allGroupedWeapons.forEach {
 //        Debug.print[it] = it.autofirePlugin?.let { ai -> ai::class.java.name }
 //    }
 
 
-//    val ships = Global.getCombatEngine().ships.filter { !it.isFighter }
-//
-//    ships.forEach { obstacle ->
-//
-//        Debug.drawBounds(obstacle)
-//
-//        if (state.bounds.isPointWithin(mousePosition(), obstacle)) {
-//            Debug.drawBounds(obstacle, BLUE)
-//        }
-//
-//
-////        Debug.drawLine(state.bounds.closestPoint(mousePosition(), obstacle), mousePosition())
-//    }
+//    val ships = Global.getCombatEngine().ships.filter { !it.isFighter && it.isAlly }
+//    ships.forEach { ship ->
+//        if (ship.hullSpec.hullId == "ravelin") {
+//             = (ship as Ship).ai::class.java.name
 
-//    val v = unitVector((mousePosition() - ship.location).facing) * 10f
-//
-//    val collisions = ships.mapNotNull { obstacle ->
-//        if (obstacle == ship) return@mapNotNull null
-//
-//        Debug.drawBounds(obstacle, YELLOW)
-//
-//        val p = ship.location - obstacle.location
-//        val collision = state.bounds.collision(p, v, obstacle) ?: return@mapNotNull null
-//
-//        Pair(obstacle, collision)
-//    }
-//
-//    collisions.forEach {
-//        Debug.print[it.first] = "${it.first.hullSpec.hullId} ${it.second}"
-//    }
-//
-//    if (collisions.isEmpty()) {
-//        Debug.drawLine(ship.location, mousePosition())
-//    } else {
-//        val (obstacle, dist) = collisions.minWithOrNull(compareBy { it.second })!!
-//        val collision = ship.location + v * dist
-//
-//        if ((collision - ship.location).length <= (mousePosition() - ship.location).length) {
-//            Debug.drawBounds(obstacle, BLUE)
-//            Debug.drawLine(ship.location, ship.location + v * dist)
+//            ship.weaponGroupsCopy.forEach { group ->
+//                Debug.print[group] = "${ship.id} ${group.isAutofiring}"
+//            }
 //        }
 //    }
 }

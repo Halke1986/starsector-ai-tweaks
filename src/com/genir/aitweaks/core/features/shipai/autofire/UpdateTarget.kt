@@ -21,7 +21,7 @@ class UpdateTarget(
     private val attackTarget: ShipAPI?,
     private val params: BallisticParams,
 ) {
-    val target: CombatEntityAPI? = when {
+    fun target(): CombatEntityAPI? = when {
         Global.getCurrentState() == GameState.TITLE && state.config.enableTitleScreenFire -> selectAsteroid()
 
         // Obligatory PD
@@ -118,7 +118,7 @@ class UpdateTarget(
             else -> {
                 val intercept = intercept(weapon, ballisticTarget, params)
 
-                getObstacleList().none { obstacle ->
+                obstacleList.none { obstacle ->
                     when {
                         obstacle.origin == target -> false
                         !obstacle.arc.contains(intercept.facing) -> false
@@ -131,17 +131,9 @@ class UpdateTarget(
         }
     }
 
-    private fun getObstacleList(): List<Obstacle> {
-        if (obstacleList == null) obstacleList = makeObstacleList()
-
-        return obstacleList!!
-    }
-
-    private var obstacleList: List<Obstacle>? = null
-
     private data class Obstacle(val arc: Arc, val dist: Float, val origin: CombatEntityAPI)
 
-    private fun makeObstacleList(): List<Obstacle> {
+    private val obstacleList: List<Obstacle> by lazy {
         val obstacles = Grid.ships(weapon.location, weapon.totalRange).filter {
             when {
                 // Same ship.
@@ -156,7 +148,7 @@ class UpdateTarget(
             }
         }
 
-        return obstacles.map { obstacle ->
+        obstacles.map { obstacle ->
             val target = BallisticTarget(obstacle.location, obstacle.velocity, state.bounds.radius(obstacle) * 0.8f)
             val dist = intercept(weapon, target, params).length
             val arc = interceptArc(weapon, target, params)

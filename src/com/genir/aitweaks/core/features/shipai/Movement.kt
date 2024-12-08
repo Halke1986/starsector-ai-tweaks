@@ -41,6 +41,7 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
 
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?) {
         val systemOverride: Vector2f? = ai.systemAI?.overrideHeading()
+        val navigateTo: Vector2f? = ai.assignment.navigateTo
 
         headingPoint = interpolateHeading.advance(dt) {
             when {
@@ -50,8 +51,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 }
 
                 // For player ships the heading to assignment location takes priority.
-                ship.owner == 0 && !ship.isAlly && ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> {
-                    ai.assignment.navigateTo!!
+                ship.owner == 0 && !ship.isAlly && navigateTo != null && (ai.threatVector.isZero || !ai.assignment.arrivedAt) -> {
+                    navigateTo
                 }
 
                 // Move opposite to threat direction when backing off.
@@ -78,8 +79,8 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
                 }
 
                 // Move directly to assignment location.
-                ai.assignment.navigateTo != null -> {
-                    ai.assignment.navigateTo!!
+                navigateTo != null -> {
+                    navigateTo
                 }
 
                 // Nothing to do, stop the ship.
@@ -254,10 +255,11 @@ class Movement(override val ai: CustomShipAI) : Coordinable {
     }
 
     private fun avoidTargetCollision(dt: Float): EngineController.Limit? {
-        // Do not be paralyzed by frigates when trying to backoff.
-        if (ai.isBackingOff) return null
-
         val target = ai.maneuverTarget ?: return null
+
+        // Do not be paralyzed by frigates when trying to backoff.
+        if (ai.isBackingOff && target.isFrigateShip) return null
+
         val distance = max(ai.stats.totalCollisionRadius + target.totalCollisionRadius + Preset.collisionBuffer, ai.attackRange * 0.8f)
         return vMaxToObstacle(dt, target, distance)
     }
