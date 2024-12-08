@@ -10,11 +10,11 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.BACKING_OFF
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.genir.aitweaks.core.debug.Debug
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.systems.SystemAI
 import com.genir.aitweaks.core.features.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.extensions.*
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import kotlin.math.abs

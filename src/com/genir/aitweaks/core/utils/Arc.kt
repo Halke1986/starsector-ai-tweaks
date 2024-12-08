@@ -1,6 +1,6 @@
 package com.genir.aitweaks.core.utils
 
-import com.genir.aitweaks.core.utils.extensions.facing
+import com.genir.aitweaks.core.extensions.facing
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.sign

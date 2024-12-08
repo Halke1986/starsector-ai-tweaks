@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.features.shipai
+package com.genir.aitweaks.core.features
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAIConfig
@@ -8,15 +8,15 @@ import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
+import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.features.shipai.EngineController
+import com.genir.aitweaks.core.features.shipai.WeaponGroup
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.utils.Interval
-import com.genir.aitweaks.core.utils.VanillaShipCommand.TURN_LEFT
-import com.genir.aitweaks.core.utils.VanillaShipCommand.TURN_RIGHT
+import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.defaultAIInterval
-import com.genir.aitweaks.core.utils.extensions.*
-
 import java.awt.Color
 
 /** Ship AI implementation that wraps around vanilla BasicShipAI and overrides certain decisions.
@@ -63,7 +63,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         if (rangeThreshold * 1.75f < (target.location - ship.location).length) return
 
         // Remove vanilla turn commands.
-        clearVanillaCommands(ship, TURN_LEFT, TURN_RIGHT)
+        clearVanillaCommands(ship, VanillaShipCommand.TURN_LEFT, VanillaShipCommand.TURN_RIGHT)
 
         // Control the ship rotation.
         val ballisticTarget = BallisticTarget.entity(target)
@@ -72,7 +72,7 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
     }
 
     private fun debug() {
-        if (state.config.highlightCustomAI) Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
+        if (State.state.config.highlightCustomAI) Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
     }
 
     companion object {

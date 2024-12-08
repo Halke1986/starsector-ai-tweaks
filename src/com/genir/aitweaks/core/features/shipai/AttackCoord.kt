@@ -4,9 +4,9 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.utils.angularSize
-import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f

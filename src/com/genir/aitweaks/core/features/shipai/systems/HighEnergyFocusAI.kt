@@ -6,9 +6,9 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.DamageType.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.features.shipai.autofire.willHitShield
-import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.combat.AIUtils
 import org.lwjgl.util.vector.Vector2f
 

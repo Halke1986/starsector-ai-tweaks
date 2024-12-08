@@ -6,9 +6,9 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.ANTI_FTR
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.LARGE
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.*
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
-import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.shieldUptime
 import kotlin.math.min
 

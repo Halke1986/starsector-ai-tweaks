@@ -10,6 +10,7 @@ import com.fs.starfarer.api.loading.WeaponGroupType.LINKED
 import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.features.shipai.BasicEngineController
 import com.genir.aitweaks.core.features.shipai.WeaponGroup
@@ -20,7 +21,6 @@ import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDown
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.VanillaShipCommand.*
-import com.genir.aitweaks.core.utils.extensions.*
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 

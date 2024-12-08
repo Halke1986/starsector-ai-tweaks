@@ -8,14 +8,14 @@ import com.fs.starfarer.api.util.Misc
 import com.fs.starfarer.campaign.CampaignEngine
 import com.fs.starfarer.combat.ai.OmniShieldControlAI
 import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.core.extensions.command
+import com.genir.aitweaks.core.extensions.isUnderManualControl
 import com.genir.aitweaks.core.features.shipai.BaseShipAIPlugin
-import com.genir.aitweaks.core.features.shipai.command
 import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction.SHIP_SHIELDS
 import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
-import com.genir.aitweaks.core.utils.extensions.isUnderManualControl
 import com.genir.aitweaks.core.utils.makeAIDrone
 import com.genir.aitweaks.core.utils.mousePosition
 import org.lazywizard.lazylib.opengl.DrawUtils

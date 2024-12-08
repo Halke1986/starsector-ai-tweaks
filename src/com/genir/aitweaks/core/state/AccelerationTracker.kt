@@ -4,10 +4,10 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.core.extensions.copy
+import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.utils.RollingAverageVector
 import com.genir.aitweaks.core.utils.div
-import com.genir.aitweaks.core.utils.extensions.copy
-import com.genir.aitweaks.core.utils.extensions.minus
 import org.lwjgl.util.vector.Vector2f
 
 class AccelerationTracker : BaseEveryFrameCombatPlugin() {

@@ -7,13 +7,11 @@ import com.fs.starfarer.api.combat.CombatAssignmentType
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.tasks.CombatTaskManager
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.Preset
-import com.genir.aitweaks.core.features.shipai.shouldAttackFrigates
-import com.genir.aitweaks.core.features.shipai.slotRange
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.closestEntity
-import com.genir.aitweaks.core.utils.extensions.*
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 

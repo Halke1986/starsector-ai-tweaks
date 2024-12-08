@@ -5,13 +5,13 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
+import com.genir.aitweaks.core.extensions.customAI
+import com.genir.aitweaks.core.extensions.isMissile
+import com.genir.aitweaks.core.extensions.isPD
 import com.genir.aitweaks.core.features.shipai.autofire.SyncState
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.defaultAIInterval
-import com.genir.aitweaks.core.utils.extensions.customAI
-import com.genir.aitweaks.core.utils.extensions.isMissile
-import com.genir.aitweaks.core.utils.extensions.isPD
 import org.lwjgl.util.vector.Vector2f
 
 class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {

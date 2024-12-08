@@ -4,10 +4,10 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI
 import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.extensions.assignment
+import com.genir.aitweaks.core.extensions.length
+import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.features.shipai.Assignment.Type.*
-import com.genir.aitweaks.core.utils.extensions.assignment
-import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.minus
 import org.lwjgl.util.vector.Vector2f
 
 class Assignment(private val ship: ShipAPI) {

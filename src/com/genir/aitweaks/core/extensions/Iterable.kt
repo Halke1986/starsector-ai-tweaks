@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.utils.extensions
+package com.genir.aitweaks.core.extensions
 
 inline fun <T> Iterable<T>.sumOf(selector: (T) -> Float): Float {
     var sum = 0f

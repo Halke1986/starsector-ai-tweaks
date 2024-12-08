@@ -4,15 +4,15 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
+import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.features.WrapperShipAI
 import com.genir.aitweaks.core.features.shipai.Preset
-import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.features.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
-import com.genir.aitweaks.core.utils.extensions.*
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min

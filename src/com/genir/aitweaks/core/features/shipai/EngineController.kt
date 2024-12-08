@@ -1,9 +1,9 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
-import com.genir.aitweaks.core.utils.extensions.*
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min

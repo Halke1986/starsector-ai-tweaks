@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.utils.extensions
+package com.genir.aitweaks.core.extensions
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*

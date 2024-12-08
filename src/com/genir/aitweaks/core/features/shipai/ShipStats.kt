@@ -2,7 +2,7 @@ package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.utils.extensions.*
+import com.genir.aitweaks.core.extensions.*
 import kotlin.math.abs
 import kotlin.math.max
 

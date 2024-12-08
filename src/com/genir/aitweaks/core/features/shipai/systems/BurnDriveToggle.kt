@@ -6,9 +6,10 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
-import com.genir.aitweaks.core.features.shipai.*
+import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.features.shipai.Coordinable
+import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min

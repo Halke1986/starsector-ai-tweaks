@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.utils.extensions
+package com.genir.aitweaks.core.extensions
 
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.CollisionClass.*
@@ -13,6 +13,7 @@ import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.clampAngle
+import kotlin.math.max
 
 val WeaponAPI.isAntiArmor: Boolean
     get() = damageType == HIGH_EXPLOSIVE || hasAIHint(USE_LESS_VS_SHIELDS)
@@ -149,4 +150,35 @@ val WeaponAPI.noFF: Boolean
         RAY_FIGHTER -> true
         PROJECTILE_FIGHTER -> true
         else -> false
+    }
+
+/** Weapon range from the center of the ship. */
+val WeaponAPI.slotRange: Float
+    get() = range + barrelOffset + slot.location.x
+
+/** Total time required for the weapon to reload from empty to full ammunition. */
+val WeaponAPI.totalReloadTime: Float
+    get() {
+        // Weapon does not use ammo.
+        if (!usesAmmo()) return cooldown
+
+        // Weapon is permanently out if ammo.
+        val tracker = ammoTracker!!
+        if (tracker.ammoPerSecond <= 0f) return Float.MAX_VALUE
+
+        val reloadTime = tracker.maxAmmo / tracker.ammoPerSecond
+        return max(reloadTime, cooldown)
+    }
+
+val WeaponAPI.totalReloadTimeRemaining: Float
+    get() {
+        // Weapon does not use ammo.
+        if (!usesAmmo()) return cooldownRemaining
+
+        // Weapon is permanently out if ammo.
+        val tracker = ammoTracker!!
+        if (tracker.ammoPerSecond <= 0f) return Float.MAX_VALUE
+
+        val reloadTime = (tracker.maxAmmo - (tracker.ammo + tracker.reloadProgress * tracker.reloadSize)) / tracker.ammoPerSecond
+        return max(reloadTime, cooldownRemaining)
     }

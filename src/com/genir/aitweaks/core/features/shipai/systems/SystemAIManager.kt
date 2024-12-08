@@ -1,9 +1,9 @@
 package com.genir.aitweaks.core.features.shipai.systems
 
+import com.genir.aitweaks.core.extensions.AIType
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.ShipSystemAIType
 import com.genir.aitweaks.core.utils.ShipSystemAIType.*
-import com.genir.aitweaks.core.utils.extensions.AIType
 
 class SystemAIManager {
     companion object {

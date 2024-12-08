@@ -2,13 +2,13 @@ package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.extensions.isPD
+import com.genir.aitweaks.core.extensions.minus
+import com.genir.aitweaks.core.extensions.plus
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
-import com.genir.aitweaks.core.utils.extensions.isPD
-import com.genir.aitweaks.core.utils.extensions.minus
-import com.genir.aitweaks.core.utils.extensions.plus
 import com.genir.aitweaks.core.utils.times
 import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f

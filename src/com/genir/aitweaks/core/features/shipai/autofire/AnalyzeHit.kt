@@ -3,11 +3,11 @@ package com.genir.aitweaks.core.features.shipai.autofire
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.core.extensions.facing
+import com.genir.aitweaks.core.extensions.isShip
+import com.genir.aitweaks.core.extensions.noFF
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.*
 import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.isShip
-import com.genir.aitweaks.core.utils.extensions.noFF
 
 data class Hit(val target: CombatEntityAPI, val range: Float, val type: Type) {
     enum class Type {

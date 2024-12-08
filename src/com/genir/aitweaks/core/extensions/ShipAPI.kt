@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.utils.extensions
+package com.genir.aitweaks.core.extensions
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
@@ -10,6 +10,7 @@ import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.times
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.max
 
 /** Returns false for detached modules. Will be false before
  * ship is completely initialized, e.g. in AI picker. */
@@ -99,3 +100,36 @@ val ShipAPI.isUnderManualControl: Boolean
 
 val ShipAPI.allGroupedWeapons: List<WeaponAPI>
     get() = weaponGroupsCopy.flatMap { it.weaponsCopy }
+
+fun ShipAPI.shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Float): Float {
+    val facingToTarget = (target - location).facing
+    return shortestRotation(facing + weaponGroupFacing, facingToTarget)
+}
+
+val ShipAPI.strafeAcceleration: Float
+    get() = this.acceleration * when (this.hullSize) {
+        ShipAPI.HullSize.FIGHTER -> 0.75f
+        ShipAPI.HullSize.FRIGATE -> 1.0f
+        ShipAPI.HullSize.DESTROYER -> 0.75f
+        ShipAPI.HullSize.CRUISER -> 0.5f
+        ShipAPI.HullSize.CAPITAL_SHIP -> 0.25f
+        else -> 1.0f
+    }
+
+/** Collision radius encompassing an entire modular ship, including drones. */
+val ShipAPI.totalCollisionRadius: Float
+    get() {
+        val modules = childModulesCopy.filter { it.isModule } // Make sure the module is still attached.
+        val drones = deployedDrones?.filter { it.collisionClass == CollisionClass.SHIP }
+
+        val withModules = modules.maxOfOrNull { (location - it.location).length() + it.collisionRadius } ?: 0f
+        val withDrones = drones?.maxOfOrNull { (location - it.location).length() + it.collisionRadius } ?: 0f
+
+        return max(collisionRadius, max(withDrones, withModules))
+    }
+
+fun ShipAPI.command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
+
+// TODO refine the speed threshold
+val ShipAPI.shouldAttackFrigates: Boolean
+    get() = isFrigateShip || isDestroyer || maxSpeed * timeMult > 150f

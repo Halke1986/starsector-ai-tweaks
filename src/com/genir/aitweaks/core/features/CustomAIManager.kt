@@ -7,11 +7,10 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
+import com.genir.aitweaks.core.extensions.assignment
+import com.genir.aitweaks.core.extensions.isFrigateShip
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
-import com.genir.aitweaks.core.features.shipai.WrapperShipAI
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.extensions.assignment
-import com.genir.aitweaks.core.utils.extensions.isFrigateShip
 
 class CustomAIManager {
     fun getAIForShip(ship: ShipAPI): ShipAIPlugin? {

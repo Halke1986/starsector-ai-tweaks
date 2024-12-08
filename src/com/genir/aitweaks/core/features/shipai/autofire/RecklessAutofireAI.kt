@@ -2,12 +2,12 @@ package com.genir.aitweaks.core.features.shipai.autofire
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.core.extensions.isValidTarget
+import com.genir.aitweaks.core.extensions.length
+import com.genir.aitweaks.core.extensions.minus
+import com.genir.aitweaks.core.extensions.totalRange
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.HULL
 import com.genir.aitweaks.core.features.shipai.autofire.Hit.Type.SHIELD
-import com.genir.aitweaks.core.utils.extensions.isValidTarget
-import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.minus
-import com.genir.aitweaks.core.utils.extensions.totalRange
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 
 /** Specialized AutofireAI implementation for weapons that are most

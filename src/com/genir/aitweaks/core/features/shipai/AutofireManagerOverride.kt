@@ -5,8 +5,8 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.ai.attack.AttackAIModule
+import com.genir.aitweaks.core.extensions.basicShipAI
 import com.genir.aitweaks.core.utils.Interval
-import com.genir.aitweaks.core.utils.extensions.basicShipAI
 import java.lang.reflect.Field
 
 /** Plugin for replacing vanilla AutofireManager with AI Tweaks implementation. */

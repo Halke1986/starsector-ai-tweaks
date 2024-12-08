@@ -4,8 +4,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.EngineController
-import com.genir.aitweaks.core.utils.extensions.*
 import org.lazywizard.lazylib.ext.minus
 import org.lwjgl.util.vector.Vector2f
 

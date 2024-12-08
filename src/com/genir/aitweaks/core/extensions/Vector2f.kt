@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.utils.extensions
+package com.genir.aitweaks.core.extensions
 
 import com.genir.aitweaks.core.utils.RADIANS_TO_DEGREES
 import com.genir.aitweaks.core.utils.atan2

@@ -7,15 +7,13 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.features.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.features.shipai.autofire.canTrack
 import com.genir.aitweaks.core.features.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.features.shipai.command
-import com.genir.aitweaks.core.features.shipai.slotRange
 import com.genir.aitweaks.core.utils.Interval
 import com.genir.aitweaks.core.utils.defaultAIInterval
-import com.genir.aitweaks.core.utils.extensions.*
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 

@@ -1,12 +1,12 @@
 package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.extensions.length
+import com.genir.aitweaks.core.extensions.lengthSquared
+import com.genir.aitweaks.core.extensions.minus
+import com.genir.aitweaks.core.extensions.plus
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
-import com.genir.aitweaks.core.utils.extensions.length
-import com.genir.aitweaks.core.utils.extensions.lengthSquared
-import com.genir.aitweaks.core.utils.extensions.minus
-import com.genir.aitweaks.core.utils.extensions.plus
 import org.lwjgl.util.vector.Vector2f
 import kotlin.Float.Companion.MAX_VALUE
 import kotlin.math.max

@@ -6,9 +6,9 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.genir.aitweaks.core.Obfuscated
-import com.genir.aitweaks.core.utils.extensions.facing
-import com.genir.aitweaks.core.utils.extensions.getPrivateField
-import com.genir.aitweaks.core.utils.extensions.isZero
+import com.genir.aitweaks.core.extensions.facing
+import com.genir.aitweaks.core.extensions.getPrivateField
+import com.genir.aitweaks.core.extensions.isZero
 import org.lwjgl.util.vector.Vector2f
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
