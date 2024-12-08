@@ -14,7 +14,7 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Movement(override val ai: CustomShipAI) : Coordinable {
+class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
     private val ship: ShipAPI = ai.ship
     private val engineController: EngineController = EngineController(ship)
 

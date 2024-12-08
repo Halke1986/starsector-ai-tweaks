@@ -12,17 +12,17 @@ import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
-interface Coordinable {
-    var proposedHeadingPoint: Vector2f?
-    var reviewedHeadingPoint: Vector2f?
-    val ai: CustomShipAI
-}
-
 /**
  * Attack Coordinator assigns attack positions to all ships attacking the
  * same target, so that the ships don't try to crowd in the same spot.
  */
 class AttackCoord : BaseEveryFrameCombatPlugin() {
+    interface Coordinable {
+        var proposedHeadingPoint: Vector2f?
+        var reviewedHeadingPoint: Vector2f?
+        val ai: CustomShipAI
+    }
+
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         val ships = Global.getCombatEngine().ships.asSequence().mapNotNull { it.customShipAI }
 

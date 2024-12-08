@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IDLE
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.features.shipai.Coordinable
+import com.genir.aitweaks.core.features.shipai.AttackCoord
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.*
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
@@ -15,7 +15,7 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
 
 /** Burn Drive AI. It replaces the vanilla implementation in ships with custom AI. */
-class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), Coordinable {
+class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoord.Coordinable {
     private var headingPoint: Vector2f = Vector2f()
     private var shouldBurn = false
 
