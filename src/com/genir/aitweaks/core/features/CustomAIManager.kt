@@ -8,7 +8,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
 import com.genir.aitweaks.core.extensions.assignment
-import com.genir.aitweaks.core.extensions.isFrigateShip
+import com.genir.aitweaks.core.extensions.isBig
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
 import com.genir.aitweaks.core.state.State.Companion.state
 
@@ -26,7 +26,10 @@ class CustomAIManager {
     }
 
     private fun shouldHaveWrapperAI(ship: ShipAPI): Boolean {
-        return ship.isFrigateShip
+        // Install wrapper AI in frigate ships, but not station modules.
+        // Check for number of engines, as isModule method may return
+        // incorrect result when the ship is being initialized.
+        return ship.engineController.shipEngines.isNotEmpty() && ship.isFrigate
     }
 
     /** Currently, custom AI is enabled only for selected ships. */
@@ -35,7 +38,7 @@ class CustomAIManager {
             ship.hullSpec.isPhase -> false
             ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
             ship.isStation -> false
-            !ship.isDestroyer && !ship.isCruiser && !ship.isCapital -> false
+            !ship.isBig -> false
             ship.assignment?.type == RETREAT -> false
 
             // Selected ships.

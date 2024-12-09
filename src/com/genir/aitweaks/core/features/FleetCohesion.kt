@@ -201,10 +201,10 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             for (j in fleet.indices) {
                 when {
                     // Cannot attach to battle group via frigate.
-                    fleet[j].isFrigateShip -> continue
+                    fleet[j].root.isFrigate -> continue
 
                     // Frigate already attached to battle group.
-                    fleet[i].isFrigateShip && groups[i] != i -> continue
+                    fleet[i].root.isFrigate && groups[i] != i -> continue
 
                     // Both targets already in same battle group.
                     groups[i] == groups[j] -> continue
@@ -238,7 +238,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     }
 
     private fun isValidGroup(group: Set<ShipAPI>, largestGroupDP: Float): Boolean {
-        return group.any { ship: ShipAPI -> ship.isCapital } || (group.dpSum * 4f >= largestGroupDP)
+        return group.any { ship: ShipAPI -> ship.root.isCapital } || (group.dpSum * 4f >= largestGroupDP)
     }
 
     private fun getTaskManager(): CombatTaskManager {

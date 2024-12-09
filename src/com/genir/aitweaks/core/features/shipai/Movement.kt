@@ -258,7 +258,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
         val target = ai.maneuverTarget ?: return null
 
         // Do not be paralyzed by frigates when trying to backoff.
-        if (ai.backoff.isBackingOff && target.isFrigateShip) return null
+        if (ai.backoff.isBackingOff && target.root.isFrigate) return null
 
         val distance = max(ai.stats.totalCollisionRadius + target.totalCollisionRadius + Preset.collisionBuffer, ai.attackRange * 0.8f)
         return vMaxToObstacle(dt, target, distance)

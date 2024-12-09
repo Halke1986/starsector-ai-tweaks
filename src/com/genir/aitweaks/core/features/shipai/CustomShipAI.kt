@@ -182,7 +182,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             backoff.isBackingOff -> false
             attackTarget == null -> false
             attackTarget != maneuverTarget -> false
-            (attackTarget as? ShipAPI)?.isFrigateShip != ship.isFrigateShip -> false
+            (attackTarget as? ShipAPI)?.root?.isFrigate != ship.root.isFrigate -> false
             threats.size > 1 -> false
             else -> true
         }
@@ -278,7 +278,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
                 obstacle.owner xor ship.owner == 1 -> false
 
                 obstacle.isFighter -> false
-                obstacle.isFrigateShip -> false
+                obstacle.root.isFrigate -> false
 
                 else -> true
             }
@@ -327,18 +327,18 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         evaluation -= fluxLeft * fluxFactor
 
         // Avoid attacking bricks, especially Monitors.
-        if (target.system?.id == "damper" && !target.isFrigateShip) {
+        if (target.system?.id == "damper" && !target.root.isFrigate) {
             evaluation += -1f
         }
-        if (target.variant.hasHullMod("fluxshunt") && target.isFrigateShip) {
+        if (target.variant.hasHullMod("fluxshunt") && target.root.isFrigate) {
             evaluation += -16f
         }
 
         // Assign higher priority to large targets for slow ships.
-        if ((ship.isCruiser || ship.isCapital) && !ship.shouldAttackFrigates) when {
-            target.isFrigateShip -> evaluation += -1f
-            target.isCruiser -> evaluation += 0.5f
-            target.isCapital -> evaluation += 1f
+        if ((ship.root.isCruiser || ship.root.isCapital) && !ship.shouldAttackFrigates) when {
+            target.root.isFrigate -> evaluation += -1f
+            target.root.isCruiser -> evaluation += 0.5f
+            target.root.isCapital -> evaluation += 1f
         }
 
         // Sync attack with allies.
@@ -347,8 +347,8 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }
 
         // Avoid attacking ships with no weapons (mostly station armor modules).
-        if (target.allWeapons.isEmpty()) {
-            evaluation += -2f
+        if (target.allGroupedWeapons.isEmpty()) {
+            evaluation += -3f
         }
 
         // Finish helpless target.

@@ -21,13 +21,8 @@ val ShipAPI.isModule: Boolean
 val ShipAPI.root: ShipAPI
     get() = if (isModule) parentStation else this
 
-val ShipAPI.isFrigateShip: Boolean
-    // Check for number of engines, as isModule method may return
-    // incorrect result when the ship is being initialized.
-    get() = isFrigate && !isModule && engineController.shipEngines.isNotEmpty()
-
 val ShipAPI.isBig: Boolean
-    get() = (isModule && allWeapons.isNotEmpty()) || isDestroyer || isCruiser || isCapital
+    get() = (root.isDestroyer || root.isCruiser || root.isCapital) && allWeapons.isNotEmpty()
 
 val ShipAPI.isHullDamageable: Boolean
     get() = mutableStats.hullDamageTakenMult.getModifiedValue() > 0f
@@ -130,6 +125,6 @@ val ShipAPI.totalCollisionRadius: Float
 
 fun ShipAPI.command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
 
-// TODO refine the speed threshold
+// TODO refine the speed threshold, maybe add maneuverability threshold.
 val ShipAPI.shouldAttackFrigates: Boolean
-    get() = isFrigateShip || isDestroyer || maxSpeed * timeMult > 150f
+    get() = root.isFrigate || root.isDestroyer || maxSpeed * timeMult > 150f
