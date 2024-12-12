@@ -126,12 +126,12 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
     }
 
     fun findClosestTarget(ship: ShipAPI): ShipAPI? {
-        val allTargets = if (ship.shouldAttackFrigates) allTargets else allBigTargets
+        val allTargets = if (ship.isFast) allTargets else allBigTargets
         val closestTarget: ShipAPI? = closestEntity(allTargets, ship.location)
         if (closestTarget != null && closeToEnemy(ship, closestTarget))
             return closestTarget
 
-        val primaryTargets = if (ship.shouldAttackFrigates) primaryTargets else primaryBigTargets
+        val primaryTargets = if (ship.isFast) primaryTargets else primaryBigTargets
         val primaryTarget: ShipAPI? = closestEntity(primaryTargets, ship.location)
         return primaryTarget
     }

@@ -21,6 +21,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
     var headingPoint: Vector2f = Vector2f()
     var expectedVelocity: Vector2f = Vector2f()
     var expectedFacing: Float = ship.facing
+    var backoffDistance: Float = 0f
 
     // Used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
@@ -43,6 +44,10 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
         val systemOverride: Vector2f? = ai.systemAI?.overrideHeading()
         val navigateTo: Vector2f? = ai.assignment.navigateTo
 
+        // Cleanup backoff settings.
+        val farAway = 1e5f
+        if (!ai.backoff.isBackingOff) backoffDistance = farAway
+
         headingPoint = interpolateHeading.advance(dt) {
             when {
                 // Let movement system determine ship heading.
@@ -58,9 +63,19 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
                 // Move opposite to threat direction when backing off.
                 // If there's no threat, the ship will continue to coast.
                 ai.backoff.isBackingOff -> {
-                    val farAway = 2048f
-                    if (ai.threatVector.isZero) ship.location + ship.velocity.resized(farAway)
-                    else ship.location - ai.threatVector.resized(farAway)
+                    if (maneuverTarget != null && backoffDistance == farAway && ai.backoff.isSafe) {
+                        backoffDistance = (maneuverTarget.location - ship.location).length * 1.1f
+                    }
+
+                    when {
+                        ai.backoff.isSafe && maneuverTarget != null -> maneuverTarget.location - ai.threatVector.resized(backoffDistance)
+
+                        ai.backoff.isSafe -> engineController.allStop
+
+                        ai.threatVector.isZero -> ship.location + ship.velocity.resized(farAway)
+
+                        else -> ship.location - ai.threatVector.resized(farAway)
+                    }
                 }
 
                 // Orbit target at effective weapon range.
@@ -222,31 +237,34 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
     }
 
     private fun gatherSpeedLimits(dt: Float): List<EngineController.Limit> {
-        val friendlies = Global.getCombatEngine().ships.filter {
+        val allObstacles = Global.getCombatEngine().ships.filter {
             when {
-                it == ship -> false
-                it.owner != ship.owner -> false
+                it.root == ship.root -> false
                 it.collisionClass != CollisionClass.SHIP -> false
 
                 // Modules and drones count towards
                 // their parent collision radius.
                 it.isModule -> false
                 it.isDrone -> false
+
                 else -> true
             }
         }
+
+        val friendlies = allObstacles.filter { it.owner == ship.owner }
+        val hulks = allObstacles.filter { it.owner == 100 && it.mass * 0.75f > ship.mass }
 
         val limits: MutableList<EngineController.Limit?> = mutableListOf()
 
         limits.add(avoidBlockingLineOfFire(dt, friendlies))
         limits.add(avoidBorder())
         limits.add(avoidTargetCollision(dt))
-        limits.addAll(avoidCollisions(dt, friendlies))
+        limits.addAll(avoidCollisions(dt, friendlies + hulks))
 
         return limits.filterNotNull()
     }
 
-    /** Do not ram friendly ships and the current maneuver target. */
+    /** Do not ram friendly ships. */
     private fun avoidCollisions(dt: Float, friendlies: List<ShipAPI>): List<EngineController.Limit?> {
         return friendlies.map { obstacle ->
             val distance = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
@@ -254,10 +272,11 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
         }
     }
 
+    /** Do not ram the maneuver target. */
     private fun avoidTargetCollision(dt: Float): EngineController.Limit? {
         val target = ai.maneuverTarget ?: return null
 
-        // Do not be paralyzed by frigates when trying to backoff.
+        // Do not be paralyzed by frigates when trying to back off.
         if (ai.backoff.isBackingOff && target.root.isFrigate) return null
 
         val distance = max(ai.stats.totalCollisionRadius + target.totalCollisionRadius + Preset.collisionBuffer, ai.attackRange * 0.8f)

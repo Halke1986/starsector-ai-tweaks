@@ -10,6 +10,7 @@ import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
+import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.clampAngle
@@ -156,6 +157,9 @@ val WeaponAPI.noFF: Boolean
 val WeaponAPI.slotRange: Float
     get() = range + barrelOffset + slot.location.x
 
+val WeaponAPI.isOutOfAmmo: Boolean
+    get() = usesAmmo() && ammo == 0 && ammoTracker.ammoPerSecond <= 0f
+
 /** Total time required for the weapon to reload from empty to full ammunition. */
 val WeaponAPI.totalReloadTime: Float
     get() {
@@ -181,4 +185,15 @@ val WeaponAPI.totalReloadTimeRemaining: Float
 
         val reloadTime = (tracker.maxAmmo - (tracker.ammo + tracker.reloadProgress * tracker.reloadSize)) / tracker.ammoPerSecond
         return max(reloadTime, cooldownRemaining)
+    }
+
+val WeaponAPI.isInLongReload: Boolean
+    get() = when {
+        isInFiringCycle -> false
+
+        totalReloadTimeRemaining < 2f -> false
+        totalReloadTime < Preset.weaponMaxReloadTime -> false
+        ammo >= maxAmmo / 2 -> false
+
+        else -> true
     }

@@ -38,3 +38,8 @@ val CombatEntityAPI.isPDTarget: Boolean
 
 val CombatEntityAPI.timeAdjustedVelocity: Vector2f
     get() = (this as? ShipAPI)?.timeAdjustedVelocity ?: velocity
+
+/** True if otherEntity is hostile towards this entity. */
+fun CombatEntityAPI.isHostile(otherEntity: CombatEntityAPI): Boolean {
+    return owner xor otherEntity.owner == 1
+}

@@ -26,7 +26,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     // Subsystems.
     val movement: Movement = Movement(this)
     val assignment: Assignment = Assignment(ship)
-    val backoff: Backoff = Backoff(ship)
+    val backoff: Backoff = Backoff(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
     val vanilla: Vanilla = Vanilla(ship, systemAI != null)
 
@@ -109,7 +109,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 //        Debug.drawLine(ship.location, ship.location + unitVector(movement.expectedFacing) * 600f, Color.YELLOW)
 
 //        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing + attackingGroup.facing) * 600f, Color.BLUE)
-//        Debug.drawLine(ship.location, ship.location + (movement.expectedVelocity).resized(300f), Color.GREEN)
+//        Debug.drawLine(ship.location, ship.location + movement.expectedVelocity.resized(300f), Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
 //        Debug.drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
     }
@@ -335,7 +335,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }
 
         // Assign higher priority to large targets for slow ships.
-        if ((ship.root.isCruiser || ship.root.isCapital) && !ship.shouldAttackFrigates) when {
+        if ((ship.root.isCruiser || ship.root.isCapital) && !ship.isFast) when {
             target.root.isFrigate -> evaluation += -1f
             target.root.isCruiser -> evaluation += 0.5f
             target.root.isCapital -> evaluation += 1f

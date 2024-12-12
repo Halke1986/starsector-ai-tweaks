@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core.utils
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.length
 import com.genir.aitweaks.core.extensions.lengthSquared
@@ -11,9 +12,10 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.Float.Companion.MAX_VALUE
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 class Bounds {
-    private val radiusCache = mutableMapOf<ShipAPI, Float>()
+    private val radiusCache = mutableMapOf<ShipAPI, Pair<Float, Float>>()
 
     /** Calculates the length ratio along vector with given starting position
      * and velocity, at which first collision with target bounds happens.
@@ -92,13 +94,18 @@ class Bounds {
 
     /** Radius of a circle encompassing the ship bounds. */
     fun radius(ship: ShipAPI): Float {
-        radiusCache[ship]?.let { return it }
+        val now = Global.getCombatEngine().getTotalElapsedTime(false)
+
+        radiusCache[ship]?.let { (radius, timestamp) ->
+            if (now - timestamp < 1f) return radius
+        }
 
         val bounds = ship.exactBounds ?: return 0f
         val points = bounds.origSegments.flatMap { listOf(it.p1, it.p2) }
-        val radius = points.maxOfOrNull { it.length } ?: 0f
+        val radius = points.maxOfOrNull { it.lengthSquared }?.let { sqrt(it) } ?: 0f
 
-        radiusCache[ship] = radius
+        radiusCache[ship] = Pair(radius, now)
+
         return radius
     }
 }

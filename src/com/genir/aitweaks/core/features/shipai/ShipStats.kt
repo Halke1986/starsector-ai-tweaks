@@ -43,17 +43,6 @@ class ShipStats(private val ship: ShipAPI) {
         }
     }
 
-    private val WeaponAPI.isInLongReload: Boolean
-        get() = when {
-            isInFiringCycle -> false
-
-            totalReloadTimeRemaining < 2f -> false
-            totalReloadTime < Preset.weaponMaxReloadTime -> false
-            ammo >= maxAmmo / 2 -> false
-
-            else -> true
-        }
-
     /** A ship can have multiple valid weapon groups. */
     private fun findWeaponGroups(): List<WeaponGroup> {
         when {

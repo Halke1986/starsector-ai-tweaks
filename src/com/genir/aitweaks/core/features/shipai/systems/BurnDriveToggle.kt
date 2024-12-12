@@ -9,6 +9,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.features.shipai.AttackCoord
 import com.genir.aitweaks.core.features.shipai.CustomShipAI
+import com.genir.aitweaks.core.features.shipai.Preset.Companion.backoffUpperThreshold
 import com.genir.aitweaks.core.utils.*
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
@@ -124,6 +125,9 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoord.Coordinable 
 
             // Don't burn to destination if it's too close.
             destinationDist < maxBurnDist * minBurnDistFraction -> false
+
+            // Don't burn to attack target when high on flux.
+            ai.assignment.navigateTo == null && ship.fluxLevel > backoffUpperThreshold * 0.75f -> false
 
             !isRouteClear() -> false
 

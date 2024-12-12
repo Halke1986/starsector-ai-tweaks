@@ -1,38 +1,49 @@
 package com.genir.aitweaks.core.features.shipai
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
+import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.IntervalUtil
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.defaultAIInterval
-import com.genir.aitweaks.core.utils.shieldUptime
+import com.genir.aitweaks.core.utils.distanceToOrigin
+import java.awt.Color.RED
+import java.awt.Color.YELLOW
+import kotlin.math.max
+import kotlin.math.sqrt
 
-class Backoff(private val ship: ShipAPI) {
+class Backoff(private val ai: CustomShipAI) {
+    private val ship: ShipAPI = ai.ship
     private val damageTracker: DamageTracker = DamageTracker(ship)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
-    private var idleTime = 0f
+    private var dangerousWeapons: List<WeaponAPI> = listOf()
     var isBackingOff: Boolean = false
+    val isSafe: Boolean
+        get() = dangerousWeapons.isEmpty()
 
     fun advance(dt: Float) {
         damageTracker.advance()
-        updateIdleTime(dt)
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
             updateBackoffStatus()
+            if (isBackingOff) assesIfSafe()
+
             ventIfNeeded()
         }
-    }
 
-    private fun updateIdleTime(dt: Float) {
-        val shieldIsUp = ship.shield?.isOn == true && shieldUptime(ship.shield) > Preset.shieldFlickerThreshold
-        val pdIsFiring = ship.allWeapons.firstOrNull { it.isPD && it.isFiring } != null
+        if (!isBackingOff) dangerousWeapons = listOf()
 
-        idleTime = if (shieldIsUp || pdIsFiring) 0f
-        else idleTime + dt
+        if (isBackingOff) {
+            Debug.drawCollisionRadius(ship, if (isSafe) YELLOW else RED)
+        }
     }
 
     /** Decide if ships needs to back off due to high flux level */
@@ -63,37 +74,108 @@ class Backoff(private val ship: ShipAPI) {
             else -> isBackingOff
         }
 
-        if (isBackingOff) ship.aiFlags.setFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
-        else ship.aiFlags.unsetFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
+        if (isBackingOff) ai.aiFlags.setFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
+        else ai.aiFlags.unsetFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
     }
 
-    /** Force vent when the ship is backing off,
-     * not shooting and with shields down. */
     private fun ventIfNeeded() {
         val shouldVent = when {
-            // Already venting.
-            ship.fluxTracker.isVenting -> false
+            // Can't vent right now.
+            ship.fluxTracker.isOverloadedOrVenting -> false
 
             // No need to vent.
             ship.fluxLevel < Preset.backoffLowerThreshold -> false
 
-            // Don't interrupt the ship system.
-            ship.system?.isOn == true -> false
-
             !isBackingOff -> false
 
-            // Vent regardless of situation when already passively
-            // dissipated below Preset.backoffLowerThreshold
-            ship.fluxLevel < Preset.forceVentThreshold -> true
+            // Trust vanilla missile danger assessment.
+            ai.vanilla.missileDangerDir != null -> false
 
-            idleTime < Preset.shieldDownVentTime -> false
+            isSafe -> true
 
-            // Don't vent when defending from missiles.
-            ship.allWeapons.any { it.autofirePlugin?.targetMissile != null } -> false
+            // Don't get hit by a finisher torpedo.
+            dangerousWeapons.any { it.isMissile && it.damageType == HIGH_EXPLOSIVE } -> false
 
-            else -> true
+            // Attempt to tank a limited amount of damage.
+            ship.hullLevel > 0.2f && damageTracker.damage / ship.hullSpec.hitpoints < 0.01f -> true
+
+            else -> false
         }
 
         if (shouldVent) ship.command(ShipCommand.VENT_FLUX)
+    }
+
+    private fun assesIfSafe() {
+        val enemies: MutableList<ShipAPI> = mutableListOf()
+        val obstacles: MutableList<ShipAPI> = mutableListOf()
+
+        val ventTime = ship.fluxTracker.timeToVent
+
+        Global.getCombatEngine().ships.asSequence().forEach { entity ->
+            when {
+                entity.root == ship.root -> Unit
+                entity.isFighter -> Unit
+
+                entity.isHostile(ship) -> {
+                    val tracker = entity.fluxTracker
+                    val maxEnemyVentTime = if (!tracker.isOverloadedOrVenting) 0f
+                    else max(tracker.timeToVent, tracker.overloadTimeRemaining)
+
+                    // Don't consider overloaded or venting enemies.
+                    if (ventTime - 2f > maxEnemyVentTime) enemies.add(entity)
+
+                    // Consider slow enemies as weapon obstacles.
+                    if (!entity.isFast) obstacles.add(entity)
+                }
+
+                else -> if (!entity.root.isFrigate) obstacles.add(entity)
+            }
+        }
+
+        dangerousWeapons = enemies.flatMap { it.allGroupedWeapons }.filter { weapon ->
+            when {
+                weapon.isDisabled -> false
+                weapon.isPermanentlyDisabled -> false
+
+                // Assume the ship can recognize an empty
+                // missile launcher, same as the player can.
+                weapon.isMissile && weapon.isOutOfAmmo -> false
+
+                !canHitShip(weapon, ventTime, obstacles) -> false
+
+                else -> true
+            }
+        }
+    }
+
+    private fun canHitShip(weapon: WeaponAPI, ventTime: Float, obstacles: List<ShipAPI>): Boolean {
+        val toShip = ship.location - weapon.location
+        val distSqr = toShip.lengthSquared
+        val dist = sqrt(distSqr)
+
+        val time = ventTime * if (weapon.ship.engineController.isFlamedOut) 0f else 0.75f
+
+        if (dist / weapon.projectileSpeed > time) return false
+
+        if (dist - time * weapon.ship.maxSpeed > weapon.range) return false
+
+        val weaponArc = Arc(weapon.arc, weapon.absoluteArcFacing).increasedBy(time * ship.maxTurnRate)
+        if (!weaponArc.contains(toShip.facing)) return false
+
+        return obstacles.none { obstacle ->
+            // Obstacle does not block its own weapons.
+            if (obstacle.root == weapon.ship.root) return@none false
+
+            val p = weapon.location - obstacle.location
+            val v = toShip
+
+            // Obstacle is behind the ship.
+            if (p.lengthSquared > distSqr) return@none false
+
+            val radius = if (obstacle.isAlive) obstacle.shieldRadiusEvenIfNoShield * 1.5f
+            else state.bounds.radius(obstacle)
+
+            distanceToOrigin(p, v) <= radius
+        }
     }
 }

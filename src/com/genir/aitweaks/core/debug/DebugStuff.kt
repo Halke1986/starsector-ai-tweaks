@@ -35,7 +35,33 @@ import java.awt.Color.GREEN
 internal fun debug(dt: Float) {
     //FFTest.advance(dt)
 
-//    val ship = Global.getCombatEngine().playerShip ?: return
+    val ship = Global.getCombatEngine().playerShip ?: return
+
+    val ships = Global.getCombatEngine().ships
+
+//    Debug.print[ship] = ship.hullLevel
+
+//
+//    ships.forEachIndexed { idx, ship ->
+//
+//
+//        val offset = 500f * idx
+//
+//        ship.exactBounds?.origSegments?.forEach { seg ->
+//            Debug.drawLine(Vector2f(seg.p1.x + offset, seg.p1.y), Vector2f(seg.p2.x + offset, seg.p2.y), YELLOW)
+//            Debug.drawCircle(Vector2f(offset, 0f), state.bounds.radius(ship))
+//        }
+//
+//        ship.exactBounds?.let { bounds ->
+//            val points = bounds.origSegments.flatMap { listOf(it.p1, it.p2) }
+//            val radius = points.maxOfOrNull { it.length } ?: 0f
+//
+//            Debug.drawCircle(Vector2f(offset, 0f), radius, ORANGE)
+//        }
+//
+//        Debug.drawBounds(ship)
+//        Debug.drawCircle(ship.location, state.bounds.radius(ship))
+//    }
 
 //    Debug.print[ship] = ship.assignment?.type
 //
@@ -44,7 +70,7 @@ internal fun debug(dt: Float) {
 //    }
 
 
-//    val ships = Global.getCombatEngine().ships.filter { !it.isFighter && it.isAlly }
+//
 //    ships.forEach { ship ->
 //        if (ship.hullSpec.hullId == "ravelin") {
 //             = (ship as Ship).ai::class.java.name
