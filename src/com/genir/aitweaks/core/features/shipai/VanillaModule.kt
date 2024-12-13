@@ -14,7 +14,7 @@ import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 
 /** AI modules carried over from vanilla ship AI. */
-class Vanilla(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
+class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     val basicShipAI = Global.getSettings().createDefaultShipAI(ship, ShipAIConfig()) as BasicShipAI
     val flags: ShipwideAIFlags = basicShipAI.aiFlags
     val missileDangerDir: Vector2f?
@@ -25,7 +25,6 @@ class Vanilla(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     private val flockingAI: Obfuscated.FlockingAI = obfBasicShipAI.flockingAI
     private val threatEvaluator: Obfuscated.ThreatEvaluator = obfBasicShipAI.threatEvaluator
 
-    //    private val ventModule = basicShipAI.getPrivateField("ventModule") as Obfuscated.VentModule
     private val shieldAI: Obfuscated.ShieldAI? = obfBasicShipAI.shieldAI
     private val systemAI = if (overrideVanillaSystem) null else obfBasicShipAI.getPrivateField("systemAI") as? Obfuscated.SystemAI
     private val fighterPullbackModule = basicShipAI.getPrivateField("fighterPullbackModule") as? Obfuscated.FighterPullbackModule
@@ -49,8 +48,6 @@ class Vanilla(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
         flags.advance(dt)
         threatEvaluator.threatEvaluator_advance(dt)
         avoidMissiles.invoke(basicShipAI)
-
-//        ventModule.ventModule_advance(dt, target)
         fighterPullbackModule?.fighterPullbackModule_advance(dt, target)
 
         // Vanilla ship systems read maneuvers planned by ship AI through the flockingAI.

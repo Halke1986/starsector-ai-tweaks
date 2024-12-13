@@ -45,7 +45,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
         val navigateTo: Vector2f? = ai.assignment.navigateTo
 
         // Cleanup backoff settings.
-        val farAway = 1e5f
+        val farAway = 1e8f
         if (!ai.backoff.isBackingOff) backoffDistance = farAway
 
         headingPoint = interpolateHeading.advance(dt) {

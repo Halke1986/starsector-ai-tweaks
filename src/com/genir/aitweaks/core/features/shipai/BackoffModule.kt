@@ -7,18 +7,15 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.distanceToOrigin
-import java.awt.Color.RED
-import java.awt.Color.YELLOW
 import kotlin.math.max
 import kotlin.math.sqrt
 
-class Backoff(private val ai: CustomShipAI) {
+class BackoffModule(private val ai: CustomShipAI) {
     private val ship: ShipAPI = ai.ship
     private val damageTracker: DamageTracker = DamageTracker(ship)
     private val updateInterval: IntervalUtil = defaultAIInterval()
@@ -40,10 +37,6 @@ class Backoff(private val ai: CustomShipAI) {
         }
 
         if (!isBackingOff) dangerousWeapons = listOf()
-
-        if (isBackingOff) {
-            Debug.drawCollisionRadius(ship, if (isSafe) YELLOW else RED)
-        }
     }
 
     /** Decide if ships needs to back off due to high flux level */

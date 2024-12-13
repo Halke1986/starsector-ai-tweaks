@@ -50,6 +50,7 @@ class CustomAIManager {
             ship.isAlly -> false
             ship.owner == 0 && state.config.devMode -> true
 
+            // Enemies in simulator.
             ship.owner == 1 && Global.getCombatEngine().isSimulation -> true
 
             else -> false

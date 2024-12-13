@@ -147,7 +147,7 @@ open class BasicEngineController(val ship: ShipAPI) {
         //
         // Finally, v(s) can be extended to real arguments by using the
         // following approximation:
-        return sqrt((a * a) + (2f * a * s)) - a
+        return sqrt((a * a) + (2 * a * s)) - a
     }
 
     /** Decide if the ship should accelerate in the given

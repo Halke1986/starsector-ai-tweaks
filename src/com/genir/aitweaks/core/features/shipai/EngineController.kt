@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
@@ -26,7 +27,8 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         if (heading == allStop) return heading(dt, ship.location, Vector2f())
 
         // Estimate target linear velocity.
-        val vt = (heading - prevHeading) / dt
+        val globalVelocityLimit = 600f
+        val vt = ((heading - prevHeading) / dt).clampLength(globalVelocityLimit)
         prevHeading = heading.copy
 
         return heading(dt, heading, vt) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }

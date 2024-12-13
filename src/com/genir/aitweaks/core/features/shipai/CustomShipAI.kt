@@ -26,9 +26,9 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     // Subsystems.
     val movement: Movement = Movement(this)
     val assignment: Assignment = Assignment(ship)
-    val backoff: Backoff = Backoff(this)
+    val backoff: BackoffModule = BackoffModule(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
-    val vanilla: Vanilla = Vanilla(ship, systemAI != null)
+    val vanilla: VanillaModule = VanillaModule(ship, systemAI != null)
 
     // Helper classes.
     private val updateInterval: IntervalUtil = defaultAIInterval()
