@@ -9,3 +9,4 @@ aitweaks_aim_bot_keybind,Aim Assist Toggle Keybind,Keycode,26,,,,"Hotkey to togg
 aitweaks_aim_bot_rotate_ship,Aim Assist Controls Ship Facing,Boolean,true,,,,"Allow aim assist to correct ship facing when auto-turning to cursor. Aim assist will rotate the ship to correctly aim the selected weapon group.",,,,,Player Assist
 aitweaks_enable_devmode,Dev Mode,Boolean,false,,,,"AI Tweaks dev mode",,,,,Debug
 aitweaks_highlight_custom_ai,Highlight Custom AI,Boolean,false,,,,"Highlight ships piloted by AI Tweaks custom AI",,,,,Debug
+aitweaks_remove_combat_map_grid,Remove Combat Map Grid,Boolean,false,,,,"Remove the square grid in combat map.",,,,,Debug

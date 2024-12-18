@@ -1,3 +1,5 @@
+- Added an option to remove the square grid on the combat map. This option is available in the LunaLib config under the Debug tab.
+
 Version 1.10.12
 
 - Fixed a bug where AI would not fire no-friendly-fire weapons (e.g., fighter weapons, Paladin) over allies. Reported by ºOnLooker.

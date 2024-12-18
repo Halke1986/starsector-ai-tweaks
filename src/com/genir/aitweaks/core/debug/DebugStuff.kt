@@ -15,6 +15,11 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
 import java.awt.Color.GREEN
 
+//import com.fs.starfarer.combat.K as CombatUI
+//import com.fs.starfarer.combat.B.`super` as Warroom
+//import com.fs.starfarer.combat.B.o0oo as MapDisplay
+//import com.fs.graphics.Object as Texture
+
 /**
  *
  * FRAME UPDATE ORDER
@@ -33,53 +38,21 @@ import java.awt.Color.GREEN
  */
 
 internal fun debug(dt: Float) {
-    //FFTest.advance(dt)
-
-    val ship = Global.getCombatEngine().playerShip ?: return
-
-    val ships = Global.getCombatEngine().ships
-
-//    Debug.print[ship] = ship.hullLevel
-
+//    val ui: CombatUI = Global.getCombatEngine().combatUI as? CombatUI ?: return
+//    val warroom: Warroom = ui.warroom ?: return
+//    val mapDisplay: MapDisplay = warroom.mapDisplay
 //
-//    ships.forEachIndexed { idx, ship ->
+//    val textureFields: List<Field> = MapDisplay::class.java.declaredFields.filter { it.type == Texture::class.java }
+//    Global.getSettings().loadTexture("graphics/hud/line4x4_translucent.png")
 //
+//    val fakeLine: Texture? = com.fs.graphics.G.Ò00000("graphics/hud/line4x4_translucent.png")
 //
-//        val offset = 500f * idx
-//
-//        ship.exactBounds?.origSegments?.forEach { seg ->
-//            Debug.drawLine(Vector2f(seg.p1.x + offset, seg.p1.y), Vector2f(seg.p2.x + offset, seg.p2.y), YELLOW)
-//            Debug.drawCircle(Vector2f(offset, 0f), state.bounds.radius(ship))
-//        }
-//
-//        ship.exactBounds?.let { bounds ->
-//            val points = bounds.origSegments.flatMap { listOf(it.p1, it.p2) }
-//            val radius = points.maxOfOrNull { it.length } ?: 0f
-//
-//            Debug.drawCircle(Vector2f(offset, 0f), radius, ORANGE)
-//        }
-//
-//        Debug.drawBounds(ship)
-//        Debug.drawCircle(ship.location, state.bounds.radius(ship))
+//    textureFields.forEach { field ->
+//        field.setAccessible(true)
+//        field.set(mapDisplay, fakeLine)
 //    }
 
-//    Debug.print[ship] = ship.assignment?.type
-//
-//    ship.allGroupedWeapons.forEach {
-//        Debug.print[it] = it.autofirePlugin?.let { ai -> ai::class.java.name }
-//    }
-
-
-//
-//    ships.forEach { ship ->
-//        if (ship.hullSpec.hullId == "ravelin") {
-//             = (ship as Ship).ai::class.java.name
-
-//            ship.weaponGroupsCopy.forEach { group ->
-//                Debug.print[group] = "${ship.id} ${group.isAutofiring}"
-//            }
-//        }
-//    }
+//    Manager().combatMap()
 }
 
 var expectedFacing = 90f

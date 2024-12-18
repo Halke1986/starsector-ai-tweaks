@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.debug.DebugPlugin
+import com.genir.aitweaks.core.debug.removeGrid
 import com.genir.aitweaks.core.features.FleetCohesion
 import com.genir.aitweaks.core.utils.Bounds
 
@@ -46,14 +47,17 @@ class State : BaseEveryFrameCombatPlugin() {
         // of them, not necessarily the latest.
         state = this
 
-        frameCount++
         debugPlugin?.advance(dt, events)
+
+        if (frameCount == 0) removeGrid()
 
         // Advance plugins only in combat.
         if (Global.getCurrentState() == GameState.COMBAT) {
             VanillaKeymap.advance()
             plugins.forEach { it.advance(dt, events) }
         }
+
+        frameCount++
     }
 
     override fun renderInUICoords(viewport: ViewportAPI?) {
