@@ -29,5 +29,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="LunaLib" level="project" />
   </component>
 </module>

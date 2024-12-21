@@ -25,7 +25,7 @@ internal infix operator fun Vector2f.div(d: Float): Vector2f = Vector2f(x / d, y
 
 class Log
 
-fun log(message: Any) = Global.getLogger(Log().javaClass).info(message)
+fun log(message: Any) = Global.getLogger(Log::class.java).info(message)
 
 fun defaultAIInterval() = IntervalUtil(0.25f, 0.33f)
 

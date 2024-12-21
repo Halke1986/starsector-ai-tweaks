@@ -2,12 +2,14 @@ package com.genir.aitweaks.launcher.loading
 
 import com.fs.starfarer.api.Global
 import com.genir.aitweaks.launcher.loading.Bytecode.classPath
+import java.io.File
 import java.net.URL
 import java.net.URLClassLoader
+import kotlin.io.path.Path
 
-class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
+class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
     private val cache: MutableMap<String, Class<*>> = mutableMapOf()
-    private val symbols = Symbols()
+    private val symbols: Symbols by lazy { Symbols() }
     private val core = "com/genir/aitweaks/core/Obfuscated"
 
     private val obfuscator = Transformer(listOf(
@@ -77,5 +79,29 @@ class CoreLoader(coreURL: URL) : URLClassLoader(arrayOf(coreURL)) {
 
         cache[name] = c!!
         return c
+    }
+
+    companion object {
+        /** Find the URL of latest aitweaks-core-dev-*.jar. This is useful for
+         * replacing classes without restarting the game or reloading a save,
+         * with more flexibility than the usual Java debugger hot reload. */
+        private fun latestCoreURL(): URL {
+            // Find all aitweaks-core dev jars.
+            val jarsDir: File = Path(launcherURL().path.removePrefix("/")).parent.toFile()
+            val devJars: List<String>? = jarsDir.list()?.filter { it.contains("aitweaks-core-dev") }
+
+            // Find the latest dev aitweaks-core jar, if any.
+            val coreJar: String = if (devJars?.isNotEmpty() != true) "aitweaks-core.jar"
+            else devJars.fold(devJars[0]) { latest, it -> if (it > latest) it else latest }
+
+            // Return the URL of AI Tweaks core jar.
+            return URL(launcherURL().toString().replace("aitweaks-launcher.jar", coreJar))
+        }
+
+        /** AI Tweaks launcher jar URL. */
+        private fun launcherURL(): URL {
+            val urLs: Array<URL> = (this::class.java.classLoader as URLClassLoader).urLs
+            return urLs.first { it.path.contains("aitweaks-launcher.jar") }
+        }
     }
 }

@@ -1,46 +1,24 @@
 package com.genir.aitweaks.launcher.loading
 
-import java.io.File
-import java.net.URL
+import lunalib.lunaSettings.LunaSettings
 import java.net.URLClassLoader
-import kotlin.io.path.Path
 
-/** CoreLoaderManager finds AI Tweaks core logic jar
- * and returns ClassLoader that can load the logic. */
-class CoreLoaderManager {
-    private var coreURL: URL? = null
-    private var coreLoader: ClassLoader? = null
+/** CoreLoaderManager contains the class loader for latest AI Tweaks core jar. */
+object CoreLoaderManager {
+    private val bootstrapLoader = URLClassLoader((this::class.java.classLoader as URLClassLoader).urLs)
+    private val coreLoaderClass = bootstrapLoader.loadClass("com.genir.aitweaks.launcher.loading.CoreLoader")
+    private var coreLoader = coreLoaderClass.newInstance() as URLClassLoader
 
-    fun getCoreLoader(): ClassLoader {
-        val currentCoreURL = latestCoreURL()
-
-        if (coreURL?.sameFile(currentCoreURL) != true) {
-            coreLoader = CoreLoader(currentCoreURL)
-            coreURL = currentCoreURL
-        }
-
-        return coreLoader!!
+    /** Return a new instance of AI Tweaks core class. */
+    fun <T> newCoreObject(path: String): T {
+        return coreLoader.loadClass(path).newInstance() as T
     }
 
-    /** AI Tweaks launcher jar URL. */
-    private fun launcherURL(): URL {
-        val urLs: Array<URL> = (this::class.java.classLoader as URLClassLoader).urLs
-        return urLs.first { it.path.contains("aitweaks-launcher.jar") }
-    }
+    /** Update AI Tweaks core loader to point at the latest core jar. */
+    fun updateLoader() {
+        if (LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") != true) return
 
-    /** Find the URL of latest aitweaks-core-dev-*.jar. This is useful for
-     * replacing classes without restarting the game or reloading a save,
-     * with more flexibility than the usual Java debugger hot reload. */
-    private fun latestCoreURL(): URL {
-        // Find all aitweaks-core dev jars.
-        val jarsDir: File = Path(launcherURL().path.removePrefix("/")).parent.toFile()
-        val devJars: List<String>? = jarsDir.list()?.filter { it.contains("aitweaks-core-dev") }
-
-        // Find the latest dev aitweaks-core jar, if any.
-        val coreJar: String = if (devJars?.isNotEmpty() != true) "aitweaks-core.jar"
-        else devJars.fold(devJars[0]) { latest, it -> if (it > latest) it else latest }
-
-        // Return the URL of AI Tweaks core jar.
-        return URL(launcherURL().toString().replace("aitweaks-launcher.jar", coreJar))
+        val newLoader = coreLoaderClass.newInstance() as URLClassLoader
+        if (!coreLoader.urLs.contentEquals(newLoader.urLs)) coreLoader = newLoader
     }
 }

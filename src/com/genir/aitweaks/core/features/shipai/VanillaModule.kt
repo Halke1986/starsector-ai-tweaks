@@ -10,8 +10,6 @@ import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.extensions.getPrivateField
 import com.genir.aitweaks.core.extensions.isZero
 import org.lwjgl.util.vector.Vector2f
-import java.lang.invoke.MethodHandle
-import java.lang.invoke.MethodHandles
 
 /** AI modules carried over from vanilla ship AI. */
 class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
@@ -30,12 +28,9 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     private val fighterPullbackModule = basicShipAI.getPrivateField("fighterPullbackModule") as? Obfuscated.FighterPullbackModule
     private val attackModule: Obfuscated.AttackAIModule = obfBasicShipAI.attackAI
 
-    private val avoidMissiles: MethodHandle
+    private val avoidMissiles = basicShipAI::class.java.getDeclaredMethod("avoidMissiles").also { it.setAccessible(true) }
 
     init {
-        val avoidMissiles = basicShipAI::class.java.getDeclaredMethod("avoidMissiles").also { it.setAccessible(true) }
-        this.avoidMissiles = MethodHandles.lookup().unreflect(avoidMissiles)
-
         // Ensure AI Tweaks is in control of autofire management.
         AutofireManagerOverride.inject(ship, basicShipAI.attackAI)
     }
