@@ -24,10 +24,6 @@ class Renderer : BaseCombatLayeredRenderingPlugin() {
     private var prevCircles: MutableSet<Circle> = mutableSetOf()
     private var prevArcs: MutableSet<Arc> = mutableSetOf()
 
-    override fun advance(dt: Float) {
-        Debug.renderer = this
-    }
-
     override fun render(layer: CombatEngineLayers?, viewport: ViewportAPI?) {
         if (Global.getCombatEngine().isPaused) {
             lines = prevLines

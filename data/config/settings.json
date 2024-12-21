@@ -1,5 +1,5 @@
 {
   "plugins": {
-    "com.genir.aitweaks.launcher.AITweaksEveryFramePlugin": "com.genir.aitweaks.launcher.EveryFrameCombatPlugin"
+    "com.genir.aitweaks.launcher.AITweaksCombatPlugin": "com.genir.aitweaks.launcher.AITweaksCombatPlugin"
   }
 }

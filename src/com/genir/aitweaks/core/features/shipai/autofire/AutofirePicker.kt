@@ -1,7 +1,5 @@
 package com.genir.aitweaks.core.features.shipai.autofire
 
-import com.fs.starfarer.api.PluginPick
-import com.fs.starfarer.api.campaign.CampaignPlugin
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
@@ -18,8 +16,8 @@ class AutofirePicker {
         "riftbeam"
     )
 
-    fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
-        val ai = when {
+    fun pickWeaponAutofireAI(weapon: WeaponAPI): AutofireAIPlugin? {
+        return when {
             weapon.type == WeaponAPI.WeaponType.MISSILE -> null
 
             // Missile weapons pretending to be ballistics.
@@ -31,7 +29,5 @@ class AutofirePicker {
 
             else -> AutofireAI(weapon)
         }
-
-        return PluginPick(ai, CampaignPlugin.PickPriority.MOD_GENERAL)
     }
 }

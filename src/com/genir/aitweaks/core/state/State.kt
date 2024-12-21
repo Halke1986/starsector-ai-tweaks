@@ -13,18 +13,21 @@ import com.genir.aitweaks.core.utils.Bounds
 class State : BaseEveryFrameCombatPlugin() {
     companion object {
         // Global combat state.
-        var state: State = State()
+        val state: State
+            get() = stateValue!!
+
+        private var stateValue: State? = null
     }
 
     init {
         // Register state to be used by plugins init method.
-        state = this
+        stateValue = this
     }
 
     val config: Config = Config()
     val bounds = Bounds()
     var frameCount: Int = 0
-    private val debugPlugin = if (config.devMode) DebugPlugin() else null
+    val debugPlugin: DebugPlugin? = if (config.devMode) DebugPlugin() else null
 
     val fleetCohesion: Array<FleetCohesion> = arrayOf(FleetCohesion(0), FleetCohesion(1))
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
@@ -45,7 +48,7 @@ class State : BaseEveryFrameCombatPlugin() {
         // global variable. This is required because SS initializes multiple
         // instances of EveryFrameCombatPlugin per combat but uses only one
         // of them, not necessarily the latest.
-        state = this
+        stateValue = this
 
         debugPlugin?.advance(dt, events)
 

@@ -12,6 +12,7 @@ import java.util.*
 class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var font: LazyFont? = null
     private var logs: MutableMap<String, Pair<String, LazyFont.DrawableString>> = TreeMap()
+    val renderer = Renderer()
 
     operator fun set(index: Any, value: Any?) {
         val font = this.font ?: return
@@ -30,14 +31,13 @@ class DebugPlugin : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         if (font == null) {
             font = LazyFont.loadFont("graphics/fonts/insignia15LTaa.fnt")
-            Debug.plugin = this
         }
 
         // Initialize debug renderer.
         val id = "aitweaks_debug_plugin"
         val engine = Global.getCombatEngine()
         if (!engine.customData.containsKey(id)) {
-            engine.addLayeredRenderingPlugin(Renderer())
+            engine.addLayeredRenderingPlugin(renderer)
             engine.customData[id] = true
         }
 

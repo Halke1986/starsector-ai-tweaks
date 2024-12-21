@@ -6,6 +6,7 @@ import com.genir.aitweaks.core.extensions.isPD
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.extensions.plus
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
@@ -15,35 +16,32 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
 object Debug {
-    internal var renderer: Renderer? = null
-    internal var plugin: DebugPlugin? = null
-
     object Print {
         operator fun set(index: Any, value: Any?) {
-            plugin?.set(index, value)
+            state.debugPlugin?.set(index, value)
         }
     }
 
-    fun clear() = plugin?.clear()
+    fun clear() = state.debugPlugin?.clear()
 
     val print: Print
         get() = Print
 
     fun drawCircle(pos: Vector2f, r: Float, color: Color = Color.CYAN) {
-        renderer?.circles?.add(Renderer.Circle(pos, r, color))
+        state.debugPlugin?.renderer?.circles?.add(Renderer.Circle(pos, r, color))
     }
 
     fun drawArc(pos: Vector2f, r: Float, a: Arc, color: Color = Color.CYAN) {
-        renderer?.arcs?.add(Renderer.Arc(pos, r, a, color))
+        state.debugPlugin?.renderer?.arcs?.add(Renderer.Arc(pos, r, a, color))
     }
 
     fun drawArcArms(pos: Vector2f, r: Float, a: Arc, color: Color = Color.CYAN) {
-        renderer?.lines?.add(Renderer.Line(pos, pos + unitVector(a.facing - a.half) * r, color))
-        renderer?.lines?.add(Renderer.Line(pos, pos + unitVector(a.facing + a.half) * r, color))
+        state.debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + unitVector(a.facing - a.half) * r, color))
+        state.debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + unitVector(a.facing + a.half) * r, color))
     }
 
     fun drawLine(a: Vector2f, b: Vector2f, color: Color = Color.YELLOW) {
-        renderer?.lines?.add(Renderer.Line(a, b, color))
+        state.debugPlugin?.renderer?.lines?.add(Renderer.Line(a, b, color))
     }
 
     fun drawEngineLines(ship: ShipAPI) {
@@ -61,7 +59,7 @@ object Debug {
     }
 
     fun drawAccelerationLines(ship: ShipAPI) {
-        if (renderer == null) return
+        if (state.debugPlugin?.renderer == null) return
 
         val r = Rotation(ship.facing - 90f)
         val engine = ship.engineController
@@ -77,7 +75,7 @@ object Debug {
     }
 
     fun drawTurnLines(ship: ShipAPI) {
-        if (renderer == null) return
+        if (state.debugPlugin?.renderer == null) return
 
         val r = Rotation(ship.facing - 90f)
         val engine = ship.engineController
@@ -91,13 +89,13 @@ object Debug {
     }
 
     fun drawCollisionRadius(entity: CombatEntityAPI, color: Color = Color.CYAN) {
-        if (renderer == null) return
+        if (state.debugPlugin?.renderer == null) return
 
         drawCircle(entity.location, entity.collisionRadius, color)
     }
 
     fun drawWeaponLines(ship: ShipAPI) {
-        if (renderer == null) return
+        if (state.debugPlugin?.renderer == null) return
 
         val ais = ship.weaponGroupsCopy.flatMap { it.aiPlugins }.filter { it is AutofireAI && it.target != null }
         ais.forEach { drawLine(it.weapon.location, it.target!!, if (it.weapon.isPD) Color.YELLOW else Color.RED) }
@@ -106,7 +104,7 @@ object Debug {
     private data class Edge(val src: Int, val dest: Int, val weight: Float)
 
     fun drawBattleGroup(group: Set<ShipAPI>, color: Color = Color.YELLOW) {
-        if (renderer == null) return
+        if (state.debugPlugin?.renderer == null) return
 
         val ts = group.toTypedArray()
         val es: MutableList<Edge> = mutableListOf()

@@ -15,11 +15,6 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
 import java.awt.Color.GREEN
 
-//import com.fs.starfarer.combat.K as CombatUI
-//import com.fs.starfarer.combat.B.`super` as Warroom
-//import com.fs.starfarer.combat.B.o0oo as MapDisplay
-//import com.fs.graphics.Object as Texture
-
 /**
  *
  * FRAME UPDATE ORDER
@@ -38,21 +33,7 @@ import java.awt.Color.GREEN
  */
 
 internal fun debug(dt: Float) {
-//    val ui: CombatUI = Global.getCombatEngine().combatUI as? CombatUI ?: return
-//    val warroom: Warroom = ui.warroom ?: return
-//    val mapDisplay: MapDisplay = warroom.mapDisplay
-//
-//    val textureFields: List<Field> = MapDisplay::class.java.declaredFields.filter { it.type == Texture::class.java }
-//    Global.getSettings().loadTexture("graphics/hud/line4x4_translucent.png")
-//
-//    val fakeLine: Texture? = com.fs.graphics.G.Ò00000("graphics/hud/line4x4_translucent.png")
-//
-//    textureFields.forEach { field ->
-//        field.setAccessible(true)
-//        field.set(mapDisplay, fakeLine)
-//    }
-
-//    Manager().combatMap()
+    val ship = Global.getCombatEngine().playerShip ?: return
 }
 
 var expectedFacing = 90f
