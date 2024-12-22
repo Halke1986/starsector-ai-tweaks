@@ -16,6 +16,7 @@ class Config {
     val enabledStaggeredFire: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_staggered_fire")!!
     val aimAssistRotateShip: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_aim_bot_rotate_ship")!!
     val removeCombatMapGrid: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_remove_combat_map_grid")!!
+    val enableNeedlerFix: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_needler_fix")!!
 
     val aiPersonality: String? = LunaSettings.getString("aitweaks", "aitweaks_ai_core_personality")
 

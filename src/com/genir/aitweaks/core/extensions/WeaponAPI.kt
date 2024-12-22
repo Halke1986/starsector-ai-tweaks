@@ -12,6 +12,7 @@ import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.features.shipai.Preset
 import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.clampAngle
 import kotlin.math.max
@@ -23,7 +24,7 @@ val WeaponAPI.isAntiShield: Boolean
     get() = damageType == KINETIC || isStrictlyAntiShield
 
 val WeaponAPI.isStrictlyAntiShield: Boolean
-    get() = spec.hasTag("aitweaks_anti_shield")
+    get() = spec.hasTag("aitweaks_anti_shield") && state.config.enableNeedlerFix
 
 val WeaponAPI.isPD: Boolean
     get() = hasAIHint(PD) || hasAIHint(PD_ONLY)

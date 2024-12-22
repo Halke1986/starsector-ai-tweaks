@@ -128,6 +128,8 @@ hulls. All ships are subject to the change, no hull mod is required.
 Which weapons are affected by the improved Needler AI is defined in weapon_data.scv file. For a weapon to be subject to
 the change, it needs to have "aitweaks_anti_shield" tag.
 
+The feature can be disabled via LunaLib settings.
+
 #### Additional changes ####
 
 AI Tweaks autofire introduces a number of smaller changes in comparison to vanilla AI, some of which may not be
