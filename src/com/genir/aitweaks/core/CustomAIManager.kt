@@ -15,13 +15,24 @@ import com.genir.aitweaks.core.state.State.Companion.state
 class CustomAIManager {
     fun getAIForShip(ship: ShipAPI): ShipAIPlugin? {
         return when {
-            !state.config.enableCustomAI -> null
             Global.getCurrentState() != GameState.COMBAT -> null
 
             shouldHaveCustomAI(ship) -> CustomShipAI(ship)
             shouldHaveWrapperAI(ship) -> WrapperShipAI(ship)
 
             else -> null
+        }
+    }
+
+    /** Returns true is custom AI can control the given ship. */
+    fun canHaveCustomAI(ship: ShipAPI): Boolean {
+        return when {
+            ship.hullSpec.isPhase -> false
+            ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
+            ship.isStation -> false
+            !ship.isBig -> false
+
+            else -> true
         }
     }
 
@@ -32,26 +43,25 @@ class CustomAIManager {
         return ship.engineController.shipEngines.isNotEmpty() && ship.isFrigate
     }
 
-    /** Currently, custom AI is enabled only for selected ships. */
     private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
-            // Not supported ships.
-            ship.hullSpec.isPhase -> false
-            ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
-            ship.isStation -> false
-            !ship.isBig -> false
+            !canHaveCustomAI(ship) -> false
             ship.assignment?.type == RETREAT -> false
 
-            // Selected ships.
-            ship.hullSpec.hullId.startsWith("guardian") -> true
-            ship.hullSpec.hullId.startsWith("sr_melvillei") -> true
-            ship.hullSpec.shipSystemId == "lidararray" -> true
-
-            // Hullmod
+            // Custom AI Hullmod takes priority.
             ship.variant.hasHullMod("aitweaks_custom_ship_ai") -> true
 
-            // Enemies in simulator.
-            ship.owner == 1 && Global.getCombatEngine().isSimulation && state.config.devMode -> true
+            // Non-player ships can have custom AI by default, without the hullmod.
+            ship.owner == 1 || ship.isAlly -> when {
+                ship.hullSpec.hullId.startsWith("guardian") -> true
+                ship.hullSpec.hullId.startsWith("sr_melvillei") -> true
+                ship.hullSpec.shipSystemId == "lidararray" -> true
+
+                // Simulator in devmode.
+                Global.getCombatEngine().isSimulation && state.config.devMode -> true
+
+                else -> false
+            }
 
             else -> false
         }
