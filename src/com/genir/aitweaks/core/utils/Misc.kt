@@ -5,10 +5,10 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.features.shipai.autofire.BallisticParams
-import com.genir.aitweaks.core.features.shipai.autofire.Hit
-import com.genir.aitweaks.core.features.shipai.autofire.analyzeAllyHit
-import com.genir.aitweaks.core.features.shipai.autofire.analyzeHit
+import com.genir.aitweaks.core.shipai.autofire.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.Hit
+import com.genir.aitweaks.core.shipai.autofire.analyzeAllyHit
+import com.genir.aitweaks.core.shipai.autofire.analyzeHit
 import org.json.JSONObject
 
 import org.lwjgl.util.vector.Vector2f

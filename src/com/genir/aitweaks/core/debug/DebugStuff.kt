@@ -7,8 +7,8 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.features.shipai.EngineController
-import com.genir.aitweaks.core.features.shipai.autofire.SimulateMissile
+import com.genir.aitweaks.core.shipai.EngineController
+import com.genir.aitweaks.core.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import org.lwjgl.util.vector.Vector2f

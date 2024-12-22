@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.isPD
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.extensions.plus
-import com.genir.aitweaks.core.features.shipai.autofire.AutofireAI
+import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Rotation

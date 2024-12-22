@@ -8,8 +8,7 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.fleet.FleetMemberAPI
-import com.genir.aitweaks.core.features.CustomAIManager
-import com.genir.aitweaks.core.features.shipai.autofire.AutofirePicker
+import com.genir.aitweaks.core.shipai.autofire.AutofirePicker
 
 class AITweaksCore : BaseModPlugin() {
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {

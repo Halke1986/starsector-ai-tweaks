@@ -1,7 +1,7 @@
 package autofire
 
 import com.fs.starfarer.api.combat.MutableStat
-import com.genir.aitweaks.core.features.shipai.autofire.*
+import com.genir.aitweaks.core.shipai.autofire.*
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.extensions.length
 import mocks.*
