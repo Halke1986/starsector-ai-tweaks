@@ -14,6 +14,7 @@ class MakeAITweaksRemovable {
         private val hullmods: List<Hullmod> = listOf(
             Hullmod("fnisherbeamprotocol", "\$aitweaks_finisherbeamprotocol"), // TODO rename "aitweaks_finisherbeamprotocol"
             Hullmod("aitweaks_systemshunt", "\$aitweaks_systemshunt"),
+            Hullmod("aitweaks_custom_ship_ai", "\$aitweaks_custom_ship_ai"),
         )
 
         fun beforeGameSave() {

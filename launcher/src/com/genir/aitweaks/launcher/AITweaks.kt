@@ -8,7 +8,6 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.fleet.FleetMemberAPI
-import com.genir.aitweaks.launcher.features.CryosleeperEncounter
 import com.genir.aitweaks.launcher.loading.CoreLoaderManager.newCoreObject
 
 class AITweaks : BaseModPlugin() {

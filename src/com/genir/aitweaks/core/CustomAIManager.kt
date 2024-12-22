@@ -35,6 +35,7 @@ class CustomAIManager {
     /** Currently, custom AI is enabled only for selected ships. */
     private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
+            // Not supported ships.
             ship.hullSpec.isPhase -> false
             ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
             ship.isStation -> false
@@ -46,12 +47,11 @@ class CustomAIManager {
             ship.hullSpec.hullId.startsWith("sr_melvillei") -> true
             ship.hullSpec.shipSystemId == "lidararray" -> true
 
-            // Player
-            ship.isAlly -> false
-            ship.owner == 0 && state.config.devMode -> true
+            // Hullmod
+            ship.variant.hasHullMod("aitweaks_custom_ship_ai") -> true
 
             // Enemies in simulator.
-            ship.owner == 1 && Global.getCombatEngine().isSimulation -> true
+            ship.owner == 1 && Global.getCombatEngine().isSimulation && state.config.devMode -> true
 
             else -> false
         }
