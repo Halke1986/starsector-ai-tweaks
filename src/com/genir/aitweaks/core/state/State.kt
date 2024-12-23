@@ -8,6 +8,8 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.FleetCohesion
 import com.genir.aitweaks.core.debug.DebugPlugin
 import com.genir.aitweaks.core.debug.removeGrid
+import com.genir.aitweaks.core.playerassist.AimAssistManager
+import com.genir.aitweaks.core.playerassist.AutoOmniShields
 import com.genir.aitweaks.core.utils.Bounds
 
 class State : BaseEveryFrameCombatPlugin() {
@@ -36,8 +38,8 @@ class State : BaseEveryFrameCombatPlugin() {
         fleetCohesion[0],
         fleetCohesion[1],
         accelerationTracker,
-        com.genir.aitweaks.core.AimAssistManager(),
-        com.genir.aitweaks.core.AutoOmniShields(),
+        AimAssistManager(),
+        AutoOmniShields(),
         com.genir.aitweaks.core.AutomatedShipAIManager(),
         com.genir.aitweaks.core.shipai.AttackCoord(),
         com.genir.aitweaks.core.shipai.AutofireManagerOverride(),

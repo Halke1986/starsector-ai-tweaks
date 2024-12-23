@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core
+package com.genir.aitweaks.core.playerassist
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.rules.MemoryAPI
@@ -13,7 +13,6 @@ import com.genir.aitweaks.core.extensions.isUnderManualControl
 import com.genir.aitweaks.core.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.state.VanillaKeymap
-import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction.SHIP_SHIELDS
 import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.makeAIDrone
@@ -98,7 +97,7 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
 
             // Handle input.
             forceShieldOff = prevForceShieldOff
-            if (VanillaKeymap.isKeyDownEvent(SHIP_SHIELDS)) {
+            if (VanillaKeymap.isKeyDownEvent(VanillaKeymap.PlayerAction.SHIP_SHIELDS)) {
                 forceShieldOff = !forceShieldOff
                 if (forceShieldOff == shield.isOn) ship.command(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK)
             }

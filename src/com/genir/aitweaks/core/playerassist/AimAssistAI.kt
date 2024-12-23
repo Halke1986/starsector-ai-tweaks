@@ -1,25 +1,23 @@
-package com.genir.aitweaks.core
+package com.genir.aitweaks.core.playerassist
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponGroupAPI
-import com.fs.starfarer.api.loading.WeaponGroupType.ALTERNATING
-import com.fs.starfarer.api.loading.WeaponGroupType.LINKED
+import com.fs.starfarer.api.loading.WeaponGroupType
 import com.fs.starfarer.campaign.CampaignEngine
+import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.shipai.BasicEngineController
 import com.genir.aitweaks.core.shipai.WeaponGroup
 import com.genir.aitweaks.core.shipai.autofire.*
-import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction.*
-import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDown
+import com.genir.aitweaks.core.state.State
+import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
-import com.genir.aitweaks.core.utils.VanillaShipCommand.*
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
@@ -47,7 +45,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val target: CombatEntityAPI? = selectTarget()
         target?.let { Debug.drawCircle(it.location, it.collisionRadius / 2, Color.YELLOW) }
 
-        if (manager.strafeModeOn && state.config.aimAssistRotateShip) aimShip(dt, ship, target)
+        if (manager.strafeModeOn && State.state.config.aimAssistRotateShip) aimShip(dt, ship, target)
 
         // Override weapon behavior if there is a target.
         // Otherwise, let vanilla control the weapons.
@@ -69,7 +67,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
 
     private fun controlShipHeading(dt: Float, ship: ShipAPI) {
         // Do not attempt to override the ship movement if any of the movement commands is blocked.
-        val commands = arrayOf(STRAFE_LEFT, STRAFE_RIGHT, ACCELERATE, ACCELERATE_BACKWARDS)
+        val commands = arrayOf(VanillaShipCommand.STRAFE_LEFT, VanillaShipCommand.STRAFE_RIGHT, VanillaShipCommand.ACCELERATE, VanillaShipCommand.ACCELERATE_BACKWARDS)
         val blockedCommands = (ship as Obfuscated.Ship).blockedCommands
         if (commands.any { blockedCommands.contains(it.obfuscated) }) return
 
@@ -85,10 +83,10 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val right = Vector2f(0f, -1e4f).rotated(r)
 
         var direction = Vector2f()
-        if (isKeyDown(SHIP_ACCELERATE)) direction += front
-        if (isKeyDown(SHIP_ACCELERATE_BACKWARDS)) direction += back
-        if (isKeyDown(SHIP_TURN_LEFT) || isKeyDown(SHIP_STRAFE_LEFT_NOTURN)) direction += left
-        if (isKeyDown(SHIP_TURN_RIGHT) || isKeyDown(SHIP_STRAFE_RIGHT_NOTURN)) direction += right
+        if (VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_ACCELERATE)) direction += front
+        if (VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_ACCELERATE_BACKWARDS)) direction += back
+        if (VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_TURN_LEFT) || VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_STRAFE_LEFT_NOTURN)) direction += left
+        if (VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_TURN_RIGHT) || VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_STRAFE_RIGHT_NOTURN)) direction += right
 
         if (direction.isNotZero) {
             val heading = ship.location + direction
@@ -98,7 +96,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
 
     private fun controlShipFacing(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
         // Do not attempt to override the ship movement if any of the movement commands is blocked.
-        val commands = arrayOf(TURN_LEFT, TURN_RIGHT)
+        val commands = arrayOf(VanillaShipCommand.TURN_LEFT, VanillaShipCommand.TURN_RIGHT)
         val blockedCommands = (ship as Obfuscated.Ship).blockedCommands
         if (commands.any { blockedCommands.contains(it.obfuscated) }) return
 
@@ -115,8 +113,8 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val weapons: List<WeaponAPI> = when {
             holdCurrent -> listOf(currentAlternatingWeapon!!)
             selectedGroup == null -> listOf()
-            selectedGroup.type == LINKED -> selectedGroup.weaponsCopy.filter { it.shouldAim }
-            selectedGroup.type == ALTERNATING && activeWeapon?.shouldAim == true -> {
+            selectedGroup.type == WeaponGroupType.LINKED -> selectedGroup.weaponsCopy.filter { it.shouldAim }
+            selectedGroup.type == WeaponGroupType.ALTERNATING && activeWeapon?.shouldAim == true -> {
                 currentAlternatingWeapon = activeWeapon
                 listOf(activeWeapon)
             }
@@ -171,13 +169,13 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val group: WeaponGroupAPI = weapon.group ?: return
 
         val shouldFire: Boolean = when {
-            !isKeyDown(SHIP_FIRE) -> false
+            !VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_FIRE) -> false
 
             // Fire active alternating group weapon. Same behavior as vanilla.
-            group.type == ALTERNATING && weapon == group.activeWeapon -> true
+            group.type == WeaponGroupType.ALTERNATING && weapon == group.activeWeapon -> true
 
             // Fire linked weapons if it's possible to hit the target.
-            group.type == LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.currAngle) -> true
+            group.type == WeaponGroupType.LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.currAngle) -> true
 
             else -> false
         }
@@ -197,7 +195,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
                 it.owner == 0 -> false
                 it.isFighter -> false
 
-                else -> state.bounds.isPointWithin(mousePosition(), it)
+                else -> State.state.bounds.isPointWithin(mousePosition(), it)
             }
         }.firstOrNull()?.let { return it }
 
@@ -238,7 +236,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     private fun closestTarget(entities: Sequence<CombatEntityAPI>): CombatEntityAPI? {
         val distances = entities.map { entity ->
             val closestPoint = if (!entity.isShip) entity.location
-            else state.bounds.closestPoint(mousePosition(), entity as ShipAPI)
+            else State.state.bounds.closestPoint(mousePosition(), entity as ShipAPI)
 
             // Apply target switching hysteresis.
             val currentTargetBonus = if (entity == currentTarget) 2 else 1

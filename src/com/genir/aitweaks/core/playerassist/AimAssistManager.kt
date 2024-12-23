@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core
+package com.genir.aitweaks.core.playerassist
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.rules.MemoryAPI
@@ -6,10 +6,8 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.campaign.CampaignEngine
-import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction.SHIP_STRAFE_KEY
-import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDown
-import com.genir.aitweaks.core.state.VanillaKeymap.isKeyDownEvent
+import com.genir.aitweaks.core.state.State
+import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.makeAIDrone
 
 class AimAssistManager : BaseEveryFrameCombatPlugin() {
@@ -40,7 +38,7 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
         // Handle input.
         events?.forEach {
             // Toggle the aim bot and persist the setting to memory.
-            if (!it.isConsumed && it.isKeyDownEvent && it.eventValue == state.config.aimAssistKeybind) {
+            if (!it.isConsumed && it.isKeyDownEvent && it.eventValue == State.state.config.aimAssistKeybind) {
                 memory.set("\$aitweaks_enableAimBot", !enableAimAssist)
             }
         }
@@ -53,9 +51,9 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
      * AI is not advancing when simulation is paused. */
     private fun updateStrafeMode() {
         if (Global.getSettings().isStrafeKeyAToggle) {
-            if (isKeyDownEvent(SHIP_STRAFE_KEY)) strafeModeOn = !strafeModeOn
+            if (VanillaKeymap.isKeyDownEvent(VanillaKeymap.PlayerAction.SHIP_STRAFE_KEY)) strafeModeOn = !strafeModeOn
         } else {
-            strafeModeOn = isKeyDown(SHIP_STRAFE_KEY)
+            strafeModeOn = VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_STRAFE_KEY)
             if (Global.getSettings().isAutoTurnMode) strafeModeOn = !strafeModeOn
         }
     }
