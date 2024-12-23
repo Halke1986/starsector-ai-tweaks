@@ -1,3 +1,4 @@
+- Custom Ship AI can be enabled for ships in player fleet via a hullmod.
 - Added LunaLib setting to enable/disable needler AI attacking enemy ships only when their shields are raised.
 - Added an option to remove the square grid on the combat map. This option is available in the LunaLib config under the Debug tab.
 

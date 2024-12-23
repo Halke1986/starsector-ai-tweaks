@@ -74,6 +74,15 @@ maximum range, it begins to fade. Fading projectiles deal only soft flux damage 
 rapidly diminishes. But they are still effective against hulls, and especially missiles. Accounting for fade increases
 effective range of some PD weapons by up to 50%, and anti armor range by about 10% to 15%.
 
+#### Staggered firing mode ####
+
+Ships will use autofire weapons in staggered firing mode. In this mode, all weapons of the same type fire at a constant
+interval. Currently, this feature is available only for ships with Custom AI.
+
+The feature can be disabled via LunaLib settings.
+
+![staggered_firing_mode](https://vimeo.com/1037950693)
+
 #### Aggressive friendly fire behavior ####
 
 Ships are finally not paralyzed by the slightest possibility of inflicting friendly fire damage. Quite the opposite,
@@ -207,15 +216,19 @@ Aim Assist helps the player by automating target leading. With Aim Assist, you c
 ship and fire without worrying about projectile travel time. The AI automatically offsets manually controlled weapons to
 account for both target and projectile velocity, significantly improving accuracy.
 
-Aim Assist also enhances hardpoint aiming by adjusting the player ship’s rotation in "auto-turn to cursor" mode. This
-works with all non-guided weapons, even those not facing forward. And yes, Aim Assist can make the Venture Mk. II fly
-backwards. You can disable this ship-rotation feature in LunaLib settings.
+Aim Assist also enhances hardpoint aiming by adjusting the player ship’s rotation in "auto-turn to cursor", or STRAFE
+LOCK mode. This works with all non-guided weapons, even those not facing forward. And yes, Aim Assist can make the
+Venture Mk. II fly backwards. You can disable this ship-rotation feature in LunaLib settings.
+
+Manually piloted Nova in STRAFE LOCK mode rotating to aim selected weapons at the enemy ship:
+
+![aim_assist](https://vimeo.com/1041836748)
 
 Aim Assist is toggled using the `[` (left bracket) key by default.
 
-When active, an AIM ASSIST status icon is displayed.:
+When active, an AIM ASSIST status icon is displayed:
 
-![aim assist](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/aim_assist.png)
+![aim assist_ui](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/aim_assist.png)
 
 AI Configuration
 ----------------
