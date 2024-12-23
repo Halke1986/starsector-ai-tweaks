@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
 import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
@@ -252,7 +253,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
         }
 
         val friendlies = allObstacles.filter { it.owner == ship.owner }
-        val hulks = allObstacles.filter { it.owner == 100 && it.mass * 0.75f > ship.mass }
+        val hulks = allObstacles.filter { it.owner == 100 && it.mass * hulkSizeFactor > ship.mass }
 
         val limits: MutableList<EngineController.Limit?> = mutableListOf()
 

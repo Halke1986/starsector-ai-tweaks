@@ -9,10 +9,12 @@ The Protocol is active only for weapons in %s mode and does not affect point def
 System Shunt,aitweaks_systemshunt,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.SystemShunt,,,,"A set of officer instructions and software modifications that prevent the use of the ship's system unless directly ordered by the fleet's first-in-command.
 
 Note: This protocol may be activated if the system's usage is deemed detrimental to the ship's performance in combat.",,,,,,graphics/hullmods/system_shunt.png
-Custom AI,aitweaks_custom_ship_ai,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.CustomShipAI,,,,"A replacement for the vanilla ship AI, written mostly from scratch. While functional, some elements and behaviors are still under development.
+Custom AI,aitweaks_custom_ship_ai,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.CustomShipAI,,,,"A %s replacement for the vanilla ship AI, written mostly from scratch. While functional, some elements and behaviors are still under development.
 
 Plays like a mix between aggressive and reckless personality. Ships avoid being overly brave to the point of suicide and do not suffer from random bouts of cowardice. They may still occasionally overextend during combat.
 
 Custom AI treats orders as high-priority commands, executing them in an RTS-like manner. Some orders, such as Avoid, are not yet implemented.
 
-Tested mostly with steady, artillery-based ship builds, like Eradicators, Conquests, Manticores, etc. May not work the best with Safety Override ships.",,,,,,graphics/hullmods/custom_ship_ai.png
+Tested mostly with steady, artillery-based ship builds, like Eradicators, Conquests, Manticores, etc. May not work the best with Safety Override ships.
+
+You can report any feats of stupidity accomplished by the AI on Discord or the forums.",,,,,,graphics/hullmods/custom_ship_ai.png

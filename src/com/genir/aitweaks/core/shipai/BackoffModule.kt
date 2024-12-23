@@ -14,6 +14,7 @@ import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import kotlin.math.max
 import kotlin.math.sqrt
+import com.genir.aitweaks.core.shipai.Preset as AIPreset
 
 class BackoffModule(private val ai: CustomShipAI) {
     private val ship: ShipAPI = ai.ship
@@ -52,7 +53,7 @@ class BackoffModule(private val ai: CustomShipAI) {
             ship.shield == null && ship.allWeapons.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft } -> true
 
             // High flux.
-            ship.shield != null && fluxLevel > Preset.backoffUpperThreshold -> true
+            ship.shield != null && fluxLevel > AIPreset.backoffUpperThreshold -> true
 
             // Shields down and received damage.
             underFire && ship.shield != null && ship.shield.isOff -> true
@@ -61,7 +62,7 @@ class BackoffModule(private val ai: CustomShipAI) {
             underFire && ship.fluxTracker.isVenting -> true
 
             // Stop backing off.
-            fluxLevel <= Preset.backoffLowerThreshold -> false
+            fluxLevel <= AIPreset.backoffLowerThreshold -> false
 
             // Continue current backoff status.
             else -> isBackingOff
@@ -77,9 +78,13 @@ class BackoffModule(private val ai: CustomShipAI) {
             ship.fluxTracker.isOverloadedOrVenting -> false
 
             // No need to vent.
-            ship.fluxLevel < Preset.backoffLowerThreshold -> false
+            ship.fluxLevel < AIPreset.backoffLowerThreshold -> false
 
-            !isBackingOff -> false
+            // Vent if no danger, even if not backing off.
+            ai.threatVector.isZero && ship.shield?.isOff == true -> true
+
+            // Vent only if ship is backing off or is idle.
+            !isBackingOff && !shipIsIdle() -> false
 
             // Trust vanilla missile danger assessment.
             ai.vanilla.missileDangerDir != null -> false
@@ -96,6 +101,18 @@ class BackoffModule(private val ai: CustomShipAI) {
         }
 
         if (shouldVent) ship.command(ShipCommand.VENT_FLUX)
+    }
+
+    private fun shipIsIdle(): Boolean {
+        return when {
+            ship.system?.isOn == true -> false
+
+            ship.shield?.isOn == true -> false
+
+            ship.allGroupedWeapons.any { it.isInFiringCycle } -> false
+
+            else -> true
+        }
     }
 
     private fun assesIfSafe() {
@@ -141,19 +158,29 @@ class BackoffModule(private val ai: CustomShipAI) {
         }
     }
 
+    @Suppress("ConstPropertyName")
+    companion object Preset {
+        const val ventTimeFactor = 0.75f
+        const val shipSpeedFactor = 0.75f
+    }
+
     private fun canHitShip(weapon: WeaponAPI, ventTime: Float, obstacles: List<ShipAPI>): Boolean {
         val toShip = ship.location - weapon.location
         val distSqr = toShip.lengthSquared
         val dist = sqrt(distSqr)
 
-        val time = ventTime * if (weapon.ship.engineController.isFlamedOut) 0f else 0.75f
+        // Check if projectile will reach the ship during venting.
+        val adjustedVentTime = ventTime * ventTimeFactor - weapon.cooldownRemaining
+        if (dist / weapon.projectileSpeed > adjustedVentTime) return false
 
-        if (dist / weapon.projectileSpeed > time) return false
+        // Check if the ship is out of weapons range.
+        val shipSpeedFactor = if (weapon.ship.engineController.isFlamedOut) 0f else shipSpeedFactor
+        if (dist - shipSpeedFactor * weapon.ship.maxSpeed > weapon.range) return false
 
-        if (dist - time * weapon.ship.maxSpeed > weapon.range) return false
-
-        val weaponArc = Arc(weapon.arc, weapon.absoluteArcFacing).increasedBy(time * ship.maxTurnRate)
-        if (!weaponArc.contains(toShip.facing)) return false
+        // Check if the ship is out of weapons arc.
+        val isGuidedFinisherMissile = weapon.isMissile && !weapon.isUnguidedMissile && weapon.damageType == HIGH_EXPLOSIVE
+        val weaponArc = Arc(weapon.arc, weapon.absoluteArcFacing).increasedBy(shipSpeedFactor * ship.maxTurnRate)
+        if (!isGuidedFinisherMissile && !weaponArc.contains(toShip.facing)) return false
 
         return obstacles.none { obstacle ->
             // Obstacle does not block its own weapons.

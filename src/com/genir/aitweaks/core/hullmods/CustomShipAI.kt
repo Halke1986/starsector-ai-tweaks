@@ -8,4 +8,9 @@ class CustomShipAI : BaseHullMod() {
     override fun showInRefitScreenModPickerFor(ship: ShipAPI): Boolean {
         return CustomAIManager().canHaveCustomAI(ship)
     }
+
+    override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? = when (index) {
+        0 -> "Work In Progress"
+        else -> null
+    }
 }
