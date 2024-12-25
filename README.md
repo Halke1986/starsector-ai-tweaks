@@ -44,7 +44,15 @@ even more customizable weapon behavior, AdvancedGunneryControl has it!
 AI Improvements
 ---------------
 
-### 1. Hardpoint aiming ###
+### 1. Custom ship AI ###
+
+A reworked ship AI, replacing a significant part of vanilla logic with custom implementation. It's still work in
+progress, and will probably remain so for a long time. The custom AI can be activated via a hullmod on selected ship
+types: non-phase, non-carrier destroyers, cruisers and capital ships.
+
+![custom_ship_ai](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/custom_ship_ai.png)
+
+### 2. Hardpoint aiming ###
 
 With AI Tweaks frigates can finally aim hardpoints. Just imagine how strong an LP Brawler is when it can actually hit
 its target!
@@ -54,7 +62,7 @@ arcs.
 
 ![Starsector frigates correctly aiming hardpoint weapons](https://vimeo.com/1030111629)
 
-### 2. Autofire AI ###
+### 3. Autofire AI ###
 
 AI Tweaks provides weapon AI implemented from scratch. It aims at fixing various vanilla AI deficiencies. The most
 noticeable differences from vanilla autofire AI are:
@@ -151,7 +159,7 @@ intentional. In no specific order:
 * shield hits are correctly predicted even for modular ships like stations, improving behavior of weapons that are
   supposed to attack shields only, or avoid shields
 
-### 3. Fleet Cohesion AI ###
+### 4. Fleet Cohesion AI ###
 
 Fleet Cohesion AI fixes one of the more frustrating aspects of vanilla AI: cruisers and capital ships leaving the main
 battle line and chasing lone frigates and destroyers to the edge of the map. With the fixed AI the fleet stays together
@@ -164,7 +172,7 @@ Additional details:
 * Fleet Cohesion AI applies only to player fleet. Enemy fleet keeps the vanilla Admiral AI.
 * Fleet Cohesion AI is disabled during full assault and when at least one AVOID order is issued.
 
-### 4. Fixed Invictus and Lidar Array AI ###
+### 5. Fixed Invictus and Lidar Array AI ###
 
 "Cuz my problem with ai invictus is it just wastes it’s system 9/10 times" - niceman121454 on Discord.
 
@@ -185,7 +193,7 @@ Invictus aiming hardpoint weapons with the entire ship, note the aim is not cent
 
 ![target lead](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/target_lead.png)
 
-### 5. Improved High Energy Focus ship system AI ###
+### 6. Improved High Energy Focus ship system AI ###
 
 This mod changes the way AI controlled ships use their High Energy Focus system. AI will no longer be tempted to
 activate HEF just because there's a fighter or missile in range of PD beams or because an enemy ship can barely be
@@ -272,12 +280,3 @@ System Shunt prevents AI from using the ship system:
 "A set of officer instructions and software modifications that prevent the use of the ship's system unless directly
 ordered by the fleet's first-in-command. Note: This protocol may be activated if the system's usage is deemed
 detrimental to the ship's performance in combat."
-
-WIP
----
-
-### 1. Custom ship AI ###
-
-A reworked ship AI, replacing a significant part of vanilla logic with custom implementation. It's still work in
-progress, and will probably remain so for a long time. Currently, the custom AI is enabled only for the Guardian and
-ships with Lidar Array system. The Guardian also has a better build, for even more challenge.

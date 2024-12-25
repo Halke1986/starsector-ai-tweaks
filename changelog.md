@@ -1,3 +1,5 @@
+Version 1.11.0
+
 - Custom Ship AI can be enabled for ships in player fleet via a hullmod.
 - Added LunaLib setting to enable/disable needler AI attacking enemy ships only when their shields are raised.
 - Added integration with Leading PIP. When AI Tweaks Aim Assist is enabled, the targeting lead indicator centers on the selected target.
