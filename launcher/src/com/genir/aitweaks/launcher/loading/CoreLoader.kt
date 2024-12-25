@@ -19,11 +19,14 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
         Transformer.newTransform("$core\$AutofireManager", symbols.autofireManager.classPath),
         Transformer.newTransform("$core\$AttackAIModule", symbols.attackAIModule.classPath),
         Transformer.newTransform("$core\$BasicShipAI", symbols.basicShipAI.classPath),
+        Transformer.newTransform("$core\$CombatEngine", symbols.combatEngine.classPath),
         Transformer.newTransform("$core\$CombatEntity", symbols.combatEntity.classPath),
+        Transformer.newTransform("$core\$CombatMap", symbols.combatMap.classPath),
         Transformer.newTransform("$core\$FighterPullbackModule", symbols.fighterPullbackModule.classPath),
         Transformer.newTransform("$core\$FlockingAI", symbols.flockingAI.classPath),
         Transformer.newTransform("$core\$Keymap", symbols.keymap.classPath),
         Transformer.newTransform("$core\$Maneuver", symbols.maneuver.classPath),
+        Transformer.newTransform("$core\$MissionDefinitionPluginContainer", symbols.missionDefinitionPluginContainer.classPath),
         Transformer.newTransform("$core\$PlayerAction", symbols.playerAction.classPath),
         Transformer.newTransform("$core\$ShipCommandWrapper", symbols.shipCommandWrapper.classPath),
         Transformer.newTransform("$core\$ShipCommand", symbols.shipCommand.classPath),
@@ -52,6 +55,8 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
         Transformer.newTransform("flockingAI_setDesiredSpeed", symbols.flockingAI_setDesiredSpeed.name),
         Transformer.newTransform("flockingAI_advanceCollisionAnalysisModule", symbols.flockingAI_advanceCollisionAnalysisModule.name),
         Transformer.newTransform("flockingAI_getMissileDangerDir", symbols.flockingAI_getMissileDangerDir.name),
+        Transformer.newTransform("combatMap_getPluginContainers", symbols.combatMap_getPluginContainers.name),
+        Transformer.newTransform("missionDefinitionPluginContainer_getEveryFrameCombatPlugin", symbols.missionDefinitionPluginContainer_getEveryFrameCombatPlugin.name),
     ))
 
     override fun loadClass(name: String): Class<*> {

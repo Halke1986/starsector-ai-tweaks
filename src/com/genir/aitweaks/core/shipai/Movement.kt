@@ -253,7 +253,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
         }
 
         val friendlies = allObstacles.filter { it.owner == ship.owner }
-        val hulks = allObstacles.filter { it.owner == 100 && it.mass * hulkSizeFactor > ship.mass }
+        val hulks = allObstacles.filter { it.owner == 100 && it.mass / ship.mass > hulkSizeFactor }
 
         val limits: MutableList<EngineController.Limit?> = mutableListOf()
 

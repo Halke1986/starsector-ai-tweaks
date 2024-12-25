@@ -1,12 +1,13 @@
 package com.genir.aitweaks.core;
 
+import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.util.EnumSet;
 import java.util.List;
 
 /**
- * Collection of placeholders for obfuscated type names.
+ * Collection of placeholders for obfuscated types.
  */
 public class Obfuscated {
     public enum ShipCommand {}
@@ -131,6 +132,24 @@ public class Obfuscated {
     public static class Keymap {
         public static boolean keymap_isKeyDown(PlayerAction action) {
             return false;
+        }
+    }
+
+    public static class CombatEngine {
+        public CombatMap getCombatMap() {
+            return null;
+        }
+    }
+
+    public static class CombatMap {
+        public List combatMap_getPluginContainers() {
+            return null;
+        }
+    }
+
+    public static class MissionDefinitionPluginContainer {
+        public EveryFrameCombatPlugin missionDefinitionPluginContainer_getEveryFrameCombatPlugin() {
+            return null;
         }
     }
 }

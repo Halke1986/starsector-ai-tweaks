@@ -33,7 +33,7 @@ class Preset {
 
         // Collision avoidance
         const val collisionBuffer = 30f
-        const val hulkSizeFactor = 0.9f
+        const val hulkSizeFactor = 0.95f
 
         // Weapon groups
         const val validWeaponGroupDPSThreshold = 0.9f

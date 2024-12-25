@@ -25,6 +25,9 @@ class SymbolsTest {
         assertEquals("com.fs.starfarer.combat.ai.oOOO", s.ventModule.name)
         assertEquals("com.fs.starfarer.combat.ai.O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", s.threatEvaluator.name)
         assertEquals("com.fs.starfarer.combat.ai.O0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\$o", s.threatResponseManeuver.name)
+        assertEquals("com.fs.starfarer.combat.A.new", s.combatMap.name)
+        assertEquals("com.fs.starfarer.title.Object.for", s.missionDefinition.name)
+        assertEquals("com.fs.starfarer.title.Object.for\$Oo", s.missionDefinitionPluginContainer.name)
 
         assertEquals("o00000", s.autofireManager_advance.name)
         assertEquals("new", s.shipCommandWrapper_getCommand.name)
@@ -42,5 +45,7 @@ class SymbolsTest {
         assertEquals("Õ00000", s.flockingAI_setDesiredSpeed.name)
         assertEquals("String", s.flockingAI_advanceCollisionAnalysisModule.name)
         assertEquals("Õ00000", s.flockingAI_getMissileDangerDir.name)
+        assertEquals("String", s.combatMap_getPluginContainers.name)
+        assertEquals("Ô00000", s.missionDefinitionPluginContainer_getEveryFrameCombatPlugin.name)
     }
 }

@@ -1,9 +1,12 @@
 package com.genir.aitweaks.launcher.loading
 
+import com.fs.starfarer.api.combat.EveryFrameCombatPlugin
 import com.fs.starfarer.campaign.ui.fleet.FleetMemberView
+import com.fs.starfarer.combat.CombatEngine
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
+import com.fs.starfarer.title.TitleScreenState
 import com.genir.aitweaks.launcher.loading.Bytecode.classPath
 import org.lwjgl.util.vector.Vector2f
 import org.objectweb.asm.ClassReader
@@ -21,6 +24,8 @@ class Symbols {
     val basicShipAI: Class<*> = BasicShipAI::class.java
     val attackAIModule: Class<*> = AttackAIModule::class.java
     val fleetMemberView: Class<*> = FleetMemberView::class.java
+    val combatEngine: Class<*> = CombatEngine::class.java
+    val titleScreenState: Class<*> = TitleScreenState::class.java
 
     // Classes and interfaces.
     val flockingAI: Class<*> = basicShipAI.getMethod("getFlockingAI").returnType
@@ -41,6 +46,9 @@ class Symbols {
     val ventModule: Class<*> = basicShipAI.getDeclaredField("ventModule").type
     val threatEvaluator: Class<*> = basicShipAI.getMethod("getThreatEvaluator").returnType
     val threatResponseManeuver: Class<*> = threatEvaluator.methods.first { it.hasParameters(Float::class.java) }.returnType
+    val combatMap: Class<*> = combatEngine.getMethod("getCombatMap").returnType
+    val missionDefinition: Class<*> = titleScreenState.getDeclaredField("nextMission").type
+    val missionDefinitionPluginContainer: Class<*> = missionDefinition.classes.first()
 
     // Methods and fields.
     val autofireManager_advance: Method = autofireManager.methods.first { it.name != "<init>" }
@@ -59,6 +67,8 @@ class Symbols {
     val flockingAI_setDesiredSpeed: Method = flockingAI.methods.first { it.name == flockingAISetterNames(4) && it.hasParameters(Float::class.java) }
     val flockingAI_advanceCollisionAnalysisModule: Method = flockingAI.methods.first { it.name == flockingAISetterNames(3) && it.hasParameters(Float::class.java) }
     val flockingAI_getMissileDangerDir: Method = flockingAI.methods.first { it.name == Bytecode.getMethodsInOrder(flockingAI).first { it.desc == "()Lorg/lwjgl/util/vector/Vector2f;" }.name && it.returnType == Vector2f::class.java && it.hasParameters() }
+    val combatMap_getPluginContainers: Method = combatMap.methods.first { it.hasParameters() && it.returnType == List::class.java }
+    val missionDefinitionPluginContainer_getEveryFrameCombatPlugin: Method = missionDefinitionPluginContainer.methods.first { it.returnType == EveryFrameCombatPlugin::class.java }
 
     private fun Method.genericReturnTypeArgument(idx: Int): Class<*> {
         return (genericReturnType as ParameterizedType).actualTypeArguments[idx] as Class<*>

@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.WeaponGroupType
-import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
@@ -38,7 +37,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
             !ship.isUnderManualControl -> return
 
             // Is aim assist enabled.
-            !CampaignEngine.getInstance().memoryWithoutUpdate.getBoolean("\$aitweaks_enableAimBot") -> return
+            !manager.enableAimAssist -> return
         }
 
         // Estimate player target selection.
