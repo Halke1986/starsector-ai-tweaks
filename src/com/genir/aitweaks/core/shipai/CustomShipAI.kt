@@ -56,9 +56,8 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         debug()
 
         // Cede the control to vanilla AI when the ship is retreating.
-        // This is irreversible, except for player ship.
         if (ship.assignment?.type == RETREAT) {
-            ship.shipAI = vanilla.basicShipAI
+            vanilla.advanceBasicShipAI(dt)
             return
         }
 

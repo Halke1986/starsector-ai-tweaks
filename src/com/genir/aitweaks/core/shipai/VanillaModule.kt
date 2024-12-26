@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
+import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.extensions.getPrivateField
@@ -20,14 +21,13 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
 
     private val obfBasicShipAI = basicShipAI as Obfuscated.BasicShipAI
 
+    // Vanilla AI elements.
     private val flockingAI: Obfuscated.FlockingAI = obfBasicShipAI.flockingAI
     private val threatEvaluator: Obfuscated.ThreatEvaluator = obfBasicShipAI.threatEvaluator
-
     private val shieldAI: Obfuscated.ShieldAI? = obfBasicShipAI.shieldAI
     private val systemAI = if (overrideVanillaSystem) null else obfBasicShipAI.getPrivateField("systemAI") as? Obfuscated.SystemAI
     private val fighterPullbackModule = basicShipAI.getPrivateField("fighterPullbackModule") as? Obfuscated.FighterPullbackModule
     private val attackModule: Obfuscated.AttackAIModule = obfBasicShipAI.attackAI
-
     private val avoidMissiles = basicShipAI::class.java.getDeclaredMethod("avoidMissiles").also { it.setAccessible(true) }
 
     init {
@@ -49,6 +49,7 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
         flockingAI.flockingAI_setDesiredHeading(if (expectedVelocity.isZero) Float.MAX_VALUE else expectedVelocity.facing)
         flockingAI.flockingAI_setDesiredSpeed(expectedVelocity.length())
         flockingAI.flockingAI_setDesiredFacing(expectedFacing)
+
         flockingAI.flockingAI_advanceCollisionAnalysisModule(dt)
 
         val missileDangerDir: Vector2f? = flockingAI.flockingAI_getMissileDangerDir()
@@ -57,5 +58,17 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
         attackModule.attackAIModule_advance(dt, threatEvaluator, missileDangerDir)
         shieldAI?.shieldAI_advance(dt, threatEvaluator, missileDangerDir, collisionDangerDir, target)
         systemAI?.systemAI_advance(dt, missileDangerDir, collisionDangerDir, target)
+    }
+
+    /** Advance the entire BasicShipAI, effectively giving control over the ship to vanilla AI. */
+    fun advanceBasicShipAI(dt: Float) {
+        ship as Ship
+        val thisCustomAI = ship.ai
+
+        // Make the BasicShipAI think it's in control,
+        // otherwise it will throw an exception.
+        ship.ai = basicShipAI
+        basicShipAI.advance(dt)
+        ship.ai = thisCustomAI
     }
 }

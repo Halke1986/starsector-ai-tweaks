@@ -1,3 +1,5 @@
+- Issuing a retreat order to a ship no longer removes its Custom AI, replacing it with vanilla AI.
+
 Version 1.11.0
 
 - Custom Ship AI can be enabled for ships in player fleet via a hullmod.

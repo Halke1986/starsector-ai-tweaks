@@ -2,12 +2,10 @@ package com.genir.aitweaks.core
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.CombatAssignmentType.RETREAT
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
-import com.genir.aitweaks.core.extensions.assignment
 import com.genir.aitweaks.core.extensions.isBig
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.state.State.Companion.state
@@ -46,7 +44,6 @@ class CustomAIManager {
     private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
             !canHaveCustomAI(ship) -> false
-            ship.assignment?.type == RETREAT -> false
 
             // Custom AI Hullmod takes priority.
             ship.variant.hasHullMod("aitweaks_custom_ship_ai") -> true
