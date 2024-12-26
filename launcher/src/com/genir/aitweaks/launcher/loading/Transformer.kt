@@ -7,7 +7,7 @@ import java.util.*
 import kotlin.math.min
 
 class Transformer(transforms: List<Transform>) {
-    private val transforms: List<Transform> = if (transforms.javaClass == STATIC_ARRAY_LIST_TYPE) transforms else ArrayList(transforms)
+    private val transforms: List<Transform> = sortTransforms(if (transforms.javaClass == STATIC_ARRAY_LIST_TYPE) transforms else ArrayList(transforms))
 
     @Throws(IllegalClassFormatException::class)
     fun apply(data: ByteArray): ByteArray {
@@ -94,6 +94,7 @@ class Transformer(transforms: List<Transform>) {
         }
     }
 
+    @Suppress("ConstPropertyName")
     companion object {
         private val STATIC_ARRAY_LIST_TYPE = mutableListOf(true, false).javaClass as Class<out MutableList<*>?>
 
@@ -133,6 +134,13 @@ class Transformer(transforms: List<Transform>) {
                 i++
             }
             return -1
+        }
+
+        /** Sorts the transforms from the longest to shortest 'from' string.
+         * This prevents transformation shadowing, e.g., where "package/ShipCommand"
+         * is matched by the shorter "package/Ship" transform. */
+        private fun sortTransforms(transforms: List<Transform>): List<Transform> {
+            return transforms.sortedWith(compareBy { -it.from.length })
         }
 
         private const val CONSTANT_Utf8: Byte = 1
