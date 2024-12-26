@@ -16,8 +16,10 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     private var prevHeading: Vector2f = Vector2f()
 
     /** Values used to decelerate the ship to standstill. */
-    val allStop: Vector2f = Vector2f(Float.MAX_VALUE, Float.MAX_VALUE)
-    val rotationStop: Float = Float.MAX_VALUE
+    companion object {
+        val allStop: Vector2f = Vector2f(Float.MAX_VALUE, Float.MAX_VALUE)
+        val rotationStop: Float = Float.MAX_VALUE
+    }
 
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */

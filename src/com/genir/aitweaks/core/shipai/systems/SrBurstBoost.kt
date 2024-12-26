@@ -22,7 +22,6 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
     private var useSystem: Boolean = false
     private var ventAfterBurst: Boolean = false
 
-    @Suppress("ConstPropertyName")
     companion object Preset {
         const val burstTriggerAngle = 1f
         const val maxOpportunityBurstAngle = 7f

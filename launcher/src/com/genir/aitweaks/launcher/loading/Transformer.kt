@@ -94,7 +94,6 @@ class Transformer(transforms: List<Transform>) {
         }
     }
 
-    @Suppress("ConstPropertyName")
     companion object {
         private val STATIC_ARRAY_LIST_TYPE = mutableListOf(true, false).javaClass as Class<out MutableList<*>?>
 

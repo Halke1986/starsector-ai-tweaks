@@ -33,7 +33,6 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoord.Coordinable 
     private var maxSpeed: Float = Float.MAX_VALUE
     private var maxBurnDist: Float = 0f
 
-    @Suppress("ConstPropertyName")
     companion object Preset {
         const val approachToMinRangeFraction = 0.75f
         const val maxAngleToTarget = 45f

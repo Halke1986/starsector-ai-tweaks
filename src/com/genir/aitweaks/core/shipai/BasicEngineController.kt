@@ -67,7 +67,7 @@ open class BasicEngineController(val ship: ShipAPI) {
         // target in case the low velocity is the result of a
         // collision avoidance speed limit.
         if (vec.length < af / 2f) {
-            if (ship.velocity.isNotZero) ship.command(DECELERATE)
+            if (ship.velocity.isNonZero) ship.command(DECELERATE)
             return Vector2f()
         }
 

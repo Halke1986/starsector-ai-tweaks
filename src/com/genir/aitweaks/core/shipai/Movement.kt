@@ -71,7 +71,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
                     when {
                         ai.backoff.isSafe && maneuverTarget != null -> maneuverTarget.location - ai.threatVector.resized(backoffDistance)
 
-                        ai.backoff.isSafe -> engineController.allStop
+                        ai.backoff.isSafe -> EngineController.allStop
 
                         ai.threatVector.isZero -> ship.location + ship.velocity.resized(farAway)
 
@@ -100,7 +100,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
                 }
 
                 // Nothing to do, stop the ship.
-                else -> engineController.allStop
+                else -> EngineController.allStop
 
             }.copy // Copy to avoid relying on changing value.
         }
@@ -142,12 +142,12 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
                 }
 
                 // Face threat vector when no target.
-                ai.threatVector.isNotZero -> {
+                ai.threatVector.isNonZero -> {
                     (-ai.threatVector).facing
                 }
 
                 // Nothing to do. Stop rotation.
-                else -> engineController.rotationStop
+                else -> EngineController.rotationStop
             }
 
             Vector2f(newFacing, 0f)

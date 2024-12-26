@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global
 import kotlin.math.max
 
 class Preset {
-    @Suppress("ConstPropertyName")
     companion object {
         val threatSearchRange: Float
             get() = mapSize / 8f

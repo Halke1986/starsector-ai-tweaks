@@ -22,7 +22,6 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     private var lidarWeapons: List<WeaponAPI> = listOf()
     private var zeroFluxBoostMode: Boolean = false
 
-    @Suppress("ConstPropertyName")
     companion object Preset {
         const val weaponRangeFraction = 0.92f
         const val ventThreshold = 0.2f

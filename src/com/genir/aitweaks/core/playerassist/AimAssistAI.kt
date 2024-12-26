@@ -87,7 +87,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         if (VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_TURN_LEFT) || VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_STRAFE_LEFT_NOTURN)) direction += left
         if (VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_TURN_RIGHT) || VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_STRAFE_RIGHT_NOTURN)) direction += right
 
-        if (direction.isNotZero) {
+        if (direction.isNonZero) {
             val heading = ship.location + direction
             engineController!!.heading(dt, heading, Vector2f())
         }

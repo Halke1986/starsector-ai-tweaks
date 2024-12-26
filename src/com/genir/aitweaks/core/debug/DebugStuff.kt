@@ -60,7 +60,7 @@ class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
         val toMouse = mousePosition() - ship.location
 
         val facing = if (toMouse.length > ship.collisionRadius / 2f) toMouse.facing
-        else controller.rotationStop
+        else EngineController.rotationStop
 
         controller.facing(dt, facing)
         controller.heading(dt, mousePosition())
