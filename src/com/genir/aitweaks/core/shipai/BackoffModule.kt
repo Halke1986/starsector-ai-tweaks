@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
@@ -12,6 +13,8 @@ import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.RED
+import java.awt.Color.YELLOW
 import kotlin.math.max
 import kotlin.math.sqrt
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
@@ -21,13 +24,16 @@ class BackoffModule(private val ai: CustomShipAI) {
     private val damageTracker: DamageTracker = DamageTracker(ship)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
-    private var dangerousWeapons: List<WeaponAPI> = listOf()
-    private var backoffDistance: Float = 0f
-    private var isSafe: Boolean = false
     var isBackingOff: Boolean = false
+    private var isSafe: Boolean = false
+    private var backoffDistance: Float = farAway
+
+    // Debug
+    private var shouldVent: Boolean = false
+    private var weapons: List<WeaponAPI> = listOf()
 
     private companion object Preset {
-        const val ventTimeFactor = 1f
+        const val ventTimeFactor = 0.75f
         const val shipSpeedFactor = 0.75f
         const val opportunisticVentThreshold = 0.5f
 
@@ -39,10 +45,24 @@ class BackoffModule(private val ai: CustomShipAI) {
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
-            assesIfSafe()
             updateBackoffStatus()
+            shouldVent = shouldVent()
 
-            ventIfNeeded()
+            if (!isBackingOff) backoffDistance = farAway
+
+            // isSafe status is required for backoff
+            // maneuver and for deciding if to vent.
+            if (isBackingOff || shouldVent) {
+                isSafe = isSafe()
+                if (isSafe) ship.command(ShipCommand.VENT_FLUX)
+            }
+        }
+
+        if ((shouldVent || isBackingOff) && !isSafe) {
+            Debug.drawCircle(ship.location, ship.collisionRadius / 2, YELLOW)
+            weapons.forEach {
+                Debug.drawLine(ship.location, it.location, RED)
+            }
         }
     }
 
@@ -53,7 +73,7 @@ class BackoffModule(private val ai: CustomShipAI) {
             !isSafe -> backoffDistance = farAway
 
             backoffDistance == farAway && maneuverTarget != null -> {
-                (maneuverTarget.location - ship.location).length * 1.1f
+                backoffDistance = (maneuverTarget.location - ship.location).length * 1.1f
             }
         }
 
@@ -107,8 +127,8 @@ class BackoffModule(private val ai: CustomShipAI) {
         else ai.aiFlags.unsetFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
     }
 
-    private fun ventIfNeeded() {
-        val shouldVent = when {
+    private fun shouldVent(): Boolean {
+        return when {
             // Can't vent right now.
             ship.fluxTracker.isOverloadedOrVenting -> false
 
@@ -129,14 +149,18 @@ class BackoffModule(private val ai: CustomShipAI) {
 
             else -> false
         }
+    }
 
-        if (!shouldVent) return
+    private fun isSafe(): Boolean {
+        // Trust vanilla missile danger assessment.
+        if (ai.vanilla.missileDangerDir != null) {
+            return false
+        }
 
-        val isSafeToVent = when {
-            // Trust vanilla missile danger assessment.
-            ai.vanilla.missileDangerDir != null -> false
-
-            isSafe -> true
+        val dangerousWeapons = findDangerousWeapons()
+        weapons = dangerousWeapons
+        return when {
+            dangerousWeapons.isEmpty() -> true
 
             // Don't get hit by a finisher missile.
             dangerousWeapons.any { it.isFinisherMissile } -> false
@@ -146,11 +170,9 @@ class BackoffModule(private val ai: CustomShipAI) {
 
             else -> false
         }
-
-        if (isSafeToVent) ship.command(ShipCommand.VENT_FLUX)
     }
 
-    private fun assesIfSafe() {
+    private fun findDangerousWeapons(): List<WeaponAPI> {
         val enemies: MutableList<ShipAPI> = mutableListOf()
         val obstacles: MutableList<ShipAPI> = mutableListOf()
 
@@ -177,7 +199,7 @@ class BackoffModule(private val ai: CustomShipAI) {
             }
         }
 
-        dangerousWeapons = enemies.flatMap { it.allGroupedWeapons }.filter { weapon ->
+        return enemies.flatMap { it.allGroupedWeapons }.filter { weapon ->
             when {
                 weapon.isDisabled -> false
                 weapon.isPermanentlyDisabled -> false
@@ -191,8 +213,6 @@ class BackoffModule(private val ai: CustomShipAI) {
                 else -> true
             }
         }
-
-        isSafe = dangerousWeapons.isEmpty()
     }
 
     private fun canHitShip(weapon: WeaponAPI, ventTime: Float, obstacles: List<ShipAPI>): Boolean {
