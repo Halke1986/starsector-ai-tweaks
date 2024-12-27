@@ -197,6 +197,9 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     private fun updateThreatVector() {
         val maxThreatDistSqr = stats.threatSearchRange * stats.threatSearchRange
         threatVector = threats.fold(Vector2f()) { sum, threat ->
+            // Count modular ships just once.
+            if (threat.isModule) return@fold sum
+
             val dp = max(1f, threat.deploymentPoints)
             val toThreat = threat.location - ship.location
 

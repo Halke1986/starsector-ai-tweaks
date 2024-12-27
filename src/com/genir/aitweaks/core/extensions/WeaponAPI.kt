@@ -101,12 +101,14 @@ val WeaponAPI.isBurstWeapon: Boolean
         else -> false
     }
 
-/** Warmup is the first phase of weapon firing sequence, preceding the first shot. */
+/** Warmup is the first phase of weapon firing sequence, preceding the first shot.
+ * WARMUP */
 val WeaponAPI.isInWarmup: Boolean
     get() = chargeLevel > 0f && chargeLevel < 1f && cooldownRemaining == 0f
 
 /** Weapon is assumed to be in a firing sequence if it will
- * emit projectile or beam even after trigger is let go. */
+ * emit projectile or beam even after trigger is let go.
+ * WARMUP + BURST */
 val WeaponAPI.isInFiringSequence: Boolean
     get() = when {
         isBeam && !isBurstBeam -> false
@@ -116,9 +118,13 @@ val WeaponAPI.isInFiringSequence: Boolean
     }
 
 /** Similar to WeaponAPI.isFiring, except returns true for the entire firing cycle.
- * WeaponAPI.isFiring returns false between individual burst attacks. */
+ * WeaponAPI.isFiring returns false between individual burst attacks.
+ * WARMUP + BURST + COOLDOWN */
 val WeaponAPI.isInFiringCycle: Boolean
     get() = chargeLevel != 0f || cooldownRemaining != 0f
+
+val WeaponAPI.isIdle: Boolean
+    get() = !isInFiringCycle
 
 val WeaponAPI.group: WeaponGroupAPI?
     get() = this.ship.getWeaponGroupFor(this)

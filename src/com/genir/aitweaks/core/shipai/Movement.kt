@@ -22,7 +22,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
     var headingPoint: Vector2f = Vector2f()
     var expectedVelocity: Vector2f = Vector2f()
     var expectedFacing: Float = ship.facing
-    var backoffDistance: Float = 0f
 
     // Used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
@@ -45,10 +44,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
         val systemOverride: Vector2f? = ai.systemAI?.overrideHeading()
         val navigateTo: Vector2f? = ai.assignment.navigateTo
 
-        // Cleanup backoff settings.
-        val farAway = 1e8f
-        if (!ai.backoff.isBackingOff) backoffDistance = farAway
-
         headingPoint = interpolateHeading.advance(dt) {
             when {
                 // Let movement system determine ship heading.
@@ -61,23 +56,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
                     navigateTo
                 }
 
-                // Move opposite to threat direction when backing off.
-                // If there's no threat, the ship will continue to coast.
-                ai.backoff.isBackingOff -> {
-                    if (maneuverTarget != null && backoffDistance == farAway && ai.backoff.isSafe) {
-                        backoffDistance = (maneuverTarget.location - ship.location).length * 1.1f
-                    }
-
-                    when {
-                        ai.backoff.isSafe && maneuverTarget != null -> maneuverTarget.location - ai.threatVector.resized(backoffDistance)
-
-                        ai.backoff.isSafe -> EngineController.allStop
-
-                        ai.threatVector.isZero -> ship.location + ship.velocity.resized(farAway)
-
-                        else -> ship.location - ai.threatVector.resized(farAway)
-                    }
-                }
+                // Hand over control to backoff module when the ship is backing off.
+                ai.backoff.isBackingOff -> ai.backoff.setHeading(maneuverTarget)
 
                 // Orbit target at effective weapon range.
                 // Rotate away from threat if there are multiple enemy ships around.
