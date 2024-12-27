@@ -127,4 +127,4 @@ fun ShipAPI.command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
 
 // TODO refine the speed threshold, maybe add maneuverability threshold.
 val ShipAPI.isFast: Boolean
-    get() = root.isFrigate || root.isDestroyer || maxSpeed * timeMult > 150f
+    get() = isAlive && (root.isFrigate || root.isDestroyer || maxSpeed * timeMult > 150f)

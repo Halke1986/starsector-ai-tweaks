@@ -274,13 +274,14 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
                 // Same ship.
                 obstacle.root == ship.root -> false
 
+                obstacle.isFighter -> false
+
                 // Don't consider enemy ships as obstacles. Try to shoot
                 // through them, as long as they're possible to damage.
                 !obstacle.isHullDamageable -> true
-                obstacle.owner xor ship.owner == 1 -> false
+                obstacle.isHostile(ship) -> false
 
-                obstacle.isFighter -> false
-                obstacle.root.isFrigate -> false
+                obstacle.isFast -> false
 
                 else -> true
             }

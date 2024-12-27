@@ -42,6 +42,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
 
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?) {
         val systemOverride: Vector2f? = ai.systemAI?.overrideHeading()
+        val backoffOverride: Vector2f? = ai.backoff.overrideHeading(maneuverTarget)
         val navigateTo: Vector2f? = ai.assignment.navigateTo
 
         headingPoint = interpolateHeading.advance(dt) {
@@ -57,7 +58,9 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
                 }
 
                 // Hand over control to backoff module when the ship is backing off.
-                ai.backoff.isBackingOff -> ai.backoff.setHeading(maneuverTarget)
+                backoffOverride != null -> {
+                    backoffOverride
+                }
 
                 // Orbit target at effective weapon range.
                 // Rotate away from threat if there are multiple enemy ships around.

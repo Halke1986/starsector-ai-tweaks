@@ -2,10 +2,10 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
@@ -13,8 +13,6 @@ import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.RED
-import java.awt.Color.YELLOW
 import kotlin.math.max
 import kotlin.math.sqrt
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
@@ -27,10 +25,6 @@ class BackoffModule(private val ai: CustomShipAI) {
     var isBackingOff: Boolean = false
     private var isSafe: Boolean = false
     private var backoffDistance: Float = farAway
-
-    // Debug
-    private var shouldVent: Boolean = false
-    private var weapons: List<WeaponAPI> = listOf()
 
     private companion object Preset {
         const val ventTimeFactor = 0.75f
@@ -46,7 +40,7 @@ class BackoffModule(private val ai: CustomShipAI) {
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
             updateBackoffStatus()
-            shouldVent = shouldVent()
+            val shouldVent = shouldVent()
 
             if (!isBackingOff) backoffDistance = farAway
 
@@ -57,17 +51,12 @@ class BackoffModule(private val ai: CustomShipAI) {
                 if (isSafe) ship.command(ShipCommand.VENT_FLUX)
             }
         }
-
-        if ((shouldVent || isBackingOff) && !isSafe) {
-            Debug.drawCircle(ship.location, ship.collisionRadius / 2, YELLOW)
-            weapons.forEach {
-                Debug.drawLine(ship.location, it.location, RED)
-            }
-        }
     }
 
     /** Control the ship heading when backing off. */
-    fun setHeading(maneuverTarget: ShipAPI?): Vector2f {
+    fun overrideHeading(maneuverTarget: ShipAPI?): Vector2f? {
+        if (!isBackingOff) return null
+
         // Update safe backoff distance.
         when {
             !isSafe -> backoffDistance = farAway
@@ -80,11 +69,12 @@ class BackoffModule(private val ai: CustomShipAI) {
         // Calculate backoff heading.
         return when {
             ai.backoff.isSafe -> when {
+                ship.fluxTracker.isVenting && ship.fluxTracker.timeToVent < 3f -> null
+
                 // Maintain const distance from maneuver target.
                 maneuverTarget != null -> maneuverTarget.location - ai.threatVector.resized(backoffDistance)
 
-                // Stop when there's no maneuver target present.
-                else -> EngineController.allStop
+                else -> null
             }
 
             // Move opposite to threat vector.
@@ -151,14 +141,16 @@ class BackoffModule(private val ai: CustomShipAI) {
         }
     }
 
+    /** Decide if it's safe to vent. */
     private fun isSafe(): Boolean {
         // Trust vanilla missile danger assessment.
         if (ai.vanilla.missileDangerDir != null) {
             return false
         }
 
+
         val dangerousWeapons = findDangerousWeapons()
-        weapons = dangerousWeapons
+        val ventTime = ship.fluxTracker.timeToVent
         return when {
             dangerousWeapons.isEmpty() -> true
 
@@ -166,7 +158,8 @@ class BackoffModule(private val ai: CustomShipAI) {
             dangerousWeapons.any { it.isFinisherMissile } -> false
 
             // Attempt to tank a limited amount of damage.
-            ship.hullLevel > 0.2f && damageTracker.damage / ship.hullSpec.hitpoints < 0.01f -> true
+            ship.hullLevel > 0.3f && damageTracker.damage / ship.hitpoints < 0.05f -> true
+            ship.hullLevel > 0.3f && dangerousWeapons.sumOf { potentialDamage(it, ventTime) } / ship.hitpoints < 0.05f -> true
 
             else -> false
         }
@@ -177,7 +170,6 @@ class BackoffModule(private val ai: CustomShipAI) {
         val obstacles: MutableList<ShipAPI> = mutableListOf()
 
         val ventTime = ship.fluxTracker.timeToVent
-
         Global.getCombatEngine().ships.asSequence().forEach { entity ->
             when {
                 entity.root == ship.root -> Unit
@@ -195,7 +187,7 @@ class BackoffModule(private val ai: CustomShipAI) {
                     if (!entity.isFast) obstacles.add(entity)
                 }
 
-                else -> if (!entity.root.isFrigate) obstacles.add(entity)
+                else -> if (!entity.isFast) obstacles.add(entity)
             }
         }
 
@@ -208,14 +200,14 @@ class BackoffModule(private val ai: CustomShipAI) {
                 // missile launcher, same as the player can.
                 weapon.isMissile && weapon.isOutOfAmmo -> false
 
-                !canHitShip(weapon, ventTime, obstacles) -> false
+                !canWeaponHitShip(weapon, ventTime, obstacles) -> false
 
                 else -> true
             }
         }
     }
 
-    private fun canHitShip(weapon: WeaponAPI, ventTime: Float, obstacles: List<ShipAPI>): Boolean {
+    private fun canWeaponHitShip(weapon: WeaponAPI, ventTime: Float, obstacles: List<ShipAPI>): Boolean {
         val toShip = ship.location - weapon.location
         val distSqr = toShip.lengthSquared
         val dist = sqrt(distSqr) - ship.shieldRadiusEvenIfNoShield / 2
@@ -233,7 +225,7 @@ class BackoffModule(private val ai: CustomShipAI) {
             return false
         }
 
-        // Check if projectile will reach the ship during venting. Take special care of finisher missiles.
+        // Check if projectile will reach the ship during venting.
         val adjustedVentTime = ventTime * ventTimeFactor - weapon.cooldownRemaining
         if (dist / weapon.maxProjectileSpeed > adjustedVentTime) {
             return false
@@ -251,7 +243,7 @@ class BackoffModule(private val ai: CustomShipAI) {
             val p = weapon.location - obstacle.location
             val v = toShip
 
-            // Obstacle is behind the ship.
+            // Obstacle is farther than the ship.
             if (p.lengthSquared > distSqr) return@none false
 
             val radius = if (obstacle.isAlive) obstacle.shieldRadiusEvenIfNoShield * 1.5f
@@ -259,6 +251,23 @@ class BackoffModule(private val ai: CustomShipAI) {
 
             distanceToOrigin(p, v) <= radius
         }
+    }
+
+    private fun potentialDamage(weapon: WeaponAPI, ventTime: Float): Float {
+        val adjustedVentTime = ventTime * ventTimeFactor - weapon.cooldownRemaining
+        val rawDamage = max(weapon.derivedStats.dps * adjustedVentTime, weapon.derivedStats.burstDamage)
+
+        val damageMultiplier = when {
+            weapon.isFinisherMissile -> 4f
+
+            weapon.damageType == HIGH_EXPLOSIVE -> 2f
+
+            weapon.damageType == FRAGMENTATION -> 0.5f
+
+            else -> 1f
+        }
+
+        return rawDamage * damageMultiplier
     }
 
     private val WeaponAPI.isFinisherMissile: Boolean
