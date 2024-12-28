@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
@@ -13,6 +14,8 @@ import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.RED
+import java.awt.Color.YELLOW
 import kotlin.math.max
 import kotlin.math.sqrt
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
@@ -23,6 +26,7 @@ class BackoffModule(private val ai: CustomShipAI) {
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     var isBackingOff: Boolean = false
+    private var shouldVent: Boolean = false
     private var isSafe: Boolean = false
     private var backoffDistance: Float = farAway
 
@@ -35,12 +39,13 @@ class BackoffModule(private val ai: CustomShipAI) {
     }
 
     fun advance(dt: Float) {
+        // debug()
         damageTracker.advance()
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
             updateBackoffStatus()
-            val shouldVent = shouldVent()
+            shouldVent = shouldVent()
 
             if (!isBackingOff) backoffDistance = farAway
 
@@ -49,6 +54,16 @@ class BackoffModule(private val ai: CustomShipAI) {
             if (isBackingOff || shouldVent) {
                 isSafe = isSafe()
                 if (isSafe) ship.command(ShipCommand.VENT_FLUX)
+            }
+        }
+    }
+
+    private fun debug() {
+        if (shouldVent && !ship.fluxTracker.isVenting) {
+            Debug.drawCircle(ship.location, ship.collisionRadius / 2, YELLOW)
+
+            findDangerousWeapons().forEach {
+                Debug.drawLine(ship.location, it.location, RED)
             }
         }
     }
@@ -151,15 +166,20 @@ class BackoffModule(private val ai: CustomShipAI) {
 
         val dangerousWeapons = findDangerousWeapons()
         val ventTime = ship.fluxTracker.timeToVent
+        val effectiveHP: Float = ship.hitpoints * ship.hullLevel.let { it * it * it * it }
+
         return when {
             dangerousWeapons.isEmpty() -> true
 
             // Don't get hit by a finisher missile.
             dangerousWeapons.any { it.isFinisherMissile } -> false
 
-            // Attempt to tank a limited amount of damage.
-            ship.hullLevel > 0.3f && damageTracker.damage / ship.hitpoints < 0.05f -> true
-            ship.hullLevel > 0.3f && dangerousWeapons.sumOf { potentialDamage(it, ventTime) } / ship.hitpoints < 0.05f -> true
+            // Received negligible damage.
+            damageTracker.damage / effectiveHP < 0.03f -> true
+
+            // Attempt to tank a limited amount of damage. 0.1f may seem like a large fraction,
+            // but potential damage calculation is the absolute worst case scenario.
+            dangerousWeapons.sumOf { potentialDamage(it, ventTime) } / effectiveHP < 0.1f -> true
 
             else -> false
         }
