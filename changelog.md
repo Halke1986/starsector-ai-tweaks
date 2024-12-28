@@ -1,3 +1,5 @@
+Version 1.11.1
+ 
 - Custom AI: Many improvements to vent AI. Now it doesn't like to vent in front of Hammer Barrage.
 - Custom AI: Issuing a retreat order to a ship no longer removes its Custom AI, replacing it with vanilla AI.
 
