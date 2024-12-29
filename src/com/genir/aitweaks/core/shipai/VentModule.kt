@@ -20,7 +20,7 @@ import kotlin.math.max
 import kotlin.math.sqrt
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
 
-class BackoffModule(private val ai: CustomShipAI) {
+class VentModule(private val ai: CustomShipAI) {
     private val ship: ShipAPI = ai.ship
     private val damageTracker: DamageTracker = DamageTracker(ship)
     private val updateInterval: IntervalUtil = defaultAIInterval()
