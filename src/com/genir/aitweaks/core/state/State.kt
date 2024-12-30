@@ -5,7 +5,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.FleetCohesion
+import com.genir.aitweaks.core.FleetCohesionAI
+import com.genir.aitweaks.core.FleetSegmentation
 import com.genir.aitweaks.core.debug.DebugPlugin
 import com.genir.aitweaks.core.debug.removeGrid
 import com.genir.aitweaks.core.playerassist.AimAssistManager
@@ -31,10 +32,13 @@ class State : BaseEveryFrameCombatPlugin() {
     var frameCount: Int = 0
     val debugPlugin: DebugPlugin? = if (config.devMode) DebugPlugin() else null
 
-    val fleetCohesion: Array<FleetCohesion> = arrayOf(FleetCohesion(0), FleetCohesion(1))
+    val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
+    val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
 
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
+        fleetSegmentation[0],
+        fleetSegmentation[1],
         fleetCohesion[0],
         fleetCohesion[1],
         accelerationTracker,

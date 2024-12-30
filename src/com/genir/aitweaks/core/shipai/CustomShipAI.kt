@@ -98,7 +98,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 //        Debug.drawCircle(ship.location, stats.threatSearchRange)
 
 //        Debug.drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
-//        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
+//        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.YELLOW)
 //        Debug.drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 
 //        Debug.drawLine(ship.location, ship.location + (maneuverTarget?.velocity ?: ship.location), Color.GREEN)
@@ -125,15 +125,18 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             return
         }
 
-        // Try cohesion AI first.
-        val cohesionAI = state.fleetCohesion[ship.owner]
-        cohesionAI.findClosestTarget(ship)?.let {
-            maneuverTarget = it
-            return
+        // Try fleet segmentation targets first, unless the battle is over.
+        val engine = Global.getCombatEngine()
+        val alreadyWon = engine.getFleetManager(ship.owner xor 1).getTaskManager(false).isInFullRetreat
+        if (!alreadyWon) {
+            findClosestSegmentationTarget()?.let {
+                maneuverTarget = it
+                return
+            }
         }
 
         // Fall back to the closest target.
-        val targets = Global.getCombatEngine().ships.filter {
+        val targets = engine.ships.filter {
             when {
                 it.owner == ship.owner -> false
 
@@ -146,6 +149,22 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }
 
         maneuverTarget = closestEntity(targets, ship.location)
+    }
+
+    /** Find a new maneuver target using enemy fleet segmentation. */
+    private fun findClosestSegmentationTarget(): ShipAPI? {
+        val segmentation = state.fleetSegmentation[ship.owner]
+        val allTargets = if (ship.isFast) segmentation.allTargets else segmentation.allBigTargets
+
+        // Prioritize the nearest segmentation target over primary targets if the ship is already in proximity to it.
+        val closestTarget: ShipAPI = closestEntity(allTargets, ship.location) ?: return null
+        if (isCloseToEnemy(ship, closestTarget)) {
+            return closestTarget
+        }
+
+        // Follow the closest primary target.
+        val primaryTargets = if (ship.isFast) segmentation.primaryTargets else segmentation.primaryBigTargets
+        return closestEntity(primaryTargets, ship.location)
     }
 
     /** Select which enemy ship to attack. This may be different

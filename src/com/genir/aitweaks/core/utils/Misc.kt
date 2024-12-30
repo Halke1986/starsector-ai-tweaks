@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.Hit
 import com.genir.aitweaks.core.shipai.autofire.analyzeAllyHit
@@ -12,6 +13,7 @@ import com.genir.aitweaks.core.shipai.autofire.analyzeHit
 import org.json.JSONObject
 
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.max
 
 fun shieldUptime(shield: ShieldAPI?): Float {
     if (shield == null) return 0f
@@ -174,4 +176,9 @@ fun makeAIDrone(ai: ShipAIPlugin): ShipAPI {
     aiDrone.shipAI = ai
 
     return aiDrone
+}
+
+fun isCloseToEnemy(ship: ShipAPI, enemy: ShipAPI): Boolean {
+    val maxRange = max(max(Preset.threatSearchRange, ship.maxRange * 2f), enemy.maxRange)
+    return (ship.location - enemy.location).lengthSquared <= maxRange * maxRange
 }

@@ -9,23 +9,19 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.closestEntity
+import com.genir.aitweaks.core.utils.isCloseToEnemy
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.max
 
-class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
+/** FleetCohesionAI attempts to keep vanilla-AI controlled ships as a cohesive unit.
+ * Vanilla AI, if left unsupervised, will let th ships scatter randomly around the
+ * battlefield. */
+class FleetCohesionAI(private val side: Int) : BaseEveryFrameCombatPlugin() {
     private val enemy: Int = side xor 1
 
     private val cohesionAssignments: MutableSet<AssignmentKey> = mutableSetOf()
     private val cohesionWaypoints: MutableSet<AssignmentTargetAPI> = mutableSetOf()
-
-    private var validGroups: List<Set<ShipAPI>> = listOf()
-    private var primaryBigTargets: List<ShipAPI> = listOf()
-    private var primaryTargets: List<ShipAPI> = listOf()
-    private var allBigTargets: List<ShipAPI> = listOf()
-    private var allTargets: List<ShipAPI> = listOf()
 
     private val advanceInterval = IntervalUtil(0.75f, 1f)
 
@@ -41,17 +37,10 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
             engine.isPaused -> return
         }
 
-        identifyBattleGroups()
-
         advanceInterval.advance(dt)
         if (!advanceInterval.intervalElapsed()) return
 
         // Cleanup of previous iteration assignments and waypoints.
-        validGroups = listOf()
-        primaryBigTargets = listOf()
-        primaryTargets = listOf()
-        allBigTargets = listOf()
-        allTargets = listOf()
         clearAssignments()
         clearWaypoints()
 
@@ -94,46 +83,18 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         if (!channelWasOpen && taskManager.isCommChannelOpen) taskManager.closeCommChannel()
     }
 
-    private fun identifyBattleGroups() {
-        val engine = Global.getCombatEngine()
-
-        val enemyFleet = engine.ships.filter { it.owner == enemy && it.isValidTarget && !it.isFighter }
-        if (enemyFleet.isEmpty()) return
-        val groups = segmentFleet(enemyFleet.toTypedArray())
-        val groupsFromLargest = groups.sortedBy { it.dpSum }.reversed()
-        validGroups = groupsFromLargest.filter { isValidGroup(it, groupsFromLargest.first().dpSum) }
-
-        val fog = engine.getFogOfWar(side)
-        primaryTargets = validGroups.first().filter { fog.isVisible(it) }
-        primaryBigTargets = primaryTargets.filter { it.isBig }
-        allTargets = validGroups.flatten().filter { fog.isVisible(it) }
-        allBigTargets = allTargets.filter { it.isBig }
-    }
-
     private fun findValidTarget(ship: ShipAPI, currentTarget: ShipAPI?): ShipAPI? {
+        val segmentation = state.fleetSegmentation[side]
         return when {
-            validGroups.isEmpty() -> currentTarget
-
             // Ship is engaging or planning to engage the primary group.
-            validGroups.first().contains(currentTarget) -> currentTarget
+            currentTarget in segmentation.primaryTargets -> currentTarget
 
             // Ship is engaging a secondary group.
-            currentTarget != null && validGroups.any { it.contains(currentTarget) } && closeToEnemy(ship, currentTarget) -> currentTarget
+            currentTarget != null && currentTarget in segmentation.allTargets && isCloseToEnemy(ship, currentTarget) -> currentTarget
 
             // Ship has wrong target. Find the closest valid target in the main enemy battle group.
-            else -> closestEntity(primaryBigTargets, ship.location) ?: currentTarget
+            else -> closestEntity(segmentation.primaryBigTargets, ship.location) ?: currentTarget
         }
-    }
-
-    fun findClosestTarget(ship: ShipAPI): ShipAPI? {
-        val allTargets = if (ship.isFast) allTargets else allBigTargets
-        val closestTarget: ShipAPI? = closestEntity(allTargets, ship.location)
-        if (closestTarget != null && closeToEnemy(ship, closestTarget))
-            return closestTarget
-
-        val primaryTargets = if (ship.isFast) primaryTargets else primaryBigTargets
-        val primaryTarget: ShipAPI? = closestEntity(primaryTargets, ship.location)
-        return primaryTarget
     }
 
     private fun manageAssignments(ship: ShipAPI) {
@@ -191,63 +152,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
         cohesionWaypoints.clear()
     }
 
-    // Divide fleet into separate battle groups.
-    private fun segmentFleet(fleet: Array<ShipAPI>): List<Set<ShipAPI>> {
-        val maxRange = 2000f
-
-        // Assign targets to battle groups.
-        val groups = IntArray(fleet.size) { it }
-        for (i in fleet.indices) {
-            for (j in fleet.indices) {
-                when {
-                    // Cannot attach to battle group via frigate.
-                    fleet[j].root.isFrigate -> continue
-
-                    // Frigate already attached to battle group.
-                    fleet[i].root.isFrigate && groups[i] != i -> continue
-
-                    // Both targets already in same battle group.
-                    groups[i] == groups[j] -> continue
-
-                    // Too large distance between targets to connect.
-                    (fleet[i].location - fleet[j].location).lengthSquared > maxRange * maxRange -> continue
-                }
-
-                // Merge battle groups.
-                val toMerge = groups[i]
-                for (k in groups.indices) {
-                    if (groups[k] == toMerge) groups[k] = groups[j]
-                }
-            }
-        }
-
-        // Build battle groups.
-        val sets: MutableMap<Int, MutableSet<ShipAPI>> = mutableMapOf()
-        for (i in fleet.indices) {
-            if (!sets.contains(groups[i])) sets[groups[i]] = mutableSetOf()
-
-            sets[groups[i]]!!.add(fleet[i])
-        }
-
-        return sets.values.toList()
-    }
-
-    private fun closeToEnemy(ship: ShipAPI, target: ShipAPI): Boolean {
-        val maxRange = max(max(Preset.threatSearchRange, ship.maxRange * 2f), target.maxRange)
-        return (ship.location - target.location).lengthSquared <= maxRange * maxRange
-    }
-
-    private fun isValidGroup(group: Set<ShipAPI>, largestGroupDP: Float): Boolean {
-        return group.any { ship: ShipAPI -> ship.root.isCapital } || (group.dpSum * 4f >= largestGroupDP)
-    }
-
     private fun getTaskManager(): CombatTaskManager {
         return Global.getCombatEngine().getFleetManager(side).getTaskManager(false) as CombatTaskManager
     }
-
-    private val Set<ShipAPI>.dpSum: Float
-        get() = sumOf { it.deploymentPoints }
-
-    private val ShipAPI.maxRange: Float
-        get() = allWeapons.maxOfOrNull { it.slotRange } ?: 0f
 }
