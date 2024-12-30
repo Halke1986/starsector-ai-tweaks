@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.debug
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.isPD
+import com.genir.aitweaks.core.extensions.lengthSquared
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.extensions.plus
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
@@ -111,7 +112,7 @@ object Debug {
 
         for (i in ts.indices) {
             for (j in i + 1 until ts.size) {
-                val w = (ts[i].location - ts[j].location).lengthSquared()
+                val w = (ts[i].location - ts[j].location).lengthSquared
                 es.add(Edge(i, j, w))
             }
         }

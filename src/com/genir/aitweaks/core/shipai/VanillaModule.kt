@@ -10,6 +10,7 @@ import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.extensions.getPrivateField
 import com.genir.aitweaks.core.extensions.isZero
+import com.genir.aitweaks.core.extensions.length
 import org.lwjgl.util.vector.Vector2f
 
 /** AI modules carried over from vanilla ship AI. */
@@ -47,7 +48,7 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
 
         // Vanilla ship systems read maneuvers planned by ship AI through the flockingAI.
         flockingAI.flockingAI_setDesiredHeading(if (expectedVelocity.isZero) Float.MAX_VALUE else expectedVelocity.facing)
-        flockingAI.flockingAI_setDesiredSpeed(expectedVelocity.length())
+        flockingAI.flockingAI_setDesiredSpeed(expectedVelocity.length)
         flockingAI.flockingAI_setDesiredFacing(expectedFacing)
 
         flockingAI.flockingAI_advanceCollisionAnalysisModule(dt)

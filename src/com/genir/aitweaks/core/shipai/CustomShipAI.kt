@@ -398,6 +398,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     }
 
     internal fun range(target: CombatEntityAPI): Float {
-        return (target.location - ship.location).length() - target.collisionRadius / 2f
+        return (target.location - ship.location).length - target.collisionRadius / 2f
     }
 }

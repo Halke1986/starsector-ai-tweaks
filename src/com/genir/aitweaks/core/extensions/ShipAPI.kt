@@ -117,8 +117,8 @@ val ShipAPI.totalCollisionRadius: Float
         val modules = childModulesCopy.filter { it.isModule } // Make sure the module is still attached.
         val drones = deployedDrones?.filter { it.collisionClass == CollisionClass.SHIP }
 
-        val withModules = modules.maxOfOrNull { (location - it.location).length() + it.collisionRadius } ?: 0f
-        val withDrones = drones?.maxOfOrNull { (location - it.location).length() + it.collisionRadius } ?: 0f
+        val withModules = modules.maxOfOrNull { (location - it.location).length + it.collisionRadius } ?: 0f
+        val withDrones = drones?.maxOfOrNull { (location - it.location).length + it.collisionRadius } ?: 0f
 
         return max(collisionRadius, max(withDrones, withModules))
     }

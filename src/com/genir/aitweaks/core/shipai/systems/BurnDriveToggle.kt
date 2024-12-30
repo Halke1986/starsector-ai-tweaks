@@ -97,7 +97,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoord.Coordinable 
         if (newDestination != null) {
             val toDestination = newDestination - ship.location
             headingPoint = toDestination + ship.location
-            destinationDist = toDestination.length()
+            destinationDist = toDestination.length
             destinationFacing = absShortestRotation(toDestination.facing, ship.facing)
         } else {
             headingPoint = Vector2f()
@@ -209,7 +209,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoord.Coordinable 
             val r = ship.totalCollisionRadius + obstacle.totalCollisionRadius + buffer
 
             // Calculate time to collision.
-            if (p.lengthSquared() <= r * r) 0f
+            if (p.lengthSquared <= r * r) 0f
             else solve(Pair(p, v), r)
         }.minOrNull() ?: Float.MAX_VALUE
     }

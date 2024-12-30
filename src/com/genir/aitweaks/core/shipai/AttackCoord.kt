@@ -115,7 +115,7 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
 
     private class Unit(val target: ShipAPI, proposedHeadingPoint: Vector2f, val coordinable: Coordinable) {
         val ship: ShipAPI = coordinable.ai.ship
-        val attackRange: Float = (proposedHeadingPoint - target.location).length()
+        val attackRange: Float = (proposedHeadingPoint - target.location).length
         val angularSize: Float = angularSize(attackRange * attackRange, ship.totalCollisionRadius + collisionBuffer)
         val proposedFacing: Float = (proposedHeadingPoint - target.location).facing
         val currentFacing: Float = (ship.location - target.location).facing

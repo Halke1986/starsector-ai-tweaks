@@ -210,7 +210,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
                     groups[i] == groups[j] -> continue
 
                     // Too large distance between targets to connect.
-                    (fleet[i].location - fleet[j].location).lengthSquared() > maxRange * maxRange -> continue
+                    (fleet[i].location - fleet[j].location).lengthSquared > maxRange * maxRange -> continue
                 }
 
                 // Merge battle groups.
@@ -234,7 +234,7 @@ class FleetCohesion(private val side: Int) : BaseEveryFrameCombatPlugin() {
 
     private fun closeToEnemy(ship: ShipAPI, target: ShipAPI): Boolean {
         val maxRange = max(max(Preset.threatSearchRange, ship.maxRange * 2f), target.maxRange)
-        return (ship.location - target.location).lengthSquared() <= maxRange * maxRange
+        return (ship.location - target.location).lengthSquared <= maxRange * maxRange
     }
 
     private fun isValidGroup(group: Set<ShipAPI>, largestGroupDP: Float): Boolean {

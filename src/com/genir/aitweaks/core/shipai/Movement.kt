@@ -279,7 +279,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
         // Calculations are done in target frame of reference.
         val lineOfFire = ship.location - target.location
         val facing = lineOfFire.facing
-        val distToTarget = lineOfFire.length()
+        val distToTarget = lineOfFire.length
 
         val velocityFacing = (ship.location + ship.velocity - target.location).facing
         val angleToVelocity = shortestRotation(facing, velocityFacing)
@@ -291,7 +291,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
             val obstacleFacing = obstacleLineOfFire.facing
             val angleToOtherLine = shortestRotation(facing, obstacleFacing)
 
-            val blocked = if (obstacleLineOfFire.lengthSquared() < lineOfFire.lengthSquared()) ai
+            val blocked = if (obstacleLineOfFire.lengthSquared < lineOfFire.lengthSquared) ai
             else obstacle
 
             when {
@@ -325,7 +325,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
                 val obstacleAngularV = vectorRejection(obstacleV, obstacleLineOfFire)
 
                 val t = timeToOrigin(obstacle.ship.location - ship.location, obstacleAngularV)
-                val obstacleVComponent = obstacleAngularV.length() * t.sign
+                val obstacleVComponent = obstacleAngularV.length * t.sign
 
                 val vMax = vMax(dt, distance, ship.strafeAcceleration) + obstacleVComponent
                 EngineController.Limit(limitFacing, vMax)
@@ -357,7 +357,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
         else (l.y + mapH - borderZone).coerceAtMost(0f)
 
         // Distance into the border zone.
-        val d = (borderIntrusion.length() - Preset.borderCornerRadius).coerceAtLeast(0f)
+        val d = (borderIntrusion.length - Preset.borderCornerRadius).coerceAtLeast(0f)
 
         // Ship is far from border, no avoidance required.
         if (d == 0f) return null
