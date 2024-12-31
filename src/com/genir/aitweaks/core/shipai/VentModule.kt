@@ -26,6 +26,7 @@ class VentModule(private val ai: CustomShipAI) {
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     var isBackingOff: Boolean = false
+    private var ventTime: Float = ship.fluxTracker.timeToVent
     private var shouldVent: Boolean = false
     private var isSafe: Boolean = false
     private var backoffDistance: Float = farAway
@@ -44,6 +45,7 @@ class VentModule(private val ai: CustomShipAI) {
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
+            ventTime = ship.fluxTracker.timeToVent
             updateBackoffStatus()
             shouldVent = shouldVent()
 
@@ -150,7 +152,7 @@ class VentModule(private val ai: CustomShipAI) {
             ship.fluxLevel >= opportunisticVentThreshold -> true
 
             // Vent when the ship is idle.
-            ship.allGroupedWeapons.all { it.isIdle } -> true
+            ship.allGroupedWeapons.all { it.isIdle || it.cooldownRemaining > ventTime } -> true
 
             else -> false
         }
@@ -163,9 +165,7 @@ class VentModule(private val ai: CustomShipAI) {
             return false
         }
 
-
         val dangerousWeapons = findDangerousWeapons()
-        val ventTime = ship.fluxTracker.timeToVent
         val effectiveHP: Float = ship.hitpoints * ship.hullLevel.let { it * it * it * it }
 
         return when {
@@ -179,7 +179,7 @@ class VentModule(private val ai: CustomShipAI) {
 
             // Attempt to tank a limited amount of damage. 0.1f may seem like a large fraction,
             // but potential damage calculation is the absolute worst case scenario.
-            dangerousWeapons.sumOf { potentialDamage(it, ventTime) } / effectiveHP < 0.1f -> true
+            dangerousWeapons.sumOf { potentialDamage(it) } / effectiveHP < 0.1f -> true
 
             else -> false
         }
@@ -189,7 +189,6 @@ class VentModule(private val ai: CustomShipAI) {
         val enemies: MutableList<ShipAPI> = mutableListOf()
         val obstacles: MutableList<ShipAPI> = mutableListOf()
 
-        val ventTime = ship.fluxTracker.timeToVent
         Global.getCombatEngine().ships.asSequence().forEach { entity ->
             when {
                 entity.root == ship.root -> Unit
@@ -220,14 +219,14 @@ class VentModule(private val ai: CustomShipAI) {
                 // missile launcher, same as the player can.
                 weapon.isMissile && weapon.isOutOfAmmo -> false
 
-                !canWeaponHitShip(weapon, ventTime, obstacles) -> false
+                !canWeaponHitShip(weapon, obstacles) -> false
 
                 else -> true
             }
         }
     }
 
-    private fun canWeaponHitShip(weapon: WeaponAPI, ventTime: Float, obstacles: List<ShipAPI>): Boolean {
+    private fun canWeaponHitShip(weapon: WeaponAPI, obstacles: List<ShipAPI>): Boolean {
         val toShip = ship.location - weapon.location
         val distSqr = toShip.lengthSquared
         val dist = sqrt(distSqr) - ship.shieldRadiusEvenIfNoShield / 2
@@ -273,7 +272,7 @@ class VentModule(private val ai: CustomShipAI) {
         }
     }
 
-    private fun potentialDamage(weapon: WeaponAPI, ventTime: Float): Float {
+    private fun potentialDamage(weapon: WeaponAPI): Float {
         val adjustedVentTime = ventTime * ventTimeFactor - weapon.cooldownRemaining
         val rawDamage = max(weapon.derivedStats.dps * adjustedVentTime, weapon.derivedStats.burstDamage)
 
