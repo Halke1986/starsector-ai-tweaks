@@ -16,7 +16,7 @@ import kotlin.math.abs
  * Attack Coordinator assigns attack positions to all ships attacking the
  * same target, so that the ships don't try to crowd in the same spot.
  */
-class AttackCoord : BaseEveryFrameCombatPlugin() {
+class AttackCoordinator : BaseEveryFrameCombatPlugin() {
     interface Coordinable {
         var proposedHeadingPoint: Vector2f?
         var reviewedHeadingPoint: Vector2f?
@@ -37,8 +37,16 @@ class AttackCoord : BaseEveryFrameCombatPlugin() {
     private fun buildTaskForces(coordinables: Sequence<Coordinable>): Map<ShipAPI, List<Unit>> {
         val taskForces: MutableMap<ShipAPI, MutableList<Unit>> = mutableMapOf()
         coordinables.forEach { coordinable ->
-            val target = coordinable.ai.maneuverTarget ?: return@forEach
-            val proposedHeadingPoint = coordinable.proposedHeadingPoint ?: return@forEach
+            val target = coordinable.ai.maneuverTarget
+            val proposedHeadingPoint = coordinable.proposedHeadingPoint
+
+            if (target == null || proposedHeadingPoint == null) {
+                return@forEach
+            }
+
+            // Clean previous frame results.
+            coordinable.reviewedHeadingPoint = null
+            coordinable.proposedHeadingPoint = null
 
             val unit = Unit(target, proposedHeadingPoint, coordinable)
             val taskForce = taskForces[target]

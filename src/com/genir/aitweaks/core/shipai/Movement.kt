@@ -15,7 +15,7 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
+class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     private val ship: ShipAPI = ai.ship
     private val engineController: EngineController = EngineController(ship)
 
@@ -71,8 +71,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoord.Coordinable {
                     val attackVector = calculateAttackVector(maneuverTarget)
                     proposedHeadingPoint = maneuverTarget.location + attackVector.resized(ai.attackRange)
 
-                    val headingPoint = (reviewedHeadingPoint ?: proposedHeadingPoint)!!
-                    reviewedHeadingPoint = null
+                    val headingPoint = reviewedHeadingPoint ?: proposedHeadingPoint!!
 
                     avoidHulks(maneuverTarget, headingPoint) ?: headingPoint
                 }

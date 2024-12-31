@@ -126,17 +126,13 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }
 
         // Try fleet segmentation targets first, unless the battle is over.
-        val engine = Global.getCombatEngine()
-        val alreadyWon = engine.getFleetManager(ship.owner xor 1).getTaskManager(false).isInFullRetreat
-        if (!alreadyWon) {
-            findClosestSegmentationTarget()?.let {
-                maneuverTarget = it
-                return
-            }
+        findClosestSegmentationTarget()?.let {
+            maneuverTarget = it
+            return
         }
 
         // Fall back to the closest target.
-        val targets = engine.ships.filter {
+        val targets = Global.getCombatEngine().ships.filter {
             when {
                 it.owner == ship.owner -> false
 

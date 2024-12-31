@@ -45,7 +45,7 @@ class State : BaseEveryFrameCombatPlugin() {
         AimAssistManager(),
         AutoOmniShields(),
         com.genir.aitweaks.core.AutomatedShipAIManager(),
-        com.genir.aitweaks.core.shipai.AttackCoord(),
+        com.genir.aitweaks.core.shipai.AttackCoordinator(),
         com.genir.aitweaks.core.shipai.AutofireManagerOverride(),
     )
 

@@ -19,12 +19,6 @@ fun Vector2f.resized(length: Float): Vector2f {
 val Vector2f.copy: Vector2f
     get() = Vector2f(x, y)
 
-fun Vector2f.addLength(toAdd: Float): Vector2f {
-    val l = length
-    val s = (l + toAdd) / l
-    return Vector2f(x * s, y * s)
-}
-
 val Vector2f.facing: Float
     get() = if (isZero) 0f else clampAngle(atan2(y, x) * RADIANS_TO_DEGREES)
 
