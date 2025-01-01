@@ -43,6 +43,7 @@ class State : BaseEveryFrameCombatPlugin() {
         com.genir.aitweaks.core.AutomatedShipAIManager(),
         com.genir.aitweaks.core.shipai.AttackCoord(),
         com.genir.aitweaks.core.shipai.AutofireManagerOverride(),
+        com.genir.aitweaks.core.EscortAI(),
     )
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
