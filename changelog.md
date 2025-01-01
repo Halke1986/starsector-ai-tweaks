@@ -1,3 +1,5 @@
+- Custom AI: Improvements to burn drive AI. Reduced the number of occasions the ship will overexpose itself when using the burn drive.
+
 Version 1.11.1
  
 - Custom AI: Many improvements to vent AI. Now it doesn't like to vent in front of Hammer Barrage.

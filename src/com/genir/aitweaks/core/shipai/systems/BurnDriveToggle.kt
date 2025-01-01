@@ -4,7 +4,6 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.*
-import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.AttackCoordinator
@@ -20,7 +19,6 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     private var burnVector: Vector2f = Vector2f() // In ship frame of reference.
-    private var targetOffset: Vector2f = Vector2f() // In target frame of reference.
     private var shouldInitBurn = false
 
     // Used for communication with attack coordinator.
@@ -65,6 +63,10 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
         else null
     }
 
+    override fun holdTargets(): Boolean {
+        return false
+    }
+
     private fun updateMaxBurnDist() {
         // Try to get the unmodified max speed, without burn drive bonus.
         maxSpeed = min(maxSpeed, ship.engineController.maxSpeedWithoutBoost)
@@ -73,8 +75,8 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
         maxBurnDist = (maxSpeed + burnDriveFlatBonus) * effectiveBurnDuration
     }
 
+    /** Choose new burn destination location. */
     private fun updateBurnVector() {
-        // Choose new burn destination.
         val maneuverTarget: ShipAPI? = ai.maneuverTarget
         val newDestination = when {
             ai.assignment.navigateTo != null -> {
@@ -93,30 +95,13 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
     }
 
     private fun calculateBurnToManeuverTarget(maneuverTarget: ShipAPI): Vector2f? {
-        // When burn drive is active, try to maintain heading towards the target.
-        // Otherwise, the attack coordinator may interrupt the burn by changing destination.
-        if (system.state == IN || system.state == ACTIVE) {
-            val burnLocation = targetOffset + maneuverTarget.location
-            // Let attack coordinator know of ships' heading,
-            // so other ships don't burn to same location.
-            proposedHeadingPoint = burnLocation
-            return burnLocation
-        }
-
         val vectorToTarget = maneuverTarget.location - ship.location
-        val rangeOverride = ai.vanilla.flags.get<Float>(AIFlags.MANEUVER_RANGE_FROM_TARGET)
-        val expectedRange = rangeOverride ?: (ai.attackingGroup.minRange * approachToMinRangeFraction)
+        val expectedRange = ai.attackRange * approachToMinRangeFraction
         val burnDist = vectorToTarget.length - expectedRange
 
         // Let the attack coordinator review the calculated heading point.
         val burnVector = vectorToTarget.resized(burnDist)
         proposedHeadingPoint = burnVector + ship.location
-
-        // Save target offset for when burn drive is active.
-        reviewedHeadingPoint?.let {
-            targetOffset = reviewedHeadingPoint!! - maneuverTarget.location
-        }
-
         return reviewedHeadingPoint
     }
 
@@ -150,25 +135,15 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
     }
 
     private fun triggerSystem() {
-        val shouldTrigger: Boolean = when (system.state) {
-            // Should begin burn?
-            IDLE -> {
-                shouldInitBurn && angleToDestination() < 0.1f
-            }
+        val isIdle = system.state == IDLE
+        val isOn = system.state == IN || system.state == ACTIVE
 
-            // Should interrupt burn?
-            IN, ACTIVE -> when {
-                // Lost burn vector.
-                burnVector.isZero -> true
+        val shouldTrigger: Boolean = when {
+            isIdle && shouldInitBurn && angleToDestination() < 0.1f -> true
 
-                // Veered off course, stop.
-                angleToDestination() > maxAngleToTarget -> true
+            isOn && !isOnCourse() -> true
 
-                // Avoid collisions.
-                isCollisionImminent() -> true
-
-                else -> false
-            }
+            isOn && isCollisionImminent() -> true
 
             else -> false
         }
@@ -176,11 +151,33 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
         if (shouldTrigger) ship.command(ShipCommand.USE_SYSTEM)
     }
 
+    /** Verify if the ship is heading towards the intended target.
+     * Note that the intended target may change during the burn. */
+    private fun isOnCourse(): Boolean {
+        val assignment: Vector2f? = ai.assignment.navigateTo
+        val maneuverTarget: Vector2f? = ai.maneuverTarget?.location
+
+        // Note: burnVector is ignored in the following calculations, as it is used only
+        // to position the ship before the burn and not to guide the ship during the burn.
+        return when {
+            assignment != null -> {
+                absShortestRotation((assignment - ship.location).facing, ship.facing) <= maxAngleToTarget
+            }
+
+            maneuverTarget != null -> {
+                val toTarget = maneuverTarget - ship.location
+                val expectedRange = ai.attackRange * approachToMinRangeFraction
+                absShortestRotation(toTarget.facing, ship.facing) <= maxAngleToTarget && toTarget.length > expectedRange
+            }
+
+            // Keep burning if there's no target anymore,
+            // just for fun. This may be a bad idea.
+            else -> true
+        }
+    }
+
     private fun angleToDestination(): Float {
-
-        ai.movement.expectedFacing
-
-        return if (burnVector.isZero) 0f
+        return if (burnVector.isZero) Float.MAX_VALUE
         else absShortestRotation(burnVector.facing, ship.facing)
     }
 
