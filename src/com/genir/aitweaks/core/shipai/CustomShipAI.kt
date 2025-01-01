@@ -19,13 +19,11 @@ import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.max
 
-// TODO coord around stations
-
 @Suppress("MemberVisibilityCanBePrivate")
 class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     // Subsystems.
     val movement: Movement = Movement(this)
-    val assignment: Assignment = Assignment(ship)
+    val assignment: Assignment = Assignment(this)
     val backoff: VentModule = VentModule(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
     val vanilla: VanillaModule = VanillaModule(ship, systemAI != null)
@@ -47,6 +45,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     var attackingGroup: WeaponGroup = stats.weaponGroups[0]
     var attackRange: Float = 0f
 
+    var isExploring: Boolean = true
     var isAvoidingBorder: Boolean = false
     var is1v1: Boolean = false
     var threats: Set<ShipAPI> = setOf()
@@ -70,6 +69,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             updateShipStats()
             updateAttackRange()
             update1v1Status()
+            updateExplorationStatus()
 
             // Update targets.
             updateManeuverTarget()
@@ -114,53 +114,70 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     }
 
     private fun updateManeuverTarget() {
-        // Don't change target when movement system is on.
-        if (maneuverTarget?.isValidTarget == true && systemAI?.holdTargets() == true) {
-            return
-        }
+        val segmentation = state.fleetSegmentation[ship.owner]
+        val segmentationTarget: ShipAPI? by lazy { findClosestSegmentationTarget() }
 
-        // Eliminate assignment target.
-        assignment.eliminate?.let {
-            maneuverTarget = it
-            return
-        }
+        when {
+            // Don't change target when movement system is on.
+            maneuverTarget?.isValidTarget == true && systemAI?.holdTargets() == true -> {
+                Unit
+            }
 
-        // Try fleet segmentation targets first, unless the battle is over.
-        findClosestSegmentationTarget()?.let {
-            maneuverTarget = it
-            return
-        }
+            // Eliminate assignment target.
+            assignment.eliminate != null -> {
+                maneuverTarget = assignment.eliminate
+            }
 
-        // Fall back to the closest target.
-        val targets = Global.getCombatEngine().ships.filter {
-            when {
-                it.owner == ship.owner -> false
+            // Try fleet segmentation targets first.
+            segmentationTarget != null -> {
+                maneuverTarget = segmentationTarget
+            }
 
-                !it.isValidTarget -> false
+            // No target found, try to follow the current target even if it's in the fog.
+            // This allows to avoid erratic target changes in the initial phase of the battle.
+            maneuverTarget in segmentation.allTargets -> {
+                Unit
+            }
 
-                it.isFighter -> false
+            // No target found in the exploration phase of the battle. Don't force finding one.
+            isExploring -> {
+                Unit
+            }
 
-                else -> true
+            // Fall back to the closest target.
+            else -> {
+                val targets = Global.getCombatEngine().ships.filter {
+                    when {
+                        it.owner == ship.owner -> false
+
+                        !it.isValidTarget -> false
+
+                        it.isFighter -> false
+
+                        else -> true
+                    }
+                }
+
+                maneuverTarget = closestEntity(targets, ship.location)
             }
         }
-
-        maneuverTarget = closestEntity(targets, ship.location)
     }
 
     /** Find a new maneuver target using enemy fleet segmentation. */
     private fun findClosestSegmentationTarget(): ShipAPI? {
+        val fog = Global.getCombatEngine().getFogOfWar(ship.owner)
         val segmentation = state.fleetSegmentation[ship.owner]
         val allTargets = if (ship.isFast) segmentation.allTargets else segmentation.allBigTargets
 
         // Prioritize the nearest segmentation target over primary targets if the ship is already in proximity to it.
-        val closestTarget: ShipAPI = closestEntity(allTargets, ship.location) ?: return null
+        val closestTarget: ShipAPI = closestEntity(fog.filter(allTargets), ship.location) ?: return null
         if (isCloseToEnemy(ship, closestTarget)) {
             return closestTarget
         }
 
         // Follow the closest primary target.
         val primaryTargets = if (ship.isFast) segmentation.primaryTargets else segmentation.primaryBigTargets
-        return closestEntity(primaryTargets, ship.location)
+        return closestEntity(fog.filter(primaryTargets), ship.location)
     }
 
     /** Select which enemy ship to attack. This may be different
@@ -240,6 +257,24 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
         val continueBurst = finishBurstWeaponGroup?.weapons?.any { it.isInFiringSequence && it.target == finishBurstTarget }
         if (continueBurst != true) finishBurstTarget = null
+    }
+
+    /** Exploration phase is implemented only for the opening phase of the battle,
+     * when it would be obvious that ships can see through the fog of war. */
+    private fun updateExplorationStatus() {
+        isExploring = when {
+            !isExploring -> false
+
+            // End the exploration phase after first target is acquired.
+            maneuverTarget != null -> false
+
+            threats.isNotEmpty() -> false
+
+            // Stop pretending to explore after the ship has reached the center of the map.
+            assignment.type == Assignment.Type.EXPLORE && assignment.arrivedAt -> false
+
+            else -> true
+        }
     }
 
     private fun findNewAttackTarget(): Pair<WeaponGroup, ShipAPI?> {

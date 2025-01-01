@@ -1,4 +1,5 @@
 - Custom AI: Improvements to burn drive AI. Reduced the number of occasions the ship will overexpose itself when using the burn drive.
+- Custom AI: Ships no longer ignore the fog of war during the early stages of a battle, before opposing fleets have made contact.
 
 Version 1.11.1
  

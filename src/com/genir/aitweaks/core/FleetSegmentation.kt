@@ -36,15 +36,14 @@ class FleetSegmentation(private val side: Int) : BaseEveryFrameCombatPlugin() {
         val enemyFleet = engine.ships.filter { it.owner == enemy && it.isValidTarget && !it.isFighter }
         if (enemyFleet.isEmpty()) return
 
-        val fog = engine.getFogOfWar(side)
         val groups = segmentFleet(enemyFleet.toTypedArray())
         val groupsFromLargest = groups.sortedBy { -it.dpSum }
         val largestGroupDP = groupsFromLargest.first().dpSum
 
         validGroups = groupsFromLargest.filter { isValidGroup(it, largestGroupDP) }
-        primaryTargets = validGroups.first().filter { fog.isVisible(it) }
+        primaryTargets = validGroups.firstOrNull()?.toList() ?: listOf()
         primaryBigTargets = primaryTargets.filter { it.isBig }
-        allTargets = validGroups.flatten().filter { fog.isVisible(it) }
+        allTargets = validGroups.flatten()
         allBigTargets = allTargets.filter { it.isBig }
     }
 
