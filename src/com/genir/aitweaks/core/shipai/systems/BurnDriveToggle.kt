@@ -12,7 +12,6 @@ import com.genir.aitweaks.core.shipai.Preset.Companion.backoffUpperThreshold
 import com.genir.aitweaks.core.utils.*
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.min
 
 /** Burn Drive AI. It replaces the vanilla implementation for ships with custom AI. */
 class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordinable {
@@ -25,10 +24,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
     override var proposedHeadingPoint: Vector2f? = null
     override var reviewedHeadingPoint: Vector2f? = null
 
-    // Hardcoded vanilla value.
-    private val burnDriveFlatBonus: Float = 200f
-
-    private var maxSpeed: Float = Float.MAX_VALUE
+    private val burnDriveFlatBonus: Float = 200f // Hardcoded vanilla value.
     private var maxBurnDist: Float = 0f
 
     companion object Preset {
@@ -68,11 +64,8 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
     }
 
     private fun updateMaxBurnDist() {
-        // Try to get the unmodified max speed, without burn drive bonus.
-        maxSpeed = min(maxSpeed, ship.engineController.maxSpeedWithoutBoost)
-
         val effectiveBurnDuration = system.chargeActiveDur + (system.chargeUpDur + system.chargeDownDur) / 2f
-        maxBurnDist = (maxSpeed + burnDriveFlatBonus) * effectiveBurnDuration
+        maxBurnDist = (ship.baseMaxSpeed + burnDriveFlatBonus) * effectiveBurnDuration
     }
 
     /** Choose new burn destination location. */
@@ -125,8 +118,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
             // Don't burn to maneuver target when high on flux.
             ai.assignment.navigateTo == null && ship.fluxLevel > maxFluxLevel -> false
 
-            // Don't burn to maneuver target when it's already in effective weapons range.
-            ai.assignment.navigateTo == null && (ai.maneuverTarget!!.location - ship.location).length <= ai.attackingGroup.effectiveRange -> false
+            !isOnCourse() -> false
 
             !isRouteClear() -> false
 

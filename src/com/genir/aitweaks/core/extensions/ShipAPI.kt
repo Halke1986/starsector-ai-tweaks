@@ -127,7 +127,20 @@ fun ShipAPI.command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
 
 // TODO refine the speed threshold, maybe add maneuverability threshold.
 val ShipAPI.isFast: Boolean
-    get() = isAlive && (root.isFrigate || root.isDestroyer || engineController.maxSpeedWithoutBoost * timeMult > 150f)
+    get() = isAlive && (root.isFrigate || root.isDestroyer || baseMaxSpeed * timeMult > 150f)
+
+/** Ship max speed not modified by zero flux boost or an active system. */
+val ShipAPI.baseMaxSpeed: Float
+    get() {
+        if (system?.state != ShipSystemAPI.SystemState.IDLE) {
+            return engineController.maxSpeedWithoutBoost
+        }
+
+        val stats = mutableStats.maxSpeed.createCopy()
+        stats.unmodify(system.id + " effect")
+        stats.unmodify("zero_flux_boost")
+        return stats.modifiedValue
+    }
 
 val ShipAPI.maxRange: Float
     get() = allGroupedWeapons.maxOfOrNull { it.slotRange } ?: 0f

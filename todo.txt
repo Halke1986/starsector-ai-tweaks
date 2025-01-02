@@ -6,5 +6,6 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 ----------------------------------------------------------------
 
-- remove hulks debug option
 - attack enemy ships that are inflicting damage
+
+- sometimes guided finisher missiles are ignored when venting, especially on phase ships
