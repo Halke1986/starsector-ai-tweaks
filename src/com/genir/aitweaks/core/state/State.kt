@@ -5,12 +5,15 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.core.AutomatedShipAIManager
 import com.genir.aitweaks.core.FleetCohesionAI
-import com.genir.aitweaks.core.FleetSegmentation
 import com.genir.aitweaks.core.debug.DebugPlugin
 import com.genir.aitweaks.core.debug.removeGrid
 import com.genir.aitweaks.core.playerassist.AimAssistManager
 import com.genir.aitweaks.core.playerassist.AutoOmniShields
+import com.genir.aitweaks.core.shipai.AttackCoordinator
+import com.genir.aitweaks.core.shipai.AutofireManagerOverride
+import com.genir.aitweaks.core.shipai.FleetSegmentation
 import com.genir.aitweaks.core.utils.Bounds
 
 class State : BaseEveryFrameCombatPlugin() {
@@ -44,9 +47,9 @@ class State : BaseEveryFrameCombatPlugin() {
         accelerationTracker,
         AimAssistManager(),
         AutoOmniShields(),
-        com.genir.aitweaks.core.AutomatedShipAIManager(),
-        com.genir.aitweaks.core.shipai.AttackCoordinator(),
-        com.genir.aitweaks.core.shipai.AutofireManagerOverride(),
+        AutomatedShipAIManager(),
+        AttackCoordinator(),
+        AutofireManagerOverride(),
     )
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
