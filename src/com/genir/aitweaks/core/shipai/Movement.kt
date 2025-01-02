@@ -32,7 +32,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
     // Make strafe rotation direction random, but consistent for a given ship.
     private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
-    private var averageAimOffset = RollingAverageFloat(Preset.aimOffsetSamples)
 
     fun advance(dt: Float) {
         setHeading(dt, ai.maneuverTarget)
@@ -114,13 +113,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
                 // Face the attack target.
                 currentAttackTarget != null -> {
-                    // Average aim offset to avoid ship wobbling.
                     val ballisticTarget = BallisticTarget.entity(currentAttackTarget)
-                    val aimPointThisFrame = unitVector(weaponGroup.attackFacing(ballisticTarget)) * 100f + ship.location
-                    val aimOffsetThisFrame = getShortestRotation(currentAttackTarget.location, ship.location, aimPointThisFrame)
-                    val aimOffset = averageAimOffset.update(aimOffsetThisFrame)
-
-                    (currentAttackTarget.location - ship.location).facing + aimOffset
+                    weaponGroup.attackFacing(ballisticTarget)
                 }
 
                 // Face threat vector when no target.

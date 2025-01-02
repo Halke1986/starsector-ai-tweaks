@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core.shipai.systems
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
@@ -162,9 +163,9 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
                 absShortestRotation(toTarget.facing, ship.facing) <= maxAngleToTarget && toTarget.length > expectedRange
             }
 
-            // Keep burning if there's no target anymore,
-            // just for fun. This may be a bad idea.
-            else -> true
+            // Keep burning if there's no target, as long as the battle isn't over.
+            // Burning after the last enemy ship is defeated looks unnatural.
+            else -> Global.getCombatEngine().ships.any { it.isHostile(ship) }
         }
     }
 

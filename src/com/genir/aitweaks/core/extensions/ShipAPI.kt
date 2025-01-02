@@ -132,7 +132,7 @@ val ShipAPI.isFast: Boolean
 /** Ship max speed not modified by zero flux boost or an active system. */
 val ShipAPI.baseMaxSpeed: Float
     get() {
-        if (system?.state != ShipSystemAPI.SystemState.IDLE) {
+        if (system == null || system.state == ShipSystemAPI.SystemState.IDLE) {
             return engineController.maxSpeedWithoutBoost
         }
 

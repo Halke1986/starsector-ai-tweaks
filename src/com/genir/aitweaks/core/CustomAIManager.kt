@@ -54,8 +54,8 @@ class CustomAIManager {
                 ship.hullSpec.hullId.startsWith("sr_melvillei") -> true
                 ship.hullSpec.shipSystemId == "lidararray" -> true
 
-                // Simulator in devmode.
-                Global.getCombatEngine().isSimulation && state.config.devMode -> true
+                // Simulator.
+                Global.getCombatEngine().isSimulation  -> true
 
                 else -> false
             }
