@@ -18,10 +18,6 @@ class Preset {
         const val holdFireThreshold = 0.93f
         const val damageHistoryDuration = 4f
 
-        // Idle time calculation
-        const val shieldDownVentTime = 2.0f
-        const val shieldFlickerThreshold = 0.5f
-
         // Map movement calculation
         val arrivedAtLocationRadius: Float
             get() = mapSize / 15f

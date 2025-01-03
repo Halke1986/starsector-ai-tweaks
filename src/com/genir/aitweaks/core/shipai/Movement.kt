@@ -51,8 +51,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                     systemOverride
                 }
 
-                // For player ships the heading to assignment location takes priority.
-                ship.owner == 0 && !ship.isAlly && navigateTo != null && (ai.threatVector.isZero || !ai.assignment.arrivedAt) -> {
+                // Heading to assignment location takes priority.
+                navigateTo != null && (ai.threatVector.isZero || !ai.assignment.arrivedAt) -> {
                     navigateTo
                 }
 
@@ -73,11 +73,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                     val headingPoint = reviewedHeadingPoint ?: proposedHeadingPoint!!
 
                     avoidHulks(maneuverTarget, headingPoint) ?: headingPoint
-                }
-
-                // Move directly to assignment location.
-                navigateTo != null -> {
-                    navigateTo
                 }
 
                 // Nothing to do, stop the ship.
