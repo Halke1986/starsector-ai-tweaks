@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core.shipai
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI
 import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
@@ -90,8 +91,12 @@ class Assignment(private val ai: CustomShipAI) {
         type = ELIMINATE
     }
 
+    /** Move in the direction of enemy spawn location. */
     private fun explore() {
-        navigateTo = Vector2f(ship.location.x, 0f)
+        val height = Global.getCombatEngine().mapHeight / 4
+        val sign = if (ship.owner == 0) 1 else -1
+
+        navigateTo = Vector2f(ship.location.x, height * sign)
         arrivedAt = (navigateTo!! - ship.location).length < Preset.arrivedAtLocationRadius
         type = EXPLORE
     }

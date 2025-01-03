@@ -279,6 +279,9 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             // Stop pretending to explore after the ship has reached the center of the map.
             assignment.type == Assignment.Type.EXPLORE && assignment.arrivedAt -> false
 
+            // No exploring in simulator.
+            Global.getCombatEngine().isSimulation -> false
+
             else -> true
         }
     }
