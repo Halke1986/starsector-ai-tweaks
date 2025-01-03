@@ -5,12 +5,14 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
+import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
 import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 
@@ -191,7 +193,9 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     }
 
     private fun manageMobilitySystems() {
-        when (ship.system?.specAPI?.AIType) {
+        val system: ShipSystemAPI = ship.system ?: return
+
+        when (system.specAPI?.AIType) {
 
             ShipSystemAIType.BURN_DRIVE -> {
                 // Prevent vanilla AI from jumping closer to target with
@@ -200,7 +204,21 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                     ship.blockCommandForOneFrame(USE_SYSTEM)
                 }
 
-                if (ai.backoff.isBackingOff) ship.blockCommandForOneFrame(USE_SYSTEM)
+                if (ai.backoff.isBackingOff) {
+                    ship.blockCommandForOneFrame(USE_SYSTEM)
+                }
+            }
+
+            ShipSystemAIType.TEMPORAL_SHELL -> {
+                // If temporal shell has charges, like in case of
+                // the swp_chronos, hoard the last one for backing off.
+                if (!ai.backoff.isBackingOff && system.maxAmmo > 1 && system.ammo == 1) {
+                    ship.blockCommandForOneFrame(USE_SYSTEM)
+                }
+
+                if (ai.backoff.isBackingOff && ship.canUseSystemThisFrame()) {
+                    ship.command(USE_SYSTEM)
+                }
             }
 
             else -> Unit
