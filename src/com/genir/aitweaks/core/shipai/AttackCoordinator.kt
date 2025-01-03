@@ -19,7 +19,7 @@ import kotlin.math.abs
 class AttackCoordinator : BaseEveryFrameCombatPlugin() {
     interface Coordinable {
         var proposedHeadingPoint: Vector2f?
-        var reviewedHeadingPoint: Vector2f?
+        var reviewedHeadingPoint: Vector2f? // will be null is ship requires no coordination
         val ai: CustomShipAI
     }
 
@@ -40,13 +40,13 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
             val target = coordinable.ai.maneuverTarget
             val proposedHeadingPoint = coordinable.proposedHeadingPoint
 
-            if (target == null || proposedHeadingPoint == null) {
-                return@forEach
-            }
-
             // Clean previous frame results.
             coordinable.reviewedHeadingPoint = null
             coordinable.proposedHeadingPoint = null
+
+            if (target == null || proposedHeadingPoint == null) {
+                return@forEach
+            }
 
             val unit = Unit(target, proposedHeadingPoint, coordinable)
             val taskForce = taskForces[target]
@@ -84,7 +84,10 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
     private fun coordinateUnits(taskForce: List<Formation>) {
         val target = taskForce.first().units.first().target
 
-        taskForce.forEach { formation ->
+        // Formations with only one unit do not require coordination.
+        val formationsToCoordinate = taskForce.filter { formation -> formation.units.size > 1 }
+
+        formationsToCoordinate.forEach { formation ->
             var facing = formation.facing - formation.angularSize / 2f
 
             formation.units.sortBy { shortestRotation(formation.facing, it.currentFacing) }

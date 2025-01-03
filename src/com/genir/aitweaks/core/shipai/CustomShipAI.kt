@@ -90,7 +90,13 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     override fun getAIFlags(): ShipwideAIFlags = vanilla.flags
 
     private fun debug() {
-        if (state.config.highlightCustomAI) Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
+        if (state.config.highlightCustomAI) {
+            Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
+        }
+
+        if (ship.owner != 0) {
+            return
+        }
 
 //        Debug.drawTurnLines(ship)
 //        Debug.drawCircle(movement.headingPoint, ship.collisionRadius)

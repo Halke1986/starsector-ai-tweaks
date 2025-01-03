@@ -79,24 +79,20 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
 
             // Charge straight at the maneuver target.
             maneuverTarget != null -> {
-                calculateBurnToManeuverTarget(maneuverTarget)
+                val vectorToTarget = maneuverTarget.location - ship.location
+                val expectedRange = ai.attackRange * approachToMinRangeFraction
+                val burnDist = vectorToTarget.length - expectedRange
+
+                // Let the attack coordinator review the calculated heading point.
+                val burnLocation = vectorToTarget.resized(burnDist) + ship.location
+                proposedHeadingPoint = burnLocation
+                reviewedHeadingPoint ?: burnLocation
             }
 
             else -> null
         }
 
         burnVector = newDestination?.let { it - ship.location } ?: Vector2f()
-    }
-
-    private fun calculateBurnToManeuverTarget(maneuverTarget: ShipAPI): Vector2f? {
-        val vectorToTarget = maneuverTarget.location - ship.location
-        val expectedRange = ai.attackRange * approachToMinRangeFraction
-        val burnDist = vectorToTarget.length - expectedRange
-
-        // Let the attack coordinator review the calculated heading point.
-        val burnVector = vectorToTarget.resized(burnDist)
-        proposedHeadingPoint = burnVector + ship.location
-        return reviewedHeadingPoint
     }
 
     /** Should the ship position itself to begin burn? */

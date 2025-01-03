@@ -67,10 +67,9 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                 // Strafe target randomly if in range and no other threat.
                 maneuverTarget != null -> {
                     // Let the attack coordinator review the calculated heading point.
-                    val attackVector = calculateAttackVector(maneuverTarget)
-                    proposedHeadingPoint = maneuverTarget.location + attackVector.resized(ai.attackRange)
-
-                    val headingPoint = reviewedHeadingPoint ?: proposedHeadingPoint!!
+                    val attackLocation = maneuverTarget.location + calculateAttackVector(maneuverTarget)
+                    proposedHeadingPoint = attackLocation
+                    val headingPoint = reviewedHeadingPoint ?: attackLocation
 
                     avoidHulks(maneuverTarget, headingPoint) ?: headingPoint
                 }
@@ -144,7 +143,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val borderWeight = max(borderDistX, borderDistY) * 2f
 
         // Try to move away from the threat.
-        val attackVector = -(ai.threatVector + ship.location.resized(borderWeight))
+        val attackVector = -(ai.threatVector + ship.location.resized(borderWeight)).resized(ai.attackRange)
 
         // Strafe the target randomly, when it's the only threat.
         val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
