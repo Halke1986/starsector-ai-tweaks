@@ -87,15 +87,15 @@ class FleetCohesionAI(private val side: Int) : BaseEveryFrameCombatPlugin() {
         val segmentation = state.fleetSegmentation[side]
         return when {
             // Ship is engaging or planning to engage the primary group.
-            currentTarget in segmentation.primaryTargets -> currentTarget
+            currentTarget in segmentation.primaryTargets() -> currentTarget
 
             // Ship is engaging a secondary group.
-            currentTarget != null && currentTarget in segmentation.allTargets && isCloseToEnemy(ship, currentTarget) -> currentTarget
+            currentTarget != null && currentTarget in segmentation.allTargets() && isCloseToEnemy(ship, currentTarget) -> currentTarget
 
             // Ship has wrong target. Find the closest valid target in the main enemy battle group.
             else -> {
                 val fog = Global.getCombatEngine().getFogOfWar(side)
-                closestEntity(fog.filter(segmentation.primaryBigTargets), ship.location) ?: currentTarget
+                closestEntity(fog.filter(segmentation.primaryTargets(false)), ship.location) ?: currentTarget
             }
         }
     }

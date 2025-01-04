@@ -141,7 +141,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
             // No target found, try to follow the current target even if it's in the fog.
             // This allows to avoid erratic target changes in the initial phase of the battle.
-            maneuverTarget in segmentation.allTargets -> {
+            maneuverTarget in segmentation.allTargets() -> {
                 Unit
             }
 
@@ -173,7 +173,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     private fun findClosestSegmentationTarget(): ShipAPI? {
         val fog = Global.getCombatEngine().getFogOfWar(ship.owner)
         val segmentation = state.fleetSegmentation[ship.owner]
-        val allTargets = if (ship.isFast) segmentation.allTargets else segmentation.allBigTargets
+        val allTargets = segmentation.allTargets(ship.isFast)
 
         // Prioritize the nearest segmentation target over primary targets if the ship is already in proximity to it.
         val closestTarget: ShipAPI = closestEntity(fog.filter(allTargets), ship.location) ?: return null
@@ -182,7 +182,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }
 
         // Follow the closest primary target.
-        val primaryTargets = if (ship.isFast) segmentation.primaryTargets else segmentation.primaryBigTargets
+        val primaryTargets = segmentation.primaryTargets(ship.isFast)
         return closestEntity(fog.filter(primaryTargets), ship.location)
     }
 

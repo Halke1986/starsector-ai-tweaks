@@ -128,6 +128,10 @@ inline fun <reified T> closestEntity(entities: Collection<CombatEntityAPI>, p: V
     return entities.minByOrNull { (it.location - p).lengthSquared } as? T
 }
 
+inline fun <reified T> closestEntity(entities: Sequence<CombatEntityAPI>, p: Vector2f): T? {
+    return entities.minByOrNull { (it.location - p).lengthSquared } as? T
+}
+
 /**
  * Calculates the average facing direction by converting facings into unit vectors
  * and averaging the resulting vectors. Returns the facing of the average vector.
