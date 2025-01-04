@@ -1,5 +1,6 @@
 - Custom AI: Improvements to burn drive AI. Reduced the number of occasions the ship will overexpose itself when using the burn drive.
 - Custom AI: Ships no longer ignore the fog of war during the early stages of a battle, before opposing fleets have made contact.
+- Custom AI: Ships with temporal shell will use the system when backing off.
 
 Version 1.11.1
  

@@ -139,8 +139,10 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val borderDistY = (ship.location.y * ship.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
         val borderWeight = max(borderDistX, borderDistY) * 2f
 
-        // Try to move away from the threat.
-        val attackVector = -(ai.threatVector + ship.location.resized(borderWeight)).resized(ai.attackRange)
+        // Try to move away from the threat, if any. Move straight to target otherwise.
+        val approachVector = if (ai.threatVector.isNonZero) ai.threatVector
+        else (maneuverTarget.location - ship.location).resized(1f)
+        val attackVector = -(approachVector + ship.location.resized(borderWeight)).resized(ai.attackRange)
 
         // Strafe the target randomly, when it's the only threat.
         val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
@@ -210,12 +212,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             }
 
             ShipSystemAIType.TEMPORAL_SHELL -> {
-                // If temporal shell has charges, like in case of
-                // the swp_chronos, hoard the last one for backing off.
-                if (!ai.backoff.isBackingOff && system.maxAmmo > 1 && system.ammo == 1) {
-                    ship.blockCommandForOneFrame(USE_SYSTEM)
-                }
-
+                // Use temporal shell for backing off.
                 if (ai.backoff.isBackingOff && ship.canUseSystemThisFrame()) {
                     ship.command(USE_SYSTEM)
                 }
