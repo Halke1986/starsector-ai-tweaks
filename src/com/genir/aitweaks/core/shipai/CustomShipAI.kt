@@ -108,7 +108,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 //        Debug.drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 
 //        Debug.drawLine(ship.location, ship.location + (maneuverTarget?.velocity ?: ship.location), Color.GREEN)
-        Debug.drawLine(ship.location, movement.headingPoint, Color.YELLOW)
+//        Debug.drawLine(ship.location, movement.headingPoint, Color.YELLOW)
 
 //        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location + unitVector(movement.expectedFacing) * 600f, Color.YELLOW)

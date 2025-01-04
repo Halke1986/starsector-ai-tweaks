@@ -269,6 +269,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         return vMaxToObstacle(dt, target, distance)
     }
 
+    /** Position the ship to avoid blocking allied ships' lines of fire
+     * on the same target while keeping its own line of fire clear. */
     private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {
         val target = ai.attackTarget ?: return null
         val ais = allies.mapNotNull { it.customShipAI }
