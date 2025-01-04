@@ -21,3 +21,5 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 - plasma jest for backoff
 
 - don't vent when can finish target
+
+- check devastator targeting
