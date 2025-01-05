@@ -43,7 +43,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?) {
         val systemOverride: Vector2f? = ai.systemAI?.overrideHeading()
-        val backoffOverride: Vector2f? = ai.backoff.overrideHeading(maneuverTarget)
+        val backoffOverride: Vector2f? = ai.ventModule.overrideHeading(maneuverTarget)
         val navigateTo: Vector2f? = ai.assignment.navigateTo
 
         headingPoint = interpolateHeading.advance(dt) {
@@ -206,14 +206,14 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                     ship.blockCommandForOneFrame(USE_SYSTEM)
                 }
 
-                if (ai.backoff.isBackingOff) {
+                if (ai.ventModule.isBackingOff) {
                     ship.blockCommandForOneFrame(USE_SYSTEM)
                 }
             }
 
             ShipSystemAIType.TEMPORAL_SHELL -> {
                 // Use temporal shell for backing off.
-                if (ai.backoff.isBackingOff && ship.canUseSystemThisFrame()) {
+                if (ai.ventModule.isBackingOff && ship.canUseSystemThisFrame()) {
                     ship.command(USE_SYSTEM)
                 }
             }
@@ -263,7 +263,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val target = ai.maneuverTarget ?: return null
 
         // Do not be paralyzed by frigates when trying to back off.
-        if (ai.backoff.isBackingOff && target.root.isFrigate) return null
+        if (ai.ventModule.isBackingOff && target.root.isFrigate) return null
 
         val distance = max(ai.stats.totalCollisionRadius + target.totalCollisionRadius + Preset.collisionBuffer, ai.attackRange * 0.8f)
         return vMaxToObstacle(dt, target, distance)
@@ -299,7 +299,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             else obstacle
 
             when {
-                blocked.backoff.isBackingOff -> return@forEach
+                blocked.ventModule.isBackingOff -> return@forEach
 
                 // Too far from obstacle line of fire to consider blocking.
                 absShortestRotation(facing, obstacleFacing) >= 90f -> return@forEach
@@ -368,7 +368,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
         // Allow chasing targets into the border zone.
         val tgtLoc = ai.maneuverTarget?.location
-        if (tgtLoc != null && !ai.backoff.isBackingOff && abs(getShortestRotation(tgtLoc - ship.location, borderIntrusion)) < 90f) {
+        if (tgtLoc != null && !ai.ventModule.isBackingOff && abs(getShortestRotation(tgtLoc - ship.location, borderIntrusion)) < 90f) {
             return null
         }
 

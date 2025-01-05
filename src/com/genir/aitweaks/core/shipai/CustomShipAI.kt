@@ -24,7 +24,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     // Subsystems.
     val movement: Movement = Movement(this)
     val assignment: Assignment = Assignment(this)
-    val backoff: VentModule = VentModule(this)
+    val ventModule: VentModule = VentModule(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
     val vanilla: VanillaModule = VanillaModule(ship, systemAI != null)
 
@@ -80,7 +80,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         // Advance subsystems.
         vanilla.advance(dt, attackTarget as? ShipAPI, movement.expectedVelocity, movement.expectedFacing)
         assignment.advance()
-        backoff.advance(dt)
+        ventModule.advance(dt)
         systemAI?.advance(dt)
         movement.advance(dt)
 
@@ -216,7 +216,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     private fun update1v1Status() {
         is1v1 = when {
             isAvoidingBorder -> false
-            backoff.isBackingOff -> false
+            ventModule.isBackingOff -> false
             attackTarget == null -> false
             attackTarget != maneuverTarget -> false
             (attackTarget as? ShipAPI)?.root?.isFrigate != ship.root.isFrigate -> false

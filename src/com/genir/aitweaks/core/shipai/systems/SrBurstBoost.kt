@@ -62,7 +62,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
         // Don't interrupt hardpoint bursts. When flux is high, the weapon
         // may be stuck in warmup loop, so execute burst when backing off.
-        if (!ai.backoff.isBackingOff && hardpoints.any { it.isInFiringSequence }) return null
+        if (!ai.ventModule.isBackingOff && hardpoints.any { it.isInFiringSequence }) return null
 
         return ship.facing + plan.angleToTarget()
     }
@@ -82,7 +82,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
     private fun updatePlannedBurst(): BurstPlan? {
         // Use burst to back off.
-        if (ai.backoff.isBackingOff) {
+        if (ai.ventModule.isBackingOff) {
             return makeBurstPlan(ai.movement.headingPoint - ship.location, burstVectors, null)
         }
 
@@ -120,7 +120,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
             // Don't interrupt hardpoint warmup. It's possible to burn when
             // weapon is already in burst. When flux is high, the weapon may
             // be stuck in warmup loop, so execute burst when backing off.
-            !ai.backoff.isBackingOff && hardpoints.any { it.isInWarmup } -> false
+            !ai.ventModule.isBackingOff && hardpoints.any { it.isInWarmup } -> false
 
             // Ship is not aligned for burst.
             abs(burstPlan!!.angleToTarget()) > burstTriggerAngle -> false
@@ -142,7 +142,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
         useSystem = true
 
         // Schedule vent after burst if ship is backing off.
-        ventAfterBurst = ai.backoff.isBackingOff
+        ventAfterBurst = ai.ventModule.isBackingOff
     }
 
     /** Description of one of the eight possible burst vectors around the ship. */

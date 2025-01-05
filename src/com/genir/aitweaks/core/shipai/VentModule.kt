@@ -86,7 +86,7 @@ class VentModule(private val ai: CustomShipAI) {
 
         // Calculate backoff heading.
         return when {
-            ai.backoff.isSafe -> when {
+            ai.ventModule.isSafe -> when {
                 ship.fluxTracker.isVenting && ship.fluxTracker.timeToVent < 3f -> null
 
                 // Maintain const distance from maneuver target.

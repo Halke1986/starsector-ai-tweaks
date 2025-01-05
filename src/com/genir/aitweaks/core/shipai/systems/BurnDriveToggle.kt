@@ -104,7 +104,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai), AttackCoordinator.Coordi
 
             burnVector.isZero -> false
 
-            ai.backoff.isBackingOff -> false
+            ai.ventModule.isBackingOff -> false
 
             // Don't burn if not facing the burn destination, as this may lead to interrupting an attack.
             angleToDestination() > maxAngleToTarget -> false
