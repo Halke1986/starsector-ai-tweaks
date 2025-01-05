@@ -3,16 +3,16 @@ package com.genir.aitweaks.core.shipai.autofire
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
-
-// TODO disable for player ship
 
 /** SyncFire is used to synchronise weapons that are to fire in staggered mode. */
 class SyncFire(private val weapon: WeaponAPI, var state: State?) {
     data class State(var weapons: Int, var lastAttack: Float)
 
     private var idleFrames: Int = 0
+    private var isInSync: Boolean = false
 
     fun advance() {
         if (weapon.isInFiringCycle) {
@@ -20,38 +20,66 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
         } else {
             idleFrames++
         }
+
+        // Weapon went out of sync.
+        if (idleFrames > 1) {
+            isInSync = false
+        }
+
+        Debug.print[weapon] = if (idleFrames > 1) idleFrames else ""
     }
 
     /** Make weapons sync fire in staggered firing mode. */
     fun shouldFire(): Boolean {
-        val state = this.state ?: return true
+        // Staggered fire is not available for manually controlled ship.
+        if (weapon.ship.isUnderManualControl) {
+            isInSync = false
+            return true
+        }
+
+        val state = this.state
+        if (state == null) {
+            isInSync = false
+            return true
+        }
 
         // No need to sync a single weapon.
-        if (state.weapons == 1) return true
+        if (state.weapons == 1) {
+            isInSync = false
+            return true
+        }
 
-        // Weapon is the middle of firing cycle, it won't stop now.
-        if (weapon.isInFiringCycle) return true
-
-        // Weapons with firing cycle longer than 8 seconds
+        // Weapons with firing cycle longer than 6 seconds
         // are not eligible for staggered firing mode.
         val cycleDuration = weapon.firingCycle.duration
-        if (cycleDuration >= 6f) return true
+        if (cycleDuration > 6f) {
+            isInSync = false
+            return true
+        }
 
         val timestamp = Global.getCombatEngine().getTotalElapsedTime(false)
         val sinceLastAttack = timestamp - state.lastAttack
         val stagger = cycleDuration / state.weapons
         val dt = Global.getCombatEngine().elapsedInLastFrame
 
-        val shouldFire = when {
-            // Combined rate of fire is too fast to sync.
-            stagger < dt * 2f -> true
+        // Combined rate of fire is too fast to sync.
+        if (stagger < dt * 2) {
+            isInSync = false
+            return true
+        }
 
+        // Weapon is the middle of firing cycle, it won't stop now.
+        if (weapon.isInFiringCycle) {
+            return true
+        }
+
+        isInSync = when {
             // Weapon finished its firing cycle. Assume it's not yet out of
             // sync and continue attack, unless another weapon attacked the
             // same frame. NOTE: there's also an idle frame between shots in
             // a burst, but that case if handled by 'if (weapon.isInFiringCycle)
             // return true' case.
-            sinceLastAttack >= stagger && idleFrames == 1 -> true
+            idleFrames == 1 && isInSync && state.lastAttack != timestamp -> true
 
             // Weapons of same type didn't attack for at least entire firing cycle,
             // meaning all of them are ready to attack. The weapon may fire immediately.
@@ -61,9 +89,11 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
             else -> sinceLastAttack >= stagger && sinceLastAttack % stagger <= dt
         }
 
-        if (shouldFire) state.lastAttack = timestamp
+        if (isInSync) {
+            state.lastAttack = timestamp
+        }
 
-        return shouldFire
+        return isInSync
     }
 
     companion object {
