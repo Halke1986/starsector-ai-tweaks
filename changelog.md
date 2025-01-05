@@ -1,3 +1,5 @@
+- Fixed a major bug where staggered fire logic could prevent weapons from firing under specific conditions.
+
 Version 1.11.2
 
 - Custom AI: Improvements to burn drive AI. Reduced the number of occasions the ship will overexpose itself when using the burn drive.

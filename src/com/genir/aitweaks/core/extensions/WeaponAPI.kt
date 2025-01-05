@@ -165,7 +165,10 @@ val WeaponAPI.slotRange: Float
     get() = range + barrelOffset + slot.location.x
 
 val WeaponAPI.isOutOfAmmo: Boolean
-    get() = usesAmmo() && ammo == 0 && ammoTracker.ammoPerSecond <= 0f
+    get() = usesAmmo() && ammo == 0
+
+val WeaponAPI.isPermanentlyOutOfAmmo: Boolean
+    get() = isOutOfAmmo && ammoTracker.ammoPerSecond <= 0f
 
 /** Total time required for the weapon to reload from empty to full ammunition. */
 val WeaponAPI.totalReloadTime: Float

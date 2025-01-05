@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.shipai.autofire
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
 
@@ -26,7 +25,11 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
             isInSync = false
         }
 
-        Debug.print[weapon] = if (idleFrames > 1) idleFrames else ""
+        // A malfunctioning weapon may disrupt its firing cycle,
+        // requiring re-synchronization.
+        if (weapon.isOutOfOrder) {
+            isInSync = false
+        }
     }
 
     /** Make weapons sync fire in staggered firing mode. */
@@ -96,6 +99,25 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
         return isInSync
     }
 
+    /** Weapon is considered 'out of order' if it's unable
+     * to follow fire command while in idle state. */
+    private val WeaponAPI.isOutOfOrder: Boolean
+        get() {
+            return when {
+                isDisabled -> true
+
+                isPermanentlyDisabled -> true
+
+                isOutOfAmmo -> true
+
+                ship.fluxTracker.isOverloadedOrVenting -> true
+
+                ship.fluxTracker.currFlux + weapon.fluxCostToFire >= ship.fluxTracker.maxFlux -> true
+
+                else -> false
+            }
+        }
+
     companion object {
         /** Ensure all weapons that are to fire in staggered mode share an up-to date state. */
         fun updateWeaponSync(ship: ShipAPI) {
@@ -108,7 +130,6 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
             val syncWeapons: Sequence<AutofireAI> = weapons.filter {
                 when {
                     it.isBeam -> false
-                    it.isPD -> false
                     it.isMissile -> false
 
                     else -> true

@@ -22,7 +22,7 @@ class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
             SyncFire.updateWeaponSync(ship)
         }
 
-        // If all 7 weapon groups are autofiring, then shipAI forcefully selects one of them
+        // If all 7 weapon groups are auto-firing, then shipAI forcefully selects one of them
         // to control manually. Block SELECT_GROUP command to prevent that.
         if (autofireCount == 7) ship.blockCommandForOneFrame(ShipCommand.SELECT_GROUP)
     }
@@ -38,8 +38,10 @@ class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
             }
 
             if (shouldAutofire) {
-                // Deselect group that should be autofiring.
-                if (ship.selectedGroupAPI == group) (ship as Ship).setNoWeaponSelected()
+                // Deselect group that should be auto-firing.
+                if (ship.selectedGroupAPI == group) {
+                    (ship as Ship).setNoWeaponSelected()
+                }
                 group.toggleOn()
             } else {
                 group.toggleOff()

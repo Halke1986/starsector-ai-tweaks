@@ -218,7 +218,7 @@ class VentModule(private val ai: CustomShipAI) {
 
                 // Assume the ship can recognize an empty
                 // missile launcher, same as the player can.
-                weapon.isMissile && weapon.isOutOfAmmo -> false
+                weapon.isMissile && weapon.isPermanentlyOutOfAmmo -> false
 
                 !canWeaponHitShip(weapon, obstacles) -> false
 
