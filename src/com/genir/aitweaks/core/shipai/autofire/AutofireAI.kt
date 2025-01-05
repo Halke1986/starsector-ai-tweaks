@@ -51,7 +51,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         trackAttackTimes(dt)
         updateAim(dt)
-        syncFire?.advance()
+        syncFire.advance()
 
         // Calculate if weapon should fire at the current target.
         if (shouldFireInterval.intervalElapsed()) {
@@ -77,11 +77,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             shouldHoldFire != null -> false
 
-            syncFire != null -> {
-                syncFire.shouldFire()
-            }
-
-            else -> true
+            else -> syncFire.shouldFire()
         }
     }
 

@@ -16,10 +16,8 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - XIV paragon stays at spawn
 
-- dont care about frigates when rotating to burn
-
-- plasma jest for backoff
+- don't care about frigates when rotating to burn
 
 - don't vent when can finish target
 
-- check devastator targeting
+- why onslaught backs so far off when fighting victory
