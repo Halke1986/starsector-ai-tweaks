@@ -21,6 +21,7 @@ import kotlin.math.sign
 
 open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
+    var syncFire: SyncFire = SyncFire(weapon, null)
 
     // Aiming data.
     protected var target: CombatEntityAPI? = null
@@ -33,11 +34,9 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private var shouldFireInterval = IntervalUtil(0.1F, 0.2F)
     private var attackTime: Float = 0f
     private var idleTime: Float = 0f
-    private var idleFrames: Int = 0
     private var onTargetTime: Float = 0f
 
     private var isForcedOff: Boolean = false
-    var syncState: SyncState? = null
 
     override fun advance(dt: Float) {
         when {
@@ -52,6 +51,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         trackAttackTimes(dt)
         updateAim(dt)
+        syncFire?.advance()
 
         // Calculate if weapon should fire at the current target.
         if (shouldFireInterval.intervalElapsed()) {
@@ -68,6 +68,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     override fun shouldFire(): Boolean {
+        val syncFire = syncFire
         return when {
             isForcedOff -> {
                 isForcedOff = false
@@ -76,7 +77,9 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             shouldHoldFire != null -> false
 
-            syncState != null -> syncFire(syncState!!)
+            syncFire != null -> {
+                syncFire.shouldFire()
+            }
 
             else -> true
         }
@@ -94,57 +97,13 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     override fun getWeapon(): WeaponAPI = weapon
     override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
 
-    /** Make weapons sync fire in staggered firing mode. */
-    private fun syncFire(syncState: SyncState): Boolean {
-        // No need to sync a single weapon.
-        if (syncState.weapons == 1) return true
-
-        // Weapon is the middle of firing cycle, it won't stop now.
-        if (weapon.isInFiringCycle) return true
-
-        // Weapons with firing cycle longer than 8 seconds
-        // are not eligible for staggered firing mode.
-        val cycleDuration = weapon.firingCycle.duration
-        if (cycleDuration >= 6f) return true
-
-        val timestamp = Global.getCombatEngine().getTotalElapsedTime(false)
-        val sinceLastAttack = timestamp - syncState.lastAttack
-        val stagger = cycleDuration / syncState.weapons
-        val dt = Global.getCombatEngine().elapsedInLastFrame
-
-        val shouldFire = when {
-            // Combined rate of fire is too fast to sync.
-            stagger < dt * 2f -> true
-
-            // Weapon finished its firing cycle. Assume it's not yet out of
-            // sync and continue attack, unless another weapon attacked the
-            // same frame. NOTE: there's also an idle frame between shots in
-            // a burst, but that case if handled by 'if (weapon.isInFiringCycle)
-            // return true' case.
-            sinceLastAttack >= stagger && idleFrames == 1 -> true
-
-            // Weapons of same type didn't attack for at least entire firing cycle,
-            // meaning all of them are ready to attack. The weapon may fire immediately.
-            sinceLastAttack > cycleDuration -> true
-
-            // Wait for opportunity to attack aligned with staggered attack cycle.
-            else -> sinceLastAttack >= stagger && sinceLastAttack % stagger <= dt
-        }
-
-        if (shouldFire) syncState.lastAttack = timestamp
-
-        return shouldFire
-    }
-
     private fun trackAttackTimes(dt: Float) {
         // Update attack time, used by vanilla accuracy increase mechanism.
         if (weapon.isFiring) {
             attackTime += dt
             idleTime = 0f
-            idleFrames = 0
         } else {
             idleTime += dt
-            idleFrames++
         }
 
         if (idleTime >= 3f) attackTime = 0f

@@ -2,28 +2,24 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
-import com.genir.aitweaks.core.extensions.customAI
 import com.genir.aitweaks.core.extensions.isMissile
 import com.genir.aitweaks.core.extensions.isPD
-import com.genir.aitweaks.core.shipai.autofire.SyncState
-import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.shipai.autofire.SyncFire
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import org.lwjgl.util.vector.Vector2f
 
 class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
     private val updateInterval: IntervalUtil = defaultAIInterval()
-    private val weaponSyncMap: MutableMap<String, SyncState> = mutableMapOf()
     private var autofireCount = 0
 
     override fun autofireManager_advance(dt: Float, threatEvalAI: Obfuscated.ThreatEvaluator?, missileDangerDir: Vector2f?) {
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
             autofireCount = ensureAutofire()
-            updateWeaponSync()
+            SyncFire.updateWeaponSync(ship)
         }
 
         // If all 7 weapon groups are autofiring, then shipAI forcefully selects one of them
@@ -50,35 +46,6 @@ class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
             }
 
             shouldAutofire
-        }
-    }
-
-    /** Ensure all weapons that are to fire in staggered mode share an up-to date state. */
-    private fun updateWeaponSync() {
-        if (!state.config.enabledStaggeredFire) return
-
-        val weapons: Sequence<WeaponAPI> = ship.weaponGroupsCopy.flatMap { it.weaponsCopy }.asSequence()
-        val syncWeapons = weapons.filter {
-            when {
-                it.isBeam -> false
-                it.isPD -> false
-                it.isMissile -> false
-
-                else -> true
-            }
-        }.mapNotNull { it.customAI }
-
-        weaponSyncMap.forEach { it.value.weapons = 0 }
-
-        syncWeapons.forEach { autofireAI ->
-            val state: SyncState = weaponSyncMap[autofireAI.weapon.id] ?: run {
-                val newState = SyncState(0, 0f)
-                weaponSyncMap[autofireAI.weapon.id] = newState
-                newState
-            }
-
-            state.weapons++
-            autofireAI.syncState = state
         }
     }
 }
