@@ -14,8 +14,10 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - ships with assignment should have priority, at least for player fleet.
 
-- XIV paragon stays at spawn
-
 - don't care about frigates when rotating to burn
 
 - area targeting for devastator
+
+- 1v1 strafing, maybe use zero threat vector?
+
+- XIV paragon stays at spawn
