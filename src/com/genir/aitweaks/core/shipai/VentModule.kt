@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
@@ -14,8 +13,6 @@ import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.RED
-import java.awt.Color.YELLOW
 import kotlin.math.max
 import kotlin.math.sqrt
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
@@ -26,13 +23,14 @@ class VentModule(private val ai: CustomShipAI) {
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     var isBackingOff: Boolean = false
+    var shouldFinishTarget: Boolean = false
     private var ventTime: Float = ship.fluxTracker.timeToVent
     private var shouldVent: Boolean = false
     private var isSafe: Boolean = false
     private var backoffDistance: Float = farAway
 
     private companion object Preset {
-        const val ventTimeFactor = 0.75f
+        const val ventTimeFactor = 0.8f
         const val shipSpeedFactor = 0.75f
         const val idleVentThreshold = 0.25f
         const val opportunisticVentThreshold = 0.5f
@@ -41,12 +39,13 @@ class VentModule(private val ai: CustomShipAI) {
     }
 
     fun advance(dt: Float) {
-        // debug()
+        debug()
         damageTracker.advance()
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
             ventTime = ship.fluxTracker.timeToVent
+            shouldFinishTarget = shouldFinishTarget()
             updateBackoffStatus()
             shouldVent = shouldVent()
 
@@ -62,13 +61,17 @@ class VentModule(private val ai: CustomShipAI) {
     }
 
     private fun debug() {
-        if (shouldVent && !ship.fluxTracker.isVenting) {
-            Debug.drawCircle(ship.location, ship.collisionRadius / 2, YELLOW)
+//        if (shouldFinishTarget && ship.fluxLevel > AIPreset.backoffUpperThreshold) {
+//            Debug.drawCircle(ship.location, ship.collisionRadius / 2, BLUE)
+//        }
 
-            findDangerousWeapons().forEach {
-                Debug.drawLine(ship.location, it.location, RED)
-            }
-        }
+//        if (shouldVent && !ship.fluxTracker.isVenting) {
+//            Debug.drawCircle(ship.location, ship.collisionRadius / 2, YELLOW)
+//
+//            findDangerousWeapons().forEach {
+//                Debug.drawLine(ship.location, it.location, RED)
+//            }
+//        }
     }
 
     /** Control the ship heading when backing off. */
@@ -112,6 +115,8 @@ class VentModule(private val ai: CustomShipAI) {
             // Enemy is routing, keep the pressure.
             Global.getCombatEngine().isEnemyInFullRetreat -> false
 
+            shouldFinishTarget -> false
+
             // Ship with no shield backs off when it can't fire anymore.
             ship.shield == null && ship.allWeapons.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft } -> true
 
@@ -142,6 +147,8 @@ class VentModule(private val ai: CustomShipAI) {
 
             // No need to vent.
             ship.fluxLevel < AIPreset.backoffLowerThreshold -> false
+
+            shouldFinishTarget -> false
 
             // Vent if ship is backing off.
             isBackingOff -> true
@@ -288,6 +295,21 @@ class VentModule(private val ai: CustomShipAI) {
         }
 
         return rawDamage * damageMultiplier
+    }
+
+    /** Determine if ship should forego venting and backing off
+     * to instead focus on finishing its target. */
+    private fun shouldFinishTarget(): Boolean {
+        val target: ShipAPI = ai.attackTarget as? ShipAPI ?: return false
+
+        when {
+            target.isFighter || target.root.isFrigate -> return false
+
+            ai.range(target) > ai.attackingGroup.effectiveRange -> return false
+        }
+
+        val damage = 1 - target.hullLevel
+        return ship.fluxLevel < damage * damage * damage
     }
 
     private val WeaponAPI.isFinisherMissile: Boolean

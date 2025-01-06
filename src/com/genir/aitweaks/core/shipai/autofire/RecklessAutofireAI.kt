@@ -18,7 +18,7 @@ class RecklessAutofireAI(weapon: WeaponAPI) : AutofireAI(weapon) {
         val target: CombatEntityAPI = target ?: return HoldFire.NO_TARGET
         if (!target.isValidTarget) return HoldFire.NO_TARGET
 
-        holdFireIfOverfluxed()?.let { return it }
+        holdFireIfOverfluxed(target)?.let { return it }
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.

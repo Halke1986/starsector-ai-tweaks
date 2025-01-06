@@ -7,6 +7,7 @@ import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.WrapperShipAI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.SHIELD
@@ -157,7 +158,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val target: CombatEntityAPI = target ?: return NO_TARGET
         if (!target.isValidTarget) return NO_TARGET
 
-        holdFireIfOverfluxed()?.let { return it }
+        holdFireIfOverfluxed(target)?.let { return it }
         stabilizeOnTarget()?.let { return it }
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
@@ -194,22 +195,35 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return AttackRules(weapon, hit, ballisticParams).shouldHoldFire
     }
 
-    protected fun holdFireIfOverfluxed(): HoldFire? {
+    protected fun holdFireIfOverfluxed(target: CombatEntityAPI): HoldFire? {
         return when {
             // Ships with no shields don't need to preserve flux.
             ship.shield == null -> null
 
             weapon.isPD -> null
 
-            weapon.fluxCostToFire == 0f -> null
-
             weapon.ship.isUnderManualControl -> null
+
+            shouldFinishTarget(target) -> null
 
             // Ship will be overfluxed after the attack.
             ship.fluxTracker.currFlux + weapon.fluxCostToFire >= ship.fluxTracker.maxFlux * Preset.holdFireThreshold -> SAVE_FLUX
 
             else -> null
         }
+    }
+
+    /** Should the weapon try to kill ship target even if the ship is overfluxed.  */
+    private fun shouldFinishTarget(target: CombatEntityAPI): Boolean {
+        // Don't try to decipher vanilla AI behavior.
+        val ai: CustomShipAI = ship.customShipAI ?: return false
+
+        // Weapon is not attacking the ship target.
+        if (target != ai.attackTarget) {
+            return false
+        }
+
+        return ai.ventModule.shouldFinishTarget
     }
 
     /** Hold fire for a period of time after initially acquiring
@@ -327,8 +341,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Vanilla AI lacks precise aiming, so hardpoints need flexibility to compensate.
         // Aim directly at the intercept point when the ship is close to aligned.
         if (customAIFacing == null && wrapperAIFacing == null) {
-            if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(intercept))
-                return intercept
+            if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(intercept)) return intercept
         }
 
         // Aim the hardpoint as if the ship was facing the target directly.

@@ -18,6 +18,4 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - don't care about frigates when rotating to burn
 
-- don't vent when can finish target
-
-- why onslaught backs so far off when fighting victory
+- area targeting for devastator
