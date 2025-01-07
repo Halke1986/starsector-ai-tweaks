@@ -1,5 +1,6 @@
 - Fixed a major bug where staggered fire logic could prevent weapons from firing under specific conditions.
 - Custom AI: Ship will not vent if it has an opportunity to finish a heavily damaged target.
+- 
 
 Version 1.11.2
 

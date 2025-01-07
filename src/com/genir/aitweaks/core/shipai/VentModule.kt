@@ -264,19 +264,27 @@ class VentModule(private val ai: CustomShipAI) {
         }
 
         return obstacles.none { obstacle ->
-            // Obstacle does not block its own weapons.
-            if (obstacle.root == weapon.ship.root) return@none false
-
             val p = weapon.location - obstacle.location
-            val v = toShip
 
-            // Obstacle is farther than the ship.
-            if (p.lengthSquared > distSqr) return@none false
+            when {
+                // Obstacle does not block its own weapons.
+                obstacle.root == weapon.ship.root -> return@none false
+
+                // Weapon can shoot over allies.
+                weapon.noFF && obstacle.owner == weapon.ship.owner -> return@none false
+
+                // Special case for frigates. Assume they can quickly
+                // maneuver around an obstacle and deliver a torpedo.
+                weapon.ship.root.isFrigate && weapon.isFinisherMissile -> return@none false
+
+                // Obstacle is farther than the ship.
+                p.lengthSquared > distSqr -> return@none false
+            }
 
             val radius = if (obstacle.isAlive) obstacle.shieldRadiusEvenIfNoShield * 1.5f
             else state.bounds.radius(obstacle)
 
-            distanceToOrigin(p, v) <= radius
+            distanceToOrigin(p, toShip) <= radius
         }
     }
 
@@ -305,7 +313,7 @@ class VentModule(private val ai: CustomShipAI) {
         when {
             target.isFighter || target.root.isFrigate -> return false
 
-            ai.range(target) > ai.attackingGroup.effectiveRange -> return false
+            ai.currentEffectiveRange(target) > ai.attackingGroup.effectiveRange -> return false
         }
 
         val damage = 1 - target.hullLevel

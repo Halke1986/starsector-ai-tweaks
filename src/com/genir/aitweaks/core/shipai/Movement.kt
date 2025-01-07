@@ -133,20 +133,22 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         // position itself between the objective and the target.
         ai.assignment.navigateTo?.let { return maneuverTarget.location - it }
 
+        // Try to move away from the threat, if any. Move straight to target otherwise.
+        val approachVector = if (ai.threatVector.isNonZero) ai.threatVector
+        else (maneuverTarget.location - ship.location)
+
         // Strafe away from map border, prefer the map center.
         val engine = Global.getCombatEngine()
         val borderDistX = (ship.location.x * ship.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
         val borderDistY = (ship.location.y * ship.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
         val borderWeight = max(borderDistX, borderDistY) * 2f
-
-        // Try to move away from the threat, if any. Move straight to target otherwise.
-        val approachVector = if (ai.threatVector.isNonZero) ai.threatVector
-        else (maneuverTarget.location - ship.location).resized(1f)
-        val attackVector = -(approachVector + ship.location.resized(borderWeight)).resized(ai.attackRange)
+        val borderAdjustedApproachVector = approachVector.resized(1f) + ship.location.resized(borderWeight)
 
         // Strafe the target randomly, when it's the only threat.
-        val shouldStrafe = ai.is1v1 && ai.range(maneuverTarget) <= ai.attackingGroup.effectiveRange
-        return if (!shouldStrafe) attackVector.rotated(strafeRotation)
+        val attackVector = -borderAdjustedApproachVector.resized(ai.attackRange)
+        val shouldStrafe = ai.is1v1 && ai.currentEffectiveRange(maneuverTarget) <= ai.attackingGroup.effectiveRange
+
+        return if (shouldStrafe) attackVector.rotated(strafeRotation)
         else attackVector
     }
 
@@ -202,7 +204,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             ShipSystemAIType.BURN_DRIVE -> {
                 // Prevent vanilla AI from jumping closer to target with
                 // BURN_DRIVE, if the target is already within weapons range.
-                if (ai.attackTarget != null && ai.range(ai.attackTarget!!) < ai.attackingGroup.effectiveRange) {
+                if (ai.attackTarget != null && ai.currentEffectiveRange(ai.attackTarget!!) < ai.attackingGroup.effectiveRange) {
                     ship.blockCommandForOneFrame(USE_SYSTEM)
                 }
 
@@ -308,7 +310,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                 angleToVelocity.sign != angleToOtherLine.sign -> return@forEach
 
                 // Do not consider line of fire blocking if target is out of range, with 1.2 tolerance factor.
-                blocked.range(target) > blocked.attackingGroup.maxRange * 1.2f -> return@forEach
+                blocked.currentEffectiveRange(target) > blocked.attackingGroup.maxRange * 1.2f -> return@forEach
             }
 
             val arcLength = distToTarget * abs(angleToOtherLine) * DEGREES_TO_RADIANS

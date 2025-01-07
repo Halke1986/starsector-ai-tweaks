@@ -40,11 +40,12 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     var finishBurstTarget: CombatEntityAPI? = null
     var finishBurstWeaponGroup: WeaponGroup? = null
 
-    // AI State.
+    // Attack details.
     var stats: ShipStats = ShipStats(ship)
     var attackingGroup: WeaponGroup = stats.weaponGroups[0]
     var attackRange: Float = 0f
 
+    // AI State.
     var isExploring: Boolean = true
     var isAvoidingBorder: Boolean = false
     var is1v1: Boolean = false
@@ -117,6 +118,11 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 //        Debug.drawLine(ship.location, ship.location + movement.expectedVelocity.resized(300f), Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
 //        Debug.drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
+
+//        if (maneuverTarget != null) {
+//            Debug.drawCircle(ship.location, attackingGroup.minRange, Color.BLUE)
+//            Debug.drawCircle(maneuverTarget!!.location, effectiveTargetRadius(maneuverTarget!!))
+//        }
     }
 
     private fun updateManeuverTarget() {
@@ -295,7 +301,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         // Find best attack opportunity for each weapon group.
         val weaponGroupTargets: Map<WeaponGroup, Map.Entry<ShipAPI, Float>> = stats.weaponGroups.associateWith { weaponGroup ->
             val obstacles = getObstacles(weaponGroup)
-            val groupOpportunities = opportunities.asSequence().filter { range(it) < weaponGroup.maxRange }
+            val groupOpportunities = opportunities.asSequence().filter { currentEffectiveRange(it) < weaponGroup.maxRange }
             val evaluatedOpportunities = groupOpportunities.associateWith {
                 evaluateTarget(it, weaponGroup, obstacles, targetedEnemies)
             }
@@ -318,6 +324,10 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             else -> null
         }
         return Pair(stats.weaponGroups[0], altTarget)
+    }
+
+    private fun isThreat(target: ShipAPI): Boolean {
+        return target.owner != ship.owner && target.isAlive && target.isShip && !target.isFighter
     }
 
     private inner class Obstacle(val arc: Arc, val dist: Float) {
@@ -379,7 +389,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         evaluation -= abs(angle) * angleWeight
 
         // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
-        val dist = range(target)
+        val dist = currentEffectiveRange(target)
         val distWeight = 1f / weaponGroup.dpsFractionAtRange(dist)
         evaluation -= (dist / weaponGroup.maxRange) * distWeight
 
@@ -419,7 +429,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }
 
         // Try to stay on target.
-        if (target == attackTarget && range(target) <= weaponGroup.effectiveRange) {
+        if (target == attackTarget && currentEffectiveRange(target) <= weaponGroup.effectiveRange) {
             evaluation += 1f
         }
 
@@ -440,7 +450,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     fun updateAttackRange() {
         val flag = vanilla.flags.get<Float>(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)
 
-        attackRange = when {
+        attackRange = effectiveTargetRadius(maneuverTarget) + when {
             // Range overriden by ai flag.
             flag != null -> flag
 
@@ -452,11 +462,32 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }
     }
 
-    private fun isThreat(target: ShipAPI): Boolean {
-        return target.owner != ship.owner && target.isAlive && target.isShip && !target.isFighter
+    /** Distance between ship location and target effective radius. */
+    fun currentEffectiveRange(target: CombatEntityAPI): Float {
+        if (target !is ShipAPI) {
+            return (target.location - ship.location).length
+        }
+
+        return max(0f, targetBoundsDistance(target) - 100f)
     }
 
-    internal fun range(target: CombatEntityAPI): Float {
-        return (target.location - ship.location).length - target.collisionRadius / 2f
+    /** Target radius that should be used when calculating attack range. */
+    private fun effectiveTargetRadius(target: CombatEntityAPI?): Float {
+        if (target !is ShipAPI) {
+            return 0f
+        }
+
+        val position = ship.location - target.location
+        val dist = targetBoundsDistance(target)
+        val radius = position.length - dist
+
+        return max(0f, radius - 100f)
+    }
+
+    /** Distance between ship location and target bounds. */
+    private fun targetBoundsDistance(target: ShipAPI): Float {
+        val position = ship.location - target.location
+        val velocity = position.resized(-1f)
+        return state.bounds.collision(position, velocity, target) ?: 0f
     }
 }
