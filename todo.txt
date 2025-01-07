@@ -20,6 +20,6 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - 1v1 strafing, maybe use zero threat vector?
 
-- XIV paragon stays at spawn
+- IX paragon stays at spawn
 
-- Use bounds radius when calculating engagement distance
+- use front facing turrets with rotation speed lower than ship turn rate as hardpoints

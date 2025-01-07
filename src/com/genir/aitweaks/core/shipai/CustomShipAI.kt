@@ -10,6 +10,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
 import com.genir.aitweaks.core.shipai.systems.SystemAI
 import com.genir.aitweaks.core.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.state.State.Companion.state
@@ -119,10 +120,10 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 //        Debug.drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
 //        Debug.drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
 
-//        if (maneuverTarget != null) {
+        if (maneuverTarget != null) {
 //            Debug.drawCircle(ship.location, attackingGroup.minRange, Color.BLUE)
 //            Debug.drawCircle(maneuverTarget!!.location, effectiveTargetRadius(maneuverTarget!!))
-//        }
+        }
     }
 
     private fun updateManeuverTarget() {
@@ -448,12 +449,13 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
     /** Range from which ship should attack its target. */
     fun updateAttackRange() {
-        val flag = vanilla.flags.get<Float>(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)
+        // Range overriden by ai flag.
+        vanilla.flags.get<Float>(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)?.let {
+            attackRange = it
+            return
+        }
 
         attackRange = effectiveTargetRadius(maneuverTarget) + when {
-            // Range overriden by ai flag.
-            flag != null -> flag
-
             // Default all-weapons attack range.
             attackingGroup.dps > 0f -> attackingGroup.minRange
 
@@ -468,7 +470,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             return (target.location - ship.location).length
         }
 
-        return max(0f, targetBoundsDistance(target) - 100f)
+        return max(0f, targetBoundsDistance(target) - targetThickness)
     }
 
     /** Target radius that should be used when calculating attack range. */
@@ -481,7 +483,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         val dist = targetBoundsDistance(target)
         val radius = position.length - dist
 
-        return max(0f, radius - 100f)
+        return radius - targetThickness
     }
 
     /** Distance between ship location and target bounds. */

@@ -8,10 +8,6 @@ class Preset {
         val threatSearchRange: Float
             get() = mapSize / 8f
 
-        const val aimOffsetSamples = 45
-
-        const val effectiveDpsThreshold = 0.80f
-
         // Flux management
         const val backoffUpperThreshold = 0.75f
         const val backoffLowerThreshold = 0.1f
@@ -30,11 +26,12 @@ class Preset {
         const val collisionBuffer = 30f
         const val hulkSizeFactor = 0.95f
 
-        // Weapon groups
+        // Targeting & Weapon groups
         const val validWeaponGroupDPSThreshold = 0.9f
-
         const val noWeaponsAttackRange = 2000f
         const val weaponMaxReloadTime = 12f
+        const val effectiveDpsThreshold = 0.80f
+        const val targetThickness = 60f
 
         private val mapSize: Float
             get() {

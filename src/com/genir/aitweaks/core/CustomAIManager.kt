@@ -55,7 +55,7 @@ class CustomAIManager {
                 ship.hullSpec.shipSystemId == "lidararray" -> true
 
                 // Simulator.
-//                state.config.enableSimulatorCustomAI && Global.getCombatEngine().isSimulation -> true
+                state.config.enableSimulatorCustomAI && Global.getCombatEngine().isSimulation -> true
 
                 else -> false
             }
