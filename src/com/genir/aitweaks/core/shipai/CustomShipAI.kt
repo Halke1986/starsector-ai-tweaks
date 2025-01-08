@@ -10,7 +10,9 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.Preset.Companion.assaultShipApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
+import com.genir.aitweaks.core.shipai.systems.BurnDriveToggle
 import com.genir.aitweaks.core.shipai.systems.SystemAI
 import com.genir.aitweaks.core.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.state.State.Companion.state
@@ -47,6 +49,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     var attackRange: Float = 0f
 
     // AI State.
+    val isAssaultShip: Boolean = systemAI is BurnDriveToggle
     var isExploring: Boolean = true
     var isAvoidingBorder: Boolean = false
     var is1v1: Boolean = false
@@ -455,13 +458,16 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             return
         }
 
-        attackRange = effectiveTargetRadius(maneuverTarget) + when {
+        val range = when {
             // Default all-weapons attack range.
             attackingGroup.dps > 0f -> attackingGroup.minRange
 
             // Range for ships with no weapons.
             else -> Preset.noWeaponsAttackRange
         }
+
+        val approachFactor = if (isAssaultShip) assaultShipApproachFactor else 1f
+        attackRange = (effectiveTargetRadius(maneuverTarget) + range) * approachFactor
     }
 
     /** Distance between ship location and target effective radius. */

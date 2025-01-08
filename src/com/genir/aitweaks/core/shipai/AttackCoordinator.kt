@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.Preset.Companion.collisionBuffer
 import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.unitVector
@@ -127,7 +126,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
     private class Unit(val target: ShipAPI, proposedHeadingPoint: Vector2f, val coordinable: Coordinable) {
         val ship: ShipAPI = coordinable.ai.ship
         val attackRange: Float = (proposedHeadingPoint - target.location).length
-        val angularSize: Float = angularSize(attackRange * attackRange, ship.totalCollisionRadius + collisionBuffer)
+        val angularSize: Float = angularSize(attackRange * attackRange, ship.totalCollisionRadius * 1.4f)
         val proposedFacing: Float = (proposedHeadingPoint - target.location).facing
         val currentFacing: Float = (ship.location - target.location).facing
     }

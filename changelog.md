@@ -1,6 +1,7 @@
 - Fixed a major bug where staggered fire logic could prevent weapons from firing under specific conditions.
 - Custom AI: Ship will not vent if it has an opportunity to finish a heavily damaged target.
-- Custom AI: Improved ship movement algorithm. Now the AI will not approach to larger targets closer than necessary.
+- Custom AI: Improved ship movement algorithm. Now the AI will not approach larger targets closer than necessary.
+- Custom AI: Ships equipped with Burn Drive now coordinate their movement more effectively and block each other’s paths less often.
 
 Version 1.11.2
 

@@ -32,7 +32,7 @@ class VentModule(private val ai: CustomShipAI) {
     private companion object Preset {
         const val ventTimeFactor = 0.8f
         const val shipSpeedFactor = 0.75f
-        const val idleVentThreshold = 0.25f
+        const val idleVentThreshold = 0.30f
         const val opportunisticVentThreshold = 0.5f
 
         const val farAway = 1e8f
@@ -160,7 +160,7 @@ class VentModule(private val ai: CustomShipAI) {
             ship.fluxLevel >= opportunisticVentThreshold -> true
 
             // Vent when the ship is idle.
-            ship.fluxLevel >= idleVentThreshold && ship.allGroupedWeapons.all { it.isIdle || it.cooldownRemaining > ventTime } -> true
+            ship.fluxLevel >= idleVentThreshold && isIdle() -> true
 
             else -> false
         }
@@ -318,6 +318,16 @@ class VentModule(private val ai: CustomShipAI) {
 
         val damage = 1 - target.hullLevel
         return ship.fluxLevel < damage * damage * damage
+    }
+
+    private fun isIdle(): Boolean {
+        return when {
+            ship.shield?.isOn == true -> false
+
+            ship.system?.isOn == true -> false
+
+            else -> ship.allGroupedWeapons.all { it.isIdle || it.cooldownRemaining > ventTime }
+        }
     }
 
     private val WeaponAPI.isFinisherMissile: Boolean

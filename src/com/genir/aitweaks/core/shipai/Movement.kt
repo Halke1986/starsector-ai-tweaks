@@ -73,7 +73,9 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                     proposedHeadingPoint = attackLocation
                     val headingPoint = reviewedHeadingPoint ?: attackLocation
 
-                    avoidHulks(maneuverTarget, headingPoint) ?: headingPoint
+                    // Assault ships don't try to avoid hulks, as this interferes with burn drive.
+                    if (ai.isAssaultShip) headingPoint
+                    else avoidHulks(maneuverTarget, headingPoint) ?: headingPoint
                 }
 
                 // Nothing to do, stop the ship.
@@ -133,9 +135,11 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         // position itself between the objective and the target.
         ai.assignment.navigateTo?.let { return maneuverTarget.location - it }
 
-        // Try to move away from the threat, if any. Move straight to target otherwise.
-        val approachVector = if (ai.threatVector.isNonZero) ai.threatVector
-        else (maneuverTarget.location - ship.location)
+        // Move straight to the target if no threat or if ship is an assault ship.
+        // Otherwise, try to move away from the threat.
+        val chargeTarget = maneuverTarget.location - ship.location
+        val approachVector = if (ai.isAssaultShip || ai.threatVector.isZero) chargeTarget
+        else ai.threatVector
 
         // Strafe away from map border, prefer the map center.
         val engine = Global.getCombatEngine()

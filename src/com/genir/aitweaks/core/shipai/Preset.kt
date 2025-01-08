@@ -32,6 +32,7 @@ class Preset {
         const val weaponMaxReloadTime = 12f
         const val effectiveDpsThreshold = 0.80f
         const val targetThickness = 60f
+        const val assaultShipApproachFactor = 0.875f
 
         private val mapSize: Float
             get() {
