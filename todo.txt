@@ -1,8 +1,10 @@
 ships avoid collisions with very large modded shields
 
+why invictus close to station? maybe admiral AI gave eliminate order?
+
 ----------------------------------------------------------------
 
-why invictus close to station? maybe admiral AI gave eliminate order?
+- autofire weapons should prioritize targets of other ships, maybe
 
 ----------------------------------------------------------------
 
@@ -10,16 +12,10 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - sometimes guided finisher missiles are ignored when venting, especially on phase ships
 
-- autofire weapons should prioritize targets of other ships, maybe
-
 - ships with assignment should have priority, at least for player fleet.
-
-- don't care about frigates when rotating to burn
 
 - area targeting for devastator
 
-- 1v1 strafing, maybe use zero threat vector?
+- 1v1 strafing, maybe use zero threat vector? (should be fixed now)
 
-- IX paragon stays at spawn
-
-- use front facing turrets with rotation speed lower than ship turn rate as hardpoints
+- use front facing turrets with rotation speed lower than ship turn rate as hardpoints, unless flamed out
