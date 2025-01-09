@@ -18,4 +18,8 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - 1v1 strafing, maybe use zero threat vector? (should be fixed now)
 
-- use front facing turrets with rotation speed lower than ship turn rate as hardpoints, unless flamed out
+- use front facing turrets with rotation speed lower than ship turn rate as hardpoints
+ - unless flamed out
+ - not for player
+
+- don't prevent venting if target has more health than the ship
