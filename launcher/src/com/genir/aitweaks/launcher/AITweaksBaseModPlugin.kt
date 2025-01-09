@@ -8,16 +8,18 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.fleet.FleetMemberAPI
-import com.genir.aitweaks.launcher.loading.CoreLoaderManager.newCoreObject
+import com.genir.aitweaks.launcher.loading.CoreLoaderManager.coreLoader
+import com.genir.aitweaks.launcher.loading.CoreLoaderManager.instantiate
+import lunalib.lunaSettings.LunaSettings
 
-class AITweaks : BaseModPlugin() {
+class AITweaksBaseModPlugin : BaseModPlugin() {
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
-        val core: BaseModPlugin = newCoreObject("com.genir.aitweaks.core.AITweaksCore")
+        val core: BaseModPlugin = coreLoader.loadClass("com.genir.aitweaks.core.BaseModPlugin").instantiate()
         return core.pickWeaponAutofireAI(weapon)
     }
 
     override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin> {
-        val core: BaseModPlugin = newCoreObject("com.genir.aitweaks.core.AITweaksCore")
+        val core: BaseModPlugin = coreLoader.loadClass("com.genir.aitweaks.core.BaseModPlugin").instantiate()
         return core.pickShipAI(member, ship)
     }
 
@@ -39,8 +41,14 @@ class AITweaks : BaseModPlugin() {
     }
 
     private fun onGameStart() {
+        val devmode = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") == true
+        val sector = Global.getSector()
+        if (devmode && !sector.hasTransientScript(AITweaksEveryFrameScript::class.java)) {
+            sector.addTransientScript(AITweaksEveryFrameScript())
+        }
+
         // Register Cryosleeper encounter plugin.
-        val plugins = Global.getSector().genericPlugins
+        val plugins = sector.genericPlugins
         if (!plugins.hasPlugin(CryosleeperEncounter::class.java)) {
             plugins.addPlugin(CryosleeperEncounter(), true)
         }

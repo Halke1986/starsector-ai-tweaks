@@ -3,7 +3,8 @@ package com.genir.aitweaks.launcher
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin
 import com.genir.aitweaks.launcher.loading.CoreLoaderManager
-import com.genir.aitweaks.launcher.loading.CoreLoaderManager.newCoreObject
+import com.genir.aitweaks.launcher.loading.CoreLoaderManager.coreLoader
+import com.genir.aitweaks.launcher.loading.CoreLoaderManager.instantiate
 
 class AITweaksCombatPlugin : EveryFrameCombatPlugin by newPlugin() {
     companion object {
@@ -13,7 +14,7 @@ class AITweaksCombatPlugin : EveryFrameCombatPlugin by newPlugin() {
             CoreLoaderManager.updateLoader()
 
             // Combat state.
-            return newCoreObject("com.genir.aitweaks.core.state.State")
+            return coreLoader.loadClass("com.genir.aitweaks.core.state.State").instantiate()
         }
     }
 }

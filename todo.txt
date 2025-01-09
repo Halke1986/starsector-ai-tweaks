@@ -19,3 +19,5 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 - 1v1 strafing, maybe use zero threat vector? (should be fixed now)
 
 - use front facing turrets with rotation speed lower than ship turn rate as hardpoints, unless flamed out
+
+- champion wih gauss and hil vs meatball - why the wobble?
