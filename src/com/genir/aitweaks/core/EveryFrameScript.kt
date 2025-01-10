@@ -13,21 +13,23 @@ import com.fs.starfarer.campaign.fleet.FleetMember
 import java.lang.reflect.Method
 
 class EveryFrameScript : EveryFrameScript {
-    private val uiPanelClass: Class<*> = CampaignState::class.java.getMethod("getScreenPanel").returnType
+    private val getScreenPanel: Method = CampaignState::class.java.getMethod("getScreenPanel")
+    private val uiPanelClass: Class<*> = getScreenPanel.returnType
     private val getChildrenCopy: Method = uiPanelClass.getMethod("getChildrenCopy")
 
     private var filterPanel: FleetFilterPanel? = null
     private var prevFleetPanel: Any? = null
 
     override fun advance(dt: Float) {
-        val campaignState = Global.getSector().campaignUI as CampaignState
+        val campaignState = Global.getSector().campaignUI //as CampaignState
         if (campaignState.currentCoreTab != CoreUITabId.FLEET) {
             updateFilterPanel(null)
             return
         }
 
         // Attach a new filter panel to each fleet panel.
-        val fleetPanel = findFleetPanel(campaignState.screenPanel) as? UIPanelAPI
+        val screenPanel: Any = getScreenPanel.invoke(campaignState)
+        val fleetPanel = findFleetPanel(screenPanel) as? UIPanelAPI
         if (fleetPanel != prevFleetPanel) {
             updateFilterPanel(fleetPanel)
         }
