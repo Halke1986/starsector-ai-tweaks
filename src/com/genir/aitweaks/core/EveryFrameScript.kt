@@ -1,57 +1,35 @@
 package com.genir.aitweaks.core
 
-//import com.fs.starfarer.coreui.OOO0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO as FleetPanel
 import com.fs.starfarer.api.EveryFrameScript
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.campaign.CoreUITabId
 import com.fs.starfarer.api.campaign.CustomUIPanelPlugin
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.api.ui.CustomPanelAPI
-import com.fs.starfarer.api.ui.Fonts
-import com.fs.starfarer.api.ui.PositionAPI
-import com.fs.starfarer.api.ui.TextFieldAPI
+import com.fs.starfarer.api.ui.*
 import com.fs.starfarer.campaign.CampaignState
 import com.fs.starfarer.campaign.fleet.FleetData
 import com.fs.starfarer.campaign.fleet.FleetMember
 import java.lang.reflect.Method
-import com.fs.starfarer.coreui.OOO0OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO as FleetPanel
 
 class EveryFrameScript : EveryFrameScript {
     private val uiPanelClass: Class<*> = CampaignState::class.java.getMethod("getScreenPanel").returnType
-
-    private val getDialogType: Method = CampaignState::class.java.getMethod("getDialogType")
     private val getChildrenCopy: Method = uiPanelClass.getMethod("getChildrenCopy")
 
     private var filterPanel: FleetFilterPanel? = null
-    private var prevFleetPanel: FleetPanel? = null
+    private var prevFleetPanel: Any? = null
 
     override fun advance(dt: Float) {
         val campaignState = Global.getSector().campaignUI as CampaignState
-        val screenPanel = campaignState.screenPanel
-
-        val uiDisplayed: Boolean = when {
-            screenPanel == null -> false
-
-            getDialogType.invoke(campaignState) == null -> false
-
-            else -> true
+        if (campaignState.currentCoreTab != CoreUITabId.FLEET) {
+            updateFilterPanel(null)
+            return
         }
 
-        // Run only when UI is displayed.
-        if (uiDisplayed) {
-            val fleetPanel = findFleetPanel(screenPanel)
-            if (fleetPanel != prevFleetPanel) {
-                filterPanel?.applyStash()
-                filterPanel = null
-
-                if (fleetPanel != null) {
-                    if (fleetPanel.fleetData.fleet?.faction == null) {
-                        filterPanel = FleetFilterPanel(200f, 20f, fleetPanel)
-                    }
-                }
-            }
-
-            this.prevFleetPanel = fleetPanel
+        // Attach a new filter panel to each fleet panel.
+        val fleetPanel = findFleetPanel(campaignState.screenPanel) as? UIPanelAPI
+        if (fleetPanel != prevFleetPanel) {
+            updateFilterPanel(fleetPanel)
         }
     }
 
@@ -59,9 +37,19 @@ class EveryFrameScript : EveryFrameScript {
 
     override fun runWhilePaused(): Boolean = true
 
-    private fun findFleetPanel(uiComponent: Any): FleetPanel? {
+    private fun updateFilterPanel(fleetPanel: UIPanelAPI?) {
+        filterPanel?.applyStash()
+        filterPanel = fleetPanel?.let { FleetFilterPanel(200f, 20f, it) }
+        prevFleetPanel = fleetPanel
+    }
+
+    /** Find the currently displayed FleetPanel, if any. Assume
+     * there's only one FleetPanel being displayed at a time. */
+    private fun findFleetPanel(uiComponent: Any): Any? {
         return when {
-            uiComponent is FleetPanel -> return uiComponent
+            uiComponent::class.java.methods.any { it.name == "getOther" && it.returnType == FleetData::class.java } -> {
+                return uiComponent
+            }
 
             uiPanelClass.isInstance(uiComponent) -> {
                 val children = getChildrenCopy.invoke(uiComponent) as List<*>
@@ -74,7 +62,11 @@ class EveryFrameScript : EveryFrameScript {
     }
 }
 
-class FleetFilterPanel(width: Float, height: Float, private val fleetPanel: FleetPanel) : CustomUIPanelPlugin {
+class FleetFilterPanel(width: Float, height: Float, private val fleetPanel: UIPanelAPI) : CustomUIPanelPlugin {
+    private val fleetPanelClass: Class<*> = fleetPanel::class.java
+    private val getFleetData: Method = fleetPanelClass.methods.first { it.name == "getFleetData" }
+    private val recreateUI: Method = fleetPanelClass.methods.first { it.name == "recreateUI" }
+
     private val stash: FleetData = FleetData("aitweaks", fleetPanel.fleetData.fleet?.faction?.id)
     private var order: List<FleetMemberAPI>? = null
 
@@ -88,8 +80,13 @@ class FleetFilterPanel(width: Float, height: Float, private val fleetPanel: Flee
     init {
         val tooltip = mainPanel.createUIElement(width, height, false)
         textField = tooltip.addTextField(width, height, Fonts.DEFAULT_SMALL, 0f)
-        mainPanel.addUIElement(tooltip).inTL(0f, 0f)
-        fleetPanel.addComponent(mainPanel).inTR(xPad, yPad)
+
+        // Work only for storage or market fleets,
+        // which can be recognized by missing faction.
+        if (fleetPanel.fleetData.fleet?.faction == null) {
+            mainPanel.addUIElement(tooltip).inTL(0f, 0f)
+            fleetPanel.addComponent(mainPanel).inTR(xPad, yPad)
+        }
     }
 
     override fun advance(dt: Float) {
@@ -97,46 +94,55 @@ class FleetFilterPanel(width: Float, height: Float, private val fleetPanel: Flee
             return
         }
 
+        val fleetData = fleetPanel.fleetData
+
         if (order == null) {
             val newOrder: MutableList<FleetMemberAPI> = mutableListOf()
-            fleetPanel.fleetData.members.forEach {
+            fleetData.members.forEach {
                 newOrder.add(it)
             }
             order = newOrder
         }
 
-        val toStash: List<FleetMember> = fleetPanel.fleetData.members.filter { fleetMember ->
-            !fleetMember.variant.hullSpec.hullId.contains(textField.text)
+        val toStash: List<FleetMember> = fleetData.members.filter { fleetMember ->
+            !fleetMember.hullIdCleaned.contains(textField.text)
         }
 
         val toFleet: List<FleetMember> = stash.members.filter { fleetMember ->
-            fleetMember.variant.hullSpec.hullId.contains(textField.text)
+            fleetMember.hullIdCleaned.contains(textField.text)
         }
 
         toStash.forEach { fleetMember ->
-            fleetPanel.fleetData.removeFleetMember(fleetMember)
+            fleetData.removeFleetMember(fleetMember)
             stash.addFleetMember(fleetMember)
         }
 
         toFleet.forEach { fleetMember ->
-            fleetPanel.fleetData.addFleetMember(fleetMember)
+            fleetData.addFleetMember(fleetMember)
             stash.removeFleetMember(fleetMember)
         }
 
-        fleetPanel.fleetData.sortToMatchOrder(order)
+        fleetData.sortToMatchOrder(order)
 
-        fleetPanel.recreateUI()
+        recreateUI.invoke(fleetPanel)
         fleetPanel.addComponent(mainPanel).inTR(xPad, yPad)
 
         prevString = textField.text
     }
 
     fun applyStash() {
+        val fleetData = fleetPanel.fleetData
         stash.members.forEach { fleetMember ->
-            fleetPanel.fleetData.addFleetMember(fleetMember)
+            fleetData.addFleetMember(fleetMember)
             stash.removeFleetMember(fleetMember)
         }
     }
+
+    private val FleetMember.hullIdCleaned: String
+        get() = hullId.removeSuffix("_default_D")
+
+    private val UIPanelAPI.fleetData: FleetData
+        get() = getFleetData.invoke(this) as FleetData
 
     override fun positionChanged(position: PositionAPI) = Unit
 

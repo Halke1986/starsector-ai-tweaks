@@ -8,7 +8,7 @@ import com.genir.aitweaks.launcher.loading.CoreLoaderManager.instantiate
 import org.lwjgl.input.Keyboard
 
 class AITweaksEveryFrameScript : EveryFrameScript {
-    private var prevGridScript: EveryFrameScript? = null
+    private var prevCoreScript: EveryFrameScript? = null
     private var debounce = 0f
 
     override fun isDone(): Boolean = false
@@ -16,7 +16,14 @@ class AITweaksEveryFrameScript : EveryFrameScript {
     override fun runWhilePaused(): Boolean = true
 
     override fun advance(dt: Float) {
-        if (Keyboard.isKeyDown(Keyboard.KEY_APOSTROPHE) && debounce <= 0f) {
+//        Global.getLogger(this::class.java).info(Keyboard.isKeyDown(Keyboard.KEY_APOSTROPHE))
+//        Global.getLogger(this::class.java).info(debounce)
+
+//        if (Keyboard.isKeyDown(Keyboard.KEY_APOSTROPHE)) {
+//            Global.getLogger(this::class.java).info(Keyboard.isKeyDown(Keyboard.KEY_APOSTROPHE))
+//        }
+
+        if (prevCoreScript == null || (Keyboard.isKeyDown(Keyboard.KEY_APOSTROPHE) && debounce <= 0f)) {
             reloadCoreScript()
             debounce = 1f
         }
@@ -34,10 +41,10 @@ class AITweaksEveryFrameScript : EveryFrameScript {
         }
 
         Global.getLogger(this::class.java).info("Reload")
-        prevGridScript?.let { sector.removeTransientScript(it) }
+        prevCoreScript?.let { sector.removeTransientScript(it) }
 
-        val newScript = efsClass.instantiate<EveryFrameScript>()
+        val newScript: EveryFrameScript = efsClass.instantiate()
         sector.addTransientScript(newScript)
-        prevGridScript = newScript
+        prevCoreScript = newScript
     }
 }
