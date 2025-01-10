@@ -203,7 +203,7 @@ val WeaponAPI.isInLongReload: Boolean
 
         totalReloadTimeRemaining < 2f -> false
         totalReloadTime < Preset.weaponMaxReloadTime -> false
-        ammo >= maxAmmo / 2 -> false
+        ammo >= maxAmmo * 0.75f -> false
 
         else -> true
     }

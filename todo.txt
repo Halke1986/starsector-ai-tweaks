@@ -16,8 +16,6 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - area targeting for devastator
 
-- 1v1 strafing, maybe use zero threat vector? (should be fixed now)
-
 - use front facing turrets with rotation speed lower than ship turn rate as hardpoints
  - unless flamed out
  - not for player
@@ -25,7 +23,10 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 - don't prevent venting if target has more health than the ship
 
 - champion wih gauss and hil vs meatball - why the wobble?
+- 1v1 strafing, maybe use zero threat vector? (should be fixed now)
 
 - kol Lunaria not rotating
 
-- change slow relaod to 75% ammo?
+- fossic issues.
+
+- vanilla ai fleets gathering in the middle of the map, on maps with no objectives
