@@ -23,3 +23,9 @@ why invictus close to station? maybe admiral AI gave eliminate order?
  - not for player
 
 - don't prevent venting if target has more health than the ship
+
+- champion wih gauss and hil vs meatball - why the wobble?
+
+- kol Lunaria not rotating
+
+- change slow relaod to 75% ammo?

@@ -7,18 +7,21 @@ import java.net.URLClassLoader
 object CoreLoaderManager {
     private val bootstrapLoader = URLClassLoader((this::class.java.classLoader as URLClassLoader).urLs)
     private val coreLoaderClass = bootstrapLoader.loadClass("com.genir.aitweaks.launcher.loading.CoreLoader")
-    private var coreLoader = coreLoaderClass.newInstance() as URLClassLoader
-
-    /** Return a new instance of AI Tweaks core class. */
-    fun <T> newCoreObject(path: String): T {
-        return coreLoader.loadClass(path).newInstance() as T
-    }
+    var coreLoader = coreLoaderClass.newInstance() as URLClassLoader
 
     /** Update AI Tweaks core loader to point at the latest core jar. */
     fun updateLoader() {
-        if (LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") != true) return
+        if (LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") != true) {
+            return
+        }
 
         val newLoader = coreLoaderClass.newInstance() as URLClassLoader
-        if (!coreLoader.urLs.contentEquals(newLoader.urLs)) coreLoader = newLoader
+        if (!coreLoader.urLs.contentEquals(newLoader.urLs)) {
+            coreLoader = newLoader
+        }
+    }
+
+    fun <T> Class<*>.instantiate(): T {
+        return newInstance() as T
     }
 }

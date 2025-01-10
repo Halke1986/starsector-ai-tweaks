@@ -10,7 +10,7 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.genir.aitweaks.core.shipai.autofire.AutofirePicker
 
-class AITweaksCore : BaseModPlugin() {
+class BaseModPlugin : BaseModPlugin() {
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
         val ai: AutofireAIPlugin? = AutofirePicker().pickWeaponAutofireAI(weapon)
         return PluginPick(ai, CampaignPlugin.PickPriority.MOD_GENERAL)
