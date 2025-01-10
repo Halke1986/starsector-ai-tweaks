@@ -16,12 +16,13 @@ class EveryFrameScript : EveryFrameScript {
     private val getScreenPanel: Method = CampaignState::class.java.getMethod("getScreenPanel")
     private val uiPanelClass: Class<*> = getScreenPanel.returnType
     private val getChildrenCopy: Method = uiPanelClass.getMethod("getChildrenCopy")
+    private var fleetPanelClass: Class<*>? = null
 
     private var filterPanel: FleetFilterPanel? = null
     private var prevFleetPanel: Any? = null
 
     override fun advance(dt: Float) {
-        val campaignState = Global.getSector().campaignUI //as CampaignState
+        val campaignState = Global.getSector().campaignUI
         if (campaignState.currentCoreTab != CoreUITabId.FLEET) {
             updateFilterPanel(null)
             return
@@ -35,10 +36,6 @@ class EveryFrameScript : EveryFrameScript {
         }
     }
 
-    override fun isDone(): Boolean = false
-
-    override fun runWhilePaused(): Boolean = true
-
     private fun updateFilterPanel(fleetPanel: UIPanelAPI?) {
         filterPanel?.applyStash()
         filterPanel = fleetPanel?.let { FleetFilterPanel(200f, 20f, it) }
@@ -48,8 +45,15 @@ class EveryFrameScript : EveryFrameScript {
     /** Find the currently displayed FleetPanel, if any. Assume
      * there's only one FleetPanel being displayed at a time. */
     private fun findFleetPanel(uiComponent: Any): Any? {
+        // There's no easy way to statically find the FleetPanel Class.
+        // Here we find it dynamically, when traversing the UI tree.
+        // isFleetPanelClass() call is very expensive, so the result is cached.
+        if (fleetPanelClass == null && isFleetPanelClass(uiComponent::class.java)) {
+            fleetPanelClass = uiComponent::class.java
+        }
+
         return when {
-            uiComponent::class.java.methods.any { it.name == "getOther" && it.returnType == FleetData::class.java } -> {
+            fleetPanelClass?.isInstance(uiComponent) == true -> {
                 return uiComponent
             }
 
@@ -62,6 +66,14 @@ class EveryFrameScript : EveryFrameScript {
             else -> null
         }
     }
+
+    private fun isFleetPanelClass(clazz: Class<*>): Boolean {
+        return clazz.methods.any { it.name == "getOther" && it.returnType == FleetData::class.java }
+    }
+
+    override fun isDone(): Boolean = false
+
+    override fun runWhilePaused(): Boolean = true
 }
 
 class FleetFilterPanel(width: Float, height: Float, private val fleetPanel: UIPanelAPI) : CustomUIPanelPlugin {
