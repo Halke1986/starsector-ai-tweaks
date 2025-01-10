@@ -10,7 +10,6 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.genir.aitweaks.launcher.loading.CoreLoaderManager.coreLoader
 import com.genir.aitweaks.launcher.loading.CoreLoaderManager.instantiate
-import lunalib.lunaSettings.LunaSettings
 
 class AITweaksBaseModPlugin : BaseModPlugin() {
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
@@ -41,9 +40,8 @@ class AITweaksBaseModPlugin : BaseModPlugin() {
     }
 
     private fun onGameStart() {
-        val devmode = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode") == true
         val sector = Global.getSector()
-        if (devmode && !sector.hasTransientScript(AITweaksEveryFrameScript::class.java)) {
+        if (!sector.hasTransientScript(AITweaksEveryFrameScript::class.java)) {
             sector.addTransientScript(AITweaksEveryFrameScript())
         }
 
