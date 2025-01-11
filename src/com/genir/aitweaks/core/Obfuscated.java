@@ -152,4 +152,24 @@ public class Obfuscated {
             return null;
         }
     }
+
+    public static class BeamWeapon {
+        public boolean isForceFireOneFrame() {
+            return false;
+        }
+
+        public boolean isForceNoFireOneFrame() {
+            return false;
+        }
+    }
+
+    public static class ProjectileWeapon {
+        public boolean isForceFireOneFrame() {
+            return false;
+        }
+
+        public boolean isForceNoFireOneFrame() {
+            return false;
+        }
+    }
 }

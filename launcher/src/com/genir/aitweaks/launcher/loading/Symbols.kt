@@ -49,6 +49,8 @@ class Symbols {
     val combatMap: Class<*> = combatEngine.getMethod("getCombatMap").returnType
     val missionDefinition: Class<*> = titleScreenState.getDeclaredField("nextMission").type
     val missionDefinitionPluginContainer: Class<*> = missionDefinition.classes.first()
+    val beamWeapon: Class<*> = findWeaponTypes()[0]
+    val projectileWeapon: Class<*> = findWeaponTypes()[2]
 
     // Methods and fields.
     val autofireManager_advance: Method = autofireManager.methods.first { it.name != "<init>" }
@@ -79,11 +81,10 @@ class Symbols {
     }
 
     private fun findApproachManeuver(): Class<*> {
-        val aiReader = ClassReader(Bytecode.readClassBuffer(this::class.java.classLoader, basicShipAI.classPath))
         val maneuvers = mutableListOf<String>()
 
         // Find all maneuver classes used by ship AI.
-        aiReader.accept(object : ClassVisitor(Opcodes.ASM4) {
+        newClassReader(basicShipAI.classPath).accept(object : ClassVisitor(Opcodes.ASM4) {
             override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor {
                 return object : MethodVisitor(Opcodes.ASM4) {
                     override fun visitTypeInsn(opcode: Int, type: String?) {
@@ -93,14 +94,12 @@ class Symbols {
                     }
                 }
             }
-        }, 0)
+        })
 
         // Gather all possible candidate classes for approach maneuver.
         val candidates = mutableSetOf<String>()
         maneuvers.forEach { className ->
-            val reader = ClassReader(Bytecode.readClassBuffer(this::class.java.classLoader, className))
-
-            reader.accept(object : ClassVisitor(Opcodes.ASM4) {
+            newClassReader(className).accept(object : ClassVisitor(Opcodes.ASM4) {
                 override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
                     if (name == "<init>" && desc?.startsWith("(L${ship.classPath};L${ship.classPath};FL${flockingAI.classPath};") == true) {
                         candidates.add(className)
@@ -108,7 +107,7 @@ class Symbols {
 
                     return null
                 }
-            }, 0)
+            })
         }
 
         // Identify approach maneuver by number of methods.
@@ -125,5 +124,60 @@ class Symbols {
     private fun flockingAISetterNames(idx: Int): String {
         val bytecodeMethods: List<Bytecode.Method> = Bytecode.getMethodsInOrder(flockingAI)
         return bytecodeMethods.filter { it.desc == "(F)V" }[idx].name
+    }
+
+    private fun findWeaponTypes(): List<Class<*>> {
+        var loadWeaponClass = ""
+        var loadWeaponName = ""
+        var loadWeaponDesc = ""
+
+        // Find weapon loading class and static method.
+        newClassReader(CombatEngine::class.java.classPath).accept(object : ClassVisitor(Opcodes.ASM4) {
+            override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+                if (name != "createFakeWeapon") {
+                    return null
+                }
+
+                return object : MethodVisitor(Opcodes.ASM4) {
+                    override fun visitMethodInsn(opcode: Int, owner: String?, type: String?, desc: String?) {
+                        if (opcode == Opcodes.INVOKESTATIC && owner?.startsWith("com/fs/starfarer/loading/specs") == true) {
+                            loadWeaponClass = owner
+                            loadWeaponName = type!!
+                            loadWeaponDesc = desc!!
+                        }
+                    }
+                }
+            }
+        })
+
+        val weaponTypes: MutableList<String> = mutableListOf()
+
+        // Find NEW instructions in weapon loading static method.
+        newClassReader(loadWeaponClass).accept(object : ClassVisitor(Opcodes.ASM4) {
+            override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+                if (name != loadWeaponName || desc != loadWeaponDesc) {
+                    return null
+                }
+
+                return object : MethodVisitor(Opcodes.ASM4) {
+                    override fun visitTypeInsn(opcode: Int, type: String?) {
+                        if (opcode == Opcodes.NEW) {
+                            weaponTypes.add(type!!)
+                        }
+                    }
+                }
+
+            }
+        })
+
+        return weaponTypes.map { this::class.java.classLoader.loadClass(it.replace("/", ".")) }
+    }
+
+    private fun ClassReader.accept(classVisitor: ClassVisitor) {
+        accept(classVisitor, 0)
+    }
+
+    private fun newClassReader(classPath: String): ClassReader {
+        return ClassReader(Bytecode.readClassBuffer(this::class.java.classLoader, classPath))
     }
 }

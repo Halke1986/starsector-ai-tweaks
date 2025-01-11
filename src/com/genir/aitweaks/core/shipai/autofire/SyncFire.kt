@@ -25,8 +25,8 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
             isInSync = false
         }
 
-        // A malfunctioning weapon may disrupt its firing cycle,
-        // requiring re-synchronization.
+        // Ensure any weapon that may disrupt its
+        // firing cycle will be re-synchronized.
         if (weapon.isOutOfOrder) {
             isInSync = false
         }
@@ -34,7 +34,7 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
 
     /** Make weapons sync fire in staggered firing mode. */
     fun shouldFire(): Boolean {
-        // Staggered fire is not available for manually controlled ship.
+        // Staggered fire is not available for manually controlled ships.
         if (weapon.ship.isUnderManualControl) {
             isInSync = false
             return true
@@ -48,6 +48,13 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
 
         // No need to sync a single weapon.
         if (state.weapons == 1) {
+            isInSync = false
+            return true
+        }
+
+        // Do not attempt to sync a weapon with disrupted firing cycle,
+        // as this may lead corrupted synchronization state.
+        if (weapon.isOutOfOrder) {
             isInSync = false
             return true
         }
@@ -109,6 +116,8 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
                 isPermanentlyDisabled -> true
 
                 isOutOfAmmo -> true
+
+                isForceNoFireOneFrame -> true
 
                 ship.fluxTracker.isOverloadedOrVenting -> true
 

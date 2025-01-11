@@ -39,6 +39,8 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("$core\$ThreatResponseManeuver", symbols.threatResponseManeuver.classPath),
             Transformer.newTransform("$core\$CombatMap", symbols.combatMap.classPath),
             Transformer.newTransform("$core\$MissionDefinitionPluginContainer", symbols.missionDefinitionPluginContainer.classPath),
+            Transformer.newTransform("$core\$BeamWeapon", symbols.beamWeapon.classPath),
+            Transformer.newTransform("$core\$ProjectileWeapon", symbols.projectileWeapon.classPath),
 
             // Fields and methods.
             Transformer.newTransform("autofireManager_advance", symbols.autofireManager_advance.name),

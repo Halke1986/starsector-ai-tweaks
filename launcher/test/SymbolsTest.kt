@@ -28,6 +28,8 @@ class SymbolsTest {
         assertEquals("com.fs.starfarer.combat.A.new", s.combatMap.name)
         assertEquals("com.fs.starfarer.title.Object.for", s.missionDefinition.name)
         assertEquals("com.fs.starfarer.title.Object.for\$Oo", s.missionDefinitionPluginContainer.name)
+        assertEquals("com.fs.starfarer.combat.entities.ship.oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO.G", s.beamWeapon.name)
+        assertEquals("com.fs.starfarer.combat.entities.ship.oOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO.if", s.projectileWeapon.name)
 
         assertEquals("o00000", s.autofireManager_advance.name)
         assertEquals("new", s.shipCommandWrapper_getCommand.name)

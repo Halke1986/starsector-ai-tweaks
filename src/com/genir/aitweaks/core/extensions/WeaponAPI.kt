@@ -10,6 +10,7 @@ import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
+import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.state.State.Companion.state
@@ -202,8 +203,28 @@ val WeaponAPI.isInLongReload: Boolean
         isInFiringCycle -> false
 
         totalReloadTimeRemaining < 2f -> false
+
         totalReloadTime < Preset.weaponMaxReloadTime -> false
+
         ammo >= maxAmmo * 0.75f -> false
 
         else -> true
+    }
+
+val WeaponAPI.isForceFireOneFrame: Boolean
+    get() = when (this) {
+        is Obfuscated.BeamWeapon -> isForceFireOneFrame
+
+        is Obfuscated.ProjectileWeapon -> isForceFireOneFrame
+
+        else -> false
+    }
+
+val WeaponAPI.isForceNoFireOneFrame: Boolean
+    get() = when (this) {
+        is Obfuscated.BeamWeapon -> isForceNoFireOneFrame
+
+        is Obfuscated.ProjectileWeapon -> isForceNoFireOneFrame
+
+        else -> false
     }

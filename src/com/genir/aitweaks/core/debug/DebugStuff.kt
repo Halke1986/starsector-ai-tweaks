@@ -17,7 +17,7 @@ import java.awt.Color.GREEN
 
 /**
  *
- * FRAME UPDATE ORDER
+ * FRAME UPDATE ORDER (for AI controlled ship)
  *
  * ship movement
  * AI
