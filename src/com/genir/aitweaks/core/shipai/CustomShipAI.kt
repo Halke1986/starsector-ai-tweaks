@@ -476,7 +476,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             return (target.location - ship.location).length
         }
 
-        return max(0f, targetBoundsDistance(target) - targetThickness)
+        return max(0f, targetBoundsDistance(target) + targetThickness)
     }
 
     /** Target radius that should be used when calculating attack range. */

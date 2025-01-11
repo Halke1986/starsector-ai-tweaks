@@ -1,3 +1,4 @@
+- Fixed a bug that caused ships to incorrectly estimate range to their targets.
 - Fixed a bug where staggered fire logic could prevent weapons from firing on ships equipped with Lidar Arrays, such as the KoL Lunaria.
 
 Version 1.11.3
