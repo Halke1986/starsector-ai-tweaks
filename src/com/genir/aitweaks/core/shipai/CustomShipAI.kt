@@ -123,10 +123,10 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 //        Debug.drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
 //        Debug.drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
 
-        if (maneuverTarget != null) {
+//        if (maneuverTarget != null) {
 //            Debug.drawCircle(ship.location, attackingGroup.minRange, Color.BLUE)
 //            Debug.drawCircle(maneuverTarget!!.location, effectiveTargetRadius(maneuverTarget!!))
-        }
+//        }
     }
 
     private fun updateManeuverTarget() {

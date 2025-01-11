@@ -47,7 +47,7 @@ private fun canHitAlly(weapon: WeaponAPI, target: CombatEntityAPI, ally: ShipAPI
     val ballisticTarget = BallisticTarget.entity(target)
     val ballisticAlly = BallisticTarget.shield(ally)
 
-    val allyArc = Arc.merge(
+    val allyArc = Arc.union(
         interceptArc(weapon, ballisticAlly, startParams),
         interceptArc(weapon, ballisticAlly, endParams),
     )
