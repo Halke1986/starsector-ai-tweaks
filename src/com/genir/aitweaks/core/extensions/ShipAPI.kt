@@ -15,14 +15,14 @@ import kotlin.math.max
 /** Returns false for detached modules. Will be false before
  * ship is completely initialized, e.g. in AI picker. */
 val ShipAPI.isModule: Boolean
-    get() = stationSlot != null
+    get() = stationSlot != null && parentStation != null
 
 /** Return ship root module. */
 val ShipAPI.root: ShipAPI
     get() = if (isModule) parentStation else this
 
 val ShipAPI.isBig: Boolean
-    get() = (root.isDestroyer || root.isCruiser || root.isCapital) && allWeapons.isNotEmpty()
+    get() = (root.isDestroyer || root.isCruiser || root.isCapital) && allGroupedWeapons.isNotEmpty()
 
 val ShipAPI.isHullDamageable: Boolean
     get() = mutableStats.hullDamageTakenMult.getModifiedValue() > 0f
