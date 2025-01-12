@@ -63,7 +63,7 @@ val ShipAPI.isAutomated: Boolean
     get() = variant.hasHullMod(HullMods.AUTOMATED)
 
 val ShipAPI.deploymentPoints: Float
-    get() = fleetMember?.unmodifiedDeploymentPointsCost ?: 0f
+    get() = max(0f, fleetMember?.unmodifiedDeploymentPointsCost ?: 0f)
 
 /** Angle between ship facing and direction from ship to point p. */
 fun ShipAPI.angleFromFacing(p: Vector2f): Float {

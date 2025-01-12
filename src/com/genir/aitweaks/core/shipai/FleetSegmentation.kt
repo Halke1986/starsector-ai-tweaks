@@ -39,14 +39,16 @@ class FleetSegmentation(side: Int) : BaseEveryFrameCombatPlugin() {
     private fun identifyBattleGroups() {
         val engine = Global.getCombatEngine()
         val enemyFleet = engine.ships.filter { it.owner == enemy && it.isValidTarget && !it.isFighter }
-        if (enemyFleet.isEmpty()) return
+        if (enemyFleet.isEmpty()) {
+            return
+        }
 
         val groups = segmentFleet(enemyFleet.toTypedArray())
         val groupsFromLargest = groups.sortedBy { -it.dpSum }
         val largestGroupDP = groupsFromLargest.first().dpSum
 
         val validGroups = groupsFromLargest.filter { isValidGroup(it, largestGroupDP) }
-        primaryTargets = validGroups.firstOrNull()?.toList() ?: listOf()
+        primaryTargets = validGroups.firstOrNull() ?: listOf()
         allTargets = validGroups.flatten()
     }
 
@@ -59,13 +61,13 @@ class FleetSegmentation(side: Int) : BaseEveryFrameCombatPlugin() {
         for (i in fleet.indices) {
             for (j in fleet.indices) {
                 when {
-                    // Cannot attach to battle group via frigate.
+                    // Cannot attach to battle group via a frigate.
                     fleet[j].root.isFrigate -> continue
 
                     // Frigate already attached to battle group.
                     fleet[i].root.isFrigate && groups[i] != i -> continue
 
-                    // Both targets already in same battle group.
+                    // Both targets already in the same battle group.
                     groups[i] == groups[j] -> continue
 
                     // Too large distance between targets to connect.
@@ -75,7 +77,9 @@ class FleetSegmentation(side: Int) : BaseEveryFrameCombatPlugin() {
                 // Merge battle groups.
                 val toMerge = groups[i]
                 for (k in groups.indices) {
-                    if (groups[k] == toMerge) groups[k] = groups[j]
+                    if (groups[k] == toMerge) {
+                        groups[k] = groups[j]
+                    }
                 }
             }
         }

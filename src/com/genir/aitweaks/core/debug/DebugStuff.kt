@@ -34,6 +34,7 @@ import java.awt.Color.GREEN
 
 internal fun debug(dt: Float) {
     val ship = Global.getCombatEngine().playerShip ?: return
+    val ships = Global.getCombatEngine().ships
 }
 
 var expectedFacing = 90f
