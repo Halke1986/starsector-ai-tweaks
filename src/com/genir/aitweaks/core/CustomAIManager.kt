@@ -25,6 +25,8 @@ class CustomAIManager {
     /** Returns true is custom AI can control the given ship. */
     fun canHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
+            ship.owner == 0 && Global.getSettings().modManager.isModEnabled("aitweaksunlock") -> true
+
             ship.hullSpec.isPhase -> false
             ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
             ship.isStation -> false
