@@ -22,10 +22,10 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - don't prevent venting if target has more health than the ship
 
-- 1v1 strafing, maybe use zero threat vector? (should be fixed now)
-
-- fossic issues.
-
 - vanilla ai fleets gathering in the middle of the map, on maps with no objectives
 
 - do not track targets with angular velocity higher than weapon rotation
+
+- strafe a station counterclockwise
+
+- calculate weapon range correctly for broadside weapon groups

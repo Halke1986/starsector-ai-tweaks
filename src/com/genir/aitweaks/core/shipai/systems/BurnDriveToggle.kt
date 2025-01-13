@@ -134,27 +134,38 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
     /** Verify if the ship is heading towards the intended target.
      * Note that the intended target may change during the burn. */
     private fun isOnCourse(): Boolean {
+        // Heading to assignment location takes priority.
         val assignment: Vector2f? = ai.assignment.navigateTo
-        val maneuverTarget: Vector2f? = ai.maneuverTarget?.location
-
-        // Note: burnVector is ignored in the following calculations, as it is used only
-        // to position the ship before the burn and not to guide the ship during the burn.
-        return when {
-            assignment != null -> {
-                absShortestRotation((assignment - ship.location).facing, ship.facing) <= maxAngleToTarget
-            }
-
-            // Assume the maneuver target is the closest relevant enemy ship.
-            maneuverTarget != null -> {
-                val toTarget = maneuverTarget - ship.location
-                val expectedRange = ai.attackRange
-                absShortestRotation(toTarget.facing, ship.facing) <= maxAngleToTarget && toTarget.length > expectedRange
-            }
-
-            // Keep burning if there's no target, as long as the battle isn't over.
-            // Burning after the last enemy ship is defeated looks unnatural.
-            else -> Global.getCombatEngine().ships.any { it.isHostile(ship) }
+        if (assignment != null) {
+            return absShortestRotation((assignment - ship.location).facing, ship.facing) <= maxAngleToTarget
         }
+
+        // Assume the maneuver target is the closest relevant enemy ship.
+        val maneuverTarget: Vector2f? = ai.maneuverTarget?.location
+        if (maneuverTarget != null) {
+            val toTarget = maneuverTarget - ship.location
+            val expectedRange = ai.attackRange
+
+            // Too close to nearest enemy.
+            if (toTarget.length < expectedRange) {
+                return false
+            }
+
+            // Ship is approaching the nearest enemy. Continue,
+            // even if the ship is not following the burn vector.
+            if (absShortestRotation(toTarget.facing, ship.facing) <= maxAngleToTarget) {
+                return true
+            }
+        }
+
+        // Burn as long as the ship is following the burn vector.
+        if (burnVector.isNonZero) {
+            return absShortestRotation(burnVector.facing, ship.facing) <= maxAngleToTarget
+        }
+
+        // Keep burning if there's no target, as long as the battle isn't over.
+        // Burning after the last enemy ship is defeated looks unnatural.
+        return Global.getCombatEngine().ships.any { it.isHostile(ship) && !it.isFighter }
     }
 
     private fun angleToDestination(): Float {
