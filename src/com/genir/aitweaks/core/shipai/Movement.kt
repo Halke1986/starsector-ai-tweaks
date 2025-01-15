@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
@@ -68,14 +69,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                 // Chase the target if there are no other enemy ships around.
                 // Strafe target randomly if in range and no other threat.
                 maneuverTarget != null -> {
-                    // Let the attack coordinator review the calculated heading point.
-                    val attackLocation = maneuverTarget.location + calculateAttackVector(maneuverTarget)
-                    proposedHeadingPoint = attackLocation
-                    val headingPoint = reviewedHeadingPoint ?: attackLocation
-
-                    // Assault ships don't try to avoid hulks, as this interferes with burn drive.
-                    if (ai.isAssaultShip) headingPoint
-                    else avoidHulks(maneuverTarget, headingPoint) ?: headingPoint
+                    calculateAttackLocation(maneuverTarget)
                 }
 
                 // Nothing to do, stop the ship.
@@ -130,32 +124,84 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         engineController.facing(dt, expectedFacing)
     }
 
-    private fun calculateAttackVector(maneuverTarget: ShipAPI): Vector2f {
+    private fun calculateAttackLocation(maneuverTarget: ShipAPI): Vector2f {
         // If the ship is near the navigation objective, it should
         // position itself between the objective and the target.
         ai.assignment.navigateTo?.let { return maneuverTarget.location - it }
 
-        // Move straight to the target if no threat or if ship is an assault ship.
-        // Otherwise, try to move away from the threat.
-        val chargeTarget = maneuverTarget.location - ship.location
-        val approachVector = if (ai.isAssaultShip || ai.threatVector.isZero) chargeTarget
-        else ai.threatVector
+        val targetRoot = maneuverTarget.root
+        val attackVector: Vector2f = when {
+            // When attacking a station, avoid positioning the ship
+            // with hulks obstructing the targeted module.
+            targetRoot.isStation && maneuverTarget.isModule && targetRoot != maneuverTarget -> {
+                maneuverTarget.location - targetRoot.location
+            }
 
-        // Strafe away from map border, prefer the map center.
+            // Move straight to the target if ship is an assault ship.
+            ai.isAssaultShip -> {
+                maneuverTarget.location - ship.location
+            }
+
+            // Move straight to the target if no threat. This may happen
+            // if the target is far away, beyond the threat search radius.
+            ai.threatVector.isZero -> {
+                maneuverTarget.location - ship.location
+            }
+
+            // Strafe the target randomly, when it's the only threat.
+            ai.is1v1 && ai.currentEffectiveRange(maneuverTarget) <= ai.attackingGroup.effectiveRange -> {
+                -ai.threatVector.rotated(strafeRotation)
+            }
+
+            // Try to position away from the threat.
+            else -> {
+                -ai.threatVector
+            }
+        }
+
+        val attackLocation = preferMapCenter(attackVector).resized(ai.attackRange) + maneuverTarget.location
+        val adjustedAttackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
+
+        // Cap the maximum angle between current ship location and
+        // planned attack location. Otherwise, the ship may approach
+        // the maneuver target too close.
+        val maxAngle = 15f
+        val angle = getShortestRotation(ship.location, maneuverTarget.location, adjustedAttackLocation)
+        if (abs(angle) > maxAngle) {
+            val rotation = Rotation(-(angle - 15f * angle.sign))
+            return adjustedAttackLocation.rotatedAroundPivot(rotation, maneuverTarget.location)
+        }
+
+        return adjustedAttackLocation
+    }
+
+    /** Take into account other entities when planning ship attack location. */
+    fun coordinateAttackLocation(maneuverTarget: ShipAPI, attackLocation: Vector2f): Vector2f {
+        // Coordinate the attack with allied ships.
+        proposedHeadingPoint = attackLocation
+        var adjustedAttackLocation = reviewedHeadingPoint ?: attackLocation
+
+        // Coordinate the attack to avoid hulks. Assault ships don't try
+        // to avoid hulks, as this interferes with coordinating burn drives.
+        // The exception is when the assault ship operates alone.
+        val isAlone = reviewedHeadingPoint == null
+        if (!ai.isAssaultShip || isAlone) {
+            adjustedAttackLocation = avoidHulks(maneuverTarget, adjustedAttackLocation) ?: adjustedAttackLocation
+        }
+
+        return adjustedAttackLocation
+    }
+
+    /** Strafe away from map border, prefer the map center. */
+    private fun preferMapCenter(approachVector: Vector2f): Vector2f {
         val engine = Global.getCombatEngine()
         val borderDistX = (ship.location.x * ship.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
         val borderDistY = (ship.location.y * ship.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
         val borderWeight = max(borderDistX, borderDistY) * 2f
-        val borderAdjustedApproachVector = approachVector.resized(1f) + ship.location.resized(borderWeight)
-
-        // Strafe the target randomly, when it's the only threat.
-        val attackVector = -borderAdjustedApproachVector.resized(ai.attackRange)
-        val shouldStrafe = ai.is1v1 && ai.currentEffectiveRange(maneuverTarget) <= ai.attackingGroup.effectiveRange
-
-        return if (shouldStrafe) attackVector.rotated(strafeRotation)
-        else attackVector
+        return approachVector.resized(1f) + ship.location.resized(borderWeight)
     }
 
+    /** Adjust the ship's heading to avoid positioning with hulks obstructing its target. */
     private fun avoidHulks(maneuverTarget: CombatEntityAPI, proposedHeading: Vector2f): Vector2f? {
         val toHeadingVector = proposedHeading - maneuverTarget.location
         val toHeadingAngle = toHeadingVector.facing
@@ -250,7 +296,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
         limits.add(avoidBlockingLineOfFire(dt, friendlies))
         limits.add(avoidBorder())
-        limits.add(avoidTargetCollision(dt))
+//        limits.add(avoidTargetCollision(dt))
         limits.addAll(avoidCollisions(dt, friendlies + hulks))
 
         return limits.filterNotNull()
@@ -265,15 +311,15 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     }
 
     /** Do not ram the maneuver target. */
-    private fun avoidTargetCollision(dt: Float): EngineController.Limit? {
-        val target = ai.maneuverTarget ?: return null
-
-        // Do not be paralyzed by frigates when trying to back off.
-        if (ai.ventModule.isBackingOff && target.root.isFrigate) return null
-
-        val distance = max(ai.stats.totalCollisionRadius + target.totalCollisionRadius + Preset.collisionBuffer, ai.attackRange * 0.8f)
-        return vMaxToObstacle(dt, target, distance)
-    }
+//    private fun avoidTargetCollision(dt: Float): EngineController.Limit? {
+//        val target = ai.maneuverTarget ?: return null
+//
+//        // Do not be paralyzed by frigates when trying to back off.
+//        if (ai.ventModule.isBackingOff && target.root.isFrigate) return null
+//
+//        val distance = max(ai.stats.totalCollisionRadius + target.totalCollisionRadius + Preset.collisionBuffer, ai.attackRange * 0.8f)
+//        return vMaxToObstacle(dt, target, distance)
+//    }
 
     /** Position the ship to avoid blocking allied ships' lines of fire
      * on the same target while keeping its own line of fire clear. */
@@ -284,7 +330,9 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         // Blocking line of fire occurs mostly among ships attacking the same target.
         // For simplicity, the AI will try to avoid only those cases of blocking.
         val squad = ais.filter { it.attackTarget == ai.attackTarget }
-        if (squad.isEmpty()) return null
+        if (squad.isEmpty()) {
+            return null
+        }
 
         // Calculations are done in target frame of reference.
         val lineOfFire = ship.location - target.location

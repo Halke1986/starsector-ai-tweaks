@@ -56,6 +56,8 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     var threats: Set<ShipAPI> = setOf()
     var threatVector = Vector2f()
 
+    val knownSegmentationTargets: MutableSet<ShipAPI> = mutableSetOf()
+
     override fun advance(dt: Float) {
         debug()
 
@@ -109,17 +111,17 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 //        Debug.drawCircle(ship.location, stats.threatSearchRange)
 
 //        Debug.drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
-//        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.YELLOW)
+        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
 //        Debug.drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 
 //        Debug.drawLine(ship.location, ship.location + (maneuverTarget?.velocity ?: ship.location), Color.GREEN)
-//        Debug.drawLine(ship.location, movement.headingPoint, Color.YELLOW)
+        Debug.drawLine(ship.location, movement.headingPoint, Color.YELLOW)
 
 //        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location + unitVector(movement.expectedFacing) * 600f, Color.YELLOW)
 
 //        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing + attackingGroup.facing) * 600f, Color.BLUE)
-//        Debug.drawLine(ship.location, ship.location + movement.expectedVelocity.resized(300f), Color.GREEN)
+//        Debug.drawLine(ship.location, ship.location + movement.expectedVelocity, Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
 //        Debug.drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
 
@@ -130,7 +132,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     }
 
     private fun updateManeuverTarget() {
-        val segmentation = state.fleetSegmentation[ship.owner]
         val segmentationTarget: ShipAPI? by lazy { findClosestSegmentationTarget() }
 
         when {
@@ -146,13 +147,8 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
             // Try fleet segmentation targets first.
             segmentationTarget != null -> {
+                knownSegmentationTargets.add(segmentationTarget!!)
                 maneuverTarget = segmentationTarget
-            }
-
-            // No target found, try to follow the current target even if it's in the fog.
-            // This allows to avoid erratic target changes in the initial phase of the battle.
-            maneuverTarget in segmentation.allTargets() -> {
-                Unit
             }
 
             // No target found in the exploration phase of the battle. Don't force finding one.
@@ -181,19 +177,24 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
     /** Find a new maneuver target using enemy fleet segmentation. */
     private fun findClosestSegmentationTarget(): ShipAPI? {
-        val fog = Global.getCombatEngine().getFogOfWar(ship.owner)
         val segmentation = state.fleetSegmentation[ship.owner]
-        val allTargets = segmentation.allTargets(ship.isFast)
 
         // Prioritize the nearest segmentation target over primary targets if the ship is already in proximity to it.
-        val closestTarget: ShipAPI = closestEntity(fog.filter(allTargets), ship.location) ?: return null
+        val allTargets = segmentation.allTargets(ship.isFast).filter { isTargetVisible(it) }
+        val closestTarget: ShipAPI = closestEntity(allTargets, ship.location) ?: return null
         if (isCloseToEnemy(ship, closestTarget)) {
             return closestTarget
         }
 
         // Follow the closest primary target.
-        val primaryTargets = segmentation.primaryTargets(ship.isFast)
-        return closestEntity(fog.filter(primaryTargets), ship.location)
+        val primaryTargets = segmentation.primaryTargets(ship.isFast).filter { isTargetVisible(it) }
+        return closestEntity(primaryTargets, ship.location)
+    }
+
+    /** Consider once seen ships as visible, even if they're in fog again. This allows
+     * to avoid erratic target changes in the initial phase of the battle. */
+    private fun isTargetVisible(target: ShipAPI): Boolean {
+        return target in knownSegmentationTargets || Global.getCombatEngine().getFogOfWar(ship.owner).isVisible(target)
     }
 
     /** Select which enemy ship to attack. This may be different
@@ -297,16 +298,15 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     }
 
     private fun findNewAttackTarget(): Pair<WeaponGroup, ShipAPI?> {
-        val opportunities: Set<ShipAPI> = threats.map { selectModuleToAttack(it) }.toSet()
-
         val allies = Global.getCombatEngine().ships.filter { it != ship && it.owner == ship.owner && !it.isFighter && !it.isFrigate }
         val targetedEnemies = allies.mapNotNull { it.attackTarget }.filter { it.isBig }.toSet()
 
         // Find best attack opportunity for each weapon group.
+        val opportunities = threats.filter { it.isValidTarget }
         val weaponGroupTargets: Map<WeaponGroup, Map.Entry<ShipAPI, Float>> = stats.weaponGroups.associateWith { weaponGroup ->
             val obstacles = getObstacles(weaponGroup)
             val groupOpportunities = opportunities.asSequence().filter { currentEffectiveRange(it) < weaponGroup.maxRange }
-            val evaluatedOpportunities = groupOpportunities.associateWith {
+            val evaluatedOpportunities: Map<ShipAPI, Float> = groupOpportunities.associateWith {
                 evaluateTarget(it, weaponGroup, obstacles, targetedEnemies)
             }
 
@@ -314,7 +314,9 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }.filterValues { it != null }.mapValues { it.value!! }
 
         val bestTarget = weaponGroupTargets.maxOfWithOrNull(compareBy { it.value.value }) { it }
-        if (bestTarget != null) return Pair(bestTarget.key, bestTarget.value.key)
+        if (bestTarget != null) {
+            return Pair(bestTarget.key, bestTarget.value.key)
+        }
 
         // No good attack target found. Try alternatives.
         val altTarget: ShipAPI? = when {
@@ -327,6 +329,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
             else -> null
         }
+
         return Pair(stats.weaponGroups[0], altTarget)
     }
 
@@ -368,19 +371,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
             Obstacle(arc, dist)
         }.toList()
-    }
-
-    /** If attacking a modular ship, select a module to attack. The main purpose of this
-     * method is avoiding situations when a ship tries to attack a module occluded by
-     * station vast bulk. */
-    private fun selectModuleToAttack(target: ShipAPI): ShipAPI {
-        val modules: List<ShipAPI> = target.root.childModulesCopy.ifEmpty { return target } + target
-
-        // If ship is maneuvering around one of the modules, select it as attack the target.
-        modules.firstOrNull { it == maneuverTarget }?.let { return it }
-
-        // Attack the closest module.
-        return modules.minOfWithOrNull(compareBy { (it.location - ship.location).lengthSquared }) { it }!!
     }
 
     /** Evaluate if target is worth attacking. The higher the score, the better the target. */

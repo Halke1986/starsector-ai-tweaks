@@ -22,10 +22,21 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - don't prevent venting if target has more health than the ship
 
-- vanilla ai fleets gathering in the middle of the map, on maps with no objectives
+- REPORTED: vanilla ai fleets gathering in the middle of the map, on maps with no objectives
 
 - do not track targets with angular velocity higher than weapon rotation
 
 - strafe a station counterclockwise
+    - remove maneuver target collision avoidance, check tesseract
+    - remove module selection restriction           OK
+    - check the coord pause behavior
+    - ships are bunching up again (problem with coord?) and don't want to rotate around station
+    - avoid blocking line of fire gives false positives, make a cone?
 
 - calculate weapon range correctly for broadside weapon groups
+
+vinh:
+Btw genir, I have a suggestion in ai tweak. When equipping rce or vpd, maybe make the AI think it have 800 range weapon instead of 1000 range but still make be able to fire at max range. I uhh kinda want that since both weapon have lower dps at max range, I want them to move a bit closer to fire instead of hovering at max range and get half the dps. I am no good at coding so I don’t know if this is feasible, just hope you look into it
+Rift cascade and volatile particle driver
+
+- avoid blocking burn vector via collision avoidance
