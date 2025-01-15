@@ -37,7 +37,6 @@ class WrapperShipAI(val ship: ShipAPI) : Ship.ShipAIWrapper(Global.getSettings()
         expectedFacing = null
 
         if (updateInterval.intervalElapsed()) {
-
             // Refresh the list of weapons to aim.
             val weapons = ship.allGroupedWeapons.filter { shouldAim(it) }
             weaponGroup = WeaponGroup(ship, weapons)

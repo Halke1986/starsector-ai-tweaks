@@ -90,7 +90,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
             burnVector.length < maxBurnDist * minBurnDistFraction -> false
 
             // Don't burn to maneuver target when high on flux.
-            ai.assignment.navigateTo == null && ship.fluxLevel > maxFluxLevel -> false
+            ai.assignment.navigateTo == null && ship.FluxLevel > maxFluxLevel -> false
 
             !isOnCourse() -> false
 

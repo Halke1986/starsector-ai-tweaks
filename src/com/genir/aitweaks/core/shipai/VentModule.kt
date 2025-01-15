@@ -146,7 +146,7 @@ class VentModule(private val ai: CustomShipAI) {
             ship.fluxTracker.isOverloadedOrVenting -> false
 
             // No need to vent.
-            ship.fluxLevel < AIPreset.backoffLowerThreshold -> false
+            ship.FluxLevel < AIPreset.backoffLowerThreshold -> false
 
             shouldFinishTarget -> false
 
@@ -157,10 +157,10 @@ class VentModule(private val ai: CustomShipAI) {
             ship.system?.isOn == true -> false
 
             // Flux is not critical, but still could use an opportunity to vent.
-            ship.fluxLevel >= opportunisticVentThreshold -> true
+            ship.FluxLevel >= opportunisticVentThreshold -> true
 
             // Vent when the ship is idle.
-            ship.fluxLevel >= idleVentThreshold && isIdle() -> true
+            ship.FluxLevel >= idleVentThreshold && isIdle() -> true
 
             else -> false
         }
@@ -317,7 +317,7 @@ class VentModule(private val ai: CustomShipAI) {
         }
 
         val damage = 1 - target.hullLevel
-        return ship.fluxLevel < damage * damage * damage
+        return ship.FluxLevel < damage * damage * damage
     }
 
     private fun isIdle(): Boolean {

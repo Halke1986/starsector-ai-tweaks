@@ -398,7 +398,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         evaluation -= (dist / weaponGroup.maxRange) * distWeight
 
         // Prioritize targets high on flux. Avoid hunting low flux phase ships.
-        val fluxLeft = (1f - target.fluxLevel)
+        val fluxLeft = (1f - target.FluxLevel)
         val fluxFactor = if (target.phaseCloak?.specAPI?.isPhaseCloak == true) 2f else 0.5f
         evaluation -= fluxLeft * fluxFactor
 
