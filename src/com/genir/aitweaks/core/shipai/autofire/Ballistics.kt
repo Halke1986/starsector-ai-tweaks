@@ -4,7 +4,10 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.pointsOfTangency
+import com.genir.aitweaks.core.utils.solve
+import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
 
 /**

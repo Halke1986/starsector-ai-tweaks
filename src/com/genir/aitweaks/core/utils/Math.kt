@@ -1,9 +1,6 @@
 package com.genir.aitweaks.core.utils
 
-import com.genir.aitweaks.core.extensions.length
-import com.genir.aitweaks.core.extensions.lengthSquared
-import com.genir.aitweaks.core.extensions.minus
-import com.genir.aitweaks.core.extensions.plus
+import com.genir.aitweaks.core.extensions.*
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 

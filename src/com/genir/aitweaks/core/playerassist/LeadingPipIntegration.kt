@@ -8,8 +8,8 @@ import com.fs.starfarer.combat.CombatEngine
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.copy
 import com.genir.aitweaks.core.extensions.minus
+import com.genir.aitweaks.core.extensions.times
 import com.genir.aitweaks.core.utils.PI
-import com.genir.aitweaks.core.utils.times
 import kotlin.math.cos
 
 /** Leading PIP mod guides players to manually lead the target even when

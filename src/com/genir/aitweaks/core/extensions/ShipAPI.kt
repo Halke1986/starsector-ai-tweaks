@@ -8,7 +8,6 @@ import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.shortestRotation
-import com.genir.aitweaks.core.utils.times
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 

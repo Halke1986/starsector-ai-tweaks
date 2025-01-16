@@ -9,8 +9,11 @@ import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController
 import com.genir.aitweaks.core.shipai.autofire.SimulateMissile
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.absShortestRotation
+import com.genir.aitweaks.core.utils.mousePosition
+import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
 import java.awt.Color.GREEN

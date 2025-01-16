@@ -2,10 +2,7 @@ package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.extensions.length
-import com.genir.aitweaks.core.extensions.lengthSquared
-import com.genir.aitweaks.core.extensions.minus
-import com.genir.aitweaks.core.extensions.plus
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
 import org.lwjgl.util.vector.Vector2f

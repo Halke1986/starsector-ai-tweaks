@@ -7,9 +7,7 @@ import com.fs.starfarer.api.combat.ShipHullSpecAPI.EngineSpecAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.getShortestRotation
-import com.genir.aitweaks.core.utils.times
 import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max

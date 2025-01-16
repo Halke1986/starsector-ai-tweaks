@@ -6,14 +6,29 @@ import com.genir.aitweaks.core.utils.clampAngle
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.sqrt
 
-operator fun Vector2f.plus(other: Vector2f): Vector2f = Vector2f(x + other.x, y + other.y)
-operator fun Vector2f.minus(other: Vector2f): Vector2f = Vector2f(x - other.x, y - other.y)
-operator fun Vector2f.unaryMinus() = Vector2f(-x, -y)
+operator fun Vector2f.plus(b: Vector2f): Vector2f {
+    return Vector2f(x + b.x, y + b.y)
+}
+
+operator fun Vector2f.minus(b: Vector2f): Vector2f {
+    return Vector2f(x - b.x, y - b.y)
+}
+
+operator fun Vector2f.unaryMinus(): Vector2f {
+    return Vector2f(-x, -y)
+}
+
+operator fun Vector2f.times(b: Float): Vector2f {
+    return Vector2f(x * b, y * b)
+}
+
+operator fun Vector2f.div(b: Float): Vector2f {
+    return Vector2f(x / b, y / b)
+}
 
 fun Vector2f.resized(length: Float): Vector2f {
-    if (isZero) return Vector2f()
-    val scale = length / this.length
-    return Vector2f(x * scale, y * scale)
+    return if (isZero) Vector2f()
+    else this * length / this.length
 }
 
 val Vector2f.copy: Vector2f

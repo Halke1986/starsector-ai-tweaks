@@ -6,9 +6,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
-import com.genir.aitweaks.core.utils.div
 import com.genir.aitweaks.core.utils.shortestRotation
-import com.genir.aitweaks.core.utils.times
 import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
