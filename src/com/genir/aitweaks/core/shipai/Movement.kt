@@ -198,7 +198,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val borderDistX = (ship.location.x * ship.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
         val borderDistY = (ship.location.y * ship.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
         val borderWeight = max(borderDistX, borderDistY) * 2f
-        return approachVector.resized(1f) + ship.location.resized(borderWeight)
+        return approachVector.resized(1f) - ship.location.resized(borderWeight)
     }
 
     /** Adjust the ship's heading to avoid positioning with hulks obstructing its target. */
