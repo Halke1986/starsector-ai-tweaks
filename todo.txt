@@ -27,11 +27,8 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 - do not track targets with angular velocity higher than weapon rotation
 
 - strafe a station counterclockwise
-    - remove maneuver target collision avoidance, check tesseract
-    - remove module selection restriction           OK
+    - remove maneuver target collision avoidance, check tesseract  (maybe remove after all?)
     - check the coord pause behavior
-    - ships are bunching up again (problem with coord?) and don't want to rotate around station
-    - avoid blocking line of fire gives false positives, make a cone?
 
 - calculate weapon range correctly for broadside weapon groups
 
@@ -40,3 +37,5 @@ Btw genir, I have a suggestion in ai tweak. When equipping rce or vpd, maybe mak
 Rift cascade and volatile particle driver
 
 - avoid blocking burn vector via collision avoidance
+
+- revisit hiding behind allies to vent
