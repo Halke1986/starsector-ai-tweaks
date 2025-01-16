@@ -23,13 +23,20 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
     }
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
+        // Running when paused would lead to de-synchronization
+        // with ship AI. In the first frame after un-pausing,
+        // ship AI would observe null reviewedHeadingPoint.
+        if (Global.getCombatEngine().isPaused) {
+            return
+        }
+
         val ships = Global.getCombatEngine().ships.asSequence().mapNotNull { it.customShipAI }
 
         val movements = ships.map { it.movement }
-        val burnDrives = ships.mapNotNull { it.systemAI as? Coordinable }
+        val systems = ships.mapNotNull { it.systemAI as? Coordinable }
 
         buildTaskForces(movements).forEach { coordinateUnits(buildFormations(it.value)) }
-        buildTaskForces(burnDrives).forEach { coordinateUnits(buildFormations(it.value)) }
+        buildTaskForces(systems).forEach { coordinateUnits(buildFormations(it.value)) }
     }
 
     // Divide attacking AIs into task forces attacking the same target.

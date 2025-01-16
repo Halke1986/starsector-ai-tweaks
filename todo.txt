@@ -26,9 +26,6 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - do not track targets with angular velocity higher than weapon rotation
 
-- strafe a station counterclockwise
-    - check the coord pause behavior
-
 - calculate weapon range correctly for broadside weapon groups
 
 vinh:
@@ -38,3 +35,5 @@ Rift cascade and volatile particle driver
 - avoid blocking burn vector via collision avoidance
 
 - revisit hiding behind allies to vent
+
+- extract vanilla missile decisioning

@@ -24,7 +24,9 @@ class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
 
         // If all 7 weapon groups are auto-firing, then shipAI forcefully selects one of them
         // to control manually. Block SELECT_GROUP command to prevent that.
-        if (autofireCount == 7) ship.blockCommandForOneFrame(ShipCommand.SELECT_GROUP)
+        if (autofireCount == 7) {
+            ship.blockCommandForOneFrame(ShipCommand.SELECT_GROUP)
+        }
     }
 
     private fun ensureAutofire(): Int {
