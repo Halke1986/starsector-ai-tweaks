@@ -27,7 +27,6 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 - do not track targets with angular velocity higher than weapon rotation
 
 - strafe a station counterclockwise
-    - remove maneuver target collision avoidance, check tesseract  (maybe remove after all?)
     - check the coord pause behavior
 
 - calculate weapon range correctly for broadside weapon groups

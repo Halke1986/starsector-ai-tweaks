@@ -297,7 +297,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         limits.addAll(avoidBlockingLineOfFire(dt, friendlies))
         limits.addAll(avoidCollisions(dt, friendlies + hulks))
         limits.add(avoidBorder())
-//        limits.add(avoidTargetCollision(dt))
 
         return limits.filterNotNull()
     }
@@ -309,17 +308,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             vMaxToObstacle(dt, obstacle, distance)
         }
     }
-
-    /** Do not ram the maneuver target. */
-//    private fun avoidTargetCollision(dt: Float): EngineController.Limit? {
-//        val target = ai.maneuverTarget ?: return null
-//
-//        // Do not be paralyzed by frigates when trying to back off.
-//        if (ai.ventModule.isBackingOff && target.root.isFrigate) return null
-//
-//        val distance = max(ai.stats.totalCollisionRadius + target.totalCollisionRadius + Preset.collisionBuffer, ai.attackRange * 0.8f)
-//        return vMaxToObstacle(dt, target, distance)
-//    }
 
     /** Position the ship to avoid blocking allied ships' lines of fire
      * on the same target while keeping its own line of fire clear. */
