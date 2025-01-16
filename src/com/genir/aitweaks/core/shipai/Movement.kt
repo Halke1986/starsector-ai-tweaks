@@ -130,22 +130,24 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         ai.assignment.navigateTo?.let { return maneuverTarget.location - it }
 
         val targetRoot = maneuverTarget.root
+
+        val isAttackingStation = targetRoot.isStation && maneuverTarget.isModule && targetRoot != maneuverTarget
         val attackVector: Vector2f = when {
             // When attacking a station, avoid positioning the ship
             // with hulks obstructing the targeted module.
-            targetRoot.isStation && maneuverTarget.isModule && targetRoot != maneuverTarget -> {
+            isAttackingStation -> {
                 maneuverTarget.location - targetRoot.location
             }
 
             // Move straight to the target if ship is an assault ship.
             ai.isAssaultShip -> {
-                maneuverTarget.location - ship.location
+                ship.location - maneuverTarget.location
             }
 
             // Move straight to the target if no threat. This may happen
             // if the target is far away, beyond the threat search radius.
             ai.threatVector.isZero -> {
-                maneuverTarget.location - ship.location
+                ship.location - maneuverTarget.location
             }
 
             // Strafe the target randomly, when it's the only threat.
@@ -161,6 +163,11 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
         val attackLocation = preferMapCenter(attackVector).resized(ai.attackRange) + maneuverTarget.location
         val adjustedAttackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
+
+        // Assault ships don't need angle adjustment, as it interferes with the burn drive.
+        if (ai.isAssaultShip && !isAttackingStation) {
+            return adjustedAttackLocation
+        }
 
         // Cap the maximum angle between current ship location and
         // planned attack location. Otherwise, the ship may approach
