@@ -294,10 +294,10 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
         val limits: MutableList<EngineController.Limit?> = mutableListOf()
 
-        limits.add(avoidBlockingLineOfFire(dt, friendlies))
+        limits.addAll(avoidBlockingLineOfFire(dt, friendlies))
+        limits.addAll(avoidCollisions(dt, friendlies + hulks))
         limits.add(avoidBorder())
 //        limits.add(avoidTargetCollision(dt))
-        limits.addAll(avoidCollisions(dt, friendlies + hulks))
 
         return limits.filterNotNull()
     }
@@ -323,15 +323,20 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
     /** Position the ship to avoid blocking allied ships' lines of fire
      * on the same target while keeping its own line of fire clear. */
-    private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): EngineController.Limit? {
-        val target = ai.attackTarget ?: return null
+    private fun avoidBlockingLineOfFire(dt: Float, allies: List<ShipAPI>): List<EngineController.Limit?> {
+        // Don't care about lines of fire when backing off.
+        if (ai.ventModule.isBackingOff) {
+            return listOf()
+        }
+
+        val target = ai.attackTarget ?: return listOf()
 
         // Blocking line of fire occurs mostly among ships attacking the same target.
         // For simplicity, the AI will try to avoid only those cases of blocking.
         val ais = allies.mapNotNull { it.customShipAI }
         val squad = ais.filter { it.attackTarget == ai.attackTarget }
         if (squad.isEmpty()) {
-            return null
+            return listOf()
         }
 
         // Calculations are done in target frame of reference. Obstacle
@@ -341,7 +346,9 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val distToTarget = shipLineOfFire.length
         val shipW = angularVelocity(shipLineOfFire, ship.timeAdjustedVelocity)
 
-        var maxLimit: EngineController.Limit? = null
+        var maxLimitLeft: EngineController.Limit? = null
+        var maxLimitRight: EngineController.Limit? = null
+
         squad.forEach { obstacle: CustomShipAI ->
             val obstacleLineOfFire = obstacle.ship.location - target.location
             val obstacleFacing = obstacleLineOfFire.facing
@@ -351,10 +358,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             else obstacle
 
             when {
-                blocked.ventModule.isBackingOff -> return@forEach
-
                 // Too far from obstacle line of fire to consider blocking.
-                absShortestRotation(shipFacing, obstacleFacing) >= 90f -> return@forEach
+                abs(angleToObstacle) >= 90f -> return@forEach
 
                 // Ship is moving away from the obstacle.
                 angleToObstacle.sign != shipW.sign -> return@forEach
@@ -367,31 +372,34 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             val minDist = (ai.stats.totalCollisionRadius + obstacle.stats.totalCollisionRadius) * 0.75f
             val distance = arcLength - minDist
 
-            // Line of fire blocking occurs when ships orbiting the same target
-            // strafe in front of each one. To prevent this, speed limit is imposed
-            // only on strafing velocity. This allows to return only the most severe
-            // speed limit, as all found limits are parallel.
-            val limitFacing = shipFacing + 90f * angleToObstacle.sign
-
-            val limit = if (distance < 0f) {
-                // Already blocking.
-                EngineController.Limit(limitFacing, 0f)
+            // Max speed towards obstacle line of fire.
+            val vMax: Float = if (distance < 0f) {
+                0f // Already blocking.
             } else {
                 val obstacleW = angularVelocity(obstacleLineOfFire, obstacle.ship.timeAdjustedVelocity)
                 val obstacleVComponent = obstacleW / obstacleLineOfFire.length
                 val obstacleVDirection = if (angleToObstacle.sign == obstacleW.sign) 1
                 else -1
 
-                val vMax = vMax(dt, distance, ship.strafeAcceleration) + obstacleVDirection * obstacleVComponent
-                EngineController.Limit(limitFacing, vMax)
+                vMax(dt, distance, ship.strafeAcceleration) + obstacleVDirection * obstacleVComponent
             }
 
-            if (maxLimit == null || maxLimit!!.speed > limit.speed) {
-                maxLimit = limit
+            // Line of fire blocking occurs when ships orbiting the same target
+            // strafe in front of each one. To prevent this, speed limit is imposed
+            // only on strafing velocity. This allows to return only the most severe
+            // speed limit, as all found limits are parallel.
+            if (angleToObstacle.sign > 0) {
+                if (maxLimitRight == null || maxLimitRight!!.speed > vMax) {
+                    maxLimitRight = EngineController.Limit(shipFacing + 90f, vMax)
+                }
+            } else {
+                if (maxLimitLeft == null || maxLimitLeft!!.speed > vMax) {
+                    maxLimitLeft = EngineController.Limit(shipFacing - 90f, vMax)
+                }
             }
         }
 
-        return maxLimit
+        return listOf(maxLimitRight, maxLimitLeft)
     }
 
     private fun avoidBorder(): EngineController.Limit? {
