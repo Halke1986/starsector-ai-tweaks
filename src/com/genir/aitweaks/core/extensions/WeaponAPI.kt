@@ -72,7 +72,7 @@ val WeaponAPI.absoluteArcFacing: Float
     get() = clampAngle(arcFacing + ship.facing)
 
 val WeaponAPI.totalRange: Float
-    get() = range + projectileFadeRange * 0.33f + barrelOffset
+    get() = Range + projectileFadeRange * 0.33f
 
 val WeaponAPI.timeToAttack: Float
     get() {
@@ -163,7 +163,7 @@ val WeaponAPI.noFF: Boolean
 
 /** Weapon range from the center of the ship. */
 val WeaponAPI.slotRange: Float
-    get() = range + barrelOffset + slot.location.x
+    get() = Range + slot.location.x
 
 val WeaponAPI.isOutOfAmmo: Boolean
     get() = usesAmmo() && ammo == 0
