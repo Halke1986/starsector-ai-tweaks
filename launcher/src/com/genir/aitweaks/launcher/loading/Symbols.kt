@@ -74,7 +74,7 @@ class Symbols {
     val flockingAI_getMissileDangerDir: Method = flockingAI.methods.first { it.name == Bytecode.getMethodsInOrder(flockingAI).first { it.desc == "()Lorg/lwjgl/util/vector/Vector2f;" }.name && it.returnType == Vector2f::class.java && it.hasParameters() }
     val combatMap_getPluginContainers: Method = combatMap.methods.first { it.hasParameters() && it.returnType == List::class.java }
     val missionDefinitionPluginContainer_getEveryFrameCombatPlugin: Method = missionDefinitionPluginContainer.methods.first { it.returnType == EveryFrameCombatPlugin::class.java }
-    val loadingUtils_loadWeaponSpec: Method = loadingUtils.methods.first { it.returnType == JSONObject::class.java && it.hasParameters(String::class.java, Set::class.java) }
+    val loadingUtils_loadSpec: Method = loadingUtils.methods.first { it.returnType == JSONObject::class.java && it.hasParameters(String::class.java, Set::class.java) }
 
     private fun Method.genericReturnTypeArgument(idx: Int): Class<*> {
         return (genericReturnType as ParameterizedType).actualTypeArguments[idx] as Class<*>

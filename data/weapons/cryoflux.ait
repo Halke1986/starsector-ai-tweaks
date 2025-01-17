@@ -1,0 +1,5 @@
+{
+  "aiTag": [
+    "NO_MODDED_AI" # Cryoflamer has a custom script that makes the projectiles incompatible with ballistic calculations.
+  ]
+}

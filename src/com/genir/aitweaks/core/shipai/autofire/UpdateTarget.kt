@@ -25,15 +25,15 @@ class UpdateTarget(
         Global.getCurrentState() == GameState.TITLE && state.config.enableTitleScreenFire -> selectAsteroid()
 
         // Obligatory PD
-        weapon.hasAIHint(PD_ONLY) && weapon.hasAIHint(ANTI_FTR) -> selectFighter() ?: selectMissile()
+        weapon.hasAIHint(PD_ONLY) && weapon.isAntiFighter -> selectFighter() ?: selectMissile()
         weapon.hasAIHint(PD_ONLY) -> selectMissile() ?: selectFighter()
 
         // PD
-        weapon.hasAIHint(PD) && weapon.hasAIHint(ANTI_FTR) -> selectFighter() ?: selectMissile() ?: selectShip()
+        weapon.hasAIHint(PD) && weapon.isAntiFighter -> selectFighter() ?: selectMissile() ?: selectShip()
         weapon.hasAIHint(PD) -> selectMissile() ?: selectFighter() ?: selectShip()
 
         // Main weapons
-        weapon.hasAIHint(ANTI_FTR) -> selectShip(alsoTargetFighters)
+        weapon.isAntiFighter -> selectShip(alsoTargetFighters)
         weapon.hasAIHint(STRIKE) -> selectShip()
         weapon.ship.hullSpec.hullId.startsWith("guardian") -> selectShip()
 

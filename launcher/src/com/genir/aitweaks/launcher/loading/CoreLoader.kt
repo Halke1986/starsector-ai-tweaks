@@ -62,7 +62,7 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("flockingAI_getMissileDangerDir", symbols.flockingAI_getMissileDangerDir.name),
             Transformer.newTransform("combatMap_getPluginContainers", symbols.combatMap_getPluginContainers.name),
             Transformer.newTransform("missionDefinitionPluginContainer_getEveryFrameCombatPlugin", symbols.missionDefinitionPluginContainer_getEveryFrameCombatPlugin.name),
-            Transformer.newTransform("loadingUtils_loadWeaponSpec", symbols.loadingUtils_loadWeaponSpec.name),
+            Transformer.newTransform("loadingUtils_loadSpec", symbols.loadingUtils_loadSpec.name),
         ))
     }
 

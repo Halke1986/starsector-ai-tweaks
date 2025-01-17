@@ -176,7 +176,7 @@ public class Obfuscated {
     }
 
     public static class LoadingUtils {
-        public static JSONObject loadingUtils_loadWeaponSpec(String path, Set<String> def) {
+        public static JSONObject loadingUtils_loadSpec(String path, Set<String> def) {
             return null;
         }
     }

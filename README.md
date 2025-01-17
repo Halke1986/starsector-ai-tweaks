@@ -142,8 +142,15 @@ A simple modification preventing autofire AI from firing Light Needler, Heavy Ne
 targets. This change greatly improves needlers anti shield capability by preventing them from wasting bursts on exposed
 hulls. All ships are subject to the change, no hull mod is required.
 
-Which weapons are affected by the improved Needler AI is defined in weapon_data.scv file. For a weapon to be subject to
-the change, it needs to have "aitweaks_anti_shield" tag.
+Improved Needler AI is enabled by adding `ANTI_SHIELD` aiTweaksTag to `/data/weapons/weaponId.ait` file:
+
+```
+{
+  "aiTag": [
+    "ANTI_SHIELD"
+  ]
+}
+```
 
 The feature can be disabled via LunaLib settings.
 
@@ -268,8 +275,16 @@ Details
 The hull mod prevents selected beam weapons from firing at shields by adding USE_LESS_VS_SHIELDS tag. Additionally, the
 weapons are prevented from shooting at fighters.
 
-Which weapons are affected by the hull mod is defined in weapon_data.scv file. For a weapon to be subject to Finisher
-Beam Protocol, it needs to have "aitweaks_finisher_beam" tag. And, of course, it needs to be a beam weapon.
+For a weapon to be subject to Finisher Beam Protocol, it needs to have `FINISHER_BEAM` aiTweaksTag in
+its `/data/weapons/weaponId.ait` file. And, of course, it needs to be a beam weapon:
+
+```
+{
+  "aiTag": [
+    "FINISHER_BEAM"
+  ]
+}
+```
 
 ### 3. System Shunt hull mod ###
 

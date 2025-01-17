@@ -3,6 +3,8 @@ package com.genir.aitweaks.core.hullmods
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.core.shipai.autofire.Tag
+import com.genir.aitweaks.core.shipai.autofire.hasAITag
 
 class FinisherBeamProtocol : BaseHullMod() {
     override fun applyEffectsAfterShipCreation(ship: ShipAPI?, id: String?) {
@@ -21,7 +23,7 @@ class FinisherBeamProtocol : BaseHullMod() {
 
     private fun WeaponAPI.isFinisherBeam() = when {
         !this.spec.isBeam && !this.spec.isBurstBeam -> false
-        else -> this.spec.hasTag("aitweaks_finisher_beam")
+        else -> hasAITag(Tag.FINISHER_BEAM)
     }
 
     private fun setFinisherBeamProtocol(weapon: WeaponAPI) {

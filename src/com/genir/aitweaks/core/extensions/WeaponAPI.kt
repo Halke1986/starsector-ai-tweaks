@@ -3,7 +3,7 @@ package com.genir.aitweaks.core.extensions
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.CollisionClass.*
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.DamageType.*
+import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.combat.WeaponGroupAPI
@@ -13,22 +13,20 @@ import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
+import com.genir.aitweaks.core.shipai.autofire.Tag
+import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.clampAngle
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.unitVector
-import org.json.JSONArray
 import kotlin.math.max
 
-val WeaponAPI.isAntiArmor: Boolean
-    get() = damageType == HIGH_EXPLOSIVE || hasAIHint(USE_LESS_VS_SHIELDS)
-
-val WeaponAPI.isAntiShield: Boolean
-    get() = damageType == KINETIC || isStrictlyAntiShield
+val WeaponAPI.isAntiFighter: Boolean
+    get() = hasAITag(Tag.ANTI_FIGHTER) || hasAIHint(ANTI_FTR)
 
 val WeaponAPI.isStrictlyAntiShield: Boolean
-    get() = spec.hasTag("aitweaks_anti_shield") && state.config.enableNeedlerFix
+    get() = hasAITag(Tag.ANTI_SHIELD) && state.config.enableNeedlerFix
 
 val WeaponAPI.isPD: Boolean
     get() = hasAIHint(PD) || hasAIHint(PD_ONLY)
@@ -236,20 +234,3 @@ val WeaponAPI.isForceNoFireOneFrame: Boolean
 
         else -> false
     }
-
-private val weaponTags: MutableMap<String, Set<String>> = mutableMapOf()
-
-/** Check if the weapon has an AI Tweaks tag appended to .wpn file. */
-fun WeaponAPI.hasTag(tag: String): Boolean {
-    return tag in (weaponTags[spec.weaponId] ?: run {
-        val path = "data/weapons/${spec.weaponId}.wpn"
-        val json = Obfuscated.LoadingUtils.loadingUtils_loadWeaponSpec(path, null)
-
-        val jsonTags: JSONArray? = json.optJSONArray("aiTweaks")
-        val tags: Set<String> = if (jsonTags == null) setOf()
-        else (0 until jsonTags.length()).map { jsonTags.getString(it) }.toSet()
-
-        weaponTags[spec.weaponId] = tags
-        tags
-    })
-}

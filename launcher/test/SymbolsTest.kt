@@ -49,6 +49,6 @@ class SymbolsTest {
         assertEquals("Õ00000", s.flockingAI_getMissileDangerDir.name)
         assertEquals("String", s.combatMap_getPluginContainers.name)
         assertEquals("Ô00000", s.missionDefinitionPluginContainer_getEveryFrameCombatPlugin.name)
-        assertEquals("o00000", s.loadingUtils_loadWeaponSpec.name)
+        assertEquals("o00000", s.loadingUtils_loadSpec.name)
     }
 }
