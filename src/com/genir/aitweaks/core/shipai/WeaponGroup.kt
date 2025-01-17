@@ -3,9 +3,7 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.shipai.autofire.intercept
+import com.genir.aitweaks.core.shipai.autofire.*
 import com.genir.aitweaks.core.utils.averageFacing
 import com.genir.aitweaks.core.utils.shortestRotation
 import kotlin.math.abs
@@ -17,7 +15,7 @@ import kotlin.math.sign
 class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
     val defaultFacing: Float = defaultAttackFacing()
     val dps: Float = weapons.sumOf { it.effectiveDPS }
-    private val rangeMap: Map<WeaponAPI, Float> = weapons.associateWith { it.rangeFromShipCenter(defaultFacing) }
+    private val rangeMap: Map<WeaponAPI, Float> = weaponRanges()
     val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)
     val minRange: Float = weapons.minOfOrNull { it.rangeInGroup } ?: 0f
     val maxRange: Float = weapons.maxOfOrNull { it.rangeInGroup } ?: 0f
@@ -77,6 +75,13 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         }
 
         return defaultShipFacing + offsetNegative + offsetPositive
+    }
+
+    private fun weaponRanges(): Map<WeaponAPI, Float> {
+        return weapons.associateWith { weapon ->
+            val rangeMod = if (weapon.hasAITag(Tag.APPROACH_CLOSER)) 0.8f else 1f
+            weapon.rangeFromShipCenter(defaultFacing) * rangeMod
+        }
     }
 
     private fun defaultAttackFacing(): Float {
