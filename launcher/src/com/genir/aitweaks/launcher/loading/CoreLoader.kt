@@ -41,6 +41,7 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("$core\$MissionDefinitionPluginContainer", symbols.missionDefinitionPluginContainer.classPath),
             Transformer.newTransform("$core\$BeamWeapon", symbols.beamWeapon.classPath),
             Transformer.newTransform("$core\$ProjectileWeapon", symbols.projectileWeapon.classPath),
+            Transformer.newTransform("$core\$LoadingUtils", symbols.loadingUtils.classPath),
 
             // Fields and methods.
             Transformer.newTransform("autofireManager_advance", symbols.autofireManager_advance.name),
@@ -61,6 +62,7 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("flockingAI_getMissileDangerDir", symbols.flockingAI_getMissileDangerDir.name),
             Transformer.newTransform("combatMap_getPluginContainers", symbols.combatMap_getPluginContainers.name),
             Transformer.newTransform("missionDefinitionPluginContainer_getEveryFrameCombatPlugin", symbols.missionDefinitionPluginContainer_getEveryFrameCombatPlugin.name),
+            Transformer.newTransform("loadingUtils_loadWeaponSpec", symbols.loadingUtils_loadWeaponSpec.name),
         ))
     }
 

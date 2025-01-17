@@ -1,10 +1,12 @@
 package com.genir.aitweaks.core;
 
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
+import org.json.JSONObject;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Collection of placeholders for obfuscated types.
@@ -170,6 +172,12 @@ public class Obfuscated {
 
         public boolean isForceNoFireOneFrame() {
             return false;
+        }
+    }
+
+    public static class LoadingUtils {
+        public static JSONObject loadingUtils_loadWeaponSpec(String path, Set<String> def) {
+            return null;
         }
     }
 }

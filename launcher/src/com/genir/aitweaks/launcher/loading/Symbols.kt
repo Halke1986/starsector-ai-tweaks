@@ -6,8 +6,10 @@ import com.fs.starfarer.combat.CombatEngine
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
+import com.fs.starfarer.loading.LoadingUtils
 import com.fs.starfarer.title.TitleScreenState
 import com.genir.aitweaks.launcher.loading.Bytecode.classPath
+import org.json.JSONObject
 import org.lwjgl.util.vector.Vector2f
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
@@ -26,6 +28,7 @@ class Symbols {
     val fleetMemberView: Class<*> = FleetMemberView::class.java
     val combatEngine: Class<*> = CombatEngine::class.java
     val titleScreenState: Class<*> = TitleScreenState::class.java
+    val loadingUtils: Class<*> = LoadingUtils::class.java
 
     // Classes and interfaces.
     val flockingAI: Class<*> = basicShipAI.getMethod("getFlockingAI").returnType
@@ -71,6 +74,7 @@ class Symbols {
     val flockingAI_getMissileDangerDir: Method = flockingAI.methods.first { it.name == Bytecode.getMethodsInOrder(flockingAI).first { it.desc == "()Lorg/lwjgl/util/vector/Vector2f;" }.name && it.returnType == Vector2f::class.java && it.hasParameters() }
     val combatMap_getPluginContainers: Method = combatMap.methods.first { it.hasParameters() && it.returnType == List::class.java }
     val missionDefinitionPluginContainer_getEveryFrameCombatPlugin: Method = missionDefinitionPluginContainer.methods.first { it.returnType == EveryFrameCombatPlugin::class.java }
+    val loadingUtils_loadWeaponSpec: Method = loadingUtils.methods.first { it.returnType == JSONObject::class.java && it.hasParameters(String::class.java, Set::class.java) }
 
     private fun Method.genericReturnTypeArgument(idx: Int): Class<*> {
         return (genericReturnType as ParameterizedType).actualTypeArguments[idx] as Class<*>

@@ -18,6 +18,7 @@ import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.clampAngle
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.unitVector
+import org.json.JSONArray
 import kotlin.math.max
 
 val WeaponAPI.isAntiArmor: Boolean
@@ -235,3 +236,20 @@ val WeaponAPI.isForceNoFireOneFrame: Boolean
 
         else -> false
     }
+
+private val weaponTags: MutableMap<String, Set<String>> = mutableMapOf()
+
+/** Check if the weapon has an AI Tweaks tag appended to .wpn file. */
+fun WeaponAPI.hasTag(tag: String): Boolean {
+    return tag in (weaponTags[spec.weaponId] ?: run {
+        val path = "data/weapons/${spec.weaponId}.wpn"
+        val json = Obfuscated.LoadingUtils.loadingUtils_loadWeaponSpec(path, null)
+
+        val jsonTags: JSONArray? = json.optJSONArray("aiTweaks")
+        val tags: Set<String> = if (jsonTags == null) setOf()
+        else (0 until jsonTags.length()).map { jsonTags.getString(it) }.toSet()
+
+        weaponTags[spec.weaponId] = tags
+        tags
+    })
+}
