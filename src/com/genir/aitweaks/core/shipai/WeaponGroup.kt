@@ -13,13 +13,14 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 
-/** A group of weapons that should be able to focus on a single attack angle. */
+/** A group of weapons that should be able to fire along a single attack vector. */
 class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
     val defaultFacing: Float = defaultAttackFacing()
     val dps: Float = weapons.sumOf { it.effectiveDPS }
+    private val rangeMap: Map<WeaponAPI, Float> = weapons.associateWith { it.rangeFromShipCenter(defaultFacing) }
     val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)
-    val minRange: Float = weapons.minOfOrNull { it.slotRange } ?: 0f
-    val maxRange: Float = weapons.maxOfOrNull { it.slotRange } ?: 0f
+    val minRange: Float = weapons.minOfOrNull { it.rangeInGroup } ?: 0f
+    val maxRange: Float = weapons.maxOfOrNull { it.rangeInGroup } ?: 0f
 
     /** Fraction of primary weapons DPS that can be delivered at the given range. */
     fun dpsFractionAtRange(range: Float): Float {
@@ -29,7 +30,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         weapons.forEach {
             val dps = it.effectiveDPS
             all += dps
-            if (it.slotRange >= range) inRange += dps
+            if (it.rangeInGroup >= range) inRange += dps
         }
 
         return if (all != 0f) inRange / all else 0f
@@ -45,7 +46,9 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         }
 
         // Aim directly at target if no weapon firing solution is available.
-        if (solutions.isEmpty()) return (target.location - ship.location).facing - defaultFacing
+        if (solutions.isEmpty()) {
+            return (target.location - ship.location).facing - defaultFacing
+        }
 
         // Start with aiming the weapon group at the average intercept point.
         val averageIntercept: Float = averageFacing(solutions.values)
@@ -87,15 +90,18 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         if (dps == 0f) return 0f
 
         var dpsInRange = dps
-        weapons.sortedWith(compareBy { it.slotRange }).forEach { weapon ->
+        weapons.sortedWith(compareBy { it.rangeInGroup }).forEach { weapon ->
             dpsInRange -= weapon.effectiveDPS
             if (dpsInRange / dps <= effectiveDpsThreshold) {
-                return weapon.slotRange
+                return weapon.rangeInGroup
             }
         }
 
         return 0f
     }
+
+    private val WeaponAPI.rangeInGroup: Float
+        get() = rangeMap[this]!!
 
     companion object {
         /** Find firing arc angles closest to ship front for each weapon,

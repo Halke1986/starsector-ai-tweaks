@@ -26,8 +26,6 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - do not track targets with angular velocity higher than weapon rotation
 
-- calculate weapon range correctly for broadside weapon groups
-
 vinh:
 Btw genir, I have a suggestion in ai tweak. When equipping rce or vpd, maybe make the AI think it have 800 range weapon instead of 1000 range but still make be able to fire at max range. I uhh kinda want that since both weapon have lower dps at max range, I want them to move a bit closer to fire instead of hovering at max range and get half the dps. I am no good at coding so I don’t know if this is feasible, just hope you look into it
 Rift cascade and volatile particle driver

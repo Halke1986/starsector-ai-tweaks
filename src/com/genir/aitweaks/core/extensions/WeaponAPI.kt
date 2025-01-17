@@ -16,6 +16,8 @@ import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.clampAngle
+import com.genir.aitweaks.core.utils.solve
+import com.genir.aitweaks.core.utils.unitVector
 import kotlin.math.max
 
 val WeaponAPI.isAntiArmor: Boolean
@@ -73,6 +75,14 @@ val WeaponAPI.absoluteArcFacing: Float
 
 val WeaponAPI.totalRange: Float
     get() = Range + projectileFadeRange * 0.33f
+
+/** Weapon range from the center of the ship, along the attack facing.
+ * attackFacing is in ship frame of reference*/
+fun WeaponAPI.rangeFromShipCenter(attackFacing: Float): Float {
+    val p = -slot.location
+    val v = unitVector(attackFacing)
+    return solve(Pair(p, v), Range) ?: 0f
+}
 
 val WeaponAPI.timeToAttack: Float
     get() {
@@ -141,6 +151,7 @@ val WeaponAPI.barrelOffset: Float
 
         val offsets = if (slot.isHardpoint) spec.hardpointFireOffsets
         else spec.turretFireOffsets
+
         return offsets[0]?.x ?: 0f
     }
 
@@ -160,10 +171,6 @@ val WeaponAPI.noFF: Boolean
         PROJECTILE_FIGHTER -> true
         else -> false
     }
-
-/** Weapon range from the center of the ship. */
-val WeaponAPI.slotRange: Float
-    get() = Range + slot.location.x
 
 val WeaponAPI.isOutOfAmmo: Boolean
     get() = usesAmmo() && ammo == 0

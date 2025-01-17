@@ -142,4 +142,4 @@ val ShipAPI.baseMaxSpeed: Float
     }
 
 val ShipAPI.maxRange: Float
-    get() = allGroupedWeapons.maxOfOrNull { it.slotRange } ?: 0f
+    get() = allGroupedWeapons.maxOfOrNull { it.rangeFromShipCenter(0f) } ?: 0f
