@@ -1,3 +1,5 @@
+- Custom AI: Several bugfixes and improvements to ship maneuvering logic, especially when attacking stations. Now the ships are less likely to block allies and their own line of fire.
+
 Version 1.11.4
 
 - Fixed a bug that caused ships to incorrectly estimate range to their targets.
