@@ -1,6 +1,7 @@
 - Custom AI: Several bugfixes and improvements to ship maneuvering logic, especially when attacking stations. Now the ships are less likely to block allies and their own line of fire.
 - The weapon AI now estimates attack range for broadside builds with additional precision. Back slot will not be left out of action, even on the weirdest broadside ships.
 - AI Tweaks-specific weapon tags are now added via a custom /data/weapons/weaponId.ait file. This improves mod interoperability and eliminates the need to override definitions in weapon_data.csv.
+- Fixed a bug that prevented High Energy Focus from triggering on ships with a lot of energy PD weapons. Reported by Marq.
 
 Version 1.11.4
 

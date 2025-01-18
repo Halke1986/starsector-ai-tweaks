@@ -12,7 +12,7 @@ import com.genir.aitweaks.core.shipai.autofire.willHitShield
 import org.lazywizard.lazylib.combat.AIUtils
 import org.lwjgl.util.vector.Vector2f
 
-class HighEnergyFocusAI : ShipSystemAIScript {
+class HighEnergyFocus : ShipSystemAIScript {
     private var ship: ShipAPI? = null
 
     override fun init(ship: ShipAPI?, p1: ShipSystemAPI?, p2: ShipwideAIFlags?, engine: CombatEngineAPI?) {
@@ -38,15 +38,18 @@ class HighEnergyFocusAI : ShipSystemAIScript {
         val weapons: List<WeaponAPI> = energyWeapons(ship)
 
         // All weapons are in cooldown.
-        if (weapons.all { it.cooldownRemaining > 0f }) return false
-
-        val dpsTotal = weapons.sumOf { it.effectiveDPS }
-        val dpsHef = weapons.sumOf { (it.derivedStats.dps * dpsMultiplier(it)) }
+        if (weapons.all { it.cooldownRemaining > 0f }) {
+            return false
+        }
 
         // Too small portion of the total DPS is affected by HEF.
-        if (dpsHef * 2f < dpsTotal) return false
+        val dpsThreshold = 0.5f * weapons.filter { !it.isPD }.sumOf { it.effectiveDPS }
+        val dpsHef = weapons.sumOf { (it.derivedStats.dps * dpsMultiplier(it)) }
+        if (dpsHef < dpsThreshold) {
+            return false
+        }
 
-        // Last charge is reserved for largest weapons.
+        // Last charge is reserved for the largest weapons.
         val largestWeapon = largestWeaponSize(weapons)
         if (ship.system.ammo == 1) {
             return weapons.filter { it.size == largestWeapon }.any { dpsMultiplier(it) > 0 }
@@ -90,14 +93,17 @@ class HighEnergyFocusAI : ShipSystemAIScript {
             !target.isValidTarget -> 0f
             target.isPhased -> 0f
 
+            // Handle PD weapons. PD weapons don't count towards DPS threshold,
+            // so on ships with only PD energy weapons, even one of them firing
+            // will trigger the HEF.
+            weapon.isPD -> 0.25f
+
             // Account for damage type.
             weapon.damageType == FRAGMENTATION -> 0.25f
-            weapon.damageType == ENERGY -> 1f
-            weapon.damageType == OTHER -> 1f
-            target.isFighter -> 1f
-            weapon.damageType == HIGH_EXPLOSIVE && willHitShield(weapon, target, params) == null -> 2f
-            weapon.damageType == KINETIC && willHitShield(weapon, target, params) != null -> 2f
-            else -> 0.5f
+            target.isFighter -> 0.25f
+            weapon.damageType == HIGH_EXPLOSIVE -> if (willHitShield(weapon, target, params) == null) 2f else 0.5f
+            weapon.damageType == KINETIC -> if (willHitShield(weapon, target, params) != null) 2f else 0.5f
+            else -> 1f
         }
     }
 }

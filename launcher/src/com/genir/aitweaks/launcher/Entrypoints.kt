@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.ShipSystemAIScript
 import com.genir.aitweaks.launcher.loading.CoreLoaderManager.coreLoader
 import com.genir.aitweaks.launcher.loading.CoreLoaderManager.instantiate
 
-class HighEnergyFocusAI : ShipSystemAIScript by coreLoader.loadClass("com.genir.aitweaks.core.shipai.systems.HighEnergyFocusAI").instantiate()
+class HighEnergyFocus : ShipSystemAIScript by coreLoader.loadClass("com.genir.aitweaks.core.shipai.systems.HighEnergyFocus").instantiate()
 
 class CustomShipAI : HullModEffect by coreLoader.loadClass("com.genir.aitweaks.core.hullmods.CustomShipAI").instantiate()
 
