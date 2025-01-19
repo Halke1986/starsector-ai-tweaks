@@ -286,23 +286,24 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         val r = shortestRotation(weapon.currAngle, (target.location - weapon.location).facing)
-        val w = weapon.turnRate - interceptTracker.interceptVelocity * r.sign
+        val w = weapon.turnRateWhileFiring - interceptTracker.interceptVelocity * r.sign
 
         // The beam's turn rate is too low to track the target.
-        if (w < 0) return false
+        if (w < 0) {
+            return false
+        }
 
         // Decide if it's faster to rotate the beam to target
         // or start a new beam and let it reach the target.
         val toTarget = (target.location - weapon.location)
-        val turnRateMultiplier = 5f // vanilla turn rate multiplier for non-firing weapons
-        val wFast = weapon.turnRate * turnRateMultiplier - interceptTracker.interceptVelocity * r.sign
+        val wFast = weapon.turnRateWhileIdle - interceptTracker.interceptVelocity * r.sign
         val rotationTime = (abs(r) / w)
         val rotationTimeFast = (abs(r) / wFast)
-        val flightTime = rotationTimeFast + toTarget.length / (weapon.spec as BeamWeaponSpecAPI).beamSpeed
+        val realignmentTime = rotationTimeFast + toTarget.length / (weapon.spec as BeamWeaponSpecAPI).beamSpeed
 
         // Favor beam rotation, just because it looks cool.
         val flightTimeMultiplier = 1.3f
-        return rotationTime < flightTime * flightTimeMultiplier
+        return rotationTime < realignmentTime * flightTimeMultiplier
     }
 
     /**

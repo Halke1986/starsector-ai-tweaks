@@ -41,8 +41,9 @@ another ship.
 
 ----------------------------------------------------------------
 
-- use front facing turrets with rotation speed lower than ship turn rate as hardpoints
+- aim slow turrets
+- DEPRECATED: use front facing turrets with rotation speed lower than ship turn rate as hardpoints
  - unless flamed out
  - not for player
 
-- why champion not rotating to aim weapons at long range?
+- closestEntity account for entity radius

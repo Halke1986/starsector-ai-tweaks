@@ -234,3 +234,19 @@ val WeaponAPI.isForceNoFireOneFrame: Boolean
 
         else -> false
     }
+
+val WeaponAPI.turnRateWhileIdle: Float
+    get() {
+        // Use vanilla isFiring instead of the precise isInFiringCycle extension,
+        // to match the vanilla method of calculating the turn rate.
+        return if (isFiring) {
+            // When idle, vanilla multiplies weapon turn rate by 5.
+            turnRate * 5
+        } else {
+            turnRate
+        }
+    }
+
+val WeaponAPI.turnRateWhileFiring: Float
+    get() = turnRateWhileIdle / 5
+
