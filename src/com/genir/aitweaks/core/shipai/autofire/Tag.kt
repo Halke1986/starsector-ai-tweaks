@@ -21,9 +21,12 @@ fun WeaponAPI.hasAITag(tag: Tag): Boolean {
 }
 
 val WeaponAPI.AITags: Set<Tag>
-    get() = weaponTags[spec.weaponId] ?: run {
+    get() {
+        val id: String = spec?.weaponId ?: return setOf()
+        weaponTags[id]?.let { return it }
+
         val newTags = try {
-            val path = "data/weapons/${spec.weaponId}.ait"
+            val path = "data/weapons/${id}.ait"
             val json = Obfuscated.LoadingUtils.loadingUtils_loadSpec(path, null)
 
             val jsonTags: JSONArray? = json.optJSONArray("aiTag")
@@ -36,6 +39,6 @@ val WeaponAPI.AITags: Set<Tag>
             setOf()
         }
 
-        weaponTags[spec.weaponId] = newTags
-        newTags
+        weaponTags[id] = newTags
+        return newTags
     }
