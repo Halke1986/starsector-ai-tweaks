@@ -21,11 +21,12 @@ class UpdateTarget(
 ) {
     companion object {
         private const val ALSO_TARGET_FIGHTERS = true
+        const val TARGET_SEARCH_MULT = 1.5f
     }
 
     // Search within twice weapon.totalRange to account for projectile flight time,
     // allowing attacks to start before the target enters maximum range.
-    private val targetSearchRange = weapon.totalRange * 2
+    private val targetSearchRange = weapon.totalRange * TARGET_SEARCH_MULT
 
     fun target(): CombatEntityAPI? = when {
         Global.getCurrentState() == GameState.TITLE && state.config.enableTitleScreenFire -> selectAsteroid()

@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
+import com.genir.aitweaks.core.shipai.autofire.UpdateTarget.Companion.TARGET_SEARCH_MULT
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
@@ -132,7 +133,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             // Weapon can no longer track the target. Use double the weapon.totalRange to allow
             // tracking potential targets when there are no targets within the actual firing range.
-            !canTrack(weapon, BallisticTarget.entity(target), currentParams(), weapon.totalRange * 2) -> true
+            !canTrack(weapon, BallisticTarget.entity(target), currentParams(), weapon.totalRange * TARGET_SEARCH_MULT) -> true
 
             else -> false
         }
@@ -169,11 +170,13 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     protected open fun calculateShouldFire(): HoldFire? {
-        val target: CombatEntityAPI = target ?: return NO_TARGET
-        if (!target.isValidTarget) return NO_TARGET
+        val target = target
+        if (target == null || !target.isValidTarget) {
+            return NO_TARGET
+        }
 
-        holdFireIfOverfluxed(target)?.let { return it }
-        stabilizeOnTarget()?.let { return it }
+        holdFireIfOverfluxed(target)?.let { reason -> return reason }
+        stabilizeOnTarget()?.let { reason -> return reason }
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
@@ -186,7 +189,9 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             expectedHit = Hit(target, range, ROTATE_BEAM)
         }
 
-        if (expectedHit == null) return NO_HIT_EXPECTED
+        if (expectedHit == null) {
+            return NO_HIT_EXPECTED
+        }
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, target, ballisticParams)
@@ -198,7 +203,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             else -> actualHit
         }
 
-        avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
+        avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { reason -> return reason }
 
         when {
             hit.type == SHIELD && hit.range > weapon.Range -> return OUT_OF_RANGE

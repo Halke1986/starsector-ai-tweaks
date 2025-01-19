@@ -1,6 +1,4 @@
-ships avoid collisions with very large modded shields
-
-why invictus close to station? maybe admiral AI gave eliminate order?
+SUGGESTED: ships avoid collisions with very large modded shields
 
 ----------------------------------------------------------------
 
@@ -24,15 +22,27 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - extract vanilla missile decisioning
 
-SUGGESTED: okay, I do have one question. there doesn't seem to be a way to unselect this without hitting the "reset mod to default" button, so adding a button that says fearless (default) or something might be handy.
+SUGGESTED: okay, I do have one question. there doesn't seem to be a way to unselect this without hitting the "reset mod
+to default" button, so adding a button that says fearless (default) or something might be handy.
 Will it override the behavior of AI cores or ships that have other personalities? Like the Proxy Dustkeepers
 
 REPORTED: Yeah, I console command in 2 lg sunder to test and I can’t equip the other one [with custom AI]
 
-drop the "frame-perfect" description from readme
+- drop the "frame-perfect" description from readme
+
+- take damage type into account when calculating history of calculated damage, to not ignore hellbores when venting
+
+SUGGESTED/REPORTED: For the Custom AI it will start venting immediately when using a long ranged weapon that fires volleys, cutting off the
+volley prematurely.  This is best shown with Domain Phase Lab's Acuity ships with their Note launchers.
+A request, since this might just be vanilla behavior, but I'd try tweaking the Omnishield settings to heavily
+deprioritize shielding towards friendly ships that are nearby.  Often, this behavior happens even if there's a much
+larger ship nearby actively unloading it's entire arsenal onto a ship and they're worried about scratching the paint on
+another ship.
 
 ----------------------------------------------------------------
 
 - use front facing turrets with rotation speed lower than ship turn rate as hardpoints
  - unless flamed out
  - not for player
+
+- why champion not rotating to aim weapons at long range?
