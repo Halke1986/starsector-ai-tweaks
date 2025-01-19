@@ -12,10 +12,6 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - area targeting for devastator
 
-- use front facing turrets with rotation speed lower than ship turn rate as hardpoints
- - unless flamed out
- - not for player
-
 - don't prevent venting if target has more health than the ship
 
 - REPORTED: vanilla ai fleets gathering in the middle of the map, on maps with no objectives
@@ -28,4 +24,15 @@ why invictus close to station? maybe admiral AI gave eliminate order?
 
 - extract vanilla missile decisioning
 
-- vulcan range in front
+SUGGESTED: okay, I do have one question. there doesn't seem to be a way to unselect this without hitting the "reset mod to default" button, so adding a button that says fearless (default) or something might be handy.
+Will it override the behavior of AI cores or ships that have other personalities? Like the Proxy Dustkeepers
+
+REPORTED: Yeah, I console command in 2 lg sunder to test and I can’t equip the other one [with custom AI]
+
+drop the "frame-perfect" description from readme
+
+----------------------------------------------------------------
+
+- use front facing turrets with rotation speed lower than ship turn rate as hardpoints
+ - unless flamed out
+ - not for player

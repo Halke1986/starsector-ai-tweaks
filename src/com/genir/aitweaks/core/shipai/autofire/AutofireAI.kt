@@ -54,17 +54,14 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         updateAim(dt)
         syncFire.advance()
 
-        // Calculate if weapon should fire at the current target.
-        if (shouldFireInterval.intervalElapsed()) {
-            shouldHoldFire = calculateShouldFire()
+        val updateTargetImmediately = shouldUpdateTargetImmediately(target)
+        val updateTargetInterval = updateTargetInterval.intervalElapsed() && shouldUpdateTarget(target)
 
-            // Possibly update the target and calculate a new firing solution
-            // in the same frame as the previous target became invalid.
-            if (shouldUpdateTargetImmediately(target)) updateTarget(dt)
-        }
-
-        if (updateTargetInterval.intervalElapsed() && shouldUpdateTarget(target)) {
+        if (updateTargetImmediately || updateTargetInterval) {
             updateTarget(dt)
+            shouldHoldFire = calculateShouldFire()
+        } else if (shouldFireInterval.intervalElapsed()) {
+            shouldHoldFire = calculateShouldFire()
         }
     }
 
@@ -90,9 +87,17 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         return aimPoint?.let { it + weapon.location }
     }
 
-    override fun getTargetShip(): ShipAPI? = target as? ShipAPI
-    override fun getWeapon(): WeaponAPI = weapon
-    override fun getTargetMissile(): MissileAPI? = target as? MissileAPI
+    override fun getWeapon(): WeaponAPI {
+        return weapon
+    }
+
+    override fun getTargetShip(): ShipAPI? {
+        return target as? ShipAPI
+    }
+
+    override fun getTargetMissile(): MissileAPI? {
+        return target as? MissileAPI
+    }
 
     private fun trackAttackTimes(dt: Float) {
         // Update attack time, used by vanilla accuracy increase mechanism.
@@ -103,22 +108,31 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             idleTime += dt
         }
 
-        if (idleTime >= 3f) attackTime = 0f
+        if (idleTime >= 3f) {
+            attackTime = 0f
+        }
 
         // Update time on target, used by STABILIZE_ON_TARGET firing rule.
         if (shouldHoldFire == NO_TARGET || shouldHoldFire == NO_HIT_EXPECTED) onTargetTime = 0f
         else onTargetTime += dt
     }
 
+    /** Switching targets immediately after one becomes invalid, instead of waiting
+     * for the update interval, greatly improves PD weapon effectiveness. */
     private fun shouldUpdateTargetImmediately(target: CombatEntityAPI?): Boolean {
         return when {
-            // There is no current target.
+            // Leave the case of no target to slow update interval.
             target == null -> false
 
+            // Target was destroyed the previous frame.
             !target.isValidTarget -> true
 
-            // Target can no longer be tracked. This does not apply to hardpoint weapons tracking ship attack target.
-            (target != ship.attackTarget || weapon.slot.isTurret) && !canTrack(weapon, BallisticTarget.entity(target), currentParams()) -> true
+            // Next step does not apply to hardpoint weapons tracking ship attack target.
+            target == ship.attackTarget && weapon.slot.isHardpoint -> false
+
+            // Weapon can no longer track the target. Use double the weapon.totalRange to allow
+            // tracking potential targets when there are no targets within the actual firing range.
+            !canTrack(weapon, BallisticTarget.entity(target), currentParams(), weapon.totalRange * 2) -> true
 
             else -> false
         }
@@ -141,7 +155,9 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target()
 
         // Nothing changed, return early.
-        if (target == previousTarget) return
+        if (target == previousTarget) {
+            return
+        }
 
         // Cleanup
         attackTime = 0f
@@ -150,8 +166,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         trackAttackTimes(dt)
         updateAim(dt)
-
-        shouldHoldFire = calculateShouldFire()
     }
 
     protected open fun calculateShouldFire(): HoldFire? {

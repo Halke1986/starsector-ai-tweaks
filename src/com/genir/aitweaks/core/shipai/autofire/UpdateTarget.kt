@@ -13,14 +13,20 @@ import com.genir.aitweaks.core.utils.shortestRotation
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
-private const val alsoTargetFighters = true
-
 class UpdateTarget(
     private val weapon: WeaponAPI,
     private val current: CombatEntityAPI?,
     private val attackTarget: ShipAPI?,
     private val params: BallisticParams,
 ) {
+    companion object {
+        private const val ALSO_TARGET_FIGHTERS = true
+    }
+
+    // Search within twice weapon.totalRange to account for projectile flight time,
+    // allowing attacks to start before the target enters maximum range.
+    private val targetSearchRange = weapon.totalRange * 2
+
     fun target(): CombatEntityAPI? = when {
         Global.getCurrentState() == GameState.TITLE && state.config.enableTitleScreenFire -> selectAsteroid()
 
@@ -33,7 +39,7 @@ class UpdateTarget(
         weapon.hasAIHint(PD) -> selectMissile() ?: selectFighter() ?: selectShip()
 
         // Main weapons
-        weapon.isAntiFighter -> selectShip(alsoTargetFighters)
+        weapon.isAntiFighter -> selectShip(ALSO_TARGET_FIGHTERS)
         weapon.hasAIHint(STRIKE) -> selectShip()
         weapon.ship.hullSpec.hullId.startsWith("guardian") -> selectShip()
 
@@ -44,7 +50,10 @@ class UpdateTarget(
      * are both in viewport. Otherwise, it looks weird on the title screen. */
     private fun selectAsteroid(): CombatEntityAPI? {
         val inViewport = { location: Vector2f -> Global.getCombatEngine().viewport.isNearViewport(location, 0f) }
-        if (!inViewport(weapon.location)) return null
+        if (!inViewport(weapon.location)) {
+            return null
+        }
+
         return selectEntity(CombatAsteroidAPI::class.java) { inViewport(it.location) }
     }
 
@@ -77,42 +86,55 @@ class UpdateTarget(
             else -> false
         }
 
-        if (selectPriorityTarget) return priorityTarget
+        if (selectPriorityTarget) {
+            return priorityTarget
+        }
 
         // Select alternative target.
         return selectEntity(ShipAPI::class.java) { !it.isFighter || alsoFighter }
     }
 
-    private fun selectEntity(c: Class<*>, filter: (CombatEntityAPI) -> Boolean): CombatEntityAPI? {
+    private fun selectEntity(c: Class<*>, entityFilter: (CombatEntityAPI) -> Boolean): CombatEntityAPI? {
         // Try tracking the current target.
-        if (current != null && c.isInstance(current) && filter(current) && isTargetAcceptable(current)) return current
+        if (current != null && c.isInstance(current) && entityFilter(current) && isTargetAcceptable(current, weapon.totalRange)) {
+            return current
+        }
 
-        val opportunities = Grid.entities(c, weapon.location, weapon.totalRange)
-        val evaluated = opportunities.filter { filter(it) && isTargetAcceptable(it) }.map {
-            // Evaluate the target based on angle and distance.
+        val opportunities = Grid.entities(c, weapon.location, targetSearchRange).toList()
+        val evaluated = opportunities.filter { entityFilter(it) && isTargetAcceptable(it, targetSearchRange) }.map {
             val target = BallisticTarget.entity(it)
-            val angle = shortestRotation((target.location - weapon.location).facing, weapon.currAngle) * DEGREES_TO_RADIANS
-            val angleWeight = 0.75f
-            val evalAngle = abs(angle) * angleWeight
-
-            // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
             val dist = intercept(weapon, target, params).length
-            val evalDist = (dist / weapon.totalRange)
+            val range = weapon.totalRange
 
-            Pair(it, evalAngle + evalDist)
+            return@map if (dist <= range) {
+                // Evaluate the target based on angle and distance.
+                val angle = shortestRotation((target.location - weapon.location).facing, weapon.currAngle) * DEGREES_TO_RADIANS
+                val angleWeight = 0.75f
+
+                val evalAngle = abs(angle) * angleWeight
+                val evalDist = dist / range
+
+                Pair(it, evalAngle + evalDist)
+            } else {
+                // If the target is out of range, evaluate it based only on range, ignoring the angle.
+                val outOfRangePenalty = 1e3f
+
+                val evalDist = (dist - range) / range
+                Pair(it, evalDist + outOfRangePenalty)
+            }
         }
 
         return evaluated.minWithOrNull(compareBy { it.second })?.first
     }
 
-    private fun isTargetAcceptable(target: CombatEntityAPI): Boolean {
+    private fun isTargetAcceptable(target: CombatEntityAPI, searchRange: Float): Boolean {
         val ballisticTarget = BallisticTarget.entity(target)
 
         return when {
             !target.isValidTarget -> false
             target.owner == weapon.ship.owner -> false
 
-            !canTrack(weapon, ballisticTarget, params) -> false
+            !canTrack(weapon, ballisticTarget, params, searchRange) -> false
 
             // Do not track targets occluded by obstacles.
             else -> {
@@ -134,7 +156,7 @@ class UpdateTarget(
     private data class Obstacle(val arc: Arc, val dist: Float, val origin: CombatEntityAPI)
 
     private val obstacleList: List<Obstacle> by lazy {
-        val obstacles = Grid.ships(weapon.location, weapon.totalRange).filter {
+        val obstacles = Grid.ships(weapon.location, targetSearchRange).filter {
             when {
                 // Same ship.
                 it.root == weapon.ship.root -> false
