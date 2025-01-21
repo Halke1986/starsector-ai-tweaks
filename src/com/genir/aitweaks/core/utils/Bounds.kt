@@ -1,7 +1,7 @@
 package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
@@ -12,12 +12,12 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 class Bounds {
-    private val radiusCache = mutableMapOf<ShipAPI, Pair<Float, Float>>()
+    private val radiusCache = mutableMapOf<CombatEntityAPI, Pair<Float, Float>>()
 
     /** Calculates the length ratio along vector with given starting position
      * and velocity, at which first collision with target bounds happens.
      * The vector position and direction are in target frame of reference!. */
-    fun collision(position: Vector2f, velocity: Vector2f, target: ShipAPI): Float? {
+    fun collision(position: Vector2f, velocity: Vector2f, target: CombatEntityAPI): Float? {
         // Check if there's a possibility of collision.
         val bounds = target.exactBounds ?: return null
         if (radius(target) < distanceToOrigin(position, velocity)) return null
@@ -47,7 +47,7 @@ class Bounds {
 
     /** Point on ship bounds closest to 'position'.
      * 'position' and result are in global frame of reference. */
-    fun closestPoint(position: Vector2f, target: ShipAPI): Vector2f {
+    fun closestPoint(position: Vector2f, target: CombatEntityAPI): Vector2f {
         val bounds = target.exactBounds ?: return target.location
 
         val r = Rotation(-target.facing)
@@ -67,7 +67,7 @@ class Bounds {
 
     /** Is the point 'position' inside ship bounds.
      * 'position' is in global frame of reference. */
-    fun isPointWithin(position: Vector2f, target: ShipAPI): Boolean {
+    fun isPointWithin(position: Vector2f, target: CombatEntityAPI): Boolean {
         // Check if there's a possibility of collision.
         val bounds = target.exactBounds ?: return false
         if (radius(target) < (position - target.location).length) return false
@@ -90,14 +90,16 @@ class Bounds {
     }
 
     /** Radius of a circle encompassing the ship bounds. */
-    fun radius(ship: ShipAPI): Float {
+    fun radius(ship: CombatEntityAPI): Float {
+        val bounds = ship.exactBounds ?: return 0f
         val now = Global.getCombatEngine().getTotalElapsedTime(false)
 
         radiusCache[ship]?.let { (radius, timestamp) ->
-            if (now - timestamp < 1f) return radius
+            if (now - timestamp < 1f) {
+                return radius
+            }
         }
 
-        val bounds = ship.exactBounds ?: return 0f
         val points = bounds.origSegments.flatMap { listOf(it.p1, it.p2) }
         val radius = points.maxOfOrNull { it.lengthSquared }?.let { sqrt(it) } ?: 0f
 

@@ -172,7 +172,7 @@ class UpdateTarget(
         }
 
         obstacles.map { obstacle ->
-            val target = BallisticTarget(obstacle.location, obstacle.velocity, state.bounds.radius(obstacle) * 0.8f)
+            val target = BallisticTarget(obstacle.location, obstacle.velocity, obstacle.boundsRadius * 0.8f)
             val dist = intercept(weapon, target, params).length
             val arc = interceptArc(weapon, target, params)
 

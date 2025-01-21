@@ -7,7 +7,6 @@ import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.defaultAIInterval
@@ -282,7 +281,7 @@ class VentModule(private val ai: CustomShipAI) {
             }
 
             val radius = if (obstacle.isAlive) obstacle.shieldRadiusEvenIfNoShield * 1.5f
-            else state.bounds.radius(obstacle)
+            else obstacle.boundsRadius
 
             distanceToOrigin(p, toShip) <= radius
         }

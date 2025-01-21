@@ -367,7 +367,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         return obstacles.map { obstacle ->
             val toObstacle = obstacle.location - ship.location
             val dist = toObstacle.length
-            val arc = Arc(angularSize(dist * dist, state.bounds.radius(obstacle) * 0.8f), toObstacle.facing)
+            val arc = Arc(angularSize(dist * dist, obstacle.boundsRadius * 0.8f), toObstacle.facing)
 
             Obstacle(arc, dist)
         }.toList()
