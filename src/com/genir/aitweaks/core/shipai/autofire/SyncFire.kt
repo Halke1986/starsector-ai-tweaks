@@ -5,6 +5,8 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
+import kotlin.math.min
+import kotlin.math.round
 
 /** SyncFire is used to synchronise weapons that are to fire in staggered mode. */
 class SyncFire(private val weapon: WeaponAPI, var state: State?) {
@@ -12,6 +14,7 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
 
     private var idleFrames: Int = 0
     private var isInSync: Boolean = false
+    private var prevROF: Float = 0f
 
     fun advance() {
         if (weapon.isInFiringCycle) {
@@ -30,6 +33,14 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
         if (weapon.isOutOfOrder) {
             isInSync = false
         }
+
+        // Re-synchronized after a period of modified rate of fire.
+        val rof = weapon.ship.mutableStats.ballisticRoFMult.modifiedValue
+        if (rof < prevROF) {
+            isInSync = false
+        }
+
+        prevROF = rof
     }
 
     /** Make weapons sync fire in staggered firing mode. */
@@ -61,15 +72,15 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
 
         // Weapons with firing cycle longer than 6 seconds
         // are not eligible for staggered firing mode.
-        val cycleDuration = weapon.firingCycle.duration
-        if (cycleDuration > 6f) {
+        val combinedCycleDuration = weapon.firingCycle.duration
+        if (combinedCycleDuration > 6f) {
             isInSync = false
             return true
         }
 
         val timestamp = Global.getCombatEngine().getTotalElapsedTime(false)
         val sinceLastAttack = timestamp - state.lastAttack
-        val stagger = cycleDuration / state.weapons
+        val stagger = combinedCycleDuration / state.weapons
         val dt = Global.getCombatEngine().elapsedInLastFrame
 
         // Combined rate of fire is too fast to sync.
@@ -83,24 +94,30 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
             return true
         }
 
-        isInSync = when {
-            // Weapon finished its firing cycle. Assume it's not yet out of
-            // sync and continue attack, unless another weapon attacked the
-            // same frame. NOTE: there's also an idle frame between shots in
-            // a burst, but that case if handled by 'if (weapon.isInFiringCycle)
-            // return true' case.
-            idleFrames == 1 && isInSync && state.lastAttack != timestamp -> true
+        val cycles = round(sinceLastAttack / stagger)
+        val opportunity = state.lastAttack + cycles * stagger
+        val tolerance = min(stagger / 2, dt * 3)
 
+        isInSync = when {
             // Weapons of same type didn't attack for at least entire firing cycle,
             // meaning all of them are ready to attack. The weapon may fire immediately.
-            sinceLastAttack > cycleDuration -> true
+            sinceLastAttack > combinedCycleDuration -> true
 
-            // Wait for opportunity to attack aligned with staggered attack cycle.
-            else -> sinceLastAttack >= stagger && sinceLastAttack % stagger <= dt
+            // Another weapon seized the attack opportunity.
+            cycles == 0f -> false
+
+            // Weapon finished its firing cycle. Assume it's not yet out of
+            // sync and continue attack. NOTE: there's also an idle frame between shots in
+            // a burst, but that case if handled by 'if (weapon.isInFiringCycle)
+            // return true' case.
+            idleFrames == 1 && isInSync -> true
+
+            // Wait for opportunity to attack aligned with the staggered attack cycle.
+            else -> timestamp >= opportunity && timestamp <= opportunity + tolerance
         }
 
         if (isInSync) {
-            state.lastAttack = timestamp
+            state.lastAttack = opportunity
         }
 
         return isInSync
