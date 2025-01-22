@@ -35,7 +35,7 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
         }
 
         // Re-synchronized after a period of modified rate of fire.
-        val rof = weapon.ship.mutableStats.ballisticRoFMult.modifiedValue
+        val rof = weapon.RoFMultiplier
         if (rof < prevROF) {
             isInSync = false
         }

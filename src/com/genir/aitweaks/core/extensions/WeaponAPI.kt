@@ -250,3 +250,10 @@ val WeaponAPI.turnRateWhileIdle: Float
 val WeaponAPI.turnRateWhileFiring: Float
     get() = turnRateWhileIdle / 5
 
+val WeaponAPI.RoFMultiplier: Float
+    get() = when (type) {
+        WeaponAPI.WeaponType.BALLISTIC -> ship.mutableStats.ballisticRoFMult.modifiedValue
+        WeaponAPI.WeaponType.ENERGY -> ship.mutableStats.energyRoFMult.modifiedValue
+        WeaponAPI.WeaponType.MISSILE -> ship.mutableStats.missileRoFMult.modifiedValue
+        else -> 1f
+    }

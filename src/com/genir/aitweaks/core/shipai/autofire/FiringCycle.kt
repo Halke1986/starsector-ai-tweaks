@@ -1,9 +1,9 @@
 package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.*
 import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
+import com.genir.aitweaks.core.extensions.RoFMultiplier
 
 data class FiringCycle(val damage: Float, val warmupDuration: Float, val burstDuration: Float, val duration: Float)
 
@@ -44,18 +44,10 @@ val WeaponAPI.firingCycle: FiringCycle
             val duration = warmupDuration + burstDuration + cooldownDuration
             val damage = damage.damage * spec.burstSize
 
-            val rof = 1f / when (type) {
-                BALLISTIC -> ship.mutableStats.ballisticRoFMult.modifiedValue
-                ENERGY -> ship.mutableStats.energyRoFMult.modifiedValue
-                MISSILE -> ship.mutableStats.missileRoFMult.modifiedValue
-                else -> 1f
-            }
-
+            val rof = 1f / RoFMultiplier
             FiringCycle(damage, warmupDuration * rof, burstDuration * rof, duration * rof)
         }
 
         // Unknown.
         else -> FiringCycle(0f, 0f, 0f, 0f)
     }
-
-
