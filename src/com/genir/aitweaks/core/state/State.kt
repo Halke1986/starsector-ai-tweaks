@@ -5,7 +5,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.AutomatedShipAIManager
 import com.genir.aitweaks.core.FleetCohesionAI
 import com.genir.aitweaks.core.debug.DebugPlugin
 import com.genir.aitweaks.core.debug.removeGrid
@@ -47,7 +46,6 @@ class State : BaseEveryFrameCombatPlugin() {
         accelerationTracker,
         AimAssistManager(),
         AutoOmniShields(),
-        AutomatedShipAIManager(),
         AttackCoordinator(),
         AutofireManagerOverride(),
     )

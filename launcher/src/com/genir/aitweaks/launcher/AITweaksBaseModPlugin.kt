@@ -12,12 +12,12 @@ import com.genir.aitweaks.launcher.loading.CoreLoaderManager.coreLoader
 import com.genir.aitweaks.launcher.loading.CoreLoaderManager.instantiate
 
 class AITweaksBaseModPlugin : BaseModPlugin() {
-    override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin> {
+    override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin>? {
         val core: BaseModPlugin = coreLoader.loadClass("com.genir.aitweaks.core.BaseModPlugin").instantiate()
         return core.pickWeaponAutofireAI(weapon)
     }
 
-    override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin> {
+    override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
         val core: BaseModPlugin = coreLoader.loadClass("com.genir.aitweaks.core.BaseModPlugin").instantiate()
         return core.pickShipAI(member, ship)
     }

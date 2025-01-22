@@ -6,7 +6,7 @@ import com.genir.aitweaks.core.CustomAIManager
 
 class CustomShipAI : BaseHullMod() {
     override fun showInRefitScreenModPickerFor(ship: ShipAPI): Boolean {
-        return CustomAIManager().canHaveCustomAI(ship)
+        return CustomAIManager.canHaveCustomAI(ship)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? = when (index) {

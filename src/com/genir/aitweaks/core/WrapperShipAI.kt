@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core
 
+import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.IntervalUtil
@@ -16,7 +17,7 @@ import com.genir.aitweaks.core.utils.defaultAIInterval
 import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */
-class WrapperShipAI(val ship: ShipAPI) : Obfuscated.BasicShipAI(ship as Obfuscated.Ship) {
+class WrapperShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.BasicShipAI(ship as Obfuscated.Ship, config) {
     private val engineController: EngineController = EngineController(ship)
     private val updateInterval: IntervalUtil = defaultAIInterval()
     private var weaponGroup: WeaponGroup = WeaponGroup(ship, listOf())

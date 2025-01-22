@@ -69,7 +69,7 @@ public class Obfuscated {
     }
 
     public static class BasicShipAI implements ShipAIPlugin {
-        BasicShipAI(Ship ship) {
+        BasicShipAI(Ship ship, ShipAIConfig config) {
         }
 
         @Override

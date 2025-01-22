@@ -22,12 +22,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - extract vanilla missile decisioning
 
-SUGGESTED: okay, I do have one question. there doesn't seem to be a way to unselect this without hitting the "reset mod
-to default" button, so adding a button that says fearless (default) or something might be handy.
-Will it override the behavior of AI cores or ships that have other personalities? Like the Proxy Dustkeepers
-
-REPORTED: Yeah, I console command in 2 lg sunder to test and I can’t equip the other one [with custom AI]
-
 - drop the "frame-perfect" description from readme
 
 - take damage type into account when calculating history of calculated damage, to not ignore hellbores when venting
@@ -39,11 +33,15 @@ deprioritize shielding towards friendly ships that are nearby.  Often, this beha
 larger ship nearby actively unloading it's entire arsenal onto a ship and they're worried about scratching the paint on
 another ship.
 
-----------------------------------------------------------------
-
 - aim slow turrets
 - DEPRECATED: use front facing turrets with rotation speed lower than ship turn rate as hardpoints
  - unless flamed out
  - not for player
 
-- closestEntity account for entity radius
+- try to attack same enemy battle group during initial split
+
+- fleet coord seems to leave no place for ships sometimes, observed with erads
+
+----------------------------------------------------------------
+
+REPORTED: Yeah, I console command in 2 lg sunder to test and I can’t equip the other one [with custom AI]
