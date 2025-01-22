@@ -5,6 +5,8 @@ import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
+import com.fs.starfarer.combat.ai.BasicShipAI
+import com.fs.starfarer.combat.entities.Ship
 import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController
@@ -38,6 +40,10 @@ import java.awt.Color.GREEN
 internal fun debug(dt: Float) {
     val ship = Global.getCombatEngine().playerShip ?: return
     val ships = Global.getCombatEngine().ships
+
+//    ships.filter { it.owner == 1 && it.isFrigate }.forEach {
+//        Debug.print[it] = "${it.hullSpec.hullId} ${it.ai?.let { it::class.java.name }} ${(it as Ship).personality} ${it.ai is BasicShipAI}"
+//    }
 }
 
 var expectedFacing = 90f

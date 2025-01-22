@@ -1,6 +1,9 @@
 package com.genir.aitweaks.core;
 
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin;
+import com.fs.starfarer.api.combat.ShipAIConfig;
+import com.fs.starfarer.api.combat.ShipAIPlugin;
+import com.fs.starfarer.api.combat.ShipwideAIFlags;
 import org.json.JSONObject;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -65,7 +68,11 @@ public class Obfuscated {
         }
     }
 
-    public static class BasicShipAI {
+    public static class BasicShipAI implements ShipAIPlugin {
+        BasicShipAI(Ship ship) {
+        }
+
+        @Override
         public void advance(float amount) {
         }
 
@@ -73,6 +80,7 @@ public class Obfuscated {
             return null;
         }
 
+        @Override
         public void cancelCurrentManeuver() {
         }
 
@@ -89,6 +97,29 @@ public class Obfuscated {
         }
 
         public FlockingAI getFlockingAI() {
+            return null;
+        }
+
+        @Override
+        public void setDoNotFireDelay(float amount) {
+        }
+
+        @Override
+        public void forceCircumstanceEvaluation() {
+        }
+
+        @Override
+        public boolean needsRefit() {
+            return false;
+        }
+
+        @Override
+        public ShipwideAIFlags getAIFlags() {
+            return null;
+        }
+
+        @Override
+        public ShipAIConfig getConfig() {
             return null;
         }
     }
@@ -144,7 +175,7 @@ public class Obfuscated {
     }
 
     public static class CombatMap {
-        public List combatMap_getPluginContainers() {
+        public List<?> combatMap_getPluginContainers() {
             return null;
         }
     }
