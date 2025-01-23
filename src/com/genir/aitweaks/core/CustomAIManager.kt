@@ -13,10 +13,9 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.extensions.isAutomated
-import com.genir.aitweaks.core.extensions.isBig
+import com.genir.aitweaks.core.extensions.isModule
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.log
 
 object CustomAIManager {
     fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
@@ -93,7 +92,9 @@ object CustomAIManager {
             ship.hullSpec.isPhase -> false
             ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
             ship.isStation -> false
-            !ship.isBig -> false
+            ship.isModule -> false
+            ship.isFrigate -> false
+            ship.isFighter -> false
 
             else -> true
         }
