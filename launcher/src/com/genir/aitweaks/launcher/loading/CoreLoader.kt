@@ -69,27 +69,30 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
     override fun loadClass(name: String): Class<*> {
         cache[name]?.let { return it }
 
-        var c: Class<*>?
+        val c: Class<*> = when {
+            name.startsWith("com.genir.aitweaks.core") -> {
+                // Load and transform AI Tweaks core logic classes.
+                val classBuffer = Bytecode.readClassBuffer(this, name)
+                val obfuscated = obfuscator.apply(obfuscator.apply(classBuffer))
+                defineClass(name, obfuscated, 0, obfuscated.size)
+            }
 
-        try {
-            // Try to load the class using default Starsector script loader.
-            // This ensures that AI Tweaks' core logic uses the same class
-            // definitions as the rest of the application, including AI Tweaks
-            // launcher. Using the same class definitions is important when
-            // sharing state through static fields, as in the case of LunaLib
-            // settings.
-            c = Global.getSettings().scriptClassLoader.loadClass(name)
-        } catch (_: SecurityException) {
-            // Load classes restricted by Starsector reflect/IO ban.
-            c = ClassLoader.getSystemClassLoader().loadClass(name)
-        } catch (_: ClassNotFoundException) {
-            // Load and transform AI Tweaks core logic classes.
-            val classBuffer = Bytecode.readClassBuffer(this, name)
-            val obfuscated = obfuscator.apply(obfuscator.apply(classBuffer))
-            c = defineClass(name, obfuscated, 0, obfuscated.size)
+            else -> try {
+                // Load Java and Starsector classes, including the classes
+                // restricted by Starsector reflection ban.
+                ClassLoader.getSystemClassLoader().loadClass(name)
+            } catch (_: ClassNotFoundException) {
+                // Load mod classes using default Starsector script loader.
+                // This ensures that AI Tweaks' core logic uses the same class
+                // definitions as the rest of the application, including AI Tweaks
+                // launcher. Using the same class definitions is important when
+                // sharing state through static fields, as in the case of LunaLib
+                // settings.
+                Global.getSettings().scriptClassLoader.loadClass(name)
+            }
         }
 
-        cache[name] = c!!
+        cache[name] = c
         return c
     }
 
