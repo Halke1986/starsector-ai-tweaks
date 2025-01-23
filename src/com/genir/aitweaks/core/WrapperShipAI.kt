@@ -38,11 +38,15 @@ class WrapperShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.BasicS
             weaponGroup = WeaponGroup(ship, weapons)
         }
 
-        if (ship.fluxTracker.isOverloadedOrVenting) return
+        if (ship.fluxTracker.isOverloadedOrVenting) {
+            return
+        }
 
         // Override only attack-related maneuvers.
         val currentManeuver: Obfuscated.Maneuver? = super.getCurrentManeuver()
-        if (currentManeuver !is StrafeTargetManeuverV2 && currentManeuver !is Obfuscated.ApproachManeuver) return
+        if (currentManeuver !is StrafeTargetManeuverV2 && currentManeuver !is Obfuscated.ApproachManeuver) {
+            return
+        }
 
         // Find ship target and force a refresh if it's invalid.
         val target: ShipAPI = currentManeuver.maneuver_getTarget() as? ShipAPI ?: return
@@ -53,7 +57,9 @@ class WrapperShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.BasicS
 
         // Aim ship only if the target is close to weapons range.
         val rangeThreshold = weaponGroup.maxRange * 1.75f
-        if (rangeThreshold * 1.75f < (target.location - ship.location).length) return
+        if (rangeThreshold * 1.75f < (target.location - ship.location).length) {
+            return
+        }
 
         // Remove vanilla turn commands.
         clearVanillaCommands(ship, VanillaShipCommand.TURN_LEFT, VanillaShipCommand.TURN_RIGHT)

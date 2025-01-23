@@ -1,10 +1,7 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.ShipAIConfig
-import com.fs.starfarer.api.combat.ShipAIPlugin
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipwideAIFlags
+import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController
@@ -39,9 +36,11 @@ internal fun debug(dt: Float) {
     val ship = Global.getCombatEngine().playerShip ?: return
     val ships = Global.getCombatEngine().ships
 
-//    ships.filter { it.isAutomated && !it.isFighter }.forEach {
-//        Debug.print[it] = "${it.hullSpec.hullId} ${it.AIPersonality} ${(it.ai as? BasicShipAI)?.config?.personalityOverride} ${it.ai is BasicShipAI}"
-//    }
+    Debug.clear()
+
+    ships.filter { it.isAutomated && !it.isFighter && it.AIPersonality != "reckless" && it.isAlive && !it.hullSpec.hints.contains(ShipHullSpecAPI.ShipTypeHints.CARRIER) }.forEach {
+        Debug.print[it] = "${it.name} ${(it.ai as? ShipAIPlugin)?.config?.personalityOverride} ${it.AIPersonality} ${it.ai?.let { it::class.java.name }}"
+    }
 }
 
 var expectedFacing = 90f

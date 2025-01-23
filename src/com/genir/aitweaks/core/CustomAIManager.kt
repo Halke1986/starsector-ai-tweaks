@@ -16,10 +16,15 @@ import com.genir.aitweaks.core.extensions.isAutomated
 import com.genir.aitweaks.core.extensions.isBig
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.utils.log
 
 object CustomAIManager {
     fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
         if (Global.getCurrentState() != GameState.COMBAT) {
+            return null
+        }
+
+        if (ship.isFighter) {
             return null
         }
 
@@ -40,8 +45,7 @@ object CustomAIManager {
 
         // Identify other mods or vanilla AI pick.
         val mods = Global.getSettings().modManager.enabledModPlugins
-        val otherMods = mods.filterNot { it::class.java.name.startsWith("com.genir.aitweaks") }
-        val picks = otherMods.mapNotNull { it.pickShipAI(member, ship) }
+        val picks = mods.mapNotNull { it.pickShipAI(member, ship) }
         val sortedPicks = picks.sortedWith(compareBy { it.priority.ordinal })
         val otherPick: PluginPick<ShipAIPlugin>? = sortedPicks.lastOrNull()
 

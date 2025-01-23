@@ -3,7 +3,7 @@ import subprocess
 import zipfile
 
 # List of files and directories to be compressed
-files_and_directories = ["mod_info.json", "aitweaks.version", "LICENSE", "data/", "graphics/", "jars/"]
+files_and_directories = ["mod_info.json", "aitweaks.version", "README.md", "changelog.md", "LICENSE", "data/", "graphics/", "jars/"]
 
 # Function to get the latest Git tag
 def get_latest_git_tag():

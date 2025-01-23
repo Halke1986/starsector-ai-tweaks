@@ -11,8 +11,20 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.genir.aitweaks.core.shipai.autofire.AutofirePicker
 
 class BaseModPlugin : BaseModPlugin() {
+    private var isRecursiveCall: Boolean = false
+
     override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
-        return CustomAIManager.pickShipAI(member, ship)
+        if (isRecursiveCall) {
+            return null
+        }
+
+        isRecursiveCall = true
+
+        try {
+            return CustomAIManager.pickShipAI(member, ship)
+        } finally {
+            isRecursiveCall = false
+        }
     }
 
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin>? {
