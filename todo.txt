@@ -10,8 +10,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - area targeting for devastator
 
-- don't prevent venting if target has more health than the ship
-
 - REPORTED: vanilla ai fleets gathering in the middle of the map, on maps with no objectives
 
 - do not track targets with angular velocity higher than weapon rotation
@@ -26,13 +24,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - take damage type into account when calculating history of calculated damage, to not ignore hellbores when venting
 
-SUGGESTED/REPORTED: For the Custom AI it will start venting immediately when using a long ranged weapon that fires volleys, cutting off the
-volley prematurely.  This is best shown with Domain Phase Lab's Acuity ships with their Note launchers.
-A request, since this might just be vanilla behavior, but I'd try tweaking the Omnishield settings to heavily
-deprioritize shielding towards friendly ships that are nearby.  Often, this behavior happens even if there's a much
-larger ship nearby actively unloading it's entire arsenal onto a ship and they're worried about scratching the paint on
-another ship.
-
 - aim slow turrets
 - DEPRECATED: use front facing turrets with rotation speed lower than ship turn rate as hardpoints
  - unless flamed out
@@ -43,5 +34,3 @@ another ship.
 - fleet coord seems to leave no place for ships sometimes, observed with erads
 
 ----------------------------------------------------------------
-
-REPORTED: Yeah, I console command in 2 lg sunder to test and I can’t equip the other one [with custom AI]

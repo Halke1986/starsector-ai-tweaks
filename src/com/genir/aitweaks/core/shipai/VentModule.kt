@@ -24,7 +24,8 @@ class VentModule(private val ai: CustomShipAI) {
     var isBackingOff: Boolean = false
     var shouldFinishTarget: Boolean = false
     private var ventTime: Float = ship.fluxTracker.timeToVent
-    private var shouldVent: Boolean = false
+    private var shouldInitVent: Boolean = false
+    private var ventTrigger: Boolean = false
     private var isSafe: Boolean = false
     private var backoffDistance: Float = farAway
 
@@ -46,15 +47,38 @@ class VentModule(private val ai: CustomShipAI) {
             ventTime = ship.fluxTracker.timeToVent
             shouldFinishTarget = shouldFinishTarget()
             updateBackoffStatus()
-            shouldVent = shouldVent()
+            shouldInitVent = shouldInitVent()
 
-            if (!isBackingOff) backoffDistance = farAway
+            if (!isBackingOff) {
+                backoffDistance = farAway
+            }
 
             // isSafe status is required for backoff
             // maneuver and for deciding if to vent.
-            if (isBackingOff || shouldVent) {
+            if (isBackingOff || shouldInitVent) {
                 isSafe = isSafe()
-                if (isSafe) ship.command(ShipCommand.VENT_FLUX)
+            }
+
+            ventTrigger = when {
+                // Init vent operation.
+                shouldInitVent && isSafe -> true
+
+                // Continue initiated vent operation, even if not feeling safe anymore.
+                // Otherwise, the ship could lose all opportunities to vent.
+                shouldInitVent && ventTrigger -> true
+
+                else -> false
+            }
+        }
+
+        // Wait for weapon bursts to subside before venting. Run the test
+        // every frame, to effectively force-off all burst weapons.
+        if (ventTrigger) {
+            val burstWeapons = ship.allGroupedWeapons.filter { it.isBurstWeapon && !it.spec.isInterruptibleBurst }
+            burstWeapons.forEach { it.autofirePlugin?.forceOff() }
+
+            if (burstWeapons.none { it.isInBurst }) {
+                ship.command(ShipCommand.VENT_FLUX)
             }
         }
     }
@@ -139,7 +163,7 @@ class VentModule(private val ai: CustomShipAI) {
         else ai.aiFlags.unsetFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
     }
 
-    private fun shouldVent(): Boolean {
+    private fun shouldInitVent(): Boolean {
         return when {
             // Can't vent right now.
             ship.fluxTracker.isOverloadedOrVenting -> false
@@ -310,11 +334,22 @@ class VentModule(private val ai: CustomShipAI) {
         val target: ShipAPI = ai.attackTarget as? ShipAPI ?: return false
 
         when {
-            target.isFighter || target.root.isFrigate -> return false
+            target.isFighter -> return false
 
+            target.root.isFrigate -> return false
+
+            // Target is behind healthy shields.
+            target.shield?.isOn == true && target.fluxLevel < 0.8f -> return false
+
+            // Target is too far.
             ai.currentEffectiveRange(target) > ai.attackingGroup.effectiveRange -> return false
+
+            // The ship is the victim, not the target.
+            target.hullLevel > ship.hullLevel -> return false
         }
 
+        // The more damaged the target, the higher flux level
+        // the ship is willing to tolerate.
         val damage = 1 - target.hullLevel
         return ship.FluxLevel < damage * damage * damage
     }

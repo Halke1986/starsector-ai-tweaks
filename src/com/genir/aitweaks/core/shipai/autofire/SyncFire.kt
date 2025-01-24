@@ -101,7 +101,10 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
         isInSync = when {
             // Weapons of same type didn't attack for at least entire firing cycle,
             // meaning all of them are ready to attack. The weapon may fire immediately.
-            sinceLastAttack > combinedCycleDuration -> true
+            sinceLastAttack > combinedCycleDuration -> {
+                state.lastAttack = timestamp
+                true
+            }
 
             // Another weapon seized the attack opportunity.
             cycles == 0f -> false
@@ -110,14 +113,18 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
             // sync and continue attack. NOTE: there's also an idle frame between shots in
             // a burst, but that case if handled by 'if (weapon.isInFiringCycle)
             // return true' case.
-            idleFrames == 1 && isInSync -> true
+            idleFrames == 1 && isInSync -> {
+                state.lastAttack = opportunity
+                true
+            }
 
             // Wait for opportunity to attack aligned with the staggered attack cycle.
-            else -> timestamp >= opportunity && timestamp <= opportunity + tolerance
-        }
+            timestamp >= opportunity && timestamp <= opportunity + tolerance -> {
+                state.lastAttack = opportunity
+                true
+            }
 
-        if (isInSync) {
-            state.lastAttack = opportunity
+            else -> false
         }
 
         return isInSync

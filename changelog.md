@@ -2,6 +2,7 @@
 - Added an option to disable automated ship personality override, reverting to vanilla settings. Suggested by shmone-else.
 - Made several improvements to how AI changes are applied, reducing the risk of interfering with custom AI or personality overrides from other mods. Suggested by shmone-else.
 - Fixed a bug that prevented installing Custom AI hullmod on ships with no weapons. Reported by vinh and Rayden_Solo.
+- Custom AI: Fixed an issue where ships would start venting flux and interrupt weapon bursts. Reported by Reshy.
 
 Version 1.11.5
 
