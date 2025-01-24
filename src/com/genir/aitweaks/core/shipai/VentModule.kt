@@ -7,12 +7,14 @@ import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
 
@@ -73,13 +75,8 @@ class VentModule(private val ai: CustomShipAI) {
 
         // Wait for weapon bursts to subside before venting. Run the test
         // every frame, to effectively force-off all burst weapons.
-        if (ventTrigger) {
-            val burstWeapons = ship.allGroupedWeapons.filter { it.isBurstWeapon && !it.spec.isInterruptibleBurst }
-            burstWeapons.forEach { it.autofirePlugin?.forceOff() }
-
-            if (burstWeapons.none { it.isInBurst }) {
-                ship.command(ShipCommand.VENT_FLUX)
-            }
+        if (ventTrigger && !waitForBursts()) {
+            ship.command(ShipCommand.VENT_FLUX)
         }
     }
 
@@ -362,6 +359,28 @@ class VentModule(private val ai: CustomShipAI) {
 
             else -> ship.allGroupedWeapons.all { it.isIdle || it.cooldownRemaining > ventTime }
         }
+    }
+
+    private fun waitForBursts(): Boolean {
+        val burstWeapons = ship.allGroupedWeapons.filter { it.isBurstWeapon && !it.spec.isInterruptibleBurst }
+        val longestBursts: Float = burstWeapons.filter { it.isInBurst }.maxOfOrNull { it.burstFireTimeRemaining } ?: 0f
+
+        // Vent when all the bursts have ended.
+        if (longestBursts == 0f) {
+            return false
+        }
+
+        // Do not start bursts that will not end before vent.
+        val timeToVent = min(longestBursts, 2f)
+        burstWeapons.forEach {
+            val cycle = it.firingCycle
+            val duration = cycle.warmupDuration + cycle.burstDuration
+            if (duration >= timeToVent) {
+                it.autofirePlugin?.forceOff()
+            }
+        }
+
+        return true
     }
 
     private val WeaponAPI.isFinisherMissile: Boolean
