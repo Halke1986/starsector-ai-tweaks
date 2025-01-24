@@ -184,7 +184,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         var expectedHit = analyzeHit(weapon, target, ballisticParams)
 
         // Mock an expected hit for beams that should keep firing when in transition between targets.
-        if (expectedHit == null && shouldHoldBeam(target)) {
+        if (expectedHit == null && shouldSweepBeam(target)) {
             val range = intercept(weapon, BallisticTarget.entity(target), currentParams()).length
             expectedHit = Hit(target, range, ROTATE_BEAM)
         }
@@ -276,13 +276,19 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     /** Given the finite speed of beam weapons, when the weapon is off target,
      * it may be more effective to rotate the active beam towards the target
      * rather than turning it off and reactivating it after realignment. */
-    private fun shouldHoldBeam(target: CombatEntityAPI): Boolean {
+    private fun shouldSweepBeam(target: CombatEntityAPI): Boolean {
         when {
             !weapon.isPlainBeam -> return false
 
-            !weapon.isFiring -> return false
+            !weapon.isInFiringCycle -> return false
 
             weapon.slot.isHardpoint -> return false
+
+            // Check if center of the target is in the firing arc. This prevents the beam getting stuck
+            // in a perpetual sweep, when target shield radius is in the firing arc, but target shields
+            // are down. The check shouldn't interfere with PD fire, since missiles and fighters are
+            // point-like targets.
+            !weapon.absoluteArc.contains(target.location - weapon.location) -> return false
         }
 
         val r = shortestRotation(weapon.currAngle, (target.location - weapon.location).facing)

@@ -33,8 +33,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     private val interpolateHeading = InterpolateValue()
     private val interpolateFacing = InterpolateValue()
 
-    // Make strafe rotation direction random, but consistent for a given ship.
-    private val strafeRotation = Rotation(if (ship.id.hashCode() % 2 == 0) 10f else -10f)
+    // Make strafe rotation direction random, but consistent for the given ship.
+    private val strafeRotation = Rotation(if (this.hashCode() % 2 == 0) 10f else -10f)
 
     fun advance(dt: Float) {
         setHeading(dt, ai.maneuverTarget)

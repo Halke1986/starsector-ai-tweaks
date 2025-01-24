@@ -16,10 +16,7 @@ import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
 import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.absShortestRotation
-import com.genir.aitweaks.core.utils.clampAngle
-import com.genir.aitweaks.core.utils.solve
-import com.genir.aitweaks.core.utils.unitVector
+import com.genir.aitweaks.core.utils.*
 import kotlin.math.max
 
 val WeaponAPI.isAntiFighter: Boolean
@@ -60,6 +57,7 @@ val WeaponAPI.hasBestTargetLeading: Boolean
 val WeaponAPI.ignoresFlares: Boolean
     get() = hasAIHint(IGNORES_FLARES) || ship.mutableStats.dynamic.getValue("pd_ignores_flares", 0f) >= 1f
 
+/** Is angle in weapon arc in SHIP COORDINATES. */
 fun WeaponAPI.isAngleInArc(angle: Float): Boolean {
     val tolerance = 0.01f
     return absShortestRotation(arcFacing, angle) <= (arc + tolerance) / 2f
@@ -71,6 +69,9 @@ val WeaponAPI.isFrontFacing: Boolean
 /** weapon arc facing in absolute coordinates, instead of ship coordinates */
 val WeaponAPI.absoluteArcFacing: Float
     get() = clampAngle(arcFacing + ship.facing)
+
+val WeaponAPI.absoluteArc: Arc
+    get() = Arc(arcFacing + ship.facing, arc)
 
 val WeaponAPI.totalRange: Float
     get() = Range + projectileFadeRange * 0.33f
