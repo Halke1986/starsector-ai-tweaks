@@ -29,11 +29,27 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
         super.advance(dt)
         updateInterval.advance(dt)
 
+        controlFacing(dt)
+    }
+
+    private fun debug() {
+        if (State.state.config.highlightCustomAI) {
+            Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
+        }
+    }
+
+    /** Control the ship facing to properly aim weapons. */
+    private fun controlFacing(dt: Float) {
+        // Control facing only for frigates.
+        if (ship.isModule || !ship.isFrigate) {
+            return
+        }
+
         expectedFacing = null
 
         if (updateInterval.intervalElapsed()) {
             // Refresh the list of weapons to aim.
-            val weapons = ship.allGroupedWeapons.filter { shouldAim(it) }
+            val weapons = ship.allGroupedWeapons.filter { shouldAimWeapon(it) }
             weaponGroup = WeaponGroup(ship, weapons)
         }
 
@@ -69,24 +85,16 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
         engineController.facing(dt, expectedFacing!!)
     }
 
-    private fun debug() {
-        if (State.state.config.highlightCustomAI) {
-            Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
-        }
-    }
+    private fun shouldAimWeapon(weapon: WeaponAPI): Boolean {
+        return when {
+            weapon.isMissile -> false
+            weapon.isDisabled -> false
+            weapon.isPermanentlyDisabled -> false
 
-    companion object {
-        fun shouldAim(weapon: WeaponAPI): Boolean {
-            return when {
-                weapon.isMissile -> false
-                weapon.isDisabled -> false
-                weapon.isPermanentlyDisabled -> false
+            // Aim ship according to front facing weapon arcs.
+            !weapon.isFrontFacing -> false
 
-                // Aim ship according to front facing weapon arcs.
-                !weapon.isFrontFacing -> false
-
-                else -> true
-            }
+            else -> true
         }
     }
 }
