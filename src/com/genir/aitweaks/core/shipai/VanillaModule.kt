@@ -33,7 +33,7 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
 
     init {
         // Ensure AI Tweaks is in control of autofire management.
-        AutofireManagerOverride.inject(ship, basicShipAI.attackAI)
+        AutofireManager.inject(ship, attackModule)
     }
 
     /** Advance AI subsystems carried over from the vanilla BasicShipAI. To work

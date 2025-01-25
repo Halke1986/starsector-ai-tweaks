@@ -23,6 +23,11 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
 
     var expectedFacing: Float? = null
 
+    init {
+        // Ensure AI Tweaks is in control of autofire management.
+        AutofireManager.inject(ship, attackAI)
+    }
+
     override fun advance(dt: Float) {
         debug()
 

@@ -33,4 +33,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - fleet coord seems to leave no place for ships sometimes, observed with erads
 
+- vent module resets backoff distance on target change
+
 ----------------------------------------------------------------

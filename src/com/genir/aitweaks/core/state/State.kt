@@ -11,7 +11,6 @@ import com.genir.aitweaks.core.debug.removeGrid
 import com.genir.aitweaks.core.playerassist.AimAssistManager
 import com.genir.aitweaks.core.playerassist.AutoOmniShields
 import com.genir.aitweaks.core.shipai.AttackCoordinator
-import com.genir.aitweaks.core.shipai.AutofireManagerOverride
 import com.genir.aitweaks.core.shipai.FleetSegmentation
 import com.genir.aitweaks.core.utils.Bounds
 
@@ -47,7 +46,6 @@ class State : BaseEveryFrameCombatPlugin() {
         AimAssistManager(),
         AutoOmniShields(),
         AttackCoordinator(),
-        AutofireManagerOverride(),
     )
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
