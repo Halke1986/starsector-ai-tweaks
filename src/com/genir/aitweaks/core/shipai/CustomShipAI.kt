@@ -442,7 +442,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
     /** Range from which ship should attack its target. */
     fun updateAttackRange() {
-        // Range overriden by ai flag.
+        // Range overridden by ai flag.
         vanilla.flags.get<Float>(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)?.let {
             attackRange = it
             return

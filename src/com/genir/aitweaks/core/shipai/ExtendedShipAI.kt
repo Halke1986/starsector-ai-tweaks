@@ -1,14 +1,13 @@
-package com.genir.aitweaks.core
+package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
+import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.EngineController
-import com.genir.aitweaks.core.shipai.WeaponGroup
 import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.utils.VanillaShipCommand
@@ -17,7 +16,7 @@ import com.genir.aitweaks.core.utils.defaultAIInterval
 import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */
-class WrapperShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.BasicShipAI(ship as Obfuscated.Ship, config) {
+class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.BasicShipAI(ship as Obfuscated.Ship, config) {
     private val engineController: EngineController = EngineController(ship)
     private val updateInterval: IntervalUtil = defaultAIInterval()
     private var weaponGroup: WeaponGroup = WeaponGroup(ship, listOf())

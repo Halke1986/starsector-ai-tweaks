@@ -15,6 +15,7 @@ import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.extensions.isAutomated
 import com.genir.aitweaks.core.extensions.isModule
 import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.shipai.ExtendedShipAI
 import com.genir.aitweaks.core.state.State.Companion.state
 
 object CustomAIManager {
@@ -76,7 +77,7 @@ object CustomAIManager {
         }
 
         if (useWrapper) {
-            return PluginPick(WrapperShipAI(ship, config), MOD_SPECIFIC)
+            return PluginPick(ExtendedShipAI(ship, config), MOD_SPECIFIC)
         }
 
         // Note: In simulator, the configured personality is ignored for player controlled ship
@@ -126,7 +127,7 @@ object CustomAIManager {
     }
 
     private fun shouldHaveWrapperAI(ship: ShipAPI): Boolean {
-        // Install wrapper AI in frigate ships, but not station modules.
+        // Install extended AI in frigate ships, but not station modules.
         // Check for number of engines, as isModule method may return
         // incorrect result when the ship is being initialized.
         return ship.engineController.shipEngines.isNotEmpty() && ship.isFrigate

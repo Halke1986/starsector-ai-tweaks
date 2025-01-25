@@ -15,9 +15,11 @@ class AutofireManagerOverride : BaseEveryFrameCombatPlugin() {
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         updateInterval.advance(dt)
-        if (!updateInterval.intervalElapsed()) return
+        if (!updateInterval.intervalElapsed()) {
+            return
+        }
 
-        val ships = Global.getCombatEngine().ships.filter {
+        val ships = Global.getCombatEngine().ships.asSequence().filter {
             when {
                 !it.isAlive -> false
 
@@ -28,7 +30,7 @@ class AutofireManagerOverride : BaseEveryFrameCombatPlugin() {
 
                 else -> true
             }
-        }.asSequence()
+        }
 
         ships.forEach {
             inject(it, it.basicShipAI!!.attackAI)
@@ -43,7 +45,11 @@ class AutofireManagerOverride : BaseEveryFrameCombatPlugin() {
             val field = fields.first { it.type.isInterface && it.type.methods.size == 1 }
             field.setAccessible(true)
 
-            if (AutofireManager::class.java.isInstance(field.get(attackModule))) return
+            // AutofireManager is already overridden.
+            if (AutofireManager::class.java.isInstance(field.get(attackModule))) {
+                return
+            }
+
             field.set(attackModule, AutofireManager(ship))
         }
     }

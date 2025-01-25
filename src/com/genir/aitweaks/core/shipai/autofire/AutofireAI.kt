@@ -5,9 +5,9 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.core.WrapperShipAI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.shipai.ExtendedShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.SHIELD
@@ -360,7 +360,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private fun aimHardpoint(target: CombatEntityAPI, intercept: Vector2f): Vector2f {
         // Try to read expected facing from custom AI implementations.
         val customAIFacing = ship.customShipAI?.movement?.expectedFacing
-        val wrapperAIFacing = (ship.ai as? WrapperShipAI)?.expectedFacing
+        val wrapperAIFacing = (ship.ai as? ExtendedShipAI)?.expectedFacing
         val expectedFacing = customAIFacing ?: wrapperAIFacing ?: (target.location - ship.location).facing
 
         // If no expected facing was found, assume the ship is controlled by vanilla AI.
