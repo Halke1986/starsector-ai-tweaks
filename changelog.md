@@ -1,3 +1,5 @@
+- Fixed several regressions in weapon aiming, especially for PD beams.
+
 Version 1.11.6
 
 - Fixed a bug where some automated frigates had an aggressive personality instead of the intended fearless personality.

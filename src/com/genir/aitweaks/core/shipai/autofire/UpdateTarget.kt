@@ -32,19 +32,46 @@ class UpdateTarget(
         Global.getCurrentState() == GameState.TITLE && state.config.enableTitleScreenFire -> selectAsteroid()
 
         // Obligatory PD
-        weapon.hasAIHint(PD_ONLY) && weapon.isAntiFighter -> selectFighter() ?: selectMissile()
-        weapon.hasAIHint(PD_ONLY) -> selectMissile() ?: selectFighter()
+        weapon.hasAIHint(PD_ONLY) && weapon.isAntiFighter -> selectTarget(::selectFighter, ::selectMissile)
+        weapon.hasAIHint(PD_ONLY) -> selectTarget(::selectMissile, ::selectFighter)
 
         // PD
-        weapon.hasAIHint(PD) && weapon.isAntiFighter -> selectFighter() ?: selectMissile() ?: selectShip()
-        weapon.hasAIHint(PD) -> selectMissile() ?: selectFighter() ?: selectShip()
+        weapon.hasAIHint(PD) && weapon.isAntiFighter -> selectTarget(::selectFighter, ::selectMissile, ::selectShip)
+        weapon.hasAIHint(PD) -> selectTarget(::selectMissile, ::selectFighter, ::selectShip)
 
         // Main weapons
-        weapon.isAntiFighter -> selectShip(ALSO_TARGET_FIGHTERS)
-        weapon.hasAIHint(STRIKE) -> selectShip()
-        weapon.ship.hullSpec.hullId.startsWith("guardian") -> selectShip()
+        weapon.isAntiFighter -> selectTarget(::selectShipOrFighter)
+        weapon.hasAIHint(STRIKE) -> selectTarget(::selectShip)
+        weapon.ship.hullSpec.hullId.startsWith("guardian") -> selectTarget(::selectShip)
 
-        else -> selectShip() ?: selectFighter()?.let { if (!it.isSupportFighter) it else null }
+        // Default main weapon.
+        else -> selectTarget(::selectShip, ::selectNonSupportFighter)
+    }
+
+    private fun selectTarget(vararg selectors: () -> CombatEntityAPI?): CombatEntityAPI? {
+        var outOfRangeTarget: CombatEntityAPI? = null
+
+        selectors.forEach { selector ->
+            val target = selector()
+
+            if (target != null) {
+                val ballisticTarget = BallisticTarget.entity(target)
+                val dist = intercept(weapon, ballisticTarget, params).length
+                val range = weapon.totalRange
+
+                // New in-range target found.
+                if (dist <= range) {
+                    return target
+                }
+
+                // Stash potential out of range target.
+                if (outOfRangeTarget == null) {
+                    outOfRangeTarget = target
+                }
+            }
+        }
+
+        return outOfRangeTarget
     }
 
     /** Target asteroid selection. Selects asteroid only when the weapon and asteroid
@@ -64,6 +91,14 @@ class UpdateTarget(
 
     private fun selectFighter(): CombatEntityAPI? {
         return selectEntity(ShipAPI::class.java) { it.isFighter }
+    }
+
+    private fun selectNonSupportFighter(): CombatEntityAPI? {
+        return selectEntity(ShipAPI::class.java) { it.isFighter && !it.isSupportFighter }
+    }
+
+    private fun selectShipOrFighter(): CombatEntityAPI? {
+        return selectShip(ALSO_TARGET_FIGHTERS)
     }
 
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {

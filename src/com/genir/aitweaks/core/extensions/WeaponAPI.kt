@@ -71,7 +71,7 @@ val WeaponAPI.absoluteArcFacing: Float
     get() = clampAngle(arcFacing + ship.facing)
 
 val WeaponAPI.absoluteArc: Arc
-    get() = Arc(arcFacing + ship.facing, arc)
+    get() = Arc(arc, arcFacing + ship.facing)
 
 val WeaponAPI.totalRange: Float
     get() = Range + projectileFadeRange * 0.33f
