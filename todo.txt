@@ -39,6 +39,12 @@ SUGGESTED by vinh: Oh btw genir, remember the not making needlee firing againdt 
 
 SUGGESTED by Reshy: A minor request but is it possible to change the way that AI pursues retreating ships so that they go to where the ship wants to be (the edge of their side of the map) rather than chasing them to their current location as they're actively moving away.  Basically, something to help the AI know to cut off fleeing ships.
 
+SUGGESTED by TheShear:
+The funny Luddic explosive Tankers loses its suicidal behavior
+Standard behavior is: Once they get in range they usually press the button, charge in and explode.
+What they are doing? Get in range with their guns and get slaughtered or even retreat.
+I have the same behavior with the current release version of Tweaks
+
 ----------------------------------------------------------------
 
 - vent module resets backoff distance on target change ???

@@ -2,25 +2,24 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.IntervalUtil
+import com.fs.starfarer.combat.ai.movement.maneuvers.EscortTargetManeuverV3
 import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.State
-import com.genir.aitweaks.core.utils.VanillaShipCommand
-import com.genir.aitweaks.core.utils.clearVanillaCommands
-import com.genir.aitweaks.core.utils.defaultAIInterval
+import com.genir.aitweaks.core.utils.*
 import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */
 class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.BasicShipAI(ship as Obfuscated.Ship, config) {
     private val engineController: EngineController = EngineController(ship)
     private val updateInterval: IntervalUtil = defaultAIInterval()
-    private var weaponGroup: WeaponGroup = WeaponGroup(ship, listOf())
 
+    // Attack details.
+    private var stats: ShipStats = ShipStats(ship)
     var expectedFacing: Float? = null
 
     init {
@@ -45,8 +44,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
 
     /** Control the ship facing to properly aim weapons. */
     private fun controlFacing(dt: Float) {
-        // Control facing only for frigates.
-        if (ship.isModule || !ship.isFrigate) {
+        if (ship.isModule) {
             return
         }
 
@@ -54,18 +52,21 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
 
         if (updateInterval.intervalElapsed()) {
             // Refresh the list of weapons to aim.
-            val weapons = ship.allGroupedWeapons.filter { shouldAimWeapon(it) }
-            weaponGroup = WeaponGroup(ship, weapons)
+            stats = ShipStats(ship)
         }
 
         if (ship.fluxTracker.isOverloadedOrVenting) {
             return
         }
 
-        // Override only attack-related maneuvers.
+        // Override the ship facing during attack-related and escort maneuvers.
         val currentManeuver: Obfuscated.Maneuver? = super.getCurrentManeuver()
-        if (currentManeuver !is StrafeTargetManeuverV2 && currentManeuver !is Obfuscated.ApproachManeuver) {
-            return
+        when (currentManeuver) {
+            is StrafeTargetManeuverV2 -> Unit
+            is Obfuscated.ApproachManeuver -> Unit
+            is EscortTargetManeuverV3 -> Unit
+
+            else -> return
         }
 
         // Find ship target and force a refresh if it's invalid.
@@ -74,6 +75,10 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
             super.cancelCurrentManeuver()
             return
         }
+
+        // Find a weapon group appropriate to attack the ship target.
+        val targetFacing = shortestRotation(ship.facing, (target.location - ship.location).facing)
+        val weaponGroup = stats.weaponGroups.minWithOrNull(compareBy { absShortestRotation(it.defaultFacing, targetFacing) })!!
 
         // Aim ship only if the target is close to weapons range.
         val rangeThreshold = weaponGroup.maxRange * 1.75f
@@ -88,18 +93,5 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
         val ballisticTarget = BallisticTarget.entity(target)
         expectedFacing = weaponGroup.attackFacing(ballisticTarget)
         engineController.facing(dt, expectedFacing!!)
-    }
-
-    private fun shouldAimWeapon(weapon: WeaponAPI): Boolean {
-        return when {
-            weapon.isMissile -> false
-            weapon.isDisabled -> false
-            weapon.isPermanentlyDisabled -> false
-
-            // Aim ship according to front facing weapon arcs.
-            !weapon.isFrontFacing -> false
-
-            else -> true
-        }
     }
 }
