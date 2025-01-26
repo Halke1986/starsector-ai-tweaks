@@ -1,22 +1,23 @@
 AI Tweaks
 =========
 
-AI Tweaks provides various improvements centered around ship AI.
+AI Tweaks provides various improvements focused on ship AI and AI-assisted player support.
 
-Currently, the two biggest features of AI Tweaks are **autofire AI implemented from scratch** and **automatic omni
-shields for player ship**. AI Tweaks also allows to **configure the personality of automated ships** in the player's
-fleet. Full description of all features is at the bottom of the post.
+The key features of AI Tweaks are **autofire AI written from scratch**, **custom ship AI created mostly from scratch**,
+**automatic omni shields and aim assist for the player’s ship**, and various upgrades to vanilla AI. AI Tweaks also
+allows players to configure the personality of automated ships in their fleet. A full description of all features is
+available at the bottom of the post.
 
 ### Balance notes ###
 
-The AI changes may upset the game balance to some degree, as the ship defense AI is not adjusted to respond to better
-weapon usage. There's a [forum thread](https://fractalsoftworks.com/forum/index.php?topic=28364.0) with insight from the
-Starsector developer Alex on some of the aspects of AI modding and their impact on game balance.
+The AI changes may disrupt the game balance to some extent, as the ship defense AI is not adjusted to counter improved
+weapon usage. There's a [forum thread](https://fractalsoftworks.com/forum/index.php?topic=28364.0) featuring insights
+from Starsector developer Alex on certain aspects of AI modding and their effects on game balance.
 
-Additionally, Vanilla AI is written so that it actions resemble that of a human. Certain AI limitations, like reaction
-delay are implemented on purpose. You can read more on that in
-this [forum thread](https://fractalsoftworks.com/forum/index.php?topic=11437.0). AI Tweaks don't share this design goal,
-so you can expect frame-perfect reactions from the AI.
+Additionally, Vanilla AI is designed so its actions resemble those of a human. Certain AI limitations, such as reaction
+delays, are intentionally implemented. You can read more about this in
+this [forum thread](https://fractalsoftworks.com/forum/index.php?topic=11437.0). AI Tweaks does not share this design
+goal, so you may notice some uncanny, machine-like behavior.
 
 ### Installation ###
 
@@ -52,15 +53,24 @@ types: non-phase, non-carrier destroyers, cruisers and capital ships.
 
 ![custom_ship_ai](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/custom_ship_ai.png)
 
-### 2. Hardpoint aiming ###
+### 2. Ships rotate to aim hardpoints and correctly handle broadside builds ###
 
-With AI Tweaks frigates can finally aim hardpoints. Just imagine how strong an LP Brawler is when it can actually hit
-its target!
-
-The fix works for ballistic and beam weapons, not for missiles. Frigates will also rotate to optimize turrets firing
-arcs.
+With AI Tweaks, ships can finally aim hardpoints. Just imagine how powerful an LP Brawler becomes when it can
+consistently hit its target! This change is enabled for all ships, whether or not they are equipped with the Custom AI
+hullmod.
 
 ![Starsector frigates correctly aiming hardpoint weapons](https://vimeo.com/1030111629)
+
+The upgrade also allows the AI to handle all types of broadside builds, such as the symmetrical Conquest or broadsiding
+Onslaught:
+
+![Broadside Onslaught](https://vimeo.com/1050582068)
+
+In addition, this improvement fixes the bug mentioned in
+this [forum thread](https://fractalsoftworks.com/forum/index.php?topic=28473.0), where broadside ships revert to
+front-facing behavior when issued an escort order.
+
+The fix applies to ballistic and beam weapons, but not missiles.
 
 ### 3. Autofire AI ###
 
