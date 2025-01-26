@@ -1,3 +1,5 @@
+Version 1.12.0
+
 - Fixed several regressions in weapon aiming, particularly affecting PD beams.
 - Improved the algorithm for calculating ship rotation to better aim hardpoints and broadside weapons.
 - All ships, regardless of whether they are equipped with the Custom AI hullmod, now aim hardpoints and handle broadside builds correctly. Apexes will kill all your frigates.
