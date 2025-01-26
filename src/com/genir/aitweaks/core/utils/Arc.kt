@@ -23,7 +23,7 @@ class Arc(angle: Float, facing: Float) {
         return contains(v.facing)
     }
 
-    fun increasedBy(degrees: Float): Arc {
+    fun extendedBy(degrees: Float): Arc {
         return Arc((angle + degrees).coerceIn(0f, 360f), facing)
     }
 

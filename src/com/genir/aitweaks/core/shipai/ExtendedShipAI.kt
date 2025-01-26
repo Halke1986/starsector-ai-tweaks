@@ -39,7 +39,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
 
     private fun debug() {
         if (State.state.config.highlightCustomAI) {
-            Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.YELLOW)
+            Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.GREEN)
         }
     }
 

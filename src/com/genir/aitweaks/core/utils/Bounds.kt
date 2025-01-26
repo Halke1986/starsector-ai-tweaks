@@ -89,12 +89,12 @@ class Bounds {
         return count and 1 == 1
     }
 
-    /** Radius of a circle encompassing the ship bounds. */
-    fun radius(ship: CombatEntityAPI): Float {
-        val bounds = ship.exactBounds ?: return 0f
+    /** Radius of a circle encompassing the entity bounds. */
+    fun radius(entity: CombatEntityAPI): Float {
+        val bounds = entity.exactBounds ?: return 0f
         val now = Global.getCombatEngine().getTotalElapsedTime(false)
 
-        radiusCache[ship]?.let { (radius, timestamp) ->
+        radiusCache[entity]?.let { (radius, timestamp) ->
             if (now - timestamp < 1f) {
                 return radius
             }
@@ -103,7 +103,7 @@ class Bounds {
         val points = bounds.origSegments.flatMap { listOf(it.p1, it.p2) }
         val radius = points.maxOfOrNull { it.lengthSquared }?.let { sqrt(it) } ?: 0f
 
-        radiusCache[ship] = Pair(radius, now)
+        radiusCache[entity] = Pair(radius, now)
 
         return radius
     }

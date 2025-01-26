@@ -81,14 +81,18 @@ class VentModule(private val ai: CustomShipAI) {
     }
 
     private fun debug() {
+        if (ship.owner != 0) {
+            return
+        }
+
 //        if (shouldFinishTarget && ship.fluxLevel > AIPreset.backoffUpperThreshold) {
 //            Debug.drawCircle(ship.location, ship.collisionRadius / 2, BLUE)
 //        }
 
-//        if (shouldVent && !ship.fluxTracker.isVenting) {
+//        if (isBackingOff && !ship.fluxTracker.isVenting) {
 //            Debug.drawCircle(ship.location, ship.collisionRadius / 2, YELLOW)
 //
-//            findDangerousWeapons().forEach {
+//            findDangerousWeapons().filter { it.isFinisherMissile }.forEach {
 //                Debug.drawLine(ship.location, it.location, RED)
 //            }
 //        }
@@ -96,7 +100,9 @@ class VentModule(private val ai: CustomShipAI) {
 
     /** Control the ship heading when backing off. */
     fun overrideHeading(maneuverTarget: ShipAPI?): Vector2f? {
-        if (!isBackingOff) return null
+        if (!isBackingOff) {
+            return null
+        }
 
         // Update safe backoff distance.
         when {
@@ -267,7 +273,7 @@ class VentModule(private val ai: CustomShipAI) {
 
         // Check if the ship is out of weapons arc.
         val isGuidedFinisherMissile = weapon.isFinisherMissile && !weapon.isUnguidedMissile
-        val weaponArc = Arc(weapon.arc, weapon.absoluteArcFacing).increasedBy(adjustedMovementTime * weapon.ship.maxTurnRate)
+        val weaponArc = Arc(weapon.arc, weapon.absoluteArcFacing).extendedBy(adjustedMovementTime * weapon.ship.maxTurnRate)
         if (!isGuidedFinisherMissile && !weaponArc.contains(toShip.facing)) {
             return false
         }
