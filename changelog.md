@@ -1,4 +1,5 @@
-- Fixed several regressions in weapon aiming, especially for PD beams.
+- Fixed several regressions in weapon aiming, particularly affecting PD beams.
+- Custom AI: Improved the algorithm for calculating ship rotation to better aim hardpoints and broadside weapons.
 
 Version 1.11.6
 

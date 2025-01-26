@@ -216,3 +216,15 @@ fun absShortestRotation(from: Float, to: Float): Float {
 fun clampAngle(angle: Float): Float {
     return angle - floor(angle / 360f) * 360f
 }
+
+/**
+ * Smoothly caps a float value near a specified limit using a sigmoid-like function.
+ *
+ * This function ensures a gradual transition as the input value approaches the limit,
+ * avoiding hard clamping while maintaining smooth behavior. The output grows linearly
+ * for small values of `x` and asymptotically approaches `lim` for large values.
+ */
+fun smoothCap(x: Float, lim: Float): Float {
+    val t = x / lim
+    return x / sqrt(1 + t * t)
+}
