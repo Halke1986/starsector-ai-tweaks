@@ -13,3 +13,5 @@ val ShipAPI.FluxLevel: Float
 
 val WeaponAPI.Range: Float
     get() = range + barrelOffset
+
+// val WeaponAPI.isBurstWeapon: Boolean

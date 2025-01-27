@@ -84,17 +84,6 @@ fun WeaponAPI.rangeFromShipCenter(attackFacing: Float): Float {
     return solve(Pair(p, v), Range) ?: 0f
 }
 
-val WeaponAPI.timeToAttack: Float
-    get() {
-        val spec = spec as? ProjectileWeaponSpecAPI ?: return 0f
-
-        return when {
-            isInBurst || (isBurstBeam && isFiring) -> 0f
-            cooldownRemaining != 0f -> cooldownRemaining + spec.chargeTime
-            else -> spec.chargeTime * (1f - chargeLevel)
-        }
-    }
-
 val WeaponAPI.autofirePlugin: AutofireAIPlugin?
     get() = ship.getWeaponGroupFor(this)?.getAutofirePlugin(this)
 
@@ -103,7 +92,7 @@ val WeaponAPI.customAI: AutofireAI?
 
 val WeaponAPI.isBurstWeapon: Boolean
     get() = when {
-        // Burst beams, excluding "continuous" burst beams like IR Autolance.
+        // Burst beams, excluding "continuous" burst beams like the IR Autolance.
         isBeam && spec.burstDuration > 0f && cooldown > 0f -> true
 
         // Projectile weapons with bursts of more than one projectile.
@@ -115,18 +104,28 @@ val WeaponAPI.isBurstWeapon: Boolean
 /** Warmup is the first phase of weapon firing sequence, preceding the first shot.
  * WARMUP */
 val WeaponAPI.isInWarmup: Boolean
-    get() = chargeLevel > 0f && chargeLevel < 1f && cooldownRemaining == 0f
+    get() = when {
+        isBurstBeam -> false // For burst beams even the warmup is counted towards burst.
+        isBeam -> false
+        else -> chargeLevel > 0f && chargeLevel < 1f && cooldownRemaining == 0f
+    }
+
+/** Replacement for vanilla isInBurst. As opposed to isInBurst,
+ * IsInBurst returns true for active burst beams.
+ * BURST */
+val WeaponAPI.IsInBurst: Boolean
+    get() = when {
+        !isBurstWeapon -> false
+        isBurstBeam -> chargeLevel > 0 && cooldownRemaining == 0f
+        isBeam -> false
+        else -> chargeLevel == 1f
+    }
 
 /** Weapon is assumed to be in a firing sequence if it will
  * emit projectile or beam even after trigger is let go.
  * WARMUP + BURST */
 val WeaponAPI.isInFiringSequence: Boolean
-    get() = when {
-        isBeam && !isBurstBeam -> false
-        isInWarmup -> true // warmup
-        chargeLevel == 1f && isBurstWeapon -> true // burst
-        else -> false
-    }
+    get() = isInWarmup || IsInBurst
 
 /** Similar to WeaponAPI.isFiring, except returns true for the entire firing cycle.
  * WeaponAPI.isFiring returns false between individual burst attacks.

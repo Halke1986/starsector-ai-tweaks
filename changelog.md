@@ -1,3 +1,5 @@
+- Custom AI: Fixed another case of interrupting bursts by venting flux, this time affecting burst beams.
+
 Version 1.12.0
 
 - Fixed several regressions in weapon aiming, particularly affecting PD beams.
