@@ -136,7 +136,7 @@ class UpdateTarget(
             return current
         }
 
-        val opportunities = Grid.entities(c, weapon.location, targetSearchRange).toList()
+        val opportunities = Grid.entities(c, weapon.location, targetSearchRange)
         val evaluated = opportunities.filter { entityFilter(it) && isTargetAcceptable(it, targetSearchRange) }.map {
             val target = BallisticTarget.entity(it)
             val dist = intercept(weapon, target, params).length
