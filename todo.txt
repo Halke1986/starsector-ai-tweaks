@@ -33,6 +33,8 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - fleet coord seems to leave no place for ships sometimes, observed with erads
 
+- notify systems of overridden facing in extended AI
+
 SUGGESTED by Roxorium: Speaking of which, @Genir would it be possible to add "ignore wrecks and asteroids" toggle?
 
 SUGGESTED by vinh: Oh btw genir, remember the not making needlee firing againdt hull feature? Can you make it so that minipulse and vpd also do this?
@@ -46,8 +48,6 @@ What they are doing? Get in range with their guns and get slaughtered or even re
 I have the same behavior with the current release version of Tweaks
 
 ----------------------------------------------------------------
-
-- vent module resets backoff distance on target change ???
 
 - nova backing off too far to vent
     - probably missileDangerDir

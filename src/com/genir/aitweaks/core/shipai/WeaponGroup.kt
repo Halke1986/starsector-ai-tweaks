@@ -4,10 +4,10 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.*
-import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.smoothCap
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 
@@ -68,8 +68,8 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         val subArcs: Sequence<DPSArc> = indices.map { i ->
             val start = boundaries[i]
             val end = boundaries[i + 1]
-            val firingAngle = (start + end) / 2
-            val dps = solutions.filter { solution -> solution.contains(firingAngle) }.sumOf { it.dps }
+            val arcFacing = (start + end) / 2
+            val dps = solutions.filter { solution -> solution.contains(arcFacing) }.sumOf { it.dps }
 
             DPSArc(boundaries[i], boundaries[i + 1], dps)
         }
@@ -80,22 +80,21 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy { it.dps }) ?: return targetFacing
 
         // Calculate ship facing that centers the selected firing arc on the target.
-        val padding = min(2f, optimalArc.arcEnd - optimalArc.arcStart / 2)
-        val minShipFacing = ship.facing + optimalArc.arcStart + padding
-        val maxShipFacing = ship.facing + optimalArc.arcEnd - padding
-        val optimalShipFacing = (minShipFacing + maxShipFacing) / 2
+        val padding = min(2f, (optimalArc.arcEnd - optimalArc.arcStart) / 2)
+        val startOffset = shortestRotation(targetFacing, ship.facing + optimalArc.arcStart + padding)
+        val endOffset = shortestRotation(targetFacing, ship.facing + optimalArc.arcEnd - padding)
+        val minOffset = min(startOffset, endOffset)
+        val maxOffset = max(startOffset, endOffset)
+        val optimalOffset = (minOffset + maxOffset) / 2
 
         // Cap the offset between ship facing and target facing. This ensures
         // ships like the Conquest don't go full-on age-of-sails broadside.
-        val offset = shortestRotation(targetFacing, optimalShipFacing)
-        val smoothFacing = smoothCap(offset, 30f) + targetFacing
-        if (smoothFacing in minShipFacing..maxShipFacing) {
-            return smoothFacing
+        val smoothOffset = smoothCap(optimalOffset, 30f)
+        if (smoothOffset in minOffset..maxOffset) {
+            return smoothOffset + targetFacing
         }
 
-        val offsetStart = absShortestRotation(targetFacing, minShipFacing)
-        val offsetEnd = absShortestRotation(targetFacing, maxShipFacing)
-        return if (offsetStart > offsetEnd) maxShipFacing else minShipFacing
+        return minOffset + targetFacing
     }
 
     private fun weaponRanges(): Map<WeaponAPI, Float> {

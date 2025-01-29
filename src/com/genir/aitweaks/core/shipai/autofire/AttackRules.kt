@@ -59,11 +59,24 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     }
 
     /** Ensure projectile will not hit shields. */
-    private fun avoidShields(): HoldFire? = when {
-        !hit.target.isShip -> fire
-        hit.type == SHIELD && weapon.conserveAmmo -> AVOID_SHIELDS
-        hit.type == SHIELD && shieldUptime(hit.target.shield) > 1.2f -> AVOID_SHIELDS
-        else -> fire
+    private fun avoidShields(): HoldFire? {
+        return when {
+            !hit.target.isShip -> fire
+
+            hit.type != SHIELD -> fire
+
+            weapon.usesAmmo() -> AVOID_SHIELDS
+
+            weapon.damageType == FRAGMENTATION -> AVOID_SHIELDS
+
+            // Try to burst through almost depleted shields.
+            weapon.isBurstBeam && weapon.firingCycle.damage > (hit.target as ShipAPI).fluxLeft * 2f -> fire
+
+            // Don't interrupt fire because of shield flicker.
+            weapon.isInFiringCycle && shieldUptime(hit.target.shield) < 1.2f -> fire
+
+            else -> AVOID_SHIELDS
+        }
     }
 
     /** Ensure projectile will not hit exposed hull. */
