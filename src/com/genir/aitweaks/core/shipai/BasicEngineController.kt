@@ -3,9 +3,9 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.Rotation
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
+import com.genir.aitweaks.core.utils.RotationMatrix
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.shortestRotation
 import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
@@ -41,7 +41,7 @@ open class BasicEngineController(val ship: ShipAPI) {
         // by the game engine after rotation.
         val w = ship.angularVelocity * dt
         val toShipFacing = 90f - ship.facing - w
-        val r = Rotation(toShipFacing)
+        val r = RotationMatrix(toShipFacing)
         val d = (heading - ship.location).rotated(r)
         val v = (ship.velocity).rotated(r) * dt
         val vt = targetVelocity.rotated(r) * dt

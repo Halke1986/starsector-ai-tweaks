@@ -9,8 +9,8 @@ import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController
 import com.genir.aitweaks.core.shipai.autofire.SimulateMissile
-import com.genir.aitweaks.core.utils.Rotation
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.RotationMatrix
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.mousePosition
 import com.genir.aitweaks.core.utils.unitVector
@@ -109,7 +109,7 @@ class DroneFormationAI(private val drone: ShipAPI, val ship: ShipAPI, private va
     private val controller = EngineController(drone)
 
     override fun advance(dt: Float) {
-        val currentOffset = offset.rotated(Rotation(ship.facing))
+        val currentOffset = offset.rotated(RotationMatrix(ship.facing))
 
         controller.heading(dt, ship.location + currentOffset)
         controller.facing(dt, currentOffset.facing)
@@ -128,7 +128,7 @@ private fun makeDroneFormation() {
         val drone = drones[i]
 
         if (((drone.ai as? ShipAIWrapper)?.ai !is DroneFormationAI)) {
-            val offset = Vector2f(0f, 500f).rotated(Rotation(angle * i))
+            val offset = Vector2f(0f, 500f).rotated(RotationMatrix(angle * i))
             drone.shipAI = DroneFormationAI(drone, ship, offset)
         }
 

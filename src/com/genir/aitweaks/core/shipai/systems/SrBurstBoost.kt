@@ -9,7 +9,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
@@ -146,7 +146,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     /** Description of one of the eight possible burst vectors around the ship. */
-    inner class BurstVector(direction: Vector2f, toShipFacing: Rotation, val commands: Set<ShipCommand>) {
+    inner class BurstVector(direction: Vector2f, toShipFacing: RotationMatrix, val commands: Set<ShipCommand>) {
         val vector: Vector2f = direction.rotated(toShipFacing).resized(burstSpeed)
         val facing: Float = vector.facing
         val boundsOffset: Float = burstSpeed - boundsCollision(vector, -vector, ship)!!
@@ -191,7 +191,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
             Pair((d + r), setOf(ACCELERATE_BACKWARDS, STRAFE_RIGHT)),
         )
 
-        val toShipFacing = Rotation(ship.facing)
+        val toShipFacing = RotationMatrix(ship.facing)
         return rawVectors.map { BurstVector(it.first, toShipFacing, it.second) }
     }
 

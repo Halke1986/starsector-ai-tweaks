@@ -11,8 +11,8 @@ import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
 import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedAroundPivot
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
@@ -34,7 +34,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     private val interpolateFacing = InterpolateValue()
 
     // Make strafe rotation direction random, but consistent for the given ship.
-    private val strafeRotation = Rotation(if (this.hashCode() % 2 == 0) 10f else -10f)
+    private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 10f else -10f)
 
     fun advance(dt: Float) {
         setHeading(dt, ai.maneuverTarget)
@@ -175,7 +175,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val maxAngle = 15f
         val angle = getShortestRotation(ship.location, maneuverTarget.location, adjustedAttackLocation)
         if (abs(angle) > maxAngle) {
-            val rotation = Rotation(-(angle - 15f * angle.sign))
+            val rotation = RotationMatrix(-(angle - 15f * angle.sign))
             return adjustedAttackLocation.rotatedAroundPivot(rotation, maneuverTarget.location)
         }
 

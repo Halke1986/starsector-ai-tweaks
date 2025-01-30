@@ -14,7 +14,7 @@ import com.genir.aitweaks.core.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.shipai.autofire.UpdateTarget.Companion.TARGET_SEARCH_MULT
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
@@ -351,7 +351,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // the aim location returned by this method will take effect the next frame.
         // Therefore, the weapon angle needs to be adjusted for slot angular velocity
         // towards target.
-        val r = Rotation(interceptTracker.interceptVelocity * dt)
+        val r = RotationMatrix(interceptTracker.interceptVelocity * dt)
         return intercept.rotated(r)
     }
 
@@ -372,7 +372,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Aim the hardpoint as if the ship was already rotated to the expected facing.
         // That way the correct weapon facing can be predicted.
         val facingStash = ship.facing
-        val correction = Rotation(shortestRotation(expectedFacing, ship.facing))
+        val correction = RotationMatrix(shortestRotation(expectedFacing, ship.facing))
         try {
             ship.facing = expectedFacing
             return intercept(weapon, BallisticTarget.entity(target), currentParams()).rotated(correction)

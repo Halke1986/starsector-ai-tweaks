@@ -3,8 +3,8 @@ package com.genir.aitweaks.core.utils
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedReverse
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import org.lwjgl.util.vector.Vector2f
 import kotlin.Float.Companion.MAX_VALUE
 import kotlin.math.max
@@ -24,7 +24,7 @@ class Bounds {
 
         // Rotate vector coordinates from target frame of
         // reference to target bounds frame of reference.
-        val r = Rotation(-target.facing)
+        val r = RotationMatrix(-target.facing)
         val p = position.rotated(r)
         val v = velocity.rotated(r)
 
@@ -50,7 +50,7 @@ class Bounds {
     fun closestPoint(position: Vector2f, target: CombatEntityAPI): Vector2f {
         val bounds = target.exactBounds ?: return target.location
 
-        val r = Rotation(-target.facing)
+        val r = RotationMatrix(-target.facing)
         val o = (position - target.location).rotated(r)
 
         val points = bounds.origSegments.asSequence().map { segment ->
@@ -72,7 +72,7 @@ class Bounds {
         val bounds = target.exactBounds ?: return false
         if (radius(target) < (position - target.location).length) return false
 
-        val r = Rotation(-target.facing)
+        val r = RotationMatrix(-target.facing)
         val p = (position - target.location).rotated(r)
 
         // Count the number of segments below the point p.

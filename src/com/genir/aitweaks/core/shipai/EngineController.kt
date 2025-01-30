@@ -3,7 +3,7 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
@@ -81,7 +81,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
             lim.clampSpeed(newFacing, clampedSpeed)
         }
 
-        return expectedVelocity.rotated(Rotation(angleToNewFacing)).resized(newSpeed)
+        return expectedVelocity.rotated(RotationMatrix(angleToNewFacing)).resized(newSpeed)
     }
 
     /** Clamp expectedSpeed to maximum speed in which ship can travel

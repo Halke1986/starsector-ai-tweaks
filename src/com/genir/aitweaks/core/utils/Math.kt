@@ -170,29 +170,6 @@ fun atanApprox(x: Float): Float {
     return (1 + a * xx) * x / (1 + xx * (b + c * xx))
 }
 
-/** 2D rotation matrix. */
-class Rotation(private val sin: Float, private val cos: Float) {
-
-    constructor(angle: Float) : this(
-        sin(angle * DEGREES_TO_RADIANS),
-        cos(angle * DEGREES_TO_RADIANS),
-    )
-
-    companion object {
-        fun Vector2f.rotated(r: Rotation): Vector2f {
-            return Vector2f(x * r.cos - y * r.sin, x * r.sin + y * r.cos)
-        }
-
-        fun Vector2f.rotatedAroundPivot(r: Rotation, p: Vector2f): Vector2f {
-            return (this - p).rotated(r) + p
-        }
-
-        fun Vector2f.rotatedReverse(r: Rotation): Vector2f {
-            return Vector2f(x * r.cos + y * r.sin, -x * r.sin + y * r.cos)
-        }
-    }
-}
-
 fun unitVector(angle: Float): Vector2f {
     val radians = angle * DEGREES_TO_RADIANS
     val x = cos(radians)

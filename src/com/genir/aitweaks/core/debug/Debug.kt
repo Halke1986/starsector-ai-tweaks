@@ -6,8 +6,8 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.Rotation
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.RotationMatrix
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -58,7 +58,7 @@ object Debug {
     fun drawAccelerationLines(ship: ShipAPI) {
         if (state.debugPlugin?.renderer == null) return
 
-        val r = Rotation(ship.facing - 90f)
+        val r = RotationMatrix(ship.facing - 90f)
         val engine = ship.engineController
 
         listOfNotNull(
@@ -74,7 +74,7 @@ object Debug {
     fun drawTurnLines(ship: ShipAPI) {
         if (state.debugPlugin?.renderer == null) return
 
-        val r = Rotation(ship.facing - 90f)
+        val r = RotationMatrix(ship.facing - 90f)
         val engine = ship.engineController
 
         listOfNotNull(

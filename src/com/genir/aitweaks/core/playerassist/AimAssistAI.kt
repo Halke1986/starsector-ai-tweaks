@@ -16,7 +16,7 @@ import com.genir.aitweaks.core.shipai.autofire.*
 import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
@@ -75,7 +75,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
 
         // Compensate ship movement for the fact the ship
         // is not necessary facing the target directly.
-        val r = Rotation((mousePosition() - ship.location).facing)
+        val r = RotationMatrix((mousePosition() - ship.location).facing)
         val front = Vector2f(1e4f, 0f).rotated(r)
         val back = Vector2f(-1e4f, 0f).rotated(r)
         val left = Vector2f(0f, 1e4f).rotated(r)
