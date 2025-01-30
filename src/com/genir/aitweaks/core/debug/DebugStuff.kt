@@ -38,6 +38,10 @@ import java.awt.Color.GREEN
 internal fun debug(dt: Float) {
     val ship = Global.getCombatEngine().playerShip ?: return
     val ships = Global.getCombatEngine().ships
+
+//    ship.allGroupedWeapons.forEach {
+//        Debug.print[it] = "${it.peakDPS}"
+//    }
 }
 
 var expectedFacing = 90f

@@ -14,9 +14,11 @@ import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
+import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
+import kotlin.math.floor
 import kotlin.math.max
 
 val WeaponAPI.isAntiFighter: Boolean
@@ -92,13 +94,10 @@ val WeaponAPI.customAI: AutofireAI?
 
 val WeaponAPI.isBurstWeapon: Boolean
     get() = when {
-        // Burst beams, excluding "continuous" burst beams like the IR Autolance.
-        isBeam && spec.burstDuration > 0f && cooldown > 0f -> true
-
         // Projectile weapons with bursts of more than one projectile.
         spec is ProjectileWeaponSpecAPI -> (spec as ProjectileWeaponSpecAPI).burstSize > 1
 
-        else -> false
+        else -> isBurstBeam
     }
 
 /** Warmup is the first phase of weapon firing sequence, preceding the first shot.
@@ -156,6 +155,36 @@ val WeaponAPI.barrelOffset: Float
 
 val WeaponAPI.effectiveDPS: Float
     get() = derivedStats.dps * if (damageType == FRAGMENTATION) 0.25f else 1f
+
+/** A rough estimation of maximum DPS in a two-second period. */
+val WeaponAPI.peakDPS: Float
+    get() {
+        val cycle = firingCycle
+        val t = 2f
+
+        val burstsNumber = when {
+            // Non-burst weapons or burst weapons with short cycle.
+            !isBurstWeapon || cycle.duration <= t -> {
+                floor(t / cycle.duration)
+            }
+
+            else -> {
+                (t / cycle.burstDuration).coerceAtMost(1f)
+            }
+        }
+
+        var baseDamage = burstsNumber * cycle.damage
+
+        if (usesAmmo()) {
+            baseDamage /= 2
+        }
+
+        if (damageType == FRAGMENTATION) {
+            baseDamage /= 4
+        }
+
+        return baseDamage
+    }
 
 /** The true projectile speed, which may differ from the value returned by vanilla WeaponAPI.projectileSpeed. */
 val WeaponAPI.trueProjectileSpeed: Float
