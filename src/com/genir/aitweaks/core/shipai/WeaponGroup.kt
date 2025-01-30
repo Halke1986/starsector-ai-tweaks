@@ -4,11 +4,10 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.*
+import com.genir.aitweaks.core.utils.clampAngle
 import com.genir.aitweaks.core.utils.shortestRotation
-import com.genir.aitweaks.core.utils.smoothCap
+import com.genir.aitweaks.core.utils.unitVector
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sign
 
 /** A group of weapons that should be able to fire along a single attack vector. */
@@ -20,7 +19,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
     val minRange: Float = weapons.minOfOrNull { it.rangeInGroup } ?: 0f
     val maxRange: Float = weapons.maxOfOrNull { it.rangeInGroup } ?: 0f
 
-    /** Fraction of primary weapons DPS that can be delivered at the given range. */
+    /** Fraction of primary weapons DPS that can be delivered to the given range. */
     fun dpsFractionAtRange(range: Float): Float {
         var all = 0f
         var inRange = 0f
@@ -42,23 +41,48 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
 
     /** Calculate facing that maximizes DPS delivered to the target. */
     fun attackFacing(target: BallisticTarget): Float {
-        // Firing solutions per weapon, with angles as offsets from
-        // the ship's current facing, not absolute directions.
-        val solutions: List<DPSArc> = weapons.mapNotNull { weapon ->
-            // Full arcs are not relevant when aiming.
-            if (weapon.arc == 360f) {
-                return@mapNotNull null
+        val targetFacing = (target.location - ship.location).facing
+        val directFacing = clampAngle(ship.facing + shortestRotation(ship.facing + defaultFacing, targetFacing))
+
+        // Calculate offset angle between default facing and intercept arc for each weapon.
+        val facingStash = ship.facing
+        val solutions: List<DPSArc> = try {
+            // Aim the weapon as if the ship was facing the target directly.
+            // This allows to eliminate velocity and location translation errors.
+            ship.facing = directFacing
+
+            val defaultFacingVector = unitVector(defaultFacing)
+            weapons.mapNotNull { weapon ->
+                // Full arcs are not relevant when aiming.
+                if (weapon.arc == 360f) {
+                    return@mapNotNull null
+                }
+
+                val defaultAttackPoint = defaultFacingVector * weapon.rangeInGroup
+                var defaultFacing = (defaultAttackPoint - weapon.slot.location).facing
+
+                val toSlotBoundaryStart = shortestRotation(defaultFacing, weapon.arcFacing - weapon.arc / 2)
+                val toSlotBoundaryEnd = shortestRotation(defaultFacing, weapon.arcFacing + weapon.arc / 2)
+
+                // Default weapon facing falls outside the slot firing arc.
+                if (toSlotBoundaryStart.sign == toSlotBoundaryEnd.sign) {
+                    defaultFacing += if (abs(toSlotBoundaryStart) > abs(toSlotBoundaryEnd)) toSlotBoundaryEnd else toSlotBoundaryStart
+                }
+
+                val interceptArc = interceptArc(weapon, target, defaultBallisticParams)
+                val relativeFacing = shortestRotation(defaultFacing + ship.facing, interceptArc.facing)
+                val halArc = interceptArc.half
+
+                // Prioritize aiming weapons with more peak DPS instead of sustained DPS.
+                // That's because it's both easier and more beneficial to keep them on target
+                // for even a short period of time.
+                DPSArc(relativeFacing - halArc, relativeFacing + halArc, weapon.peakDPS)
             }
-
-            // Return angles in relation to weapon current arc facing.
-            val intercept = intercept(weapon, target, defaultBallisticParams)
-            val relativeFacing = shortestRotation(weapon.absoluteArcFacing, intercept.facing)
-            val halArc = weapon.arc / 2
-
-            DPSArc(relativeFacing - halArc, relativeFacing + halArc, weapon.derivedStats.dps)
+        } finally {
+            ship.facing = facingStash
         }
 
-        // Sorted boundaries between firing solution.
+        // Sorted boundaries between firing arc offsets.
         val boundaries: List<Float> = solutions.flatMap { solution ->
             listOf(solution.arcStart, solution.arcEnd)
         }.sorted()
@@ -76,25 +100,10 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
 
         // Find the firing arc with the best DPS.
         // Face the target directly if no firing arc was identified.
-        val targetFacing = (target.location - ship.location).facing
-        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy { it.dps }) ?: return targetFacing
+        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy { it.dps }) ?: return directFacing
+        val offset = (optimalArc.arcEnd + optimalArc.arcStart) / 2
 
-        // Calculate ship facing that centers the selected firing arc on the target.
-        val padding = min(2f, (optimalArc.arcEnd - optimalArc.arcStart) / 2)
-        val startOffset = shortestRotation(targetFacing, ship.facing + optimalArc.arcStart + padding)
-        val endOffset = shortestRotation(targetFacing, ship.facing + optimalArc.arcEnd - padding)
-        val minOffset = min(startOffset, endOffset)
-        val maxOffset = max(startOffset, endOffset)
-        val optimalOffset = (minOffset + maxOffset) / 2
-
-        // Cap the offset between ship facing and target facing. This ensures
-        // ships like the Conquest don't go full-on age-of-sails broadside.
-        val smoothOffset = smoothCap(optimalOffset, 30f)
-        if (smoothOffset in minOffset..maxOffset) {
-            return smoothOffset + targetFacing
-        }
-
-        return minOffset + targetFacing
+        return directFacing + offset
     }
 
     private fun weaponRanges(): Map<WeaponAPI, Float> {

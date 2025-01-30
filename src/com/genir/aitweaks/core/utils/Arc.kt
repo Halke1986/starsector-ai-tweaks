@@ -78,27 +78,23 @@ class Arc(angle: Float, facing: Float) {
         /** Intersect two arcs. If the arcs do not overlap, returns null. */
         fun intersection(a: Arc, b: Arc): Arc? {
             val offset = shortestRotation(a.facing, b.facing)
-            val angle = abs(offset) + a.half + b.half
-
-            return when {
+            val absOffset = abs(offset)
+            when {
                 // Arcs do not overlap.
-                offset >= a.half + b.half -> return null
-
-                // Both arcs form a complete angle.
-                angle >= 360f -> return Arc(360f, a.facing)
+                absOffset >= a.half + b.half -> return null
 
                 // A is contained in B.
-                abs(offset) + a.half <= b.half -> return a
+                absOffset + a.half <= b.half -> return a
 
                 // B is contained in A.
-                abs(offset) + b.half <= a.half -> return b
-
-                else -> {
-                    val angles = listOf(a.facing + a.half, a.facing - a.half, b.facing + b.half, b.facing - b.half)
-                    val sorted = angles.sortedWith(compareBy { it })
-                    fromTo(sorted[1], sorted[2])
-                }
+                absOffset + b.half <= a.half -> return b
             }
+
+            // Compute the intersection in arc 'a' frame of reference.
+            val angles = listOf(+a.half, -a.half, offset + b.half, offset - b.half)
+            val sorted = angles.sortedWith(compareBy { it })
+
+            return fromTo(sorted[1] + a.facing, sorted[2] + a.facing)
         }
 
         /** Make an arc spanning the shortest rotation

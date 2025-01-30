@@ -15,7 +15,6 @@ import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.shipai.autofire.UpdateTarget.Companion.TARGET_SEARCH_MULT
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Rotation.Companion.rotated
-import com.genir.aitweaks.core.utils.Rotation.Companion.rotatedAroundPivot
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
@@ -361,7 +360,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Try to read expected facing from custom AI implementations.
         val customAIFacing = ship.customShipAI?.movement?.expectedFacing
         val wrapperAIFacing = (ship.ai as? ExtendedShipAI)?.expectedFacing
-        val expectedFacing = customAIFacing ?: wrapperAIFacing ?: (target.location - ship.location).facing
+        val expectedFacing = clampAngle(customAIFacing ?: wrapperAIFacing ?: (target.location - ship.location).facing)
 
         // If no expected facing was found, assume the ship is controlled by vanilla AI.
         // Vanilla AI lacks precise aiming, so hardpoints need flexibility to compensate.
@@ -370,11 +369,16 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(intercept)) return intercept
         }
 
-        // Aim the hardpoint as if the ship was facing the target directly.
-        val r = Rotation(shortestRotation(expectedFacing, ship.facing))
-        val v = target.timeAdjustedVelocity.rotated(r)
-        val p = target.location.rotatedAroundPivot(r, weapon.ship.location)
-        return intercept(weapon, BallisticTarget(p, v, target.collisionRadius), currentParams())
+        // Aim the hardpoint as if the ship was already rotated to the expected facing.
+        // That way the correct weapon facing can be predicted.
+        val facingStash = ship.facing
+        val correction = Rotation(shortestRotation(expectedFacing, ship.facing))
+        try {
+            ship.facing = expectedFacing
+            return intercept(weapon, BallisticTarget.entity(target), currentParams()).rotated(correction)
+        } finally {
+            ship.facing = facingStash
+        }
     }
 
     /** Tracks intercept angular velocity and angular distance in weapon slot frame of reference. */

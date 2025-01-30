@@ -35,6 +35,11 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - notify systems of overridden facing in extended AI
 
+- nova backing off too far to vent
+    - probably missileDangerDir
+
+- nova rotating when potential target in front
+
 SUGGESTED by Roxorium: Speaking of which, @Genir would it be possible to add "ignore wrecks and asteroids" toggle?
 
 SUGGESTED by vinh: Oh btw genir, remember the not making needlee firing againdt hull feature? Can you make it so that minipulse and vpd also do this?
@@ -49,5 +54,3 @@ I have the same behavior with the current release version of Tweaks
 
 ----------------------------------------------------------------
 
-- nova backing off too far to vent
-    - probably missileDangerDir

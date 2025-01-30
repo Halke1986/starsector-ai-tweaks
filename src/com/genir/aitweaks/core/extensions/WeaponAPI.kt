@@ -286,3 +286,6 @@ val WeaponAPI.RoFMultiplier: Float
         WeaponAPI.WeaponType.MISSILE -> ship.mutableStats.missileRoFMult.modifiedValue
         else -> 1f
     }
+
+val WeaponAPI.Id: String
+    get() = spec?.weaponId ?: "-"
