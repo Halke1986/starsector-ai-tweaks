@@ -8,7 +8,6 @@ import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
-import com.genir.aitweaks.core.shipai.EngineController
 import com.genir.aitweaks.core.shipai.Preset.Companion.backoffUpperThreshold
 import com.genir.aitweaks.core.utils.*
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
@@ -67,8 +66,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
      * calculated specifically for an assault-type ship. In other words,
      * it drives the ship straight at the target without strafing. */
     private fun updateBurnVector() {
-        burnVector = if (ai.movement.headingPoint == EngineController.allStop) Vector2f()
-        else ai.movement.headingPoint - ship.location
+        burnVector = ai.movement.headingPoint - ship.location
     }
 
     /** Should the ship position itself to begin burn? */

@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.*
+import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.clampAngle
 import com.genir.aitweaks.core.utils.shortestRotation
 import com.genir.aitweaks.core.utils.unitVector
@@ -82,6 +83,11 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
             ship.facing = facingStash
         }
 
+        // Face the target directly if no firing solutions are available.
+        if (solutions.isEmpty()) {
+            return directFacing
+        }
+
         // Sorted boundaries between firing arc offsets.
         val boundaries: List<Float> = solutions.flatMap { solution ->
             listOf(solution.arcStart, solution.arcEnd)
@@ -98,9 +104,14 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
             DPSArc(boundaries[i], boundaries[i + 1], dps)
         }
 
-        // Find the firing arc with the best DPS.
-        // Face the target directly if no firing arc was identified.
-        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy { it.dps }) ?: return directFacing
+        val offsetFromCurrentFacing = fun(arc: DPSArc): Float {
+            val offset = (arc.arcEnd + arc.arcStart) / 2
+            val proposedFacing = directFacing + offset
+            return absShortestRotation(ship.facing, proposedFacing)
+        }
+
+        // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
+        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromCurrentFacing(it) })!!
         val offset = (optimalArc.arcEnd + optimalArc.arcStart) / 2
 
         return directFacing + offset
