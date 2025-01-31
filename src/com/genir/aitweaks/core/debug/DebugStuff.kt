@@ -57,7 +57,7 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
         Debug.drawLine(ship.location, ship.location + unitVector(ship.facing) * 400f, BLUE)
         Debug.print["f"] = absShortestRotation(ship.facing, expectedFacing)
 
-        controller.facing(dt, expectedFacing)
+        controller.facing(dt, expectedFacing, false)
     }
 }
 
@@ -67,10 +67,9 @@ class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     override fun advance(dt: Float) {
         val toMouse = mousePosition() - ship.location
 
-        val facing = if (toMouse.length > ship.collisionRadius / 2f) toMouse.facing
-        else EngineController.rotationStop
+        val shouldStopRotation = toMouse.length < ship.collisionRadius / 2f
 
-        controller.facing(dt, facing)
+        controller.facing(dt, toMouse.facing, shouldStopRotation)
         controller.heading(dt, mousePosition())
 
         Debug.drawEngineLines(ship)
@@ -111,8 +110,8 @@ class DroneFormationAI(private val drone: ShipAPI, val ship: ShipAPI, private va
     override fun advance(dt: Float) {
         val currentOffset = offset.rotated(Rotation(ship.facing))
 
-        controller.heading(dt, ship.location + currentOffset)
-        controller.facing(dt, currentOffset.facing)
+        controller.heading(dt, ship.location + currentOffset, false)
+        controller.facing(dt, currentOffset.facing, false)
     }
 }
 

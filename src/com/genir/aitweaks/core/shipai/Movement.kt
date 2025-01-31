@@ -47,7 +47,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val backoffOverride: Vector2f? = ai.ventModule.overrideHeading(maneuverTarget)
         val navigateTo: Vector2f? = ai.assignment.navigateTo
 
-        headingPoint = interpolateHeading.advance(dt) {
+        val newHeadingPoint: Vector2f? = interpolateHeading.advance(dt) {
             when {
                 // Let movement system determine ship heading.
                 systemOverride != null -> {
@@ -64,7 +64,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                     backoffOverride
                 }
 
-                // Orbit target at effective weapon range.
+                // Orbit target at the effective weapon range.
                 // Rotate away from threat if there are multiple enemy ships around.
                 // Chase the target if there are no other enemy ships around.
                 // Strafe target randomly if in range and no other threat.
@@ -73,12 +73,15 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                 }
 
                 // Nothing to do, stop the ship.
-                else -> EngineController.allStop
+                else -> null
 
-            }.copy // Copy to avoid relying on changing value.
+            }?.copy // Copy to avoid relying on changing value.
         }
 
-        expectedVelocity = engineController.heading(dt, headingPoint, gatherSpeedLimits(dt))
+        val shouldStop = newHeadingPoint == null
+        headingPoint = newHeadingPoint ?: ship.location
+
+        expectedVelocity = engineController.heading(dt, headingPoint, shouldStop, gatherSpeedLimits(dt))
     }
 
     private fun setFacing(dt: Float) {
@@ -87,8 +90,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val weaponGroup = if (currentAttackTarget == ai.attackTarget) ai.attackingGroup
         else ai.finishBurstWeaponGroup!!
 
-        expectedFacing = interpolateFacing.advance(dt) {
-            val newFacing: Float = when {
+        val newExpectedFacing: Float? = interpolateFacing.advance(dt) {
+            val newFacing: Float? = when {
                 // Let movement system determine the ship facing.
                 systemOverride != null -> {
                     systemOverride
@@ -115,13 +118,16 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                 }
 
                 // Nothing to do. Stop rotation.
-                else -> EngineController.rotationStop
+                else -> null
             }
 
-            Vector2f(newFacing, 0f)
-        }.x
+            newFacing?.let { Vector2f(newFacing, 0f) }
+        }?.x
 
-        engineController.facing(dt, expectedFacing)
+        val shouldStop = newExpectedFacing == null
+        expectedFacing = newExpectedFacing ?: ship.facing
+
+        engineController.facing(dt, expectedFacing, shouldStop)
     }
 
     private fun calculateAttackLocation(maneuverTarget: ShipAPI): Vector2f {
@@ -509,13 +515,13 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
      * advance() calls within the same frame, ensuring smoother and more precise movement.
      */
     private inner class InterpolateValue {
-        private var prevValue: Vector2f = Vector2f()
-        private var value: Vector2f = Vector2f()
+        private var prevValue: Vector2f? = null
+        private var value: Vector2f? = null
 
         private var timestamp: Int = 0
         private var dtSum: Float = 0f
 
-        fun advance(dt: Float, nextValue: () -> Vector2f): Vector2f {
+        fun advance(dt: Float, nextValue: () -> Vector2f?): Vector2f? {
             val timeMult: Float = ship.mutableStats.timeMult.modifiedValue
 
             if (state.frameCount > timestamp) {
@@ -527,9 +533,17 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             }
 
             // No need to interpolate for ships in normal time flow.
-            if (timeMult == 1f) return value
+            if (timeMult == 1f) {
+                return value
+            }
 
             dtSum += dt
+            val value = value
+            val prevValue = prevValue
+
+            if (value == null || prevValue == null) {
+                return value
+            }
 
             val delta = (value - prevValue) / timeMult
             return prevValue + delta * (dtSum / Global.getCombatEngine().elapsedInLastFrame)

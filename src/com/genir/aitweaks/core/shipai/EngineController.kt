@@ -15,18 +15,18 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     private var prevFacing: Float = 0f
     private var prevHeading: Vector2f = Vector2f()
 
-    /** Values used to decelerate the ship to standstill. */
-    companion object {
-        val allStop: Vector2f = Vector2f(Float.MAX_VALUE, Float.MAX_VALUE)
-        const val rotationStop: Float = Float.MAX_VALUE
-    }
-
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
     data class Limit(val heading: Float, val speed: Float)
 
     fun heading(dt: Float, heading: Vector2f, limits: List<Limit> = listOf()): Vector2f {
-        if (heading == allStop) return heading(dt, ship.location, Vector2f())
+        return heading(dt, heading, false, limits)
+    }
+
+    fun heading(dt: Float, heading: Vector2f, shouldStop: Boolean, limits: List<Limit> = listOf()): Vector2f {
+        if (shouldStop) {
+            return heading(dt, ship.location, Vector2f())
+        }
 
         // Estimate target linear velocity.
         val globalVelocityLimit = 600f
@@ -37,7 +37,13 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     }
 
     fun facing(dt: Float, facing: Float) {
-        if (facing == rotationStop) return facing(dt, ship.facing, 0f)
+        facing(dt, facing, false)
+    }
+
+    fun facing(dt: Float, facing: Float, shouldStop: Boolean) {
+        if (shouldStop) {
+            return facing(dt, ship.facing, 0f)
+        }
 
         // Estimate target angular velocity.
         val wt = shortestRotation(prevFacing, facing) / dt
