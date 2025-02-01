@@ -14,6 +14,7 @@ import com.genir.aitweaks.core.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.shipai.autofire.UpdateTarget.Companion.TARGET_SEARCH_MULT
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
@@ -257,7 +258,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         val arc = interceptArc(weapon, BallisticTarget.entity(target!!), currentParams())
-        val inaccuracy = absShortestRotation(weapon.CurrAngle, arc.facing)
+        val inaccuracy = absShortestRotation(weapon.currAngle.direction, arc.facing)
         if (inaccuracy * 4f > arc.angle) return STABILIZE_ON_TARGET
 
         return null
@@ -288,7 +289,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             !weapon.absoluteArc.contains(target.location - weapon.location) -> return false
         }
 
-        val r = shortestRotation(weapon.CurrAngle, (target.location - weapon.location).facing)
+        val r = shortestRotation(weapon.currAngle.direction, (target.location - weapon.location).facing)
         val w = weapon.turnRateWhileFiring - interceptTracker.interceptVelocity * r.sign
 
         // The beam's turn rate is too low to track the target.
@@ -370,7 +371,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Aim the hardpoint as if the ship was already rotated to the expected facing.
         // That way the correct weapon facing can be predicted.
         val facingStash = ship.facing
-        val correction = shortestRotation(expectedFacing, ship.Facing).rotationMatrix
+        val correction = shortestRotation(expectedFacing, ship.facing.direction).rotationMatrix
         try {
             ship.facing = expectedFacing.degrees
             return intercept(weapon, BallisticTarget.entity(target), currentParams()).rotated(correction)

@@ -11,6 +11,7 @@ import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
 import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedAroundPivot
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
@@ -24,7 +25,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
     var headingPoint: Vector2f = Vector2f()
     var expectedVelocity: Vector2f = Vector2f()
-    var expectedFacing: Direction = ship.Facing
+    var expectedFacing: Direction = ship.facing.direction
 
     // Used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
@@ -123,7 +124,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         }
 
         val shouldStop = newExpectedFacing == null
-        expectedFacing = newExpectedFacing ?: ship.Facing
+        expectedFacing = newExpectedFacing ?: ship.facing.direction
 
         engineController.facing(dt, expectedFacing, shouldStop)
     }
@@ -477,7 +478,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
     /** Ship deceleration for collision avoidance purposes. */
     private fun ShipAPI.collisionDeceleration(collisionFacing: Direction): Float {
-        val angleFromBow = absShortestRotation(Facing, collisionFacing)
+        val angleFromBow = absShortestRotation(facing.direction, collisionFacing)
         return when {
             angleFromBow < 30f -> deceleration
             angleFromBow < 150f -> strafeAcceleration

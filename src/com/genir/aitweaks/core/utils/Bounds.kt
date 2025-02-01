@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.utils
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import org.lwjgl.util.vector.Vector2f
@@ -24,7 +25,7 @@ class Bounds {
 
         // Rotate vector coordinates from target frame of
         // reference to target bounds frame of reference.
-        val r = (-target.Facing).rotationMatrix
+        val r = (-target.facing.direction).rotationMatrix
         val p = position.rotated(r)
         val v = velocity.rotated(r)
 
@@ -50,7 +51,7 @@ class Bounds {
     fun closestPoint(position: Vector2f, target: CombatEntityAPI): Vector2f {
         val bounds = target.exactBounds ?: return target.location
 
-        val r = (-target.Facing).rotationMatrix
+        val r = (-target.facing.direction).rotationMatrix
         val o = (position - target.location).rotated(r)
 
         val points = bounds.origSegments.asSequence().map { segment ->
@@ -68,11 +69,11 @@ class Bounds {
     /** Is the point 'position' inside ship bounds.
      * 'position' is in global frame of reference. */
     fun isPointWithin(position: Vector2f, target: CombatEntityAPI): Boolean {
-        // Check if there's a possibility of collision.
+        // Check if there's a possibility of a collision.
         val bounds = target.exactBounds ?: return false
         if (radius(target) < (position - target.location).length) return false
 
-        val r = (-target.Facing).rotationMatrix
+        val r = (-target.facing.direction).rotationMatrix
         val p = (position - target.location).rotated(r)
 
         // Count the number of segments below the point p.

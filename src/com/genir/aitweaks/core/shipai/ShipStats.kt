@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import kotlin.math.max
 
 class ShipStats(private val ship: ShipAPI) {
@@ -49,7 +50,7 @@ class ShipStats(private val ship: ShipAPI) {
             significantWeapons.isEmpty() -> return listOf(WeaponGroup(ship, listOf()))
 
             // Special case for front facing hardpoints.
-            significantWeapons.any { it.slot.isHardpoint && it.ArcFacing.isZero } -> {
+            significantWeapons.any { it.slot.isHardpoint && it.arcFacing.direction.isZero } -> {
                 listOf(WeaponGroup(ship, significantWeapons.filter { it.isFrontFacing }))
             }
         }

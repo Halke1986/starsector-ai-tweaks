@@ -16,6 +16,7 @@ import com.genir.aitweaks.core.shipai.autofire.*
 import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -174,7 +175,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
             group.type == WeaponGroupType.ALTERNATING && weapon == group.activeWeapon -> true
 
             // Fire linked weapons if it's possible to hit the target.
-            group.type == WeaponGroupType.LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.CurrAngle) -> true
+            group.type == WeaponGroupType.LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.currAngle.direction) -> true
 
             else -> false
         }

@@ -48,6 +48,3 @@ fun CombatEntityAPI.isHostile(otherEntity: CombatEntityAPI): Boolean {
 
 val CombatEntityAPI.boundsRadius: Float
     get() = state.bounds.radius(this)
-
-val CombatEntityAPI.Facing: Direction
-    get() = Direction(facing)

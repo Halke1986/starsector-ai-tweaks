@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.shortestRotation
 import org.lwjgl.util.vector.Vector2f
@@ -143,7 +144,7 @@ class UpdateTarget(
 
             return@map if (dist <= range) {
                 // Evaluate the target based on angle and distance.
-                val angle = shortestRotation((target.location - weapon.location).facing, weapon.CurrAngle).radians
+                val angle = shortestRotation((target.location - weapon.location).facing, weapon.currAngle.direction).radians
                 val angleWeight = 0.75f
 
                 val evalAngle = abs(angle) * angleWeight

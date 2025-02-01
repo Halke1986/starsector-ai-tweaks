@@ -9,6 +9,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
@@ -63,7 +64,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
         // may be stuck in warmup loop, so execute burst when backing off.
         if (!ai.ventModule.isBackingOff && hardpoints.any { it.isInFiringSequence }) return null
 
-        return ship.Facing + plan.angleToTarget()
+        return ship.facing.direction + plan.angleToTarget()
     }
 
     private fun canUseBurst(): Boolean {
@@ -190,7 +191,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
             Pair((d + r), setOf(ACCELERATE_BACKWARDS, STRAFE_RIGHT)),
         )
 
-        val toShipFacing = ship.Facing.rotationMatrix
+        val toShipFacing = ship.facing.direction.rotationMatrix
         return rawVectors.map { BurstVector(it.first, toShipFacing, it.second) }
     }
 

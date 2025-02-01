@@ -19,6 +19,7 @@ import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Direction
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.solve
 import kotlin.math.floor
@@ -65,24 +66,18 @@ val WeaponAPI.ignoresFlares: Boolean
 /** Is angle in weapon arc in SHIP COORDINATES. */
 fun WeaponAPI.isAngleInArc(angle: Direction): Boolean {
     val tolerance = 0.01f
-    return absShortestRotation(ArcFacing, angle) <= (arc + tolerance) / 2f
+    return absShortestRotation(arcFacing.direction, angle) <= (arc + tolerance) / 2f
 }
 
 val WeaponAPI.isFrontFacing: Boolean
     get() = isAngleInArc(Direction(0f))
 
-val WeaponAPI.ArcFacing: Direction
-    get() = Direction(arcFacing)
-
-val WeaponAPI.CurrAngle: Direction
-    get() = Direction(currAngle)
-
 /** weapon arc facing in absolute coordinates, instead of ship coordinates */
 val WeaponAPI.absoluteArcFacing: Direction
-    get() = ArcFacing + ship.Facing
+    get() = arcFacing.direction + ship.facing.direction
 
 val WeaponAPI.absoluteArc: Arc
-    get() = Arc(arc, ArcFacing + ship.Facing)
+    get() = Arc(arc, arcFacing.direction + ship.facing.direction)
 
 val WeaponAPI.totalRange: Float
     get() = Range + projectileFadeRange * 0.33f

@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 
 /**
@@ -94,7 +95,7 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
     val range = solve(Pair(p, v), shield.radius) ?: return null
     val hitPoint = p + v * range
 
-    return if (Arc(shield.activeArc, shield.Facing).contains(hitPoint)) range else null
+    return if (Arc(shield.activeArc, shield.facing.direction).contains(hitPoint)) range else null
 }
 
 /** Calculates if a perfectly accurate projectile will collide with target bounds,

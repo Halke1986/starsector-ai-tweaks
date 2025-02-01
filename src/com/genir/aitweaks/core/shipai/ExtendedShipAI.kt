@@ -11,6 +11,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */
@@ -77,7 +78,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
         }
 
         // Find a weapon group appropriate to attack the ship target.
-        val targetFacing = shortestRotation(ship.Facing, (target.location - ship.location).facing)
+        val targetFacing = shortestRotation(ship.facing.direction, (target.location - ship.location).facing)
         val weaponGroup = stats.weaponGroups.minWithOrNull(compareBy { absShortestRotation(it.defaultFacing, targetFacing) })!!
 
         // Aim ship only if the target is close to weapons range.

@@ -6,6 +6,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -46,7 +47,7 @@ object Debug {
 
     fun drawBounds(entity: CombatEntityAPI, color: Color = Color.YELLOW) {
         val bounds = entity.exactBounds ?: return
-        bounds.update(entity.location, entity.Facing.degrees)
+        bounds.update(entity.location, entity.facing)
 
         bounds.segments.forEach {
             drawLine(it.p1, it.p2, color)
@@ -56,7 +57,7 @@ object Debug {
     fun drawAccelerationLines(ship: ShipAPI) {
         if (state.debugPlugin?.renderer == null) return
 
-        val r = (ship.Facing - 90f).rotationMatrix
+        val r = (ship.facing.direction - 90f).rotationMatrix
         val engine = ship.engineController
 
         listOfNotNull(
@@ -72,7 +73,7 @@ object Debug {
     fun drawTurnLines(ship: ShipAPI) {
         if (state.debugPlugin?.renderer == null) return
 
-        val r = (ship.Facing - 90f).rotationMatrix
+        val r = (ship.facing.direction - 90f).rotationMatrix
         val engine = ship.engineController
 
         listOfNotNull(

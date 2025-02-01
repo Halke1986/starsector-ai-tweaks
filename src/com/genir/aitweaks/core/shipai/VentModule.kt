@@ -9,6 +9,7 @@ import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.distanceToOrigin
@@ -285,7 +286,7 @@ class VentModule(private val ai: CustomShipAI) {
         }
 
         // Check if the weapon is busy firing at another target.
-        if (absShortestRotation(toShip.facing, weapon.CurrAngle) > 30f && weapon.isInFiringCycle && !isGuidedFinisherMissile) {
+        if (absShortestRotation(toShip.facing, weapon.currAngle.direction) > 30f && weapon.isInFiringCycle && !isGuidedFinisherMissile) {
             return false
         }
 

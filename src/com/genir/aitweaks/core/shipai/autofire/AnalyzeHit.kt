@@ -3,12 +3,12 @@ package com.genir.aitweaks.core.shipai.autofire
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.extensions.CurrAngle
 import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.extensions.isShip
 import com.genir.aitweaks.core.extensions.noFF
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.*
 import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 
 data class Hit(val target: CombatEntityAPI, val range: Float, val type: Type) {
     enum class Type {
@@ -53,7 +53,7 @@ private fun canHitAlly(weapon: WeaponAPI, target: CombatEntityAPI, ally: ShipAPI
         interceptArc(weapon, ballisticAlly, endParams),
     )
 
-    val enemyArc = Arc.fromTo(weapon.CurrAngle, intercept(weapon, ballisticTarget, endParams).facing)
+    val enemyArc = Arc.fromTo(weapon.currAngle.direction, intercept(weapon, ballisticTarget, endParams).facing)
 
     val spread = weapon.spec.maxSpread + 2f
     return allyArc.extendedBy(spread).overlaps(enemyArc)

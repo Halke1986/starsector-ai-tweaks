@@ -3,8 +3,6 @@ package com.genir.aitweaks.core.utils
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 
-// TODO remove API extensions
-
 class Direction(degrees: Float) {
     val degrees: Float = degrees - round(degrees / 360) * 360
 
@@ -63,5 +61,10 @@ class Direction(degrees: Float) {
 
     operator fun unaryMinus(): Direction {
         return Direction(-degrees)
+    }
+
+    companion object {
+        val Float.direction: Direction
+            get() = Direction(this)
     }
 }

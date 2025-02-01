@@ -10,6 +10,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController
 import com.genir.aitweaks.core.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.utils.Direction
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.absShortestRotation
@@ -54,8 +55,8 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
         expectedFacing += df * dt
 
         Debug.drawLine(ship.location, ship.location + expectedFacing.unitVector * 400f, GREEN)
-        Debug.drawLine(ship.location, ship.location + ship.Facing.unitVector * 400f, BLUE)
-        Debug.print["f"] = absShortestRotation(ship.Facing, expectedFacing)
+        Debug.drawLine(ship.location, ship.location + ship.facing.direction.unitVector * 400f, BLUE)
+        Debug.print["f"] = absShortestRotation(ship.facing.direction, expectedFacing)
 
         controller.facing(dt, expectedFacing, false)
     }
@@ -108,7 +109,7 @@ class DroneFormationAI(private val drone: ShipAPI, val ship: ShipAPI, private va
     private val controller = EngineController(drone)
 
     override fun advance(dt: Float) {
-        val currentOffset = offset.rotated(ship.Facing.rotationMatrix)
+        val currentOffset = offset.rotated(ship.facing.direction.rotationMatrix)
 
         controller.heading(dt, ship.location + currentOffset, false)
         controller.facing(dt, currentOffset.facing, false)

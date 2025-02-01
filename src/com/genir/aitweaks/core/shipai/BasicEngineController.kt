@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.shortestRotation
@@ -40,7 +41,7 @@ open class BasicEngineController(val ship: ShipAPI) {
         // ship angular velocity, as linear acceleration is applied
         // by the game engine after rotation.
         val w = ship.angularVelocity * dt
-        val toShipFacing = (-ship.Facing) - w + 90f
+        val toShipFacing = (-ship.facing.direction) - w + 90f
         val r = toShipFacing.rotationMatrix
         val d = (heading - ship.location).rotated(r)
         val v = (ship.velocity).rotated(r) * dt
@@ -106,7 +107,7 @@ open class BasicEngineController(val ship: ShipAPI) {
         val wt = targetAngularVelocity * dt
 
         // Angular distance between expected facing and ship facing.
-        val r = shortestRotation(ship.Facing, facing)
+        val r = shortestRotation(ship.facing.direction, facing)
 
         // Expected velocity change.
         val we = r.sign * vMax(r.length, a) + wt

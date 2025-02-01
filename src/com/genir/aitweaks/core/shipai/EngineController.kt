@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
@@ -41,7 +42,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
     fun facing(dt: Float, facing: Direction, shouldStop: Boolean) {
         if (shouldStop) {
-            return facing(dt, ship.Facing, 0f)
+            return facing(dt, ship.facing.direction, 0f)
         }
 
         // Estimate target angular velocity.
