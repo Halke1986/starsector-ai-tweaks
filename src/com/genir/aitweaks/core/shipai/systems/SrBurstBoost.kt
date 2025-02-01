@@ -12,7 +12,6 @@ import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
 
 class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
     private var burstVectors: List<BurstVector> = listOf()
@@ -57,14 +56,14 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     /** Rotate the ship to point selected burst vector at target. */
-    override fun overrideFacing(): Float? {
+    override fun overrideFacing(): Rotation? {
         val plan = burstPlan ?: return null
 
         // Don't interrupt hardpoint bursts. When flux is high, the weapon
         // may be stuck in warmup loop, so execute burst when backing off.
         if (!ai.ventModule.isBackingOff && hardpoints.any { it.isInFiringSequence }) return null
 
-        return ship.facing + plan.angleToTarget()
+        return ship.Facing + plan.angleToTarget()
     }
 
     private fun canUseBurst(): Boolean {
@@ -90,7 +89,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
         val plans: Sequence<BurstPlan> = ai.threats.asSequence().mapNotNull { target ->
             estimateCollision(target)?.let { makeBurstPlan(it, burstVectors, target) }
         }
-        val validAngle = plans.filter { abs(it.angleToTarget()) <= maxOpportunityBurstAngle }
+        val validAngle = plans.filter { it.angleToTarget().length <= maxOpportunityBurstAngle }
         val validPlans = validAngle.filter { it.distanceToTarget() <= maxRammingDistance }
 
         validPlans.minWithOrNull(compareBy { it.distanceToTarget() })?.let { return it }
@@ -102,7 +101,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
         val frontVectors = burstVectors.filter { !it.commands.contains(ACCELERATE_BACKWARDS) }
         val allPlans = frontVectors.map { BurstPlan(it, collision, attackTarget) }
         val rammingPlans = allPlans.filter { it.distanceToTarget() <= maxRammingDistance }
-        rammingPlans.minWithOrNull(compareBy { it.angleToTarget() })?.let { return it }
+        rammingPlans.minWithOrNull(compareBy { it.angleToTarget().length })?.let { return it }
 
         // Try the shortest rotation burst to approach target.
         // Save charges for better opportunities.
@@ -123,7 +122,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
             !ai.ventModule.isBackingOff && hardpoints.any { it.isInWarmup } -> false
 
             // Ship is not aligned for burst.
-            abs(burstPlan!!.angleToTarget()) > burstTriggerAngle -> false
+            burstPlan!!.angleToTarget().length > burstTriggerAngle -> false
 
             else -> true
         }
@@ -148,16 +147,16 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
     /** Description of one of the eight possible burst vectors around the ship. */
     inner class BurstVector(direction: Vector2f, toShipFacing: RotationMatrix, val commands: Set<ShipCommand>) {
         val vector: Vector2f = direction.rotated(toShipFacing).resized(burstSpeed)
-        val facing: Float = vector.facing
+        val facing: Rotation = vector.facing
         val boundsOffset: Float = burstSpeed - boundsCollision(vector, -vector, ship)!!
     }
 
     /** Burst vector associated with heading towards a target. */
     data class BurstPlan(val burst: BurstVector, val toTarget: Vector2f, val target: ShipAPI?) {
         private val targetDistance: Float = toTarget.length
-        private val targetFacing: Float = toTarget.facing
+        private val targetFacing: Rotation = toTarget.facing
 
-        fun angleToTarget(): Float {
+        fun angleToTarget(): Rotation {
             return shortestRotation(burst.facing, targetFacing)
         }
 
@@ -191,7 +190,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
             Pair((d + r), setOf(ACCELERATE_BACKWARDS, STRAFE_RIGHT)),
         )
 
-        val toShipFacing = RotationMatrix(ship.facing)
+        val toShipFacing = ship.Facing.rotationMatrix
         return rawVectors.map { BurstVector(it.first, toShipFacing, it.second) }
     }
 
@@ -238,7 +237,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
         val time = solve(Pair(position, velocity), shield.radius) ?: return null
         val hitPoint = position + velocity * time
-        val willHitShield = Arc(shield.activeArc, shield.facing).contains(hitPoint)
+        val willHitShield = Arc(shield.activeArc, Rotation(shield.facing)).contains(hitPoint)
 
         return if (willHitShield) (velocity * time).length else null
     }

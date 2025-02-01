@@ -24,7 +24,7 @@ class Bounds {
 
         // Rotate vector coordinates from target frame of
         // reference to target bounds frame of reference.
-        val r = RotationMatrix(-target.facing)
+        val r = (-target.Facing).rotationMatrix
         val p = position.rotated(r)
         val v = velocity.rotated(r)
 
@@ -50,7 +50,7 @@ class Bounds {
     fun closestPoint(position: Vector2f, target: CombatEntityAPI): Vector2f {
         val bounds = target.exactBounds ?: return target.location
 
-        val r = RotationMatrix(-target.facing)
+        val r = (-target.Facing).rotationMatrix
         val o = (position - target.location).rotated(r)
 
         val points = bounds.origSegments.asSequence().map { segment ->
@@ -72,7 +72,7 @@ class Bounds {
         val bounds = target.exactBounds ?: return false
         if (radius(target) < (position - target.location).length) return false
 
-        val r = RotationMatrix(-target.facing)
+        val r = (-target.Facing).rotationMatrix
         val p = (position - target.location).rotated(r)
 
         // Count the number of segments below the point p.

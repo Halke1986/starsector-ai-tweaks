@@ -60,29 +60,35 @@ val WeaponAPI.ignoresFlares: Boolean
     get() = hasAIHint(IGNORES_FLARES) || ship.mutableStats.dynamic.getValue("pd_ignores_flares", 0f) >= 1f
 
 /** Is angle in weapon arc in SHIP COORDINATES. */
-fun WeaponAPI.isAngleInArc(angle: Float): Boolean {
+fun WeaponAPI.isAngleInArc(angle: Rotation): Boolean {
     val tolerance = 0.01f
-    return absShortestRotation(arcFacing, angle) <= (arc + tolerance) / 2f
+    return absShortestRotation(ArcFacing, angle) <= (arc + tolerance) / 2f
 }
 
 val WeaponAPI.isFrontFacing: Boolean
-    get() = isAngleInArc(0f)
+    get() = isAngleInArc(Rotation())
+
+val WeaponAPI.ArcFacing: Rotation
+    get() = Rotation(arcFacing)
+
+val WeaponAPI.CurrAngle: Rotation
+    get() = Rotation(currAngle)
 
 /** weapon arc facing in absolute coordinates, instead of ship coordinates */
-val WeaponAPI.absoluteArcFacing: Float
-    get() = clampAngle(arcFacing + ship.facing)
+val WeaponAPI.absoluteArcFacing: Rotation
+    get() = ArcFacing + ship.Facing
 
 val WeaponAPI.absoluteArc: Arc
-    get() = Arc(arc, arcFacing + ship.facing)
+    get() = Arc(arc, ArcFacing + ship.Facing)
 
 val WeaponAPI.totalRange: Float
     get() = Range + projectileFadeRange * 0.33f
 
 /** Weapon range from the center of the ship, along the attack facing.
  * attackFacing is in ship frame of reference*/
-fun WeaponAPI.rangeFromShipCenter(attackFacing: Float): Float {
+fun WeaponAPI.rangeFromShipCenter(attackFacing: Rotation): Float {
     val p = -slot.location
-    val v = unitVector(attackFacing)
+    val v = attackFacing.unitVector
     return solve(Pair(p, v), Range) ?: 0f
 }
 

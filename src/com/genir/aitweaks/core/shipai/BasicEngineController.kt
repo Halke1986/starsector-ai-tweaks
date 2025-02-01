@@ -3,7 +3,7 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.RotationMatrix
+import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.shortestRotation
@@ -28,7 +28,7 @@ open class BasicEngineController(val ship: ShipAPI) {
      * `limitVelocity` lambda is used to restrict the velocity, e.g. for
      * collision avoidance purposes. Returns the calculated expected velocity.
      */
-    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Float, Vector2f) -> Vector2f)? = null): Vector2f {
+    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Rotation, Vector2f) -> Vector2f)? = null): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val af = ship.acceleration * dt * dt
@@ -40,8 +40,8 @@ open class BasicEngineController(val ship: ShipAPI) {
         // ship angular velocity, as linear acceleration is applied
         // by the game engine after rotation.
         val w = ship.angularVelocity * dt
-        val toShipFacing = 90f - ship.facing - w
-        val r = RotationMatrix(toShipFacing)
+        val toShipFacing = (-ship.Facing) - w + 90f
+        val r = toShipFacing.rotationMatrix
         val d = (heading - ship.location).rotated(r)
         val v = (ship.velocity).rotated(r) * dt
         val vt = targetVelocity.rotated(r) * dt
@@ -95,7 +95,7 @@ open class BasicEngineController(val ship: ShipAPI) {
      * with changing facing values, effectively extrapolating the expected ship
      * facing to the next frame.
      */
-    fun facing(dt: Float, facing: Float, targetAngularVelocity: Float) {
+    fun facing(dt: Float, facing: Rotation, targetAngularVelocity: Float) {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val w = ship.angularVelocity * dt
@@ -106,10 +106,10 @@ open class BasicEngineController(val ship: ShipAPI) {
         val wt = targetAngularVelocity * dt
 
         // Angular distance between expected facing and ship facing.
-        val r = shortestRotation(ship.facing, facing)
+        val r = shortestRotation(ship.Facing, facing)
 
         // Expected velocity change.
-        val we = sign(r) * vMax(abs(r), a) + wt
+        val we = r.sign * vMax(r.length, a) + wt
         val dw = we - w
 
         // Compare each possible movement option

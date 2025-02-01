@@ -6,9 +6,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
-import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
@@ -33,8 +31,8 @@ object Debug {
     }
 
     fun drawArcArms(pos: Vector2f, r: Float, a: Arc, color: Color = Color.CYAN) {
-        state.debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + unitVector(a.facing - a.half) * r, color))
-        state.debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + unitVector(a.facing + a.half) * r, color))
+        state.debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + (a.facing - a.half).unitVector * r, color))
+        state.debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + (a.facing + a.half).unitVector * r, color))
     }
 
     fun drawLine(a: Vector2f, b: Vector2f, color: Color = Color.YELLOW) {
@@ -48,7 +46,7 @@ object Debug {
 
     fun drawBounds(entity: CombatEntityAPI, color: Color = Color.YELLOW) {
         val bounds = entity.exactBounds ?: return
-        bounds.update(entity.location, entity.facing)
+        bounds.update(entity.location, entity.Facing.degrees)
 
         bounds.segments.forEach {
             drawLine(it.p1, it.p2, color)
@@ -58,7 +56,7 @@ object Debug {
     fun drawAccelerationLines(ship: ShipAPI) {
         if (state.debugPlugin?.renderer == null) return
 
-        val r = RotationMatrix(ship.facing - 90f)
+        val r = (ship.Facing - 90f).rotationMatrix
         val engine = ship.engineController
 
         listOfNotNull(
@@ -74,7 +72,7 @@ object Debug {
     fun drawTurnLines(ship: ShipAPI) {
         if (state.debugPlugin?.renderer == null) return
 
-        val r = RotationMatrix(ship.facing - 90f)
+        val r = (ship.Facing - 90f).rotationMatrix
         val engine = ship.engineController
 
         listOfNotNull(

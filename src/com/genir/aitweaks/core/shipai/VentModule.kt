@@ -285,7 +285,7 @@ class VentModule(private val ai: CustomShipAI) {
         }
 
         // Check if the weapon is busy firing at another target.
-        if (absShortestRotation(toShip.facing, weapon.currAngle) > 30f && weapon.isInFiringCycle && !isGuidedFinisherMissile) {
+        if (absShortestRotation(toShip.facing, weapon.CurrAngle) > 30f && weapon.isInFiringCycle && !isGuidedFinisherMissile) {
             return false
         }
 

@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.ShipHullSpecAPI.EngineSpecAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.getShortestRotation
 import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
@@ -26,15 +27,15 @@ class SimulateMissile {
             // make sure not to use ship-specific time rate.
             val dt: Float = Global.getCombatEngine().elapsedInLastFrame
             val missileStats = MissileStats(weapon)
-            var facing: Float = (target.location - weapon.location).facing
+            var facing: Rotation = (target.location - weapon.location).facing
 
             for (i in 0..3) {
-                val path: Sequence<Frame> = missilePath(dt, weapon, unitVector(facing), missileStats)
-                val error: Float = angularDistanceToPath(dt, weapon, target, path)
+                val path: Sequence<Frame> = missilePath(dt, weapon, facing.unitVector, missileStats)
+                val error: Rotation = angularDistanceToPath(dt, weapon, target, path)
                 facing += error
             }
 
-            return unitVector(facing) * (target.location - weapon.location).length
+            return facing.unitVector * (target.location - weapon.location).length
         }
 
         fun missilePath(weapon: WeaponAPI): Sequence<Frame> {
@@ -44,12 +45,12 @@ class SimulateMissile {
 
         /** Calculate the angular distance between missile path and
          * target location at the point where the two are the closest. */
-        private fun angularDistanceToPath(dt: Float, weapon: WeaponAPI, target: BallisticTarget, path: Sequence<Frame>): Float {
+        private fun angularDistanceToPath(dt: Float, weapon: WeaponAPI, target: BallisticTarget, path: Sequence<Frame>): Rotation {
             val p0: Vector2f = target.location
             val v: Vector2f = target.velocity * dt
 
             var minDist: Float = Float.MAX_VALUE
-            var rotation = 0f
+            var rotation = Rotation(0f)
 
             path.forEachIndexed { idx, frame ->
                 val p = p0 + v * idx.toFloat()

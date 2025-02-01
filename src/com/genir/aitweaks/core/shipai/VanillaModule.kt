@@ -11,6 +11,7 @@ import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.extensions.getPrivateField
 import com.genir.aitweaks.core.extensions.isZero
 import com.genir.aitweaks.core.extensions.length
+import com.genir.aitweaks.core.utils.Rotation
 import org.lwjgl.util.vector.Vector2f
 
 /** AI modules carried over from vanilla ship AI. */
@@ -38,7 +39,7 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
 
     /** Advance AI subsystems carried over from the vanilla BasicShipAI. To work
      * correctly, the subsystems should be called in same order as in BasicShipAI. */
-    fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Float) {
+    fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Rotation) {
         val target = attackTarget as? Obfuscated.Ship
 
         flags.advance(dt)
@@ -47,9 +48,9 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
         fighterPullbackModule?.fighterPullbackModule_advance(dt, target)
 
         // Vanilla ship systems read maneuvers planned by ship AI through the flockingAI.
-        flockingAI.flockingAI_setDesiredHeading(if (expectedVelocity.isZero) Float.MAX_VALUE else expectedVelocity.facing)
+        flockingAI.flockingAI_setDesiredHeading(if (expectedVelocity.isZero) Float.MAX_VALUE else expectedVelocity.facing.degrees)
         flockingAI.flockingAI_setDesiredSpeed(expectedVelocity.length)
-        flockingAI.flockingAI_setDesiredFacing(expectedFacing)
+        flockingAI.flockingAI_setDesiredFacing(expectedFacing.degrees)
 
         flockingAI.flockingAI_advanceCollisionAnalysisModule(dt)
 

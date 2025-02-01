@@ -189,9 +189,13 @@ fun absShortestRotation(from: Float, to: Float): Float {
     return abs(shortestRotation(from, to))
 }
 
-/** Clamps angle to range [0,360) */
-fun clampAngle(angle: Float): Float {
-    return angle - floor(angle / 360f) * 360f
+fun shortestRotation(from: Rotation, to: Rotation): Rotation {
+    return to - from
+}
+
+// TODO DROP
+fun absShortestRotation(from: Rotation, to: Rotation): Float {
+    return shortestRotation(from, to).length
 }
 
 /**

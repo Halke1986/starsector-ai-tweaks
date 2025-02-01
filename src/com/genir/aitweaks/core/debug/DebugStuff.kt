@@ -9,11 +9,11 @@ import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController
 import com.genir.aitweaks.core.shipai.autofire.SimulateMissile
+import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.mousePosition
-import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
 import java.awt.Color.GREEN
@@ -44,7 +44,7 @@ internal fun debug(dt: Float) {
 //    }
 }
 
-var expectedFacing = 90f
+var expectedFacing = Rotation(90f)
 const val df = -1f * 60f
 
 class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
@@ -53,9 +53,9 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     override fun advance(dt: Float) {
         expectedFacing += df * dt
 
-        Debug.drawLine(ship.location, ship.location + unitVector(expectedFacing) * 400f, GREEN)
-        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing) * 400f, BLUE)
-        Debug.print["f"] = absShortestRotation(ship.facing, expectedFacing)
+        Debug.drawLine(ship.location, ship.location + expectedFacing.unitVector * 400f, GREEN)
+        Debug.drawLine(ship.location, ship.location + ship.Facing.unitVector * 400f, BLUE)
+        Debug.print["f"] = absShortestRotation(ship.Facing, expectedFacing)
 
         controller.facing(dt, expectedFacing, false)
     }
@@ -108,7 +108,7 @@ class DroneFormationAI(private val drone: ShipAPI, val ship: ShipAPI, private va
     private val controller = EngineController(drone)
 
     override fun advance(dt: Float) {
-        val currentOffset = offset.rotated(RotationMatrix(ship.facing))
+        val currentOffset = offset.rotated(ship.Facing.rotationMatrix)
 
         controller.heading(dt, ship.location + currentOffset, false)
         controller.facing(dt, currentOffset.facing, false)

@@ -75,7 +75,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
 
         // Compensate ship movement for the fact the ship
         // is not necessary facing the target directly.
-        val r = RotationMatrix((mousePosition() - ship.location).facing)
+        val r = (mousePosition() - ship.location).facing.rotationMatrix
         val front = Vector2f(1e4f, 0f).rotated(r)
         val back = Vector2f(-1e4f, 0f).rotated(r)
         val left = Vector2f(0f, 1e4f).rotated(r)
@@ -174,7 +174,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
             group.type == WeaponGroupType.ALTERNATING && weapon == group.activeWeapon -> true
 
             // Fire linked weapons if it's possible to hit the target.
-            group.type == WeaponGroupType.LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.currAngle) -> true
+            group.type == WeaponGroupType.LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.CurrAngle) -> true
 
             else -> false
         }

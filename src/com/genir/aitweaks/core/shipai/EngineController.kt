@@ -12,12 +12,12 @@ import kotlin.math.sign
 
 /** Engine Controller for AI piloted ships. */
 class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
-    private var prevFacing: Float = 0f
+    private var prevFacing: Rotation = Rotation()
     private var prevHeading: Vector2f = Vector2f()
 
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
-    data class Limit(val heading: Float, val speed: Float)
+    data class Limit(val heading: Rotation, val speed: Float)
 
     fun heading(dt: Float, heading: Vector2f, limits: List<Limit> = listOf()): Vector2f {
         return heading(dt, heading, false, limits)
@@ -36,23 +36,23 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         return heading(dt, heading, vt) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
     }
 
-    fun facing(dt: Float, facing: Float) {
+    fun facing(dt: Float, facing: Rotation) {
         facing(dt, facing, false)
     }
 
-    fun facing(dt: Float, facing: Float, shouldStop: Boolean) {
+    fun facing(dt: Float, facing: Rotation, shouldStop: Boolean) {
         if (shouldStop) {
-            return facing(dt, ship.facing, 0f)
+            return facing(dt, ship.Facing, 0f)
         }
 
         // Estimate target angular velocity.
-        val wt = shortestRotation(prevFacing, facing) / dt
+        val wt = shortestRotation(prevFacing, facing).degrees / dt
         prevFacing = facing
 
         facing(dt, facing, wt)
     }
 
-    private fun limitVelocity(dt: Float, toShipFacing: Float, expectedVelocity: Vector2f, absLimits: List<Limit>): Vector2f {
+    private fun limitVelocity(dt: Float, toShipFacing: Rotation, expectedVelocity: Vector2f, absLimits: List<Limit>): Vector2f {
         // No relevant speed limits found, move ahead.
         if (absLimits.isEmpty()) return expectedVelocity
 
@@ -80,14 +80,14 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
         // Stop if angle to new heading is right, to avoid erratic behavior
         // when avoiding collision and being stopped close to destination.
-        if (angleToNewFacing >= 89f) return Vector2f()
+        if (angleToNewFacing.length >= 89f) return Vector2f()
 
         // Clamp new heading to not violate any of the speed limits.
         val newSpeed = limits.fold(expectedSpeed) { clampedSpeed, lim ->
             lim.clampSpeed(newFacing, clampedSpeed)
         }
 
-        return expectedVelocity.rotated(RotationMatrix(angleToNewFacing)).resized(newSpeed)
+        return expectedVelocity.rotated(angleToNewFacing.rotationMatrix).resized(newSpeed)
     }
 
     /** Clamp expectedSpeed to maximum speed in which ship can travel
@@ -98,7 +98,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
      *
      * To avoid using trigonometric functions, f(x) = 1/cos(x) is approximated as
      * g(t) = 1/t + t/5 where t = PI/2 - x. */
-    private fun Limit.clampSpeed(expectedHeading: Float, expectedSpeed: Float): Float {
+    private fun Limit.clampSpeed(expectedHeading: Rotation, expectedSpeed: Float): Float {
         val angleFromLimit = absShortestRotation(expectedHeading, heading)
         if (angleFromLimit >= 90f) return expectedSpeed
 

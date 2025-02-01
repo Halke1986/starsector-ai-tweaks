@@ -2,7 +2,6 @@ package utils
 
 import com.genir.aitweaks.core.utils.PI
 import com.genir.aitweaks.core.utils.atan
-import com.genir.aitweaks.core.utils.clampAngle
 import com.genir.aitweaks.core.utils.vectorProjection
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -30,21 +29,6 @@ class Math {
 
             Assertions.assertTrue(abs(err) < 1E-4)
         }
-    }
-
-    @Test
-    fun testClampAngle() {
-        Assertions.assertEquals(0f, clampAngle(0f))
-        Assertions.assertEquals(10f, clampAngle(10f))
-        Assertions.assertEquals(350f, clampAngle(-10f))
-        Assertions.assertEquals(270f, clampAngle(270f))
-        Assertions.assertEquals(90f, clampAngle(-270f))
-        Assertions.assertEquals(350f, clampAngle(350f))
-        Assertions.assertEquals(10f, clampAngle(-350f))
-        Assertions.assertEquals(0f, clampAngle(360f))
-        Assertions.assertEquals(0f, clampAngle(-360f))
-        Assertions.assertEquals(280f, clampAngle(1000f))
-        Assertions.assertEquals(80f, clampAngle(-1000f))
     }
 
     fun benchAtan() {

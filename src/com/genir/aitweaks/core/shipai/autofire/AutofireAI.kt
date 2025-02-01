@@ -16,9 +16,7 @@ import com.genir.aitweaks.core.shipai.autofire.UpdateTarget.Companion.TARGET_SEA
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
 import kotlin.math.min
-import kotlin.math.sign
 
 open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
@@ -259,7 +257,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         val arc = interceptArc(weapon, BallisticTarget.entity(target!!), currentParams())
-        val inaccuracy = absShortestRotation(weapon.currAngle, arc.facing)
+        val inaccuracy = absShortestRotation(weapon.CurrAngle, arc.facing)
         if (inaccuracy * 4f > arc.angle) return STABILIZE_ON_TARGET
 
         return null
@@ -290,7 +288,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             !weapon.absoluteArc.contains(target.location - weapon.location) -> return false
         }
 
-        val r = shortestRotation(weapon.currAngle, (target.location - weapon.location).facing)
+        val r = shortestRotation(weapon.CurrAngle, (target.location - weapon.location).facing)
         val w = weapon.turnRateWhileFiring - interceptTracker.interceptVelocity * r.sign
 
         // The beam's turn rate is too low to track the target.
@@ -302,8 +300,8 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // or start a new beam and let it reach the target.
         val toTarget = (target.location - weapon.location)
         val wFast = weapon.turnRateWhileIdle - interceptTracker.interceptVelocity * r.sign
-        val rotationTime = (abs(r) / w)
-        val rotationTimeFast = (abs(r) / wFast)
+        val rotationTime = (r.length / w)
+        val rotationTimeFast = (r.length / wFast)
         val realignmentTime = rotationTimeFast + toTarget.length / (weapon.spec as BeamWeaponSpecAPI).beamSpeed
 
         // Favor beam rotation, just because it looks cool.
@@ -360,7 +358,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Try to read expected facing from custom AI implementations.
         val customAIFacing = ship.customShipAI?.movement?.expectedFacing
         val wrapperAIFacing = (ship.ai as? ExtendedShipAI)?.expectedFacing
-        val expectedFacing = clampAngle(customAIFacing ?: wrapperAIFacing ?: (target.location - ship.location).facing)
+        val expectedFacing: Rotation = customAIFacing ?: wrapperAIFacing ?: (target.location - ship.location).facing
 
         // If no expected facing was found, assume the ship is controlled by vanilla AI.
         // Vanilla AI lacks precise aiming, so hardpoints need flexibility to compensate.
@@ -372,9 +370,9 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Aim the hardpoint as if the ship was already rotated to the expected facing.
         // That way the correct weapon facing can be predicted.
         val facingStash = ship.facing
-        val correction = RotationMatrix(shortestRotation(expectedFacing, ship.facing))
+        val correction = shortestRotation(expectedFacing, ship.Facing).rotationMatrix
         try {
-            ship.facing = expectedFacing
+            ship.facing = expectedFacing.degrees
             return intercept(weapon, BallisticTarget.entity(target), currentParams()).rotated(correction)
         } finally {
             ship.facing = facingStash
@@ -383,14 +381,14 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     /** Tracks intercept angular velocity and angular distance in weapon slot frame of reference. */
     private class InterceptTracker(private val weapon: WeaponAPI) {
-        private var prevAngleToIntercept: Float? = null
+        private var prevAngleToIntercept: Rotation? = null
         var interceptVelocity = 0f
 
         fun advance(dt: Float, intercept: Vector2f?) {
             if (intercept == null) return
 
             val angleToIntercept = shortestRotation(weapon.absoluteArcFacing, intercept.facing)
-            interceptVelocity = shortestRotation(prevAngleToIntercept ?: angleToIntercept, angleToIntercept) / dt
+            interceptVelocity = shortestRotation(prevAngleToIntercept ?: angleToIntercept, angleToIntercept).degrees / dt
             prevAngleToIntercept = angleToIntercept
         }
 

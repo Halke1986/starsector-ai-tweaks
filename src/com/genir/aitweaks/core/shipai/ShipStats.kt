@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.utils.Rotation
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -14,7 +15,7 @@ class ShipStats(private val ship: ShipAPI) {
 
     private fun calculateThreatSearchRange(): Float {
         val rangeEnvelope = 1.5f
-        val totalMaxRange = significantWeapons.maxOfOrNull { it.rangeFromShipCenter(0f) } ?: 0f
+        val totalMaxRange = significantWeapons.maxOfOrNull { it.rangeFromShipCenter(Rotation(0f)) } ?: 0f
 
         return max(Preset.threatSearchRange, totalMaxRange * rangeEnvelope)
     }
@@ -49,17 +50,17 @@ class ShipStats(private val ship: ShipAPI) {
             significantWeapons.isEmpty() -> return listOf(WeaponGroup(ship, listOf()))
 
             // Special case for front facing hardpoints.
-            significantWeapons.any { it.slot.isHardpoint && it.arcFacing == 0f } -> {
+            significantWeapons.any { it.slot.isHardpoint && it.ArcFacing.isZero } -> {
                 listOf(WeaponGroup(ship, significantWeapons.filter { it.isFrontFacing }))
             }
         }
 
         // Find firing arc boundary closest to ship front for
         // each weapon, or 0f for front facing weapons.
-        val attackAngles: Map<Float, Float> = WeaponGroup.attackAngles(significantWeapons).ifEmpty { return listOf() }
+        val attackAngles: Map<Rotation, Float> = WeaponGroup.attackAngles(significantWeapons).ifEmpty { return listOf() }
 
         // Find all weapon groups with acceptable DPS.
-        val bestWeaponGroup = attackAngles.maxWithOrNull(compareBy<Map.Entry<Float, Float>> { it.value }.thenBy { -abs(it.key) })!!
+        val bestWeaponGroup = attackAngles.maxWithOrNull(compareBy<Map.Entry<Rotation, Float>> { it.value }.thenBy { -it.key.length })!!
         val validWeaponGroups = attackAngles.filter { it.value >= bestWeaponGroup.value * Preset.validWeaponGroupDPSThreshold }
         return validWeaponGroups.map { (angle, _) ->
             WeaponGroup(ship, significantWeapons.filter { it.isAngleInArc(angle) })

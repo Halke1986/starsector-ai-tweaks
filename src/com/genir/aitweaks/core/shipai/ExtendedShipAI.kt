@@ -20,7 +20,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
 
     // Attack details.
     private var stats: ShipStats = ShipStats(ship)
-    var expectedFacing: Float? = null
+    var expectedFacing: Rotation? = null
 
     init {
         // Ensure AI Tweaks is in control of autofire management.
@@ -77,7 +77,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
         }
 
         // Find a weapon group appropriate to attack the ship target.
-        val targetFacing = shortestRotation(ship.facing, (target.location - ship.location).facing)
+        val targetFacing = shortestRotation(ship.Facing, (target.location - ship.location).facing)
         val weaponGroup = stats.weaponGroups.minWithOrNull(compareBy { absShortestRotation(it.defaultFacing, targetFacing) })!!
 
         // Aim ship only if the target is close to weapons range.

@@ -1,8 +1,8 @@
 package com.genir.aitweaks.core.extensions
 
+import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.RADIANS_TO_DEGREES
 import com.genir.aitweaks.core.utils.atan2
-import com.genir.aitweaks.core.utils.clampAngle
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.sqrt
 
@@ -34,8 +34,8 @@ fun Vector2f.resized(length: Float): Vector2f {
 val Vector2f.copy: Vector2f
     get() = Vector2f(x, y)
 
-val Vector2f.facing: Float
-    get() = if (isZero) 0f else clampAngle(atan2(y, x) * RADIANS_TO_DEGREES)
+val Vector2f.facing: Rotation
+    get() = Rotation(if (isZero) 0f else atan2(y, x) * RADIANS_TO_DEGREES)
 
 val Vector2f.length: Float
     get() = sqrt(lengthSquared)

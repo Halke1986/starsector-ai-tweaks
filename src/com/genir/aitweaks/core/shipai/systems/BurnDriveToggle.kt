@@ -22,7 +22,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
     private var burnVector: Vector2f = Vector2f() // In ship frame of reference.
     private var shouldInitBurn: Boolean = false
-    private var prevAngleToDestination: Float = 0f
+    private var prevAngleToDestination: Rotation = Rotation()
 
     private val burnDriveFlatBonus: Float = 200f // Hardcoded vanilla value.
     private var maxBurnDist: Float = 0f
@@ -48,7 +48,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
         prevAngleToDestination = angleToDestination()
     }
 
-    override fun overrideFacing(): Float? {
+    override fun overrideFacing(): Rotation? {
         return if (shouldInitBurn) burnVector.facing
         else null
     }
@@ -82,7 +82,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
             // Don't burn if not facing the burn destination, as this may lead
             // to interrupting an attack. Frigates may be ignored.
-            abs(angleToDestination()) > maxAngleToTarget && (ai.attackTarget as? ShipAPI)?.root?.isFrigate != true -> false
+            angleToDestination().length > maxAngleToTarget && (ai.attackTarget as? ShipAPI)?.root?.isFrigate != true -> false
 
             // Don't burn to destination if it's too close.
             burnVector.length < maxBurnDist * minBurnDistFraction -> false
@@ -117,10 +117,10 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
     private fun isFacingBurnVector(): Boolean {
         val angle = angleToDestination()
-        val minRecentAngle = min(abs(angle), abs(prevAngleToDestination))
+        val minRecentAngle = min(angle.length, prevAngleToDestination.length)
 
         return when {
-            abs(angle) < 0.1f -> true
+            angle.length < 0.1f -> true
 
             // Ship crossed the burn vector.
             minRecentAngle < 1f && angle.sign != prevAngleToDestination.sign -> true
@@ -135,7 +135,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
         // Heading to assignment location takes priority.
         val assignment: Vector2f? = ai.assignment.navigateTo
         if (assignment != null) {
-            return absShortestRotation((assignment - ship.location).facing, ship.facing) <= maxAngleToTarget
+            return absShortestRotation((assignment - ship.location).facing, ship.Facing) <= maxAngleToTarget
         }
 
         // Assume the maneuver target is the closest relevant enemy ship.
@@ -151,14 +151,14 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
             // Ship is approaching the nearest enemy. Continue,
             // even if the ship is not following the burn vector.
-            if (absShortestRotation(toTarget.facing, ship.facing) <= maxAngleToTarget) {
+            if (absShortestRotation(toTarget.facing, ship.Facing) <= maxAngleToTarget) {
                 return true
             }
         }
 
         // Burn as long as the ship is following the burn vector.
         if (burnVector.isNonZero) {
-            return absShortestRotation(burnVector.facing, ship.facing) <= maxAngleToTarget
+            return absShortestRotation(burnVector.facing, ship.Facing) <= maxAngleToTarget
         }
 
         // Keep burning if there's no target, as long as the battle isn't over.
@@ -166,9 +166,9 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
         return Global.getCombatEngine().ships.any { it.isHostile(ship) && !it.isFighter }
     }
 
-    private fun angleToDestination(): Float {
-        return if (burnVector.isZero) Float.MAX_VALUE
-        else shortestRotation(burnVector.facing, ship.facing)
+    private fun angleToDestination(): Rotation {
+        return if (burnVector.isZero) Rotation(180f)
+        else shortestRotation(burnVector.facing, ship.Facing)
     }
 
     private fun findObstacles(center: Vector2f, radius: Float): Sequence<ShipAPI> {
@@ -208,7 +208,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
     private fun isCollisionImminent(): Boolean {
         val radius = maxBurnDist / 2
-        val position = ship.location + unitVector(ship.facing) * radius
+        val position = ship.location + ship.Facing.unitVector * radius
         val obstacles = findObstacles(position, radius)
 
         return timeToCollision(obstacles, ship.velocity) <= stopBeforeCollision

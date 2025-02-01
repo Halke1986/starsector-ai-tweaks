@@ -24,14 +24,14 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
     var headingPoint: Vector2f = Vector2f()
     var expectedVelocity: Vector2f = Vector2f()
-    var expectedFacing: Float = ship.facing
+    var expectedFacing: Rotation = ship.Facing
 
     // Used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
     override var reviewedHeadingPoint: Vector2f? = null
 
     private val interpolateHeading = InterpolateMovement<Vector2f>(ship)
-    private val interpolateFacing = InterpolateMovement<Float>(ship)
+    private val interpolateFacing = InterpolateMovement<Rotation>(ship)
 
     // Make strafe rotation direction random, but consistent for the given ship.
     private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 10f else -10f)
@@ -85,12 +85,12 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     }
 
     private fun setFacing(dt: Float) {
-        val systemOverride: Float? = ai.systemAI?.overrideFacing()
+        val systemOverride: Rotation? = ai.systemAI?.overrideFacing()
         val currentAttackTarget: CombatEntityAPI? = ai.finishBurstTarget ?: ai.attackTarget
         val weaponGroup = if (currentAttackTarget == ai.attackTarget) ai.attackingGroup
         else ai.finishBurstWeaponGroup!!
 
-        val newExpectedFacing: Float? = interpolateFacing.advance(dt) {
+        val newExpectedFacing: Rotation? = interpolateFacing.advance(dt) {
             when {
                 // Let movement system determine the ship facing.
                 systemOverride != null -> {
@@ -123,7 +123,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         }
 
         val shouldStop = newExpectedFacing == null
-        expectedFacing = newExpectedFacing ?: ship.facing
+        expectedFacing = newExpectedFacing ?: ship.Facing
 
         engineController.facing(dt, expectedFacing, shouldStop)
     }
@@ -178,8 +178,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         // the maneuver target too close.
         val maxAngle = 15f
         val angle = getShortestRotation(ship.location, maneuverTarget.location, adjustedAttackLocation)
-        if (abs(angle) > maxAngle) {
-            val rotation = RotationMatrix(-(angle - 15f * angle.sign))
+        if (angle.length > maxAngle) {
+            val rotation = (-(angle - 15f * angle.sign)).rotationMatrix
             return adjustedAttackLocation.rotatedAroundPivot(rotation, maneuverTarget.location)
         }
 
@@ -224,7 +224,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
                 it.isFighter -> false
 
-                abs(getShortestRotation(it.location, maneuverTarget.location, proposedHeading)) > 90f -> false
+                getShortestRotation(it.location, maneuverTarget.location, proposedHeading).length > 90f -> false
 
                 (maneuverTarget.location - it.location).length > dist -> false
 
@@ -237,7 +237,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             val shipSize = angularSize(toHulk.lengthSquared, ship.collisionRadius)
             val arc: Float = angularSize(toHulk.lengthSquared, hulk.collisionRadius + shipSize / 2f)
 
-            val facing: Float = toHulk.facing
+            val facing: Rotation = toHulk.facing
             Arc(min(arc, 90f), facing)
         }.toList()
 
@@ -253,7 +253,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
         val newAngle = if (offset1 < offset2) angle1 else angle2
 
-        val newHeadingPoint = unitVector(newAngle).resized(dist) + maneuverTarget.location
+        val newHeadingPoint = (newAngle).unitVector.resized(dist) + maneuverTarget.location
         return newHeadingPoint
     }
 
@@ -358,7 +358,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
             when {
                 // Too far from obstacle line of fire to consider blocking.
-                abs(angleToObstacle) >= 90f -> return@forEach
+                angleToObstacle.length >= 90f -> return@forEach
 
                 // Ship is moving away from the obstacle.
                 angleToObstacle.sign != shipW.sign -> return@forEach
@@ -367,7 +367,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                 blocked.currentEffectiveRange(target) > blocked.attackingGroup.maxRange * 2f -> return@forEach
             }
 
-            val arcLength = distToTarget * abs(angleToObstacle) * DEGREES_TO_RADIANS
+            val arcLength = distToTarget * angleToObstacle.length * DEGREES_TO_RADIANS
             val minDist = (ai.stats.totalCollisionRadius + obstacle.stats.totalCollisionRadius) * 0.75f
             val distance = arcLength - minDist
 
@@ -426,7 +426,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
         // Allow chasing targets into the border zone.
         val tgtLoc = ai.maneuverTarget?.location
-        if (tgtLoc != null && !ai.ventModule.isBackingOff && abs(getShortestRotation(tgtLoc - ship.location, borderIntrusion)) < 90f) {
+        if (tgtLoc != null && !ai.ventModule.isBackingOff && (getShortestRotation(tgtLoc - ship.location, borderIntrusion)).length < 90f) {
             return null
         }
 
@@ -476,8 +476,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     }
 
     /** Ship deceleration for collision avoidance purposes. */
-    private fun ShipAPI.collisionDeceleration(collisionFacing: Float): Float {
-        val angleFromBow = absShortestRotation(facing, collisionFacing)
+    private fun ShipAPI.collisionDeceleration(collisionFacing: Rotation): Float {
+        val angleFromBow = absShortestRotation(Facing, collisionFacing)
         return when {
             angleFromBow < 30f -> deceleration
             angleFromBow < 150f -> strafeAcceleration

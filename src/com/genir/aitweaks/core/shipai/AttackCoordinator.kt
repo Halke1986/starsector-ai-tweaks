@@ -5,9 +5,9 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.utils.Rotation
 import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.shortestRotation
-import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
@@ -65,7 +65,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
     }
 
     private fun buildFormations(taskForce: List<Unit>): List<Formation> {
-        return mergeFormations(taskForce.map { Formation(it) }.sortedBy { it.facing })
+        return mergeFormations(taskForce.map { Formation(it) }.sortedBy { it.facing.degrees })
     }
 
     private fun mergeFormations(l: List<Formation>): List<Formation> {
@@ -96,11 +96,11 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
         formationsToCoordinate.forEach { formation ->
             var facing = formation.facing - formation.angularSize / 2f
 
-            formation.units.sortBy { shortestRotation(formation.facing, it.currentFacing) }
+            formation.units.sortBy { shortestRotation(formation.facing, it.currentFacing).degrees }
 
             formation.units.forEach { entity ->
                 val angle = facing + entity.angularSize / 2f
-                val pos = target.location + unitVector(angle).resized(entity.attackRange)
+                val pos = target.location + angle.unitVector.resized(entity.attackRange)
 
                 facing += entity.angularSize
                 entity.coordinable.reviewedHeadingPoint = pos
@@ -116,7 +116,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
 
         fun isOverlapping(other: Formation): Boolean {
             val angleToOther = shortestRotation(facing, other.facing)
-            return abs(angleToOther) < (angularSize + other.angularSize) / 2f
+            return angleToOther.length < (angularSize + other.angularSize) / 2f
         }
 
         fun merge(other: Formation) {
@@ -134,7 +134,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
         val ship: ShipAPI = coordinable.ai.ship
         val attackRange: Float = (proposedHeadingPoint - target.location).length
         val angularSize: Float = angularSize(attackRange * attackRange, ship.totalCollisionRadius * 1.4f)
-        val proposedFacing: Float = (proposedHeadingPoint - target.location).facing
-        val currentFacing: Float = (ship.location - target.location).facing
+        val proposedFacing: Rotation = (proposedHeadingPoint - target.location).facing
+        val currentFacing: Rotation = (ship.location - target.location).facing
     }
 }
