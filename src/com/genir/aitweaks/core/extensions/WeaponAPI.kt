@@ -66,7 +66,7 @@ fun WeaponAPI.isAngleInArc(angle: Rotation): Boolean {
 }
 
 val WeaponAPI.isFrontFacing: Boolean
-    get() = isAngleInArc(Rotation())
+    get() = isAngleInArc(Rotation(0f))
 
 val WeaponAPI.ArcFacing: Rotation
     get() = Rotation(arcFacing)

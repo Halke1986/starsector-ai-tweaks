@@ -4,8 +4,9 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.*
-import com.genir.aitweaks.core.utils.*
-import kotlin.math.abs
+import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.absShortestRotation
+import com.genir.aitweaks.core.utils.shortestRotation
 
 /** A group of weapons that should be able to fire along a single attack vector. */
 class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
@@ -150,7 +151,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
          * DPS for the provided weapon list.*/
         fun attackAngles(weapons: List<WeaponAPI>): Map<Rotation, Float> {
             val angles: List<Rotation> = weapons.flatMap { weapon ->
-                val facing = shortestRotation(Rotation(), weapon.ArcFacing)
+                val facing = shortestRotation(Rotation(0f), weapon.ArcFacing)
                 val arc = weapon.arc
 
                 when {
@@ -158,7 +159,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
                     weapon.slot.isHardpoint -> listOf(facing)
 
                     // Ship front is within weapon arc.
-                    facing.length < arc / 2f -> listOf(Rotation())
+                    facing.length < arc / 2f -> listOf(Rotation(0f))
 
                     // Ship back is within weapon arc, return both angles.
                     180f - facing.length < arc / 2f -> listOf(facing - arc / 2f, facing + arc / 2f)

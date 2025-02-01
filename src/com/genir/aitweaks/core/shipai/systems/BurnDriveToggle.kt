@@ -22,7 +22,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
     private var burnVector: Vector2f = Vector2f() // In ship frame of reference.
     private var shouldInitBurn: Boolean = false
-    private var prevAngleToDestination: Rotation = Rotation()
+    private var prevAngleToDestination: Rotation = Rotation(0f)
 
     private val burnDriveFlatBonus: Float = 200f // Hardcoded vanilla value.
     private var maxBurnDist: Float = 0f

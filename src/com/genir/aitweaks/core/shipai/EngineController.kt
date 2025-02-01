@@ -12,7 +12,7 @@ import kotlin.math.sign
 
 /** Engine Controller for AI piloted ships. */
 class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
-    private var prevFacing: Rotation = Rotation()
+    private var prevFacing: Rotation = Rotation(0f)
     private var prevHeading: Vector2f = Vector2f()
 
     /** Limit allows to restrict velocity to not exceed

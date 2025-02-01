@@ -3,8 +3,10 @@ package com.genir.aitweaks.core.utils
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 
-// TODO remove = 0f
-class Rotation(degrees: Float = 0f) {
+// TODO rename to Direction
+// TODO remove API extensions
+
+class Rotation(degrees: Float) {
     val degrees: Float = degrees - round(degrees / 360) * 360
 
     val radians: Float
@@ -32,6 +34,10 @@ class Rotation(degrees: Float = 0f) {
             return Vector2f(x, y)
         }
 
+    override fun toString(): String {
+        return degrees.toString()
+    }
+
     operator fun plus(other: Rotation): Rotation {
         return Rotation(degrees + other.degrees)
     }
@@ -58,20 +64,5 @@ class Rotation(degrees: Float = 0f) {
 
     operator fun unaryMinus(): Rotation {
         return Rotation(-degrees)
-    }
-
-    companion object {
-//        private fun shortestRotation(from: Float, to: Float): Float {
-//            val dist = to - from
-//            return dist - round(dist / 360f) * 360f
-//        }
-
-//        infix fun Rotation.to(other: Rotation): Rotation {
-//            return Rotation(other.degrees - degrees)
-//        }
-
-//        infix fun Rotation.distTo(other: Rotation): Float {
-//            return abs(shortestRotation(degrees, other.degrees))
-//        }
     }
 }

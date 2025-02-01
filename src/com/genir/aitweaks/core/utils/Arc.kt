@@ -76,11 +76,11 @@ class Arc(angle: Float, val facing: Rotation) {
         /** Make an arc spanning the shortest rotation
          * between 'from' and 'to' angles. */
         fun fromTo(from: Rotation, to: Rotation): Arc {
-            val angle = shortestRotation(from, to).length
+            val angle = shortestRotation(from, to)
             val facing = from + angle / 2f
 
             return Arc(
-                angle = angle,
+                angle = angle.length,
                 facing = facing
             )
         }
