@@ -9,12 +9,12 @@ class Arc(angle: Float, val facing: Direction) {
     val angle = min(360f, abs(angle))
 
     fun overlaps(second: Arc): Boolean {
-        val offset = absShortestRotation(this.facing, second.facing)
+        val offset = (this.facing - second.facing).length
         return offset <= this.half + second.half
     }
 
     fun contains(facing: Direction): Boolean {
-        return absShortestRotation(facing, this.facing) <= half
+        return (facing - this.facing).length <= half
     }
 
     fun contains(v: Vector2f): Boolean {

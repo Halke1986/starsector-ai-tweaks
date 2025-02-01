@@ -13,7 +13,6 @@ import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
-import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.mousePosition
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
@@ -56,7 +55,7 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
 
         Debug.drawLine(ship.location, ship.location + expectedFacing.unitVector * 400f, GREEN)
         Debug.drawLine(ship.location, ship.location + ship.facing.direction.unitVector * 400f, BLUE)
-        Debug.print["f"] = absShortestRotation(ship.facing.direction, expectedFacing)
+        Debug.print["f"] = (expectedFacing - ship.facing.direction).length
 
         controller.facing(dt, expectedFacing, false)
     }

@@ -249,8 +249,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val angle2 = obstacle.facing + (obstacle.angle / 2f)
 
         val toShipAngle = (ship.location - maneuverTarget.location).facing
-        val offset1 = absShortestRotation(toShipAngle, angle1)
-        val offset2 = absShortestRotation(toShipAngle, angle2)
+        val offset1 = (angle1 - toShipAngle).length
+        val offset2 = (angle2 - toShipAngle).length
 
         val newAngle = if (offset1 < offset2) angle1 else angle2
 
@@ -478,7 +478,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
     /** Ship deceleration for collision avoidance purposes. */
     private fun ShipAPI.collisionDeceleration(collisionFacing: Direction): Float {
-        val angleFromBow = absShortestRotation(facing.direction, collisionFacing)
+        val angleFromBow = (collisionFacing - facing.direction).length
         return when {
             angleFromBow < 30f -> deceleration
             angleFromBow < 150f -> strafeAcceleration

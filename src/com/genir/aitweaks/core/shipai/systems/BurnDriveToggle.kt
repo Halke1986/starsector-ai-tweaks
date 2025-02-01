@@ -134,7 +134,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
         // Heading to assignment location takes priority.
         val assignment: Vector2f? = ai.assignment.navigateTo
         if (assignment != null) {
-            return absShortestRotation((assignment - ship.location).facing, ship.facing.direction) <= maxAngleToTarget
+            return (ship.facing.direction - (assignment - ship.location).facing).length <= maxAngleToTarget
         }
 
         // Assume the maneuver target is the closest relevant enemy ship.
@@ -150,14 +150,14 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
             // Ship is approaching the nearest enemy. Continue,
             // even if the ship is not following the burn vector.
-            if (absShortestRotation(toTarget.facing, ship.facing.direction) <= maxAngleToTarget) {
+            if ((ship.facing.direction - toTarget.facing).length <= maxAngleToTarget) {
                 return true
             }
         }
 
         // Burn as long as the ship is following the burn vector.
         if (burnVector.isNonZero) {
-            return absShortestRotation(burnVector.facing, ship.facing.direction) <= maxAngleToTarget
+            return (ship.facing.direction - burnVector.facing).length <= maxAngleToTarget
         }
 
         // Keep burning if there's no target, as long as the battle isn't over.

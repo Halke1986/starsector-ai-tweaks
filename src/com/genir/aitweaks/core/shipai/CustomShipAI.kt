@@ -219,7 +219,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         stats = ShipStats(ship)
 
         // Find the most similar weapon group to the current one after ship stats have been updated.
-        attackingGroup = stats.weaponGroups.minWithOrNull(compareBy { absShortestRotation(it.defaultFacing, attackingGroup.defaultFacing) })!!
+        attackingGroup = stats.weaponGroups.minWithOrNull(compareBy { (attackingGroup.defaultFacing - it.defaultFacing).length })!!
     }
 
     /** Is ship engaged in 1v1 duel with the target. */

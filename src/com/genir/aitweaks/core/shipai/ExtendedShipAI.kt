@@ -79,7 +79,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
 
         // Find a weapon group appropriate to attack the ship target.
         val targetFacing = shortestRotation(ship.facing.direction, (target.location - ship.location).facing)
-        val weaponGroup = stats.weaponGroups.minWithOrNull(compareBy { absShortestRotation(it.defaultFacing, targetFacing) })!!
+        val weaponGroup = stats.weaponGroups.minWithOrNull(compareBy { (targetFacing - it.defaultFacing).length })!!
 
         // Aim ship only if the target is close to weapons range.
         val rangeThreshold = weaponGroup.maxRange * 1.75f

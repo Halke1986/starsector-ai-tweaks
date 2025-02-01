@@ -6,7 +6,6 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.*
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.shortestRotation
 
 /** A group of weapons that should be able to fire along a single attack vector. */
@@ -105,7 +104,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         val offsetFromCurrentFacing = fun(arc: DPSArc): Float {
             val offset = (arc.arcEnd + arc.arcStart) / 2
             val proposedFacing = directFacing + offset
-            return absShortestRotation(ship.facing.direction, proposedFacing)
+            return (ship.facing.direction - proposedFacing).length
         }
 
         // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.

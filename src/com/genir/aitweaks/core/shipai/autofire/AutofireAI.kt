@@ -258,7 +258,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
 
         val arc = interceptArc(weapon, BallisticTarget.entity(target!!), currentParams())
-        val inaccuracy = absShortestRotation(weapon.currAngle.direction, arc.facing)
+        val inaccuracy = (arc.facing - weapon.currAngle.direction).length
         if (inaccuracy * 4f > arc.angle) return STABILIZE_ON_TARGET
 
         return null

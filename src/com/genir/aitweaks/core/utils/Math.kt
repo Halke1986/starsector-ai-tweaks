@@ -170,25 +170,8 @@ fun atanApprox(x: Float): Float {
     return (1 + a * xx) * x / (1 + xx * (b + c * xx))
 }
 
-/** Returns the shortest rotation angle from `from` to `to`.
- * Exhibits lower numerical instability compared to
- * lazyLib MathUtils.getShortestRotation. */
-fun shortestRotation(from: Float, to: Float): Float {
-    val dist = to - from
-    return dist - round(dist / 360f) * 360f
-}
-
-fun absShortestRotation(from: Float, to: Float): Float {
-    return abs(shortestRotation(from, to))
-}
-
 fun shortestRotation(from: Direction, to: Direction): Direction {
     return to - from
-}
-
-// TODO DROP
-fun absShortestRotation(from: Direction, to: Direction): Float {
-    return shortestRotation(from, to).length
 }
 
 /**

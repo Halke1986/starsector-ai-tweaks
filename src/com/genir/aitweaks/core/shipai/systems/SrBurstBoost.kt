@@ -168,7 +168,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
     private fun makeBurstPlan(toTarget: Vector2f, burstVectors: List<BurstVector>, target: ShipAPI?): BurstPlan {
         // Find burst vector best aligned with direction to target.
-        val burst: BurstVector = burstVectors.minWithOrNull(compareBy { absShortestRotation(it.facing, toTarget.facing) })!!
+        val burst: BurstVector = burstVectors.minWithOrNull(compareBy { (toTarget.facing - it.facing).length })!!
 
         return BurstPlan(burst, toTarget, target)
     }

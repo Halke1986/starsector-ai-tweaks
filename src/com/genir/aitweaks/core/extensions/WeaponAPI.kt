@@ -20,7 +20,6 @@ import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.solve
 import kotlin.math.floor
 import kotlin.math.max
@@ -77,7 +76,7 @@ val WeaponAPI.ignoresFlares: Boolean
 /** Is angle in weapon arc in SHIP COORDINATES. */
 fun WeaponAPI.isAngleInArc(angle: Direction): Boolean {
     val tolerance = 0.01f
-    return absShortestRotation(arcFacing.direction, angle) <= (arc + tolerance) / 2f
+    return (angle - arcFacing.direction).length <= (arc + tolerance) / 2f
 }
 
 val WeaponAPI.isFrontFacing: Boolean

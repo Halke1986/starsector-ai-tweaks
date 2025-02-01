@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.extensions
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.Direction
 import org.lwjgl.util.vector.Vector2f
 
 /** Is the entity a true ship, not a missile or fighter. */
