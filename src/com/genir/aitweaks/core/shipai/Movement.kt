@@ -24,14 +24,14 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
     var headingPoint: Vector2f = Vector2f()
     var expectedVelocity: Vector2f = Vector2f()
-    var expectedFacing: Rotation = ship.Facing
+    var expectedFacing: Direction = ship.Facing
 
     // Used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
     override var reviewedHeadingPoint: Vector2f? = null
 
     private val interpolateHeading = InterpolateMovement<Vector2f>(ship)
-    private val interpolateFacing = InterpolateMovement<Rotation>(ship)
+    private val interpolateFacing = InterpolateMovement<Direction>(ship)
 
     // Make strafe rotation direction random, but consistent for the given ship.
     private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 10f else -10f)
@@ -85,12 +85,12 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     }
 
     private fun setFacing(dt: Float) {
-        val systemOverride: Rotation? = ai.systemAI?.overrideFacing()
+        val systemOverride: Direction? = ai.systemAI?.overrideFacing()
         val currentAttackTarget: CombatEntityAPI? = ai.finishBurstTarget ?: ai.attackTarget
         val weaponGroup = if (currentAttackTarget == ai.attackTarget) ai.attackingGroup
         else ai.finishBurstWeaponGroup!!
 
-        val newExpectedFacing: Rotation? = interpolateFacing.advance(dt) {
+        val newExpectedFacing: Direction? = interpolateFacing.advance(dt) {
             when {
                 // Let movement system determine the ship facing.
                 systemOverride != null -> {
@@ -237,7 +237,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             val shipSize = angularSize(toHulk.lengthSquared, ship.collisionRadius)
             val arc: Float = angularSize(toHulk.lengthSquared, hulk.collisionRadius + shipSize / 2f)
 
-            val facing: Rotation = toHulk.facing
+            val facing: Direction = toHulk.facing
             Arc(min(arc, 90f), facing)
         }.toList()
 
@@ -476,7 +476,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     }
 
     /** Ship deceleration for collision avoidance purposes. */
-    private fun ShipAPI.collisionDeceleration(collisionFacing: Rotation): Float {
+    private fun ShipAPI.collisionDeceleration(collisionFacing: Direction): Float {
         val angleFromBow = absShortestRotation(Facing, collisionFacing)
         return when {
             angleFromBow < 30f -> deceleration

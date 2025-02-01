@@ -7,7 +7,7 @@ import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.shipai.CustomShipAI
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.shortestRotation
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
@@ -91,7 +91,7 @@ val ShipAPI.isUnderManualControl: Boolean
 val ShipAPI.allGroupedWeapons: List<WeaponAPI>
     get() = weaponGroupsCopy.flatMap { it.weaponsCopy }
 
-fun ShipAPI.shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Rotation): Rotation {
+fun ShipAPI.shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Direction): Direction {
     val facingToTarget = (target - location).facing
     return shortestRotation(Facing + weaponGroupFacing, facingToTarget)
 }
@@ -138,7 +138,7 @@ val ShipAPI.baseMaxSpeed: Float
     }
 
 val ShipAPI.maxRange: Float
-    get() = allGroupedWeapons.maxOfOrNull { it.rangeFromShipCenter(Rotation(0f)) } ?: 0f
+    get() = allGroupedWeapons.maxOfOrNull { it.rangeFromShipCenter(Direction(0f)) } ?: 0f
 
 val ShipAPI.AIPersonality: String
     get() = (ai as? BasicShipAI)?.config?.personalityOverride ?: (this as Ship).personality

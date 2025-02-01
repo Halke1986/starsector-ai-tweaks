@@ -5,11 +5,10 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.shortestRotation
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
 
 /**
  * Attack Coordinator assigns attack positions to all ships attacking the
@@ -134,7 +133,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
         val ship: ShipAPI = coordinable.ai.ship
         val attackRange: Float = (proposedHeadingPoint - target.location).length
         val angularSize: Float = angularSize(attackRange * attackRange, ship.totalCollisionRadius * 1.4f)
-        val proposedFacing: Rotation = (proposedHeadingPoint - target.location).facing
-        val currentFacing: Rotation = (ship.location - target.location).facing
+        val proposedFacing: Direction = (proposedHeadingPoint - target.location).facing
+        val currentFacing: Direction = (ship.location - target.location).facing
     }
 }

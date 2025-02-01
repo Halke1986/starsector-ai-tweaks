@@ -189,12 +189,12 @@ fun absShortestRotation(from: Float, to: Float): Float {
     return abs(shortestRotation(from, to))
 }
 
-fun shortestRotation(from: Rotation, to: Rotation): Rotation {
+fun shortestRotation(from: Direction, to: Direction): Direction {
     return to - from
 }
 
 // TODO DROP
-fun absShortestRotation(from: Rotation, to: Rotation): Float {
+fun absShortestRotation(from: Direction, to: Direction): Float {
     return shortestRotation(from, to).length
 }
 

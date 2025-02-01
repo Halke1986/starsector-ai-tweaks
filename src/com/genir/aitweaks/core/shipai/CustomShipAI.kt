@@ -19,7 +19,6 @@ import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-import kotlin.math.abs
 import kotlin.math.max
 
 @Suppress("MemberVisibilityCanBePrivate")

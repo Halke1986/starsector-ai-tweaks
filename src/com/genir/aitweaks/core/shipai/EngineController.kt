@@ -8,16 +8,15 @@ import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
-import kotlin.math.sign
 
 /** Engine Controller for AI piloted ships. */
 class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
-    private var prevFacing: Rotation = Rotation(0f)
+    private var prevFacing: Direction = Direction(0f)
     private var prevHeading: Vector2f = Vector2f()
 
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
-    data class Limit(val heading: Rotation, val speed: Float)
+    data class Limit(val heading: Direction, val speed: Float)
 
     fun heading(dt: Float, heading: Vector2f, limits: List<Limit> = listOf()): Vector2f {
         return heading(dt, heading, false, limits)
@@ -36,11 +35,11 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         return heading(dt, heading, vt) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
     }
 
-    fun facing(dt: Float, facing: Rotation) {
+    fun facing(dt: Float, facing: Direction) {
         facing(dt, facing, false)
     }
 
-    fun facing(dt: Float, facing: Rotation, shouldStop: Boolean) {
+    fun facing(dt: Float, facing: Direction, shouldStop: Boolean) {
         if (shouldStop) {
             return facing(dt, ship.Facing, 0f)
         }
@@ -52,7 +51,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         facing(dt, facing, wt)
     }
 
-    private fun limitVelocity(dt: Float, toShipFacing: Rotation, expectedVelocity: Vector2f, absLimits: List<Limit>): Vector2f {
+    private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocity: Vector2f, absLimits: List<Limit>): Vector2f {
         // No relevant speed limits found, move ahead.
         if (absLimits.isEmpty()) return expectedVelocity
 
@@ -98,7 +97,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
      *
      * To avoid using trigonometric functions, f(x) = 1/cos(x) is approximated as
      * g(t) = 1/t + t/5 where t = PI/2 - x. */
-    private fun Limit.clampSpeed(expectedHeading: Rotation, expectedSpeed: Float): Float {
+    private fun Limit.clampSpeed(expectedHeading: Direction, expectedSpeed: Float): Float {
         val angleFromLimit = absShortestRotation(expectedHeading, heading)
         if (angleFromLimit >= 90f) return expectedSpeed
 

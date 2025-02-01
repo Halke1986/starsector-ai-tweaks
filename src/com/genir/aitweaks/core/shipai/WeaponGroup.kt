@@ -4,13 +4,13 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.*
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.absShortestRotation
 import com.genir.aitweaks.core.utils.shortestRotation
 
 /** A group of weapons that should be able to fire along a single attack vector. */
 class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
-    val defaultFacing: Rotation = defaultAttackFacing()
+    val defaultFacing: Direction = defaultAttackFacing()
     val dps: Float = weapons.sumOf { it.effectiveDPS }
     private val rangeMap: Map<WeaponAPI, Float> = weaponRanges()
     val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)
@@ -38,7 +38,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
     }
 
     /** Calculate facing that maximizes DPS delivered to the target. */
-    fun attackFacing(target: BallisticTarget): Rotation {
+    fun attackFacing(target: BallisticTarget): Direction {
         val targetFacing = (target.location - ship.location).facing
         val directFacing = ship.Facing + shortestRotation(ship.Facing + defaultFacing, targetFacing)
 
@@ -57,7 +57,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
                 }
 
                 val defaultAttackPoint = defaultFacingVector * weapon.rangeInGroup
-                var defaultFacing: Rotation = (defaultAttackPoint - weapon.slot.location).facing
+                var defaultFacing: Direction = (defaultAttackPoint - weapon.slot.location).facing
 
                 val toSlotBoundaryStart = shortestRotation(defaultFacing, weapon.ArcFacing - weapon.arc / 2)
                 val toSlotBoundaryEnd = shortestRotation(defaultFacing, weapon.ArcFacing + weapon.arc / 2)
@@ -121,9 +121,9 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         }
     }
 
-    private fun defaultAttackFacing(): Rotation {
-        val anglesDPS: Map<Rotation, Float> = attackAngles(weapons)
-        return anglesDPS.maxWithOrNull(compareBy { it.value })?.key ?: Rotation(0f)
+    private fun defaultAttackFacing(): Direction {
+        val anglesDPS: Map<Direction, Float> = attackAngles(weapons)
+        return anglesDPS.maxWithOrNull(compareBy { it.value })?.key ?: Direction(0f)
     }
 
     /** Range at which the ship can deliver at least
@@ -149,9 +149,9 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         /** Find firing arc angles closest to ship front for each weapon,
          * or 0f for front facing weapons. Associate the angles with total
          * DPS for the provided weapon list.*/
-        fun attackAngles(weapons: List<WeaponAPI>): Map<Rotation, Float> {
-            val angles: List<Rotation> = weapons.flatMap { weapon ->
-                val facing = shortestRotation(Rotation(0f), weapon.ArcFacing)
+        fun attackAngles(weapons: List<WeaponAPI>): Map<Direction, Float> {
+            val angles: List<Direction> = weapons.flatMap { weapon ->
+                val facing = shortestRotation(Direction(0f), weapon.ArcFacing)
                 val arc = weapon.arc
 
                 when {
@@ -159,7 +159,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
                     weapon.slot.isHardpoint -> listOf(facing)
 
                     // Ship front is within weapon arc.
-                    facing.length < arc / 2f -> listOf(Rotation(0f))
+                    facing.length < arc / 2f -> listOf(Direction(0f))
 
                     // Ship back is within weapon arc, return both angles.
                     180f - facing.length < arc / 2f -> listOf(facing - arc / 2f, facing + arc / 2f)

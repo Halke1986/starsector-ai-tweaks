@@ -3,8 +3,7 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.Rotation
-import kotlin.math.abs
+import com.genir.aitweaks.core.utils.Direction
 import kotlin.math.max
 
 class ShipStats(private val ship: ShipAPI) {
@@ -15,7 +14,7 @@ class ShipStats(private val ship: ShipAPI) {
 
     private fun calculateThreatSearchRange(): Float {
         val rangeEnvelope = 1.5f
-        val totalMaxRange = significantWeapons.maxOfOrNull { it.rangeFromShipCenter(Rotation(0f)) } ?: 0f
+        val totalMaxRange = significantWeapons.maxOfOrNull { it.rangeFromShipCenter(Direction(0f)) } ?: 0f
 
         return max(Preset.threatSearchRange, totalMaxRange * rangeEnvelope)
     }
@@ -57,10 +56,10 @@ class ShipStats(private val ship: ShipAPI) {
 
         // Find firing arc boundary closest to ship front for
         // each weapon, or 0f for front facing weapons.
-        val attackAngles: Map<Rotation, Float> = WeaponGroup.attackAngles(significantWeapons).ifEmpty { return listOf() }
+        val attackAngles: Map<Direction, Float> = WeaponGroup.attackAngles(significantWeapons).ifEmpty { return listOf() }
 
         // Find all weapon groups with acceptable DPS.
-        val bestWeaponGroup = attackAngles.maxWithOrNull(compareBy<Map.Entry<Rotation, Float>> { it.value }.thenBy { -it.key.length })!!
+        val bestWeaponGroup = attackAngles.maxWithOrNull(compareBy<Map.Entry<Direction, Float>> { it.value }.thenBy { -it.key.length })!!
         val validWeaponGroups = attackAngles.filter { it.value >= bestWeaponGroup.value * Preset.validWeaponGroupDPSThreshold }
         return validWeaponGroups.map { (angle, _) ->
             WeaponGroup(ship, significantWeapons.filter { it.isAngleInArc(angle) })

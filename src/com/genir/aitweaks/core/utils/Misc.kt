@@ -80,11 +80,11 @@ inline fun <reified T : Enum<T>> loadEnum(json: JSONObject, fieldName: String): 
     }
 }
 
-fun getShortestRotation(from: Vector2f, to: Vector2f): Rotation {
+fun getShortestRotation(from: Vector2f, to: Vector2f): Direction {
     return shortestRotation(from.facing, to.facing)
 }
 
-fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Rotation {
+fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Direction {
     return shortestRotation((from - pivot).facing, (to - pivot).facing)
 }
 
@@ -133,7 +133,7 @@ inline fun <reified T> closestEntity(entities: Sequence<CombatEntityAPI>, p: Vec
  * and averaging the resulting vectors. Returns the facing of the average vector.
  * This approach avoids issues with angles behaving as modular values in Starsector.
  */
-fun averageFacing(facings: Collection<Rotation>): Rotation {
+fun averageFacing(facings: Collection<Direction>): Direction {
     return facings.fold(Vector2f()) { sum, f -> sum + f.unitVector }.facing
 }
 

@@ -17,7 +17,10 @@ import com.genir.aitweaks.core.shipai.autofire.Tag
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.Direction
+import com.genir.aitweaks.core.utils.absShortestRotation
+import com.genir.aitweaks.core.utils.solve
 import kotlin.math.floor
 import kotlin.math.max
 
@@ -60,22 +63,22 @@ val WeaponAPI.ignoresFlares: Boolean
     get() = hasAIHint(IGNORES_FLARES) || ship.mutableStats.dynamic.getValue("pd_ignores_flares", 0f) >= 1f
 
 /** Is angle in weapon arc in SHIP COORDINATES. */
-fun WeaponAPI.isAngleInArc(angle: Rotation): Boolean {
+fun WeaponAPI.isAngleInArc(angle: Direction): Boolean {
     val tolerance = 0.01f
     return absShortestRotation(ArcFacing, angle) <= (arc + tolerance) / 2f
 }
 
 val WeaponAPI.isFrontFacing: Boolean
-    get() = isAngleInArc(Rotation(0f))
+    get() = isAngleInArc(Direction(0f))
 
-val WeaponAPI.ArcFacing: Rotation
-    get() = Rotation(arcFacing)
+val WeaponAPI.ArcFacing: Direction
+    get() = Direction(arcFacing)
 
-val WeaponAPI.CurrAngle: Rotation
-    get() = Rotation(currAngle)
+val WeaponAPI.CurrAngle: Direction
+    get() = Direction(currAngle)
 
 /** weapon arc facing in absolute coordinates, instead of ship coordinates */
-val WeaponAPI.absoluteArcFacing: Rotation
+val WeaponAPI.absoluteArcFacing: Direction
     get() = ArcFacing + ship.Facing
 
 val WeaponAPI.absoluteArc: Arc
@@ -86,7 +89,7 @@ val WeaponAPI.totalRange: Float
 
 /** Weapon range from the center of the ship, along the attack facing.
  * attackFacing is in ship frame of reference*/
-fun WeaponAPI.rangeFromShipCenter(attackFacing: Rotation): Float {
+fun WeaponAPI.rangeFromShipCenter(attackFacing: Direction): Float {
     val p = -slot.location
     val v = attackFacing.unitVector
     return solve(Pair(p, v), Range) ?: 0f

@@ -3,7 +3,7 @@ package com.genir.aitweaks.core.shipai.systems
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.genir.aitweaks.core.shipai.CustomShipAI
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Direction
 import org.lwjgl.util.vector.Vector2f
 
 abstract class SystemAI(val ai: CustomShipAI) {
@@ -16,5 +16,5 @@ abstract class SystemAI(val ai: CustomShipAI) {
 
     open fun overrideHeading(): Vector2f? = null
 
-    open fun overrideFacing(): Rotation? = null
+    open fun overrideFacing(): Direction? = null
 }

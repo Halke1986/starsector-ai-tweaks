@@ -7,7 +7,7 @@ import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.extensions.plus
 import com.genir.aitweaks.core.extensions.times
 import com.genir.aitweaks.core.state.State
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Direction
 import org.lwjgl.util.vector.Vector2f
 
 /**
@@ -59,25 +59,25 @@ class InterpolateMovement<T>(private val ship: ShipAPI) {
 
     private infix operator fun T.minus(other: T): T = when (this!!::class.java) {
         Vector2f::class.java -> ((this as Vector2f) - (other as Vector2f)) as T
-        Rotation::class.java -> ((this as Rotation) - (other as Rotation)) as T
+        Direction::class.java -> ((this as Direction) - (other as Direction)) as T
         else -> this
     }
 
     private infix operator fun T.plus(other: T): T = when (this!!::class.java) {
         Vector2f::class.java -> ((this as Vector2f) + (other as Vector2f)) as T
-        Rotation::class.java -> ((this as Rotation) + (other as Rotation)) as T
+        Direction::class.java -> ((this as Direction) + (other as Direction)) as T
         else -> this
     }
 
     private infix operator fun T.div(other: Float): T = when (this!!::class.java) {
         Vector2f::class.java -> ((this as Vector2f) / other) as T
-        Rotation::class.java -> ((this as Rotation) / other) as T
+        Direction::class.java -> ((this as Direction) / other) as T
         else -> this
     }
 
     private infix operator fun T.times(other: Float): T = when (this!!::class.java) {
         Vector2f::class.java -> ((this as Vector2f) * other) as T
-        Rotation::class.java -> ((this as Rotation) * other) as T
+        Direction::class.java -> ((this as Direction) * other) as T
         else -> this
     }
 }

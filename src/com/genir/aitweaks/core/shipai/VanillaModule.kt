@@ -11,7 +11,7 @@ import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.extensions.getPrivateField
 import com.genir.aitweaks.core.extensions.isZero
 import com.genir.aitweaks.core.extensions.length
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Direction
 import org.lwjgl.util.vector.Vector2f
 
 /** AI modules carried over from vanilla ship AI. */
@@ -39,7 +39,7 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
 
     /** Advance AI subsystems carried over from the vanilla BasicShipAI. To work
      * correctly, the subsystems should be called in same order as in BasicShipAI. */
-    fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Rotation) {
+    fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Direction) {
         val target = attackTarget as? Obfuscated.Ship
 
         flags.advance(dt)

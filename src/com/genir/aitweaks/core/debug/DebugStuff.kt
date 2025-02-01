@@ -9,7 +9,7 @@ import com.fs.starfarer.combat.entities.Ship.ShipAIWrapper
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController
 import com.genir.aitweaks.core.shipai.autofire.SimulateMissile
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.absShortestRotation
@@ -44,7 +44,7 @@ internal fun debug(dt: Float) {
 //    }
 }
 
-var expectedFacing = Rotation(90f)
+var expectedFacing = Direction(90f)
 const val df = -1f * 60f
 
 class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {

@@ -12,9 +12,7 @@ import com.genir.aitweaks.core.shipai.Preset.Companion.backoffUpperThreshold
 import com.genir.aitweaks.core.utils.*
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
 import kotlin.math.min
-import kotlin.math.sign
 
 /** Burn Drive AI. It replaces the vanilla implementation for ships with custom AI. */
 class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
@@ -22,7 +20,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
     private var burnVector: Vector2f = Vector2f() // In ship frame of reference.
     private var shouldInitBurn: Boolean = false
-    private var prevAngleToDestination: Rotation = Rotation(0f)
+    private var prevAngleToDestination: Direction = Direction(0f)
 
     private val burnDriveFlatBonus: Float = 200f // Hardcoded vanilla value.
     private var maxBurnDist: Float = 0f
@@ -48,7 +46,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
         prevAngleToDestination = angleToDestination()
     }
 
-    override fun overrideFacing(): Rotation? {
+    override fun overrideFacing(): Direction? {
         return if (shouldInitBurn) burnVector.facing
         else null
     }
@@ -166,8 +164,8 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
         return Global.getCombatEngine().ships.any { it.isHostile(ship) && !it.isFighter }
     }
 
-    private fun angleToDestination(): Rotation {
-        return if (burnVector.isZero) Rotation(180f)
+    private fun angleToDestination(): Direction {
+        return if (burnVector.isZero) Direction(180f)
         else shortestRotation(burnVector.facing, ship.Facing)
     }
 

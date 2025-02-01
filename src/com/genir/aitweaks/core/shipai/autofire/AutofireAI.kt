@@ -358,7 +358,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Try to read expected facing from custom AI implementations.
         val customAIFacing = ship.customShipAI?.movement?.expectedFacing
         val wrapperAIFacing = (ship.ai as? ExtendedShipAI)?.expectedFacing
-        val expectedFacing: Rotation = customAIFacing ?: wrapperAIFacing ?: (target.location - ship.location).facing
+        val expectedFacing: Direction = customAIFacing ?: wrapperAIFacing ?: (target.location - ship.location).facing
 
         // If no expected facing was found, assume the ship is controlled by vanilla AI.
         // Vanilla AI lacks precise aiming, so hardpoints need flexibility to compensate.
@@ -381,14 +381,15 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
     /** Tracks intercept angular velocity and angular distance in weapon slot frame of reference. */
     private class InterceptTracker(private val weapon: WeaponAPI) {
-        private var prevAngleToIntercept: Rotation? = null
+        private var prevAngleToIntercept: Direction? = null
         var interceptVelocity = 0f
 
         fun advance(dt: Float, intercept: Vector2f?) {
             if (intercept == null) return
 
             val angleToIntercept = shortestRotation(weapon.absoluteArcFacing, intercept.facing)
-            interceptVelocity = shortestRotation(prevAngleToIntercept ?: angleToIntercept, angleToIntercept).degrees / dt
+            interceptVelocity = shortestRotation(prevAngleToIntercept
+                ?: angleToIntercept, angleToIntercept).degrees / dt
             prevAngleToIntercept = angleToIntercept
         }
 

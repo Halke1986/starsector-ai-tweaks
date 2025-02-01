@@ -3,10 +3,9 @@ package com.genir.aitweaks.core.utils
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 
-// TODO rename to Direction
 // TODO remove API extensions
 
-class Rotation(degrees: Float) {
+class Direction(degrees: Float) {
     val degrees: Float = degrees - round(degrees / 360) * 360
 
     val radians: Float
@@ -38,31 +37,31 @@ class Rotation(degrees: Float) {
         return degrees.toString()
     }
 
-    operator fun plus(other: Rotation): Rotation {
-        return Rotation(degrees + other.degrees)
+    operator fun plus(other: Direction): Direction {
+        return Direction(degrees + other.degrees)
     }
 
-    operator fun plus(other: Float): Rotation {
-        return Rotation(degrees + other)
+    operator fun plus(other: Float): Direction {
+        return Direction(degrees + other)
     }
 
-    operator fun minus(other: Rotation): Rotation {
-        return Rotation(degrees - other.degrees)
+    operator fun minus(other: Direction): Direction {
+        return Direction(degrees - other.degrees)
     }
 
-    operator fun minus(other: Float): Rotation {
-        return Rotation(degrees - other)
+    operator fun minus(other: Float): Direction {
+        return Direction(degrees - other)
     }
 
-    operator fun div(f: Float): Rotation {
-        return Rotation(degrees / f)
+    operator fun div(f: Float): Direction {
+        return Direction(degrees / f)
     }
 
-    operator fun times(f: Float): Rotation {
-        return Rotation(degrees * f)
+    operator fun times(f: Float): Direction {
+        return Direction(degrees * f)
     }
 
-    operator fun unaryMinus(): Rotation {
-        return Rotation(-degrees)
+    operator fun unaryMinus(): Direction {
+        return Direction(-degrees)
     }
 }

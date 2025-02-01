@@ -20,7 +20,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
 
     // Attack details.
     private var stats: ShipStats = ShipStats(ship)
-    var expectedFacing: Rotation? = null
+    var expectedFacing: Direction? = null
 
     init {
         // Ensure AI Tweaks is in control of autofire management.

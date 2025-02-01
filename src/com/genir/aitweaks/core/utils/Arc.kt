@@ -5,7 +5,7 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
 
-class Arc(angle: Float, val facing: Rotation) {
+class Arc(angle: Float, val facing: Direction) {
     val angle = min(360f, abs(angle))
 
     fun overlaps(second: Arc): Boolean {
@@ -13,7 +13,7 @@ class Arc(angle: Float, val facing: Rotation) {
         return offset <= this.half + second.half
     }
 
-    fun contains(facing: Rotation): Boolean {
+    fun contains(facing: Direction): Boolean {
         return absShortestRotation(facing, this.facing) <= half
     }
 
@@ -33,7 +33,7 @@ class Arc(angle: Float, val facing: Rotation) {
          * Assumes that the list forms a single, unbroken arc.
          * If this assumption is violated, the result is undefined. */
         fun mergeOverlapping(arcsInput: List<Arc>): List<Arc> {
-            val toBeRemoved = Arc(0f, Rotation(0f))
+            val toBeRemoved = Arc(0f, Direction(0f))
             val arcs: MutableList<Arc> = arcsInput.toMutableList()
 
             for (i in 0 until arcs.size) {
@@ -75,7 +75,7 @@ class Arc(angle: Float, val facing: Rotation) {
 
         /** Make an arc spanning the shortest rotation
          * between 'from' and 'to' angles. */
-        fun fromTo(from: Rotation, to: Rotation): Arc {
+        fun fromTo(from: Direction, to: Direction): Arc {
             val angle = shortestRotation(from, to)
             val facing = from + angle / 2f
 

@@ -3,7 +3,7 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.shortestRotation
@@ -28,7 +28,7 @@ open class BasicEngineController(val ship: ShipAPI) {
      * `limitVelocity` lambda is used to restrict the velocity, e.g. for
      * collision avoidance purposes. Returns the calculated expected velocity.
      */
-    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Rotation, Vector2f) -> Vector2f)? = null): Vector2f {
+    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> Vector2f)? = null): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val af = ship.acceleration * dt * dt
@@ -95,7 +95,7 @@ open class BasicEngineController(val ship: ShipAPI) {
      * with changing facing values, effectively extrapolating the expected ship
      * facing to the next frame.
      */
-    fun facing(dt: Float, facing: Rotation, targetAngularVelocity: Float) {
+    fun facing(dt: Float, facing: Direction, targetAngularVelocity: Float) {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val w = ship.angularVelocity * dt

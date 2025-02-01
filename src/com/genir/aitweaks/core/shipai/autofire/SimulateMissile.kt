@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipHullSpecAPI.EngineSpecAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.Rotation
+import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.getShortestRotation
 import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
@@ -27,11 +27,11 @@ class SimulateMissile {
             // make sure not to use ship-specific time rate.
             val dt: Float = Global.getCombatEngine().elapsedInLastFrame
             val missileStats = MissileStats(weapon)
-            var facing: Rotation = (target.location - weapon.location).facing
+            var facing: Direction = (target.location - weapon.location).facing
 
             for (i in 0..3) {
                 val path: Sequence<Frame> = missilePath(dt, weapon, facing.unitVector, missileStats)
-                val error: Rotation = angularDistanceToPath(dt, weapon, target, path)
+                val error: Direction = angularDistanceToPath(dt, weapon, target, path)
                 facing += error
             }
 
@@ -45,12 +45,12 @@ class SimulateMissile {
 
         /** Calculate the angular distance between missile path and
          * target location at the point where the two are the closest. */
-        private fun angularDistanceToPath(dt: Float, weapon: WeaponAPI, target: BallisticTarget, path: Sequence<Frame>): Rotation {
+        private fun angularDistanceToPath(dt: Float, weapon: WeaponAPI, target: BallisticTarget, path: Sequence<Frame>): Direction {
             val p0: Vector2f = target.location
             val v: Vector2f = target.velocity * dt
 
             var minDist: Float = Float.MAX_VALUE
-            var rotation = Rotation(0f)
+            var rotation = Direction(0f)
 
             path.forEachIndexed { idx, frame ->
                 val p = p0 + v * idx.toFloat()

@@ -56,7 +56,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     /** Rotate the ship to point selected burst vector at target. */
-    override fun overrideFacing(): Rotation? {
+    override fun overrideFacing(): Direction? {
         val plan = burstPlan ?: return null
 
         // Don't interrupt hardpoint bursts. When flux is high, the weapon
@@ -147,16 +147,16 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
     /** Description of one of the eight possible burst vectors around the ship. */
     inner class BurstVector(direction: Vector2f, toShipFacing: RotationMatrix, val commands: Set<ShipCommand>) {
         val vector: Vector2f = direction.rotated(toShipFacing).resized(burstSpeed)
-        val facing: Rotation = vector.facing
+        val facing: Direction = vector.facing
         val boundsOffset: Float = burstSpeed - boundsCollision(vector, -vector, ship)!!
     }
 
     /** Burst vector associated with heading towards a target. */
     data class BurstPlan(val burst: BurstVector, val toTarget: Vector2f, val target: ShipAPI?) {
         private val targetDistance: Float = toTarget.length
-        private val targetFacing: Rotation = toTarget.facing
+        private val targetFacing: Direction = toTarget.facing
 
-        fun angleToTarget(): Rotation {
+        fun angleToTarget(): Direction {
             return shortestRotation(burst.facing, targetFacing)
         }
 
@@ -237,7 +237,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
         val time = solve(Pair(position, velocity), shield.radius) ?: return null
         val hitPoint = position + velocity * time
-        val willHitShield = Arc(shield.activeArc, Rotation(shield.facing)).contains(hitPoint)
+        val willHitShield = Arc(shield.activeArc, Direction(shield.facing)).contains(hitPoint)
 
         return if (willHitShield) (velocity * time).length else null
     }
