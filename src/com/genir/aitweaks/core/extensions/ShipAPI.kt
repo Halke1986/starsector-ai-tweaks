@@ -9,7 +9,6 @@ import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.shortestRotation
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 
@@ -93,8 +92,9 @@ val ShipAPI.allGroupedWeapons: List<WeaponAPI>
     get() = weaponGroupsCopy.flatMap { it.weaponsCopy }
 
 fun ShipAPI.shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Direction): Direction {
-    val facingToTarget = (target - location).facing
-    return shortestRotation(facing.direction + weaponGroupFacing, facingToTarget)
+    val targetFacing = (target - location).facing
+    val weaponFacing = facing.direction + weaponGroupFacing
+    return targetFacing - weaponFacing
 }
 
 val ShipAPI.strafeAcceleration: Float

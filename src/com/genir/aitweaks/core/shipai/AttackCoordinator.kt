@@ -7,7 +7,6 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.angularSize
-import com.genir.aitweaks.core.utils.shortestRotation
 import org.lwjgl.util.vector.Vector2f
 
 /**
@@ -95,7 +94,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
         formationsToCoordinate.forEach { formation ->
             var facing = formation.facing - formation.angularSize / 2f
 
-            formation.units.sortBy { shortestRotation(formation.facing, it.currentFacing).degrees }
+            formation.units.sortBy { (it.currentFacing - formation.facing).degrees }
 
             formation.units.forEach { entity ->
                 val angle = facing + entity.angularSize / 2f
@@ -114,7 +113,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
         var facing = initialUnit.proposedFacing
 
         fun isOverlapping(other: Formation): Boolean {
-            val angleToOther = shortestRotation(facing, other.facing)
+            val angleToOther: Direction = other.facing - facing
             return angleToOther.length < (angularSize + other.angularSize) / 2f
         }
 
@@ -122,7 +121,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
             units.addAll(other.units)
 
             val newAngularSize = angularSize + other.angularSize
-            val angleToOther = shortestRotation(facing, other.facing)
+            val angleToOther: Direction = other.facing - facing
 
             facing += (angleToOther * other.angularSize) / newAngularSize
             angularSize = newAngularSize

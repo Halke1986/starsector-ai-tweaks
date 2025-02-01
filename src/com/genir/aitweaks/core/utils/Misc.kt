@@ -81,11 +81,11 @@ inline fun <reified T : Enum<T>> loadEnum(json: JSONObject, fieldName: String): 
 }
 
 fun getShortestRotation(from: Vector2f, to: Vector2f): Direction {
-    return shortestRotation(from.facing, to.facing)
+    return to.facing - from.facing
 }
 
 fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Direction {
-    return shortestRotation((from - pivot).facing, (to - pivot).facing)
+    return (to - pivot).facing - (from - pivot).facing
 }
 
 fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, params: BallisticParams): Hit? {

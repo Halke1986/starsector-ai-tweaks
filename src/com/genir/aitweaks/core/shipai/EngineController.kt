@@ -46,7 +46,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         }
 
         // Estimate target angular velocity.
-        val wt = shortestRotation(prevFacing, facing).degrees / dt
+        val wt = (facing - prevFacing).degrees / dt
         prevFacing = facing
 
         facing(dt, facing, wt)
@@ -74,7 +74,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
         // Find new heading that circumvents the lowest speed limit.
         val headingOffset = lowestLimit.headingOffset(expectedSpeed)
-        val angleToLimit = shortestRotation(expectedHeading, lowestLimit.heading)
+        val angleToLimit = lowestLimit.heading - expectedHeading
         val angleToNewFacing = angleToLimit - headingOffset * angleToLimit.sign
         val newFacing = expectedHeading + angleToNewFacing
 

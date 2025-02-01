@@ -52,7 +52,7 @@ class Arc(angle: Float, val facing: Direction) {
         /** Merge two arcs. If the arcs do not overlap, returns
          * the smallest arc that contains both provided arcs. */
         fun union(a: Arc, b: Arc): Arc {
-            val offset = shortestRotation(a.facing, b.facing)
+            val offset = b.facing - a.facing
             val angle = offset.length + a.half + b.half
 
             return when {
@@ -76,7 +76,7 @@ class Arc(angle: Float, val facing: Direction) {
         /** Make an arc spanning the shortest rotation
          * between 'from' and 'to' angles. */
         fun fromTo(from: Direction, to: Direction): Arc {
-            val angle = shortestRotation(from, to)
+            val angle = to - from
             val facing = from + angle / 2f
 
             return Arc(

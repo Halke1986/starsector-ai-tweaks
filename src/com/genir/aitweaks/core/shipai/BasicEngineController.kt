@@ -7,7 +7,6 @@ import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
-import com.genir.aitweaks.core.utils.shortestRotation
 import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
@@ -107,7 +106,7 @@ open class BasicEngineController(val ship: ShipAPI) {
         val wt = targetAngularVelocity * dt
 
         // Angular distance between expected facing and ship facing.
-        val r = shortestRotation(ship.facing.direction, facing)
+        val r = facing - ship.facing.direction
 
         // Expected velocity change.
         val we = r.sign * vMax(r.length, a) + wt

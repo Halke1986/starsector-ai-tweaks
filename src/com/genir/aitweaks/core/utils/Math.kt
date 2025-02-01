@@ -170,10 +170,6 @@ fun atanApprox(x: Float): Float {
     return (1 + a * xx) * x / (1 + xx * (b + c * xx))
 }
 
-fun shortestRotation(from: Direction, to: Direction): Direction {
-    return to - from
-}
-
 /**
  * Smoothly caps a float value near a specified limit using a sigmoid-like function.
  *

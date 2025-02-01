@@ -3,20 +3,21 @@ package com.genir.aitweaks.core.utils
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 
+/** Represents a directional angle in degrees, normalized into the range [-180, 180]. */
 class Direction(degrees: Float) {
     val degrees: Float = degrees - round(degrees / 360) * 360
 
     val radians: Float
         get() = degrees * DEGREES_TO_RADIANS
 
-    /** Length of the rotation, in range [0;180] */
+    /** Absolute value of the angle; range: [0, 180] */
     val length: Float
         get() = abs(degrees)
 
     val isZero: Boolean
         get() = degrees == 0f
 
-    // TODO remove?
+    /** The sign (`-1.0`, `0.0`, or `1.0`) of the angle in degrees. */
     val sign: Float
         get() = degrees.sign
 

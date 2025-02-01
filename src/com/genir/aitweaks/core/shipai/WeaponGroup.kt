@@ -6,7 +6,6 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.*
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.shortestRotation
 
 /** A group of weapons that should be able to fire along a single attack vector. */
 class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
@@ -40,7 +39,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
     /** Calculate facing that maximizes DPS delivered to the target. */
     fun attackFacing(target: BallisticTarget): Direction {
         val targetFacing = (target.location - ship.location).facing
-        val directFacing = ship.facing.direction + shortestRotation(ship.facing.direction + defaultFacing, targetFacing)
+        val directFacing = targetFacing + defaultFacing
 
         // Calculate offset angle between default facing and intercept arc for each weapon.
         val facingStash = ship.facing
@@ -59,8 +58,8 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
                 val defaultAttackPoint = defaultFacingVector * weapon.rangeInGroup
                 var defaultFacing: Direction = (defaultAttackPoint - weapon.slot.location).facing
 
-                val toSlotBoundaryStart = shortestRotation(defaultFacing, weapon.arcFacing.direction - weapon.arc / 2)
-                val toSlotBoundaryEnd = shortestRotation(defaultFacing, weapon.arcFacing.direction + weapon.arc / 2)
+                val toSlotBoundaryStart = (weapon.arcFacing.direction - weapon.arc / 2) - defaultFacing
+                val toSlotBoundaryEnd = (weapon.arcFacing.direction + weapon.arc / 2) - defaultFacing
 
                 // Default weapon facing falls outside the slot firing arc.
                 if (toSlotBoundaryStart.sign == toSlotBoundaryEnd.sign) {
@@ -68,7 +67,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
                 }
 
                 val interceptArc = interceptArc(weapon, target, defaultBallisticParams)
-                val relativeFacing = shortestRotation(defaultFacing + ship.facing.direction, interceptArc.facing).degrees
+                val relativeFacing = (interceptArc.facing - (defaultFacing + ship.facing.direction)).degrees
                 val halArc = interceptArc.half
 
                 // Prioritize aiming weapons with more peak DPS instead of sustained DPS.
@@ -151,7 +150,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
          * DPS for the provided weapon list.*/
         fun attackAngles(weapons: List<WeaponAPI>): Map<Direction, Float> {
             val angles: List<Direction> = weapons.flatMap { weapon ->
-                val facing = shortestRotation(Direction(0f), weapon.arcFacing.direction)
+                val facing: Direction = weapon.arcFacing.direction
                 val arc = weapon.arc
 
                 when {

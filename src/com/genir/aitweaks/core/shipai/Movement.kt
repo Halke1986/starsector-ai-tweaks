@@ -352,7 +352,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         squad.forEach { obstacle: CustomShipAI ->
             val obstacleLineOfFire = obstacle.ship.location - target.location
             val obstacleFacing = obstacleLineOfFire.facing
-            val angleToObstacle = shortestRotation(shipFacing, obstacleFacing)
+            val angleToObstacle = obstacleFacing - shipFacing
 
             val blocked = if (obstacleLineOfFire.lengthSquared < shipLineOfFire.lengthSquared) ai
             else obstacle
