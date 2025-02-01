@@ -170,13 +170,6 @@ fun atanApprox(x: Float): Float {
     return (1 + a * xx) * x / (1 + xx * (b + c * xx))
 }
 
-fun unitVector(angle: Float): Vector2f {
-    val radians = angle * DEGREES_TO_RADIANS
-    val x = cos(radians)
-    val y = sin(radians)
-    return Vector2f(x, y)
-}
-
 /** Returns the shortest rotation angle from `from` to `to`.
  * Exhibits lower numerical instability compared to
  * lazyLib MathUtils.getShortestRotation. */

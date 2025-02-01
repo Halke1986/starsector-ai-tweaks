@@ -4,8 +4,11 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.pointsOfTangency
+import com.genir.aitweaks.core.utils.solve
 import org.lwjgl.util.vector.Vector2f
 
 /**
@@ -120,7 +123,7 @@ private fun targetCoords(weapon: WeaponAPI, target: BallisticTarget, params: Bal
 private fun projectileCoords(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Vector2f> {
     val vAbs = (weapon.ship.velocity - target.velocity)
     val pAbs = (weapon.location - target.location)
-    val vProj = unitVector(weapon.currAngle)
+    val vProj = weapon.currAngle.direction.unitVector
 
     val p = pAbs + vAbs * params.delay + vProj * weapon.barrelOffset
     val v = vProj + vAbs / (weapon.trueProjectileSpeed * params.accuracy)

@@ -8,8 +8,8 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.getShortestRotation
-import com.genir.aitweaks.core.utils.unitVector
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 
@@ -40,7 +40,7 @@ class SimulateMissile {
 
         fun missilePath(weapon: WeaponAPI): Sequence<Frame> {
             val dt: Float = Global.getCombatEngine().elapsedInLastFrame
-            return missilePath(dt, weapon, unitVector(weapon.currAngle), MissileStats(weapon))
+            return missilePath(dt, weapon, weapon.currAngle.direction.unitVector, MissileStats(weapon))
         }
 
         /** Calculate the angular distance between missile path and
