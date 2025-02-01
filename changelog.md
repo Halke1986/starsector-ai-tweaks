@@ -1,4 +1,5 @@
 - Custom AI: Fixed another case of interrupting bursts by venting flux, this time affecting burst beams.
+- Fixed a memory leak which could trigger the Starsector memory leak warning.
 
 Version 1.12.0
 

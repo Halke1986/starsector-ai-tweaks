@@ -71,8 +71,9 @@ object CustomAIManager {
         return PluginPick(ExtendedShipAI(ship, config), MOD_SPECIFIC)
     }
 
-    /** Returns true is custom AI can control the given ship. */
-    fun canHaveCustomAI(ship: ShipAPI): Boolean {
+    /** Returns true is custom AI can control the given ship.
+     * NOTE: this code needs to be synchronized with a copy in CustomShipAI hullmod. */
+    private fun canHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
             ship.owner == 0 && Global.getSettings().modManager.isModEnabled("aitweaksunlock") -> true
 

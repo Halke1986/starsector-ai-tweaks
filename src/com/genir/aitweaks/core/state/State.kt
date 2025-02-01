@@ -13,19 +13,27 @@ import com.genir.aitweaks.core.playerassist.AutoOmniShields
 import com.genir.aitweaks.core.shipai.AttackCoordinator
 import com.genir.aitweaks.core.shipai.FleetSegmentation
 import com.genir.aitweaks.core.utils.Bounds
+import java.lang.ref.WeakReference
 
 class State : BaseEveryFrameCombatPlugin() {
     companion object {
-        // Global combat state.
-        val state: State
-            get() = stateValue!!
+        // Store the state instance as a weak reference to allow it
+        // to be deallocated after combat ends. This prevents the
+        // state from persisting across game reloads, which could
+        // trigger a Starsector memory leak warning.
+        private var stateValue: WeakReference<State>? = null
 
-        private var stateValue: State? = null
+        // Global combat state. It remains accessible throughout combat
+        // despite being stored as a weak reference. This works because
+        // the state is an instance of EveryFrameCombatPlugin, which is
+        // referenced by the game's Combat Engine.
+        val state: State
+            get() = stateValue!!.get()!!
     }
 
     init {
         // Register state to be used by plugins init method.
-        stateValue = this
+        stateValue = WeakReference(this)
     }
 
     val config: Config = Config()
@@ -53,7 +61,7 @@ class State : BaseEveryFrameCombatPlugin() {
         // global variable. This is required because SS initializes multiple
         // instances of EveryFrameCombatPlugin per combat but uses only one
         // of them, not necessarily the latest.
-        stateValue = this
+        stateValue = WeakReference(this)
 
         debugPlugin?.advance(dt, events)
 

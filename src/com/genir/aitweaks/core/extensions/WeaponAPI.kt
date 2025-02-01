@@ -31,6 +31,17 @@ val WeaponAPI.isAntiFighter: Boolean
 val WeaponAPI.isStrictlyAntiShield: Boolean
     get() = hasAITag(Tag.ANTI_SHIELD) && state.config.enableNeedlerFix
 
+val WeaponAPI.isFinisherBeam
+    get() = when {
+        !spec.isBeam -> false
+
+        !hasAITag(Tag.FINISHER_BEAM) -> false
+
+        !ship.variant.hasHullMod("fnisherbeamprotocol") -> false
+
+        else -> true
+    }
+
 val WeaponAPI.isPD: Boolean
     get() = hasAIHint(PD) || hasAIHint(PD_ONLY)
 

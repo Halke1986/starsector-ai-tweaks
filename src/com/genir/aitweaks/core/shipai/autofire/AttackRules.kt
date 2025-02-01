@@ -54,7 +54,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
     private fun avoidWrongDamageType(): HoldFire? = when {
         !hit.target.isShip -> fire
         weapon.isStrictlyAntiShield -> avoidExposedHull()
-        weapon.hasAIHint(USE_LESS_VS_SHIELDS) -> avoidShields()
+        weapon.hasAIHint(USE_LESS_VS_SHIELDS) || weapon.isFinisherBeam -> avoidShields()
         else -> fire
     }
 
