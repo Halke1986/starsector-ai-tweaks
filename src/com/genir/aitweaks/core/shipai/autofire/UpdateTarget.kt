@@ -41,7 +41,7 @@ class UpdateTarget(
 
         // Main weapons
         weapon.isAntiFighter -> selectTarget(::selectShipOrFighter)
-        weapon.hasAIHint(STRIKE) -> selectTarget(::selectShip)
+        weapon.hasAIHint(STRIKE) || weapon.isFinisherBeam -> selectTarget(::selectShip)
         weapon.ship.hullSpec.hullId.startsWith("guardian") -> selectTarget(::selectShip)
 
         // Default main weapon.

@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.hullmods
+package com.genir.aitweaks.launcher.hullmods
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseHullMod
