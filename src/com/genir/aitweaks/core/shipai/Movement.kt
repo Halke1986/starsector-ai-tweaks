@@ -30,8 +30,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     override var proposedHeadingPoint: Vector2f? = null
     override var reviewedHeadingPoint: Vector2f? = null
 
-    private val interpolateHeading = InterpolateValue()
-    private val interpolateFacing = InterpolateValue()
+    private val interpolateHeading = InterpolateMovement<Vector2f>(ship)
+    private val interpolateFacing = InterpolateMovement<Float>(ship)
 
     // Make strafe rotation direction random, but consistent for the given ship.
     private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 10f else -10f)
@@ -91,7 +91,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         else ai.finishBurstWeaponGroup!!
 
         val newExpectedFacing: Float? = interpolateFacing.advance(dt) {
-            val newFacing: Float? = when {
+            when {
                 // Let movement system determine the ship facing.
                 systemOverride != null -> {
                     systemOverride
@@ -120,9 +120,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                 // Nothing to do. Stop rotation.
                 else -> null
             }
-
-            newFacing?.let { Vector2f(newFacing, 0f) }
-        }?.x
+        }
 
         val shouldStop = newExpectedFacing == null
         expectedFacing = newExpectedFacing ?: ship.facing
@@ -500,53 +498,5 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
         val t = ceil(v / a)
         return (v + a) * t * 0.5f
-    }
-
-    /**
-     * The advance() method for fast-time ships is invoked multiple times per frame,
-     * whereas normal-time ships have their coordinates updated only once per frame.
-     *
-     * This discrepancy can cause fast-time ships to calculate their movement
-     * based on target coordinates that may appear to change erratically,
-     * resulting in imprecise movement commands.
-     *
-     * To address this issue, the movement of fast-time ships is also calculated
-     * once per frame. The resulting movement is then interpolated for any additional
-     * advance() calls within the same frame, ensuring smoother and more precise movement.
-     */
-    private inner class InterpolateValue {
-        private var prevValue: Vector2f? = null
-        private var value: Vector2f? = null
-
-        private var timestamp: Int = 0
-        private var dtSum: Float = 0f
-
-        fun advance(dt: Float, nextValue: () -> Vector2f?): Vector2f? {
-            val timeMult: Float = ship.mutableStats.timeMult.modifiedValue
-
-            if (state.frameCount > timestamp) {
-                timestamp = state.frameCount
-                dtSum = 0f
-
-                prevValue = value
-                value = nextValue()
-            }
-
-            // No need to interpolate for ships in normal time flow.
-            if (timeMult == 1f) {
-                return value
-            }
-
-            dtSum += dt
-            val value = value
-            val prevValue = prevValue
-
-            if (value == null || prevValue == null) {
-                return value
-            }
-
-            val delta = (value - prevValue) / timeMult
-            return prevValue + delta * (dtSum / Global.getCombatEngine().elapsedInLastFrame)
-        }
     }
 }
