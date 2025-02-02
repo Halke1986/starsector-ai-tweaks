@@ -120,10 +120,10 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
         fun merge(other: Formation) {
             units.addAll(other.units)
 
-            val newAngularSize = angularSize + other.angularSize
+            val newAngularSize: Float = angularSize + other.angularSize
             val angleToOther: Direction = other.facing - facing
 
-            facing += (angleToOther * other.angularSize) / newAngularSize
+            facing += angleToOther * (other.angularSize / newAngularSize)
             angularSize = newAngularSize
         }
     }
