@@ -58,11 +58,11 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
                 val defaultAttackPoint = defaultFacingVector * weapon.rangeInGroup
                 var defaultFacing: Direction = (defaultAttackPoint - weapon.slot.location).facing
 
-                val toSlotBoundaryStart = (weapon.arcFacing.direction - weapon.arc / 2) - defaultFacing
-                val toSlotBoundaryEnd = (weapon.arcFacing.direction + weapon.arc / 2) - defaultFacing
-
                 // Default weapon facing falls outside the slot firing arc.
-                if (toSlotBoundaryStart.sign == toSlotBoundaryEnd.sign) {
+                if (!weapon.isAngleInArc(defaultFacing)) {
+                    val toSlotBoundaryStart = (weapon.arcFacing.direction - weapon.arc / 2) - defaultFacing
+                    val toSlotBoundaryEnd = (weapon.arcFacing.direction + weapon.arc / 2) - defaultFacing
+
                     defaultFacing += if (toSlotBoundaryStart.length > toSlotBoundaryEnd.length) toSlotBoundaryEnd else toSlotBoundaryStart
                 }
 
@@ -70,10 +70,11 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
                 val relativeFacing = (interceptArc.facing - (defaultFacing + ship.facing.direction)).degrees
                 val halArc = interceptArc.half
 
-                // Prioritize aiming weapons with more peak DPS instead of sustained DPS.
-                // That's because it's both easier and more beneficial to keep them on target
-                // for even a short period of time.
-                DPSArc(relativeFacing - halArc, relativeFacing + halArc, weapon.peakDPS)
+                // Prioritize aiming weapons with higher peak DPS over those with higher sustained DPS.
+                // This is because it's easier and more beneficial to land high-damage shots even for short durations.
+                // Also, prioritize aiming beam weapons, as they don’t require leading, making their targeting more stable.
+                val dps = weapon.peakDPS * if (weapon.isBeam) 2f else 1f
+                DPSArc(relativeFacing - halArc, relativeFacing + halArc, dps)
             }
         } finally {
             ship.facing = facingStash
