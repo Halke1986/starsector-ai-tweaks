@@ -134,7 +134,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             // Weapon can no longer track the target. Use double the weapon.totalRange to allow
             // tracking potential targets when there are no targets within the actual firing range.
-            !canTrack(weapon, BallisticTarget.entity(target), currentParams(), weapon.totalRange * TARGET_SEARCH_MULT) -> true
+            !canTrack(weapon, BallisticTarget.collisionRadius(target), currentParams(), weapon.totalRange * TARGET_SEARCH_MULT) -> true
 
             else -> false
         }
@@ -186,7 +186,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         // Mock an expected hit for beams that should keep firing when in transition between targets.
         if (expectedHit == null && shouldSweepBeam(target)) {
-            val range = intercept(weapon, BallisticTarget.entity(target), currentParams()).length
+            val range = intercept(weapon, BallisticTarget.collisionRadius(target), currentParams()).length
             expectedHit = Hit(target, range, ROTATE_BEAM)
         }
 
@@ -260,7 +260,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             onTargetTime >= min(2f, weapon.firingCycle.duration) -> return null
         }
 
-        val arc = interceptArc(weapon, BallisticTarget.entity(target!!), currentParams())
+        val arc = interceptArc(weapon, BallisticTarget.collisionRadius(target!!), currentParams())
         val inaccuracy = (arc.facing - weapon.currAngle.direction).length
         if (inaccuracy * 4f > arc.angle) return STABILIZE_ON_TARGET
 
@@ -331,7 +331,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         aimPoint = null
 
         val target = this.target ?: return
-        val intercept = intercept(weapon, BallisticTarget.entity(target), currentParams())
+        val intercept = intercept(weapon, BallisticTarget.collisionRadius(target), currentParams())
 
         interceptTracker.advance(dt, intercept)
 
@@ -377,7 +377,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val correction = (ship.facing.direction - expectedFacing).rotationMatrix
         try {
             ship.facing = expectedFacing.degrees
-            return intercept(weapon, BallisticTarget.entity(target), currentParams()).rotated(correction)
+            return intercept(weapon, BallisticTarget.collisionRadius(target), currentParams()).rotated(correction)
         } finally {
             ship.facing = facingStash
         }

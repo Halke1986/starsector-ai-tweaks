@@ -54,7 +54,7 @@ class UpdateTarget(
             val target = selector()
 
             if (target != null) {
-                val ballisticTarget = BallisticTarget.entity(target)
+                val ballisticTarget = BallisticTarget.collisionRadius(target)
                 val dist = intercept(weapon, ballisticTarget, params).length
                 val range = weapon.totalRange
 
@@ -116,7 +116,7 @@ class UpdateTarget(
             weapon.slot.isHardpoint -> true
 
             // Turreted weapons select ship target if it can be tracked.
-            canTrack(weapon, BallisticTarget.entity(priorityTarget), params) -> true
+            canTrack(weapon, BallisticTarget.collisionRadius(priorityTarget), params) -> true
 
             else -> false
         }
@@ -137,7 +137,7 @@ class UpdateTarget(
 
         val opportunities = Grid.entities(c, weapon.location, targetSearchRange)
         val evaluated = opportunities.filter { entityFilter(it) && isTargetAcceptable(it, targetSearchRange) }.map {
-            val target = BallisticTarget.entity(it)
+            val target = BallisticTarget.collisionRadius(it)
             val dist = intercept(weapon, target, params).length
             val range = weapon.totalRange
 
@@ -163,7 +163,7 @@ class UpdateTarget(
     }
 
     private fun isTargetAcceptable(target: CombatEntityAPI, searchRange: Float): Boolean {
-        val ballisticTarget = BallisticTarget.entity(target)
+        val ballisticTarget = BallisticTarget.collisionRadius(target)
 
         return when {
             !target.isValidTarget -> false

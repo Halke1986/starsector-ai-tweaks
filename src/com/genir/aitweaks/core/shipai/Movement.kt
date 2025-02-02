@@ -8,7 +8,6 @@ import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
-import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
@@ -109,8 +108,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
                 // Face the attack target.
                 currentAttackTarget != null -> {
-                    val ballisticTarget = BallisticTarget.entity(currentAttackTarget)
-                    weaponGroup.attackFacing(ballisticTarget)
+                    weaponGroup.attackFacing(currentAttackTarget)
                 }
 
                 // Face threat vector when no target.

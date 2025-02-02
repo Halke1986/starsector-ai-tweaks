@@ -22,7 +22,7 @@ data class Hit(val target: CombatEntityAPI, val range: Float, val type: Type) {
 /** Analyzes the potential collision between projectile and target. Null if no collision. */
 fun analyzeHit(weapon: WeaponAPI, target: CombatEntityAPI, params: BallisticParams): Hit? {
     // Simple circumference collision is enough for missiles and fighters.
-    if (!target.isShip) return willHitCircumference(weapon, BallisticTarget.entity(target), params)?.let { Hit(target, it, HULL) }
+    if (!target.isShip) return willHitCircumference(weapon, BallisticTarget.collisionRadius(target), params)?.let { Hit(target, it, HULL) }
 
     // Check shield hit.
     if (hasShield(target)) willHitShield(weapon, target as ShipAPI, params)?.let { return Hit(target, it, SHIELD) }
@@ -35,7 +35,7 @@ fun analyzeAllyHit(weapon: WeaponAPI, target: CombatEntityAPI, ally: ShipAPI, pa
     return when {
         weapon.noFF -> null
         !canHitAlly(weapon, target, ally, params) -> null
-        else -> Hit(ally, closestHitRange(weapon, BallisticTarget.shield(ally), params), ALLY)
+        else -> Hit(ally, closestHitRange(weapon, BallisticTarget.shieldRadius(ally), params), ALLY)
     }
 }
 
@@ -45,8 +45,8 @@ private fun canHitAlly(weapon: WeaponAPI, target: CombatEntityAPI, ally: ShipAPI
     val startParams = BallisticParams(params.accuracy, params.delay)
     val endParams = BallisticParams(params.accuracy, params.delay + burstEnd)
 
-    val ballisticTarget = BallisticTarget.entity(target)
-    val ballisticAlly = BallisticTarget.shield(ally)
+    val ballisticTarget = BallisticTarget.collisionRadius(target)
+    val ballisticAlly = BallisticTarget.shieldRadius(ally)
 
     val allyArc = Arc.union(
         interceptArc(weapon, ballisticAlly, startParams),

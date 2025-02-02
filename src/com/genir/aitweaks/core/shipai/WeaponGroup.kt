@@ -1,11 +1,14 @@
 package com.genir.aitweaks.core.shipai
 
+import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.*
+import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import org.lwjgl.util.vector.Vector2f
 
 /** A group of weapons that should be able to fire along a single attack vector. */
 class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
@@ -37,7 +40,13 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
     }
 
     /** Calculate facing that maximizes DPS delivered to the target. */
-    fun attackFacing(target: BallisticTarget): Direction {
+    fun attackFacing(target: CombatEntityAPI, targetLocationOverride: Vector2f? = null): Direction {
+        val ballisticTarget = BallisticTarget(
+            targetLocationOverride ?: target.location,
+            target.timeAdjustedVelocity,
+            State.state.bounds.radius(target),
+        )
+
         val targetFacing = (target.location - ship.location).facing
         val directFacing = targetFacing + defaultFacing
 
@@ -66,7 +75,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
                     defaultFacing += if (toSlotBoundaryStart.length > toSlotBoundaryEnd.length) toSlotBoundaryEnd else toSlotBoundaryStart
                 }
 
-                val interceptArc = interceptArc(weapon, target, defaultBallisticParams)
+                val interceptArc = interceptArc(weapon, ballisticTarget, defaultBallisticParams)
                 val relativeFacing = (interceptArc.facing - (defaultFacing + ship.facing.direction)).degrees
                 val halArc = interceptArc.half
 

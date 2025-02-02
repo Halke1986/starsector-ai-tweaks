@@ -8,7 +8,6 @@ import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
@@ -94,8 +93,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
         clearVanillaCommands(ship, VanillaShipCommand.TURN_LEFT, VanillaShipCommand.TURN_RIGHT)
 
         // Control the ship rotation.
-        val ballisticTarget = BallisticTarget.entity(target)
-        expectedFacing = weaponGroup.attackFacing(ballisticTarget)
+        expectedFacing = weaponGroup.attackFacing(target)
         engineController.facing(dt, expectedFacing!!)
     }
 }

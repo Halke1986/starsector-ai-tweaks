@@ -94,7 +94,7 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
     val shield = target.shield ?: return null
     if (shield.isOff) return null
 
-    val (p, v) = projectileCoords(weapon, BallisticTarget.shield(target), params)
+    val (p, v) = projectileCoords(weapon, BallisticTarget.shieldRadius(target), params)
     val range = solve(Pair(p, v), shield.radius) ?: return null
     val hitPoint = p + v * range
 
@@ -104,7 +104,7 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
 /** Calculates if a perfectly accurate projectile will collide with target bounds,
  * given current weapon facing. Collision range is returned, null if no collision. */
 fun willHitBounds(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): Float? {
-    val (p, v) = projectileCoords(weapon, BallisticTarget.entity(target), params)
+    val (p, v) = projectileCoords(weapon, BallisticTarget.collisionRadius(target), params)
     return state.bounds.collision(p, v, target)
 }
 
