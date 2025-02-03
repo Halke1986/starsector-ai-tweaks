@@ -1,5 +1,9 @@
+Version 1.12.1
+
 - Custom AI: Fixed another case of interrupting bursts by venting flux, this time affecting burst beams.
 - Fixed a memory leak which could trigger the Starsector memory leak warning.
+- Fixed an issue where certain ships would "wiggle all over the place" when aiming weapons. Reported by Ioulaum.
+- Refactored direction calculations to use a dedicated modulo arithmetic class, likely fixing unnoticed bugs.
 
 Version 1.12.0
 
