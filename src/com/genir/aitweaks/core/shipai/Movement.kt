@@ -137,7 +137,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val isAttackingStation = targetRoot.isStation && maneuverTarget.isModule && targetRoot != maneuverTarget
         val attackVector: Vector2f = when {
             // When attacking a station, avoid positioning the ship
-            // with hulks obstructing the targeted module.
+            // with station bulk obstructing the targeted module.
             isAttackingStation -> {
                 maneuverTarget.location - targetRoot.location
             }

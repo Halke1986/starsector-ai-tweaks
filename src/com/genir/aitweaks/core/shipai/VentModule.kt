@@ -354,7 +354,7 @@ class VentModule(private val ai: CustomShipAI) {
         // The more damaged the target, the higher flux level
         // the ship is willing to tolerate.
         val damage = 1 - target.hullLevel
-        return ship.FluxLevel < damage * damage * damage
+        return ship.FluxLevel < damage * damage
     }
 
     private fun isIdle(): Boolean {
