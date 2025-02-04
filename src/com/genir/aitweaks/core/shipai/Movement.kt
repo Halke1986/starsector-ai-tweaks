@@ -273,7 +273,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             val maxAngle = 15f
             val angle = toShip.facing - toAttackLocation.facing
             if (angle.length > maxAngle) {
-                val rotation = (-(angle - 15f * angle.sign)).rotationMatrix
+                val rotation = (angle * (1f - maxAngle / angle.length)).rotationMatrix
                 return toAttackLocation.rotated(rotation) + maneuverTarget.location
             }
 
