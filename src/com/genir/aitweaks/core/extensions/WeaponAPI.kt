@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.CollisionClass.*
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
+import com.fs.starfarer.api.combat.DamageType.KINETIC
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.fs.starfarer.api.combat.WeaponGroupAPI
@@ -28,7 +29,15 @@ val WeaponAPI.isAntiFighter: Boolean
     get() = hasAITag(Tag.ANTI_FIGHTER) || hasAIHint(ANTI_FTR)
 
 val WeaponAPI.isStrictlyAntiShield: Boolean
-    get() = hasAITag(Tag.ANTI_SHIELD) && state.config.enableNeedlerFix
+    get() = when {
+        !state.config.enableNeedlerFix -> false
+
+        hasAITag(Tag.ANTI_SHIELD) -> true
+
+        damageType == KINETIC && usesAmmo() -> true
+
+        else -> false
+    }
 
 val WeaponAPI.isFinisherBeam
     get() = when {

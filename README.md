@@ -146,21 +146,13 @@ The improved AI applies only to normal beams, not burst or ammo based beams.
 
 ![beam weapon ai](https://player.vimeo.com/video/1026930513?h=9c69150945)
 
-#### Modified Heavy, Light and Storm Needler autofire AI ####
+#### Modified anti-shield burst weapon AI ####
 
-A simple modification preventing autofire AI from firing Light Needler, Heavy Needler and Storm Needler on shieldless
-targets. This change greatly improves needlers anti shield capability by preventing them from wasting bursts on exposed
-hulls. All ships are subject to the change, no hull mod is required.
+Heavy, Light and Storm Needler
 
-Improved Needler AI is enabled by adding `ANTI_SHIELD` aiTweaksTag to `/data/weapons/weaponId.ait` file:
-
-```
-{
-  "aiTag": [
-    "ANTI_SHIELD"
-  ]
-}
-```
+A simple modification preventing autofire AI from firing ammo-based kinetic weapons, as well as the Light Needler, Heavy
+Needler and Storm Needler on shieldless targets. This change greatly improves needlers anti shield capability by
+preventing them from wasting bursts on exposed hulls. All ships are subject to the change, no hull mod is required.
 
 The feature can be disabled via LunaLib settings.
 
