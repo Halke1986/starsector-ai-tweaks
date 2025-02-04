@@ -129,7 +129,10 @@ val ShipAPI.isFast: Boolean
 val ShipAPI.baseMaxSpeed: Float
     get() {
         val stats = mutableStats.maxSpeed.createCopy()
-        stats.unmodify(system.id + " effect")
+
+        if (system != null) {
+            stats.unmodify(system.id + " effect")
+        }
 
         // Remove zero flux boost for ships with no Safety Overrides.
         if (mutableStats.zeroFluxMinimumFluxLevel.modifiedValue < 1f) {

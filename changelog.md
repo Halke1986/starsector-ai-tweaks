@@ -1,3 +1,6 @@
+- Custom AI: If the enemy is in full retreat, ships will attempt to intercept and block its escape route. Suggested by Reshy.
+- Custom AI: Several improvements and regression fixes in ship movement coordination.
+
 Version 1.12.1
 
 - Custom AI: Fixed another case of interrupting bursts by venting flux, this time affecting burst beams.

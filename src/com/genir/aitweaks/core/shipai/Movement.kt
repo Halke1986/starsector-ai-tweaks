@@ -12,7 +12,6 @@ import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedAroundPivot
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
@@ -147,9 +146,23 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                 ship.location - maneuverTarget.location
             }
 
+            // If the enemy is retreating, attempt to intercept and block its escape route.
+            Global.getCombatEngine().getFleetManager(ship.owner xor 1).getTaskManager(false).isInFullRetreat -> {
+                when (ship.owner) {
+                    0 -> Vector2f(0f, 1f)
+                    else -> Vector2f(0f, -1f)
+                }
+            }
+
             // Move straight to the target if no threat. This may happen
             // if the target is far away, beyond the threat search radius.
             ai.threatVector.isZero -> {
+                ship.location - maneuverTarget.location
+            }
+
+            // If the target is far away, move directly toward it instead of using the local threat vector.
+            // This is because the threat vector near the target may differ from the one in the current location.
+            maneuverTarget !in ai.threats -> {
                 ship.location - maneuverTarget.location
             }
 
@@ -165,24 +178,14 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         }
 
         val attackLocation = preferMapCenter(attackVector).resized(ai.attackRange) + maneuverTarget.location
-        val adjustedAttackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
+        val coordinatedAttackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
 
         // Assault ships don't need angle adjustment, as it interferes with the burn drive.
         if (ai.isAssaultShip && !isAttackingStation) {
-            return adjustedAttackLocation
+            return coordinatedAttackLocation
         }
 
-        // Cap the maximum angle between current ship location and
-        // planned attack location. Otherwise, the ship may approach
-        // the maneuver target too close.
-        val maxAngle = 15f
-        val angle = getShortestRotation(ship.location, maneuverTarget.location, adjustedAttackLocation)
-        if (angle.length > maxAngle) {
-            val rotation = (-(angle - 15f * angle.sign)).rotationMatrix
-            return adjustedAttackLocation.rotatedAroundPivot(rotation, maneuverTarget.location)
-        }
-
-        return adjustedAttackLocation
+        return avoidGoingThroughTarget(maneuverTarget, coordinatedAttackLocation)
     }
 
     /** Take into account other entities when planning ship attack location. */
@@ -254,6 +257,42 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
         val newHeadingPoint = (newAngle).unitVector.resized(dist) + maneuverTarget.location
         return newHeadingPoint
+    }
+
+    /** Cap the maximum angle between current ship location and
+     * planned attack location. Otherwise, the ship may approach
+     * the maneuver target too close.*/
+    private fun avoidGoingThroughTarget(maneuverTarget: ShipAPI, attackLocation: Vector2f): Vector2f {
+        // Do calculations in target frame of reference.
+        val toShip = ship.location - maneuverTarget.location
+        val toAttackLocation = attackLocation - maneuverTarget.location
+        val dist = toShip.length
+
+        // Ship is already too close to target. Cap the angle to avoid getting even closer.
+        if (dist < ai.attackRange) {
+            val maxAngle = 15f
+            val angle = toShip.facing - toAttackLocation.facing
+            if (angle.length > maxAngle) {
+                val rotation = (-(angle - 15f * angle.sign)).rotationMatrix
+                return toAttackLocation.rotated(rotation) + maneuverTarget.location
+            }
+
+            return attackLocation
+        }
+
+        // If heading directly to the attack location would bring the ship too close to the target,
+        // instead, navigate to a tangential point on the attack radius around the target.
+        val cosTangent: Float = ai.attackRange / dist
+        val cosTarget: Float = dotProduct(toAttackLocation, toShip) / (ai.attackRange * dist)
+        if (cosTangent <= cosTarget) {
+            return attackLocation
+        }
+
+        val points: Pair<Vector2f, Vector2f> = pointsOfTangency(-toShip, ai.attackRange)!!
+        val point1Dir = (points.first + toShip).facing - toAttackLocation.facing
+        val point2Dir = (points.second + toShip).facing - toAttackLocation.facing
+
+        return ship.location + if (point1Dir.length < point2Dir.length) points.first else points.second
     }
 
     private fun manageMobilitySystems() {
@@ -352,22 +391,27 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             val obstacleFacing = obstacleLineOfFire.facing
             val angleToObstacle = obstacleFacing - shipFacing
 
+            // Consider the ship farther from the target as potentially being blocked.
             val blocked = if (obstacleLineOfFire.lengthSquared < shipLineOfFire.lengthSquared) ai
             else obstacle
 
             when {
+                // Blocking the line of fire of a backing-off ship is not only allowed
+                // but beneficial, as it may provide cover from enemy fire.
+                blocked.ventModule.isBackingOff -> return@forEach
+
                 // Too far from obstacle line of fire to consider blocking.
                 angleToObstacle.length >= 90f -> return@forEach
 
                 // Ship is moving away from the obstacle.
                 angleToObstacle.sign != shipW.sign -> return@forEach
 
-                // Do not consider line of fire blocking if target is out of range, with 2 tolerance factor.
-                blocked.currentEffectiveRange(target) > blocked.attackingGroup.maxRange * 2f -> return@forEach
+                // Do not consider line of fire blocking if target is out of range, with a tolerance factor.
+                blocked.currentEffectiveRange(target) > blocked.attackingGroup.maxRange * 2.5f -> return@forEach
             }
 
             val arcLength = distToTarget * angleToObstacle.length * DEGREES_TO_RADIANS
-            val minDist = (ai.stats.totalCollisionRadius + obstacle.stats.totalCollisionRadius) * 0.75f
+            val minDist = (ai.stats.totalCollisionRadius + obstacle.stats.totalCollisionRadius) * 1.1f
             val distance = arcLength - minDist
 
             // Max speed towards obstacle line of fire.
@@ -382,17 +426,21 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                 vMax(dt, distance, ship.strafeAcceleration) + obstacleVDirection * obstacleVComponent
             }
 
-            // Line of fire blocking occurs when ships orbiting the same target
-            // strafe in front of each one. To prevent this, speed limit is imposed
-            // only on strafing velocity. This allows to return only the most severe
-            // speed limit, as all found limits are parallel.
+            // Line-of-fire blocking occurs when ships orbiting the same target
+            // strafe in front of each other. To prevent this, a speed limit is applied
+            // only to the strafing velocity. This ensures that only the most restrictive
+            // speed limit is used, as all calculated limits are parallel.
+            //
+            // Additionally, the velocity limits are rotated slightly (by a few degrees)
+            // away from the heading. This allows the ship to keep moving toward the target
+            // even when constrained by opposing limits.
             if (angleToObstacle.sign > 0) {
                 if (maxLimitRight == null || maxLimitRight!!.speed > vMax) {
-                    maxLimitRight = EngineController.Limit(shipFacing + 90f, vMax)
+                    maxLimitRight = EngineController.Limit(shipFacing + 92f, vMax)
                 }
             } else {
                 if (maxLimitLeft == null || maxLimitLeft!!.speed > vMax) {
-                    maxLimitLeft = EngineController.Limit(shipFacing - 90f, vMax)
+                    maxLimitLeft = EngineController.Limit(shipFacing - 92f, vMax)
                 }
             }
         }
@@ -411,17 +459,22 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         // always near a map corner. That way we can use a circle
         // calculations to approximate a rectangle with rounded corners.
         val l = ship.location
-        val borderIntrusion = Vector2f()
-        borderIntrusion.x = if (l.x > 0) (l.x - mapW + borderZone).coerceAtLeast(0f)
-        else (l.x + mapW - borderZone).coerceAtMost(0f)
-        borderIntrusion.y = if (l.y > 0) (l.y - mapH + borderZone).coerceAtLeast(0f)
-        else (l.y + mapH - borderZone).coerceAtMost(0f)
+
+        val borderIntrusion = Vector2f(
+            if (l.x > 0) (l.x - mapW + borderZone).coerceAtLeast(0f)
+            else (l.x + mapW - borderZone).coerceAtMost(0f),
+
+            if (l.y > 0) (l.y - mapH + borderZone).coerceAtLeast(0f)
+            else (l.y + mapH - borderZone).coerceAtMost(0f),
+        )
 
         // Distance into the border zone.
         val d = (borderIntrusion.length - Preset.borderCornerRadius).coerceAtLeast(0f)
 
         // Ship is far from border, no avoidance required.
-        if (d == 0f) return null
+        if (d == 0f) {
+            return null
+        }
 
         // Allow chasing targets into the border zone.
         val tgtLoc = ai.maneuverTarget?.location

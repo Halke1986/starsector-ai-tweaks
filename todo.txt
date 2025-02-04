@@ -31,8 +31,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - try to attack same enemy battle group during initial split
 
-- fleet coord seems to leave no place for ships sometimes, observed with erads
-
 - notify systems of overridden facing in extended AI
 
 - nova backing off too far to vent
@@ -43,6 +41,8 @@ SUGGESTED: ships avoid collisions with very large modded shields
 check Lidar on faster ships - destroyer : ass pinetree, frigate DEX Catapult
 
 - automatic front shields?
+
+- why SO ships backing off so far away
 
 ----------------------------------------------------------------
 
@@ -55,5 +55,3 @@ The funny Luddic explosive Tankers loses its suicidal behavior
 Standard behavior is: Once they get in range they usually press the button, charge in and explode.
 What they are doing? Get in range with their guns and get slaughtered or even retreat.
 I have the same behavior with the current release version of Tweaks
-
-SUGGESTED by Reshy: A minor request but is it possible to change the way that AI pursues retreating ships so that they go to where the ship wants to be (the edge of their side of the map) rather than chasing them to their current location as they're actively moving away.  Basically, something to help the AI know to cut off fleeing ships.

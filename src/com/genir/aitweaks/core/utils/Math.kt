@@ -114,15 +114,17 @@ fun angularSize(distanceSqr: Float, radius: Float): Float {
 /** Calculates the points of tangency for a circle centered at point `p`
  * with radius `r`, where the tangents pass through the origin (0, 0). */
 fun pointsOfTangency(p: Vector2f, r: Float): Pair<Vector2f, Vector2f>? {
-    val r2 = r * r
     val d2 = p.lengthSquared
     val d = sqrt(d2)
 
     // Undefined for circles containing the origin.
-    if (d < r) return null
+    if (d < r) {
+        return null
+    }
 
     // Calculate one of the points of tangency in a rotated frame
     // of reference, where the point 'p' lies on the x-axis.
+    val r2 = r * r
     val hx = d - r2 / d
     val hy = sqrt(d2 - hx * hx - r2)
 
