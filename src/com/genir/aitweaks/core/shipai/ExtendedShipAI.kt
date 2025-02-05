@@ -34,9 +34,15 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
         debug()
 
         super.advance(dt)
-        updateInterval.advance(dt)
 
+        updateInterval.advance(dt)
         controlFacing(dt)
+
+        // Make sure the ship target is set. Vanilla AI may fail to do so
+        // because of the autofire management modifications.
+        if (ship.shipTarget == null) {
+            ship.shipTarget = ship.attackTarget
+        }
     }
 
     private fun debug() {

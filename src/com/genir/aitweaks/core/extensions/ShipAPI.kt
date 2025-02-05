@@ -38,25 +38,34 @@ val ShipAPI.deployedFleetMember: DeployedFleetMemberAPI?
 
 /** Get target which the ship is currently attacking. */
 val ShipAPI.attackTarget: ShipAPI?
-    get() = when {
-        // Modules follow their parent target.
-        isModule -> root.attackTarget
+    get() {
+        val entity = when {
+            // Modules follow their parent target.
+            isModule -> root.attackTarget
 
-        // Custom AI reliably sets shipTarget value.
-        customShipAI != null -> shipTarget
+            // Custom AI reliably sets shipTarget value.
+            customShipAI != null -> shipTarget
 
-        // For manually controlled ship, return R-selected target.
-        isUnderManualControl -> shipTarget
+            // For manually controlled ship, return the R-selected target.
+            isUnderManualControl -> shipTarget
 
-        basicShipAI != null -> {
-            val ai = basicShipAI!! as Obfuscated.BasicShipAI
-            val maneuver: Obfuscated.Maneuver? = ai.currentManeuver
+            // For vanilla AI, check the maneuver target directly.
+            basicShipAI != null -> {
+                val ai = basicShipAI!! as Obfuscated.BasicShipAI
+                val maneuver: Obfuscated.Maneuver? = ai.currentManeuver
 
-            maneuver?.maneuver_getTarget() as? ShipAPI
+                maneuver?.maneuver_getTarget()
+            }
+
+            // Fall back to using vanilla maneuver target flag.
+            else -> aiFlags?.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET)
         }
 
-        // Fall back to using vanilla maneuver target flag.
-        else -> aiFlags?.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET) as? ShipAPI
+        if (entity !is ShipAPI || !entity.isValidTarget) {
+            return null
+        }
+
+        return entity
     }
 
 val ShipAPI.isAutomated: Boolean
