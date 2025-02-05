@@ -436,11 +436,11 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             // even when constrained by opposing limits.
             if (angleToObstacle.sign > 0) {
                 if (maxLimitRight == null || maxLimitRight!!.speed > vMax) {
-                    maxLimitRight = EngineController.Limit(shipFacing + 92f, vMax)
+                    maxLimitRight = EngineController.Limit(shipFacing + 88f, vMax)
                 }
             } else {
                 if (maxLimitLeft == null || maxLimitLeft!!.speed > vMax) {
-                    maxLimitLeft = EngineController.Limit(shipFacing - 92f, vMax)
+                    maxLimitLeft = EngineController.Limit(shipFacing - 88f, vMax)
                 }
             }
         }
