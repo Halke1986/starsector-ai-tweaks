@@ -14,6 +14,7 @@ import com.genir.aitweaks.core.shipai.BasicEngineController
 import com.genir.aitweaks.core.shipai.WeaponGroup
 import com.genir.aitweaks.core.shipai.autofire.*
 import com.genir.aitweaks.core.state.State
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
@@ -209,6 +210,16 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         }
 
         closestTarget(ships)?.let { return it }
+
+        if (state.config.aimAssistTargetJunk) {
+            return selectJunkTarget()
+        }
+
+        return null
+    }
+
+    private fun selectJunkTarget(): CombatEntityAPI? {
+        val searchRadius = 500f
 
         val hulks = Grid.ships(mousePosition(), searchRadius).filter {
             when {

@@ -36,16 +36,31 @@ import java.awt.Color.GREEN
  */
 
 internal fun debug(dt: Float) {
-    val ship = Global.getCombatEngine().playerShip ?: return
-    val ships = Global.getCombatEngine().ships
-
-//    ship.allGroupedWeapons.forEach {
-//        Debug.print[it] = "${it.peakDPS}"
-//    }
+//    val ship = Global.getCombatEngine().playerShip ?: return
+//    val ships = Global.getCombatEngine().ships
+//
+//    val target = Global.getCombatEngine().playerShip ?: return
+//    val ship = Global.getCombatEngine().ships.firstOrNull { it != target } ?: return
+//
+//    installAI(ship) { OrbitTargetAI(ship, target, 500f) }
 }
 
 var expectedFacing = Direction(90f)
 const val df = -1f * 60f
+
+class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : BaseEngineControllerAI() {
+    private val controller = EngineController(ship)
+
+    override fun advance(dt: Float) {
+        val toTarget = target.location - ship.location
+
+        val v = toTarget.rotated(RotationMatrix(90f)).resized(ship.baseMaxSpeed)
+
+
+        controller.heading(dt, toTarget.resized(-r) + target.location, v + target.velocity)
+        controller.facing(dt, toTarget.facing)
+    }
+}
 
 class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     private val controller = EngineController(ship)
