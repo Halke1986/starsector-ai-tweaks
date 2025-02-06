@@ -1,4 +1,6 @@
-- Custom AI: If the enemy is in full retreat, ships will attempt to intercept and block its escape route. Suggested by Reshy.
+Version 1.12.2
+
+- Custom AI: If the enemy is in full retreat, ships will attempt to intercept and block its escape route. This is the initial implementation of the feature, improvements are on the todo list. Suggested by Reshy.
 - Custom AI: Several improvements and regression fixes in ship movement coordination.
 - All ammo-based kinetic weapons attack enemy ships only when their shields are raised. Previously the behavior applied only to vanilla Needlers. This feature can be disabled in LunaLib settings. Suggested by vinh.
 - Aim Assist can be configured not to target hulks and asteroids. Suggested by Roxorium.
