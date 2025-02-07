@@ -44,16 +44,21 @@ class State : BaseEveryFrameCombatPlugin() {
     val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
     val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
+    val velocityTracker: VelocityTracker = VelocityTracker()
 
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
         fleetSegmentation[0],
         fleetSegmentation[1],
         fleetCohesion[0],
         fleetCohesion[1],
-        accelerationTracker,
         AimAssistManager(),
         AutoOmniShields(),
         AttackCoordinator(),
+
+        // Update ship state after every frame logic, so that
+        // the every frame logic observes the same state as ship AI.
+        accelerationTracker,
+        velocityTracker,
     )
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {

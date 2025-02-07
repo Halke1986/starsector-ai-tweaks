@@ -47,3 +47,12 @@ fun CombatEntityAPI.isHostile(otherEntity: CombatEntityAPI): Boolean {
 
 val CombatEntityAPI.boundsRadius: Float
     get() = state.bounds.radius(this)
+
+/** Return entity velocity in global spatial and time frame of reference.
+ * Returns correct value for modules and time-accelerated ships. */
+val CombatEntityAPI.absoluteVelocity: Vector2f
+    get() = if (this is ShipAPI) {
+        state.velocityTracker.get(this)
+    } else {
+        velocity
+    }
