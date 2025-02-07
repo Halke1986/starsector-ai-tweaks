@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.EveryFrameCombatPlugin
 import com.fs.starfarer.campaign.ui.fleet.FleetMemberView
 import com.fs.starfarer.combat.CombatEngine
 import com.fs.starfarer.combat.ai.BasicShipAI
+import com.fs.starfarer.combat.ai.OmniShieldControlAI
 import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
 import com.fs.starfarer.loading.LoadingUtils
@@ -21,6 +22,8 @@ import java.lang.reflect.ParameterizedType
 
 @Suppress("PropertyName")
 class Symbols {
+    val classLoader: ClassLoader = this::class.java.classLoader
+
     // Classes with un-obfuscated names.
     val ship: Class<*> = Ship::class.java
     val basicShipAI: Class<*> = BasicShipAI::class.java
@@ -29,6 +32,7 @@ class Symbols {
     val combatEngine: Class<*> = CombatEngine::class.java
     val titleScreenState: Class<*> = TitleScreenState::class.java
     val loadingUtils: Class<*> = LoadingUtils::class.java
+    val omniShieldControlAI: Class<*> = OmniShieldControlAI::class.java
 
     // Classes and interfaces.
     val flockingAI: Class<*> = basicShipAI.getMethod("getFlockingAI").returnType
@@ -54,6 +58,7 @@ class Symbols {
     val missionDefinitionPluginContainer: Class<*> = missionDefinition.classes.first()
     val beamWeapon: Class<*> = findWeaponTypes()[0]
     val projectileWeapon: Class<*> = findWeaponTypes()[2]
+    val frontShieldAI: Class<*> = findFrontShieldAI()
 
     // Methods and fields.
     val autofireManager_advance: Method = autofireManager.methods.first { it.name != "<init>" }
@@ -116,7 +121,7 @@ class Symbols {
 
         // Identify approach maneuver by number of methods.
         // The expected maneuver has the higher number of methods
-        val candidateClasses: List<Class<*>> = candidates.map { this::class.java.classLoader.loadClass(it.replace("/", ".")) }
+        val candidateClasses: List<Class<*>> = candidates.map { classLoader.loadClass(it.replace("/", ".")) }
         return candidateClasses.maxWithOrNull { a, b -> a.declaredMethods.size - b.declaredMethods.size }!!
     }
 
@@ -174,7 +179,49 @@ class Symbols {
             }
         })
 
-        return weaponTypes.map { this::class.java.classLoader.loadClass(it.replace("/", ".")) }
+        return weaponTypes.map { classLoader.loadClass(it.replace("/", ".")) }
+    }
+
+    private fun findFrontShieldAI(): Class<*> {
+        var omniShieldAI: Class<*>? = null
+        var frontShieldAI: Class<*>? = null
+
+        // Find OmniShieldAI in OmniShieldControlAI.
+        newClassReader(omniShieldControlAI.classPath).accept(object : ClassVisitor(Opcodes.ASM4) {
+            override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+                if (name != "<init>") {
+                    return null
+                }
+
+                return object : MethodVisitor(Opcodes.ASM4) {
+                    override fun visitTypeInsn(opcode: Int, type: String) {
+                        val c = classLoader.loadClass(type.replace("/", "."))
+                        if (shieldAI in c.interfaces) {
+                            omniShieldAI = c
+                        }
+                    }
+                }
+            }
+        })
+
+        newClassReader(BasicShipAI::class.java.classPath).accept(object : ClassVisitor(Opcodes.ASM4) {
+            override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+                if (name != "<init>" || desc != "(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/api/combat/ShipAIConfig;)V") {
+                    return null
+                }
+
+                return object : MethodVisitor(Opcodes.ASM4) {
+                    override fun visitTypeInsn(opcode: Int, type: String) {
+                        val c = classLoader.loadClass(type.replace("/", "."))
+                        if (shieldAI in c.interfaces && c != omniShieldAI) {
+                            frontShieldAI = c
+                        }
+                    }
+                }
+            }
+        })
+
+        return frontShieldAI!!
     }
 
     private fun ClassReader.accept(classVisitor: ClassVisitor) {
@@ -182,6 +229,6 @@ class Symbols {
     }
 
     private fun newClassReader(classPath: String): ClassReader {
-        return ClassReader(Bytecode.readClassBuffer(this::class.java.classLoader, classPath))
+        return ClassReader(Bytecode.readClassBuffer(classLoader, classPath))
     }
 }

@@ -3,11 +3,14 @@ package com.genir.aitweaks.core.playerassist
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.ShieldAPI.ShieldType.FRONT
+import com.fs.starfarer.api.combat.ShieldAPI.ShieldType.OMNI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.Misc
 import com.fs.starfarer.campaign.CampaignEngine
 import com.fs.starfarer.combat.ai.OmniShieldControlAI
 import com.fs.starfarer.combat.entities.Ship
+import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.command
 import com.genir.aitweaks.core.extensions.isUnderManualControl
 import com.genir.aitweaks.core.shipai.BaseShipAIPlugin
@@ -20,10 +23,11 @@ import com.genir.aitweaks.core.utils.mousePosition
 import org.lazywizard.lazylib.opengl.DrawUtils
 import org.lwjgl.opengl.GL11
 import java.awt.Color
+import java.lang.reflect.Field
 import java.util.*
 import kotlin.math.max
 
-class AutoOmniShields : BaseEveryFrameCombatPlugin() {
+class ShieldAssist : BaseEveryFrameCombatPlugin() {
     private var aiDrone: ShipAPI? = null
 
     private var enableShieldAssist = false
@@ -42,14 +46,16 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
         // Handle input.
         events?.forEach {
             // Toggle the shield assist and persist the setting to memory.
-            if (!it.isConsumed && it.isKeyDownEvent && it.eventValue == State.state.config.omniShieldKeybind) {
+            if (!it.isConsumed && it.isKeyDownEvent && it.eventValue == State.state.config.shieldAssistKeybind) {
                 enableShieldAssist = !enableShieldAssist
                 memory.set(ENABLE_SHIELD_ASSIST_KEY, enableShieldAssist)
             }
         }
 
         // Nothing to do, exit early.
-        if (!enableShieldAssist) return
+        if (!enableShieldAssist) {
+            return
+        }
 
         // Make a drone to hold player ship shield AI.
         if (aiDrone == null) {
@@ -81,7 +87,7 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
                 !ship.isAlive -> return
                 !ship.isUnderManualControl -> return
 
-                shield.type != ShieldAPI.ShieldType.OMNI -> return
+                shield.type != OMNI && shield.type != FRONT -> return
                 !enableShieldAssist -> return
             }
 
@@ -90,6 +96,16 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
                 prevPlayerShip = ship
                 val flags = ShipwideAIFlags()
                 shieldAI = OmniShieldControlAI(ship as Ship, flags)
+
+                // Replace the default omni shield AI with front shield AI.
+                if (shield.type == FRONT) {
+                    val frontShieldAI = Obfuscated.FrontShieldAI(ship, flags)
+
+                    val shieldAIField: Field = OmniShieldControlAI::class.java.getDeclaredField("shieldAI")
+                    shieldAIField.setAccessible(true)
+
+                    shieldAIField.set(shieldAI, frontShieldAI)
+                }
             }
 
             // Clear player manual command.
@@ -99,12 +115,16 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
             forceShieldOff = prevForceShieldOff
             if (VanillaKeymap.isKeyDownEvent(VanillaKeymap.PlayerAction.SHIP_SHIELDS)) {
                 forceShieldOff = !forceShieldOff
-                if (forceShieldOff == shield.isOn) ship.command(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK)
+                if (forceShieldOff == shield.isOn) {
+                    ship.command(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK)
+                }
             }
 
-            if (forceShieldOff) return
+            if (forceShieldOff) {
+                return
+            }
 
-            // Control the omni shield.
+            // Control the shield.
             shieldAI!!.advance(dt)
             ship.mouseTarget?.let { ship.setShieldTargetOverride(it.x, it.y) }
 
@@ -121,7 +141,7 @@ class AutoOmniShields : BaseEveryFrameCombatPlugin() {
             val shield = ship.shield ?: return
 
             when {
-                shield.type != ShieldAPI.ShieldType.OMNI -> return
+                shield.type != OMNI && shield.type != FRONT -> return
                 !engine.isUIAutopilotOn -> return
                 !enableShieldAssist -> return
             }

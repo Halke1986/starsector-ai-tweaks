@@ -17,7 +17,7 @@ class Config {
     val aiPersonality: String? = LunaSettings.getString("aitweaks", "aitweaks_ai_core_personality")
 
     // Player assist
-    val omniShieldKeybind: Int = LunaSettings.getInt("aitweaks", "aitweaks_omni_shield_keybind")!!
+    val shieldAssistKeybind: Int = LunaSettings.getInt("aitweaks", "aitweaks_shield_assist_keybind")!!
     val aimAssistKeybind: Int = LunaSettings.getInt("aitweaks", "aitweaks_aim_bot_keybind")!!
     val aimAssistRotateShip: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_aim_bot_rotate_ship")!!
     val aimAssistTargetJunk: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_aim_bot_target_junk")!!

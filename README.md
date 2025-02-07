@@ -213,15 +213,15 @@ by High Energy Focus!
 Player Assist
 -------------
 
-### 1. Automatic omni shields for player ship ###
+### 1. Shield assist for player ship ###
 
 Vanilla AI is notoriously good at controlling omni shields, often better than the player himself.
 
-Now, with AI Tweaks it's possible to pilot ship manually while leaving omni shield in AI control. Be warned though.
+Now, with AI Tweaks it's possible to pilot ship manually while leaving shield in AI control. Be warned though.
 According to playtesters the feature may be a bit too powerful. Still, "it's not so OP that it's unusable" as playtester
-snark said.
+snark said. The assist works for both omni and front shields.
 
-Automatic omni shields are toggled with `]` (right bracket) key by default. Keybinding can be configured via LunaLib
+Shield assist van be toggled with `]` (right bracket) key by default. Keybinding can be configured via LunaLib
 settings. When AI is in control, a circular indicator is displayed around the ship. The player can override AI and force
 the shields to drop with right mouse button.
 

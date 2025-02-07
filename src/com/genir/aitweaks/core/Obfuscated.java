@@ -211,4 +211,9 @@ public class Obfuscated {
             return null;
         }
     }
+
+    public static class FrontShieldAI {
+        public FrontShieldAI(com.fs.starfarer.combat.entities.Ship ship, ShipwideAIFlags flags) {
+        }
+    }
 }

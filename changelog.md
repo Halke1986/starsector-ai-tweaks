@@ -1,3 +1,5 @@
+- Player shield assist now works also with front shields. 
+
 Version 1.12.2
 
 - Custom AI: If the enemy is in full retreat, ships will attempt to intercept and block its escape route. This is the initial implementation of the feature, improvements are on the todo list. Suggested by Reshy.

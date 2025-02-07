@@ -42,3 +42,5 @@ check Lidar on faster ships - destroyer : ass pinetree, frigate DEX Catapult
 - why SO ships backing off so far away
 - nova backing off too far to vent
     - probably missileDangerDir
+
+- Unify "$\ " keys!
