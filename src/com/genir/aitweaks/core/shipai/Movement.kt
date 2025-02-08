@@ -269,7 +269,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val dist = toShip.length
 
         // Ship is already too close to target. Cap the angle to avoid getting even closer.
-        if (dist < ai.attackRange) {
+        if (dist <= ai.attackRange) {
             val maxAngle = 15f
             val angle = toShip.facing - toAttackLocation.facing
             if (angle.length > maxAngle) {
