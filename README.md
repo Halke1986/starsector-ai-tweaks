@@ -148,8 +148,6 @@ The improved AI applies only to normal beams, not burst or ammo based beams.
 
 #### Modified anti-shield burst weapon AI ####
 
-Heavy, Light and Storm Needler
-
 A simple modification preventing autofire AI from firing ammo-based kinetic weapons, as well as the Light Needler, Heavy
 Needler and Storm Needler on shieldless targets. This change greatly improves needlers anti shield capability by
 preventing them from wasting bursts on exposed hulls. All ships are subject to the change, no hull mod is required.

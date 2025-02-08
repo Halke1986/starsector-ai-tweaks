@@ -28,6 +28,10 @@ class Arc(angle: Float, val facing: Direction) {
     val half: Float
         get() = angle * 0.5f
 
+    override fun toString(): String {
+        return "Arc[$angle, $facing]"
+    }
+
     companion object {
         /** Merges a list of arcs into a single continuous arc.
          * Assumes that the list forms a single, unbroken arc.

@@ -1,4 +1,4 @@
-- Player shield assist now works also with front shields. 
+- Player shield assist now works with front shields. 
 
 Version 1.12.2
 
