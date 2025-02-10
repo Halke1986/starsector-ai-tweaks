@@ -92,7 +92,7 @@ class Bounds {
 
     /** Radius of a circle encompassing the entity bounds. */
     fun radius(entity: CombatEntityAPI): Float {
-        val bounds = entity.exactBounds ?: return 0f
+        val bounds = entity.exactBounds ?: return entity.collisionRadius
         val now = Global.getCombatEngine().getTotalElapsedTime(false)
 
         radiusCache[entity]?.let { (radius, timestamp) ->

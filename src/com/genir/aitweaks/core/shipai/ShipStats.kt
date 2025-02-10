@@ -57,13 +57,41 @@ class ShipStats(private val ship: ShipAPI) {
 
         // Find firing arc boundary closest to ship front for
         // each weapon, or 0f for front facing weapons.
-        val attackAngles: Map<Direction, Float> = WeaponGroup.attackAngles(significantWeapons).ifEmpty { return listOf() }
+        val attackAngles: Map<Direction, Float> = attackAngles(significantWeapons).ifEmpty { return listOf() }
 
         // Find all weapon groups with acceptable DPS.
         val bestWeaponGroup = attackAngles.maxWithOrNull(compareBy<Map.Entry<Direction, Float>> { it.value }.thenBy { -it.key.length })!!
         val validWeaponGroups = attackAngles.filter { it.value >= bestWeaponGroup.value * Preset.validWeaponGroupDPSThreshold }
         return validWeaponGroups.map { (angle, _) ->
             WeaponGroup(ship, significantWeapons.filter { it.isAngleInArc(angle) })
+        }
+    }
+
+    /** Find firing arc angles closest to ship front for each weapon,
+     * or 0f for front facing weapons. Associate the angles with total
+     * DPS for the provided weapon list.*/
+    private fun attackAngles(weapons: List<WeaponAPI>): Map<Direction, Float> {
+        val angles: List<Direction> = weapons.flatMap { weapon ->
+            val facing: Direction = weapon.arcFacing.direction
+            val arc = weapon.arc
+
+            when {
+                // Assume hardpoints have no arc at all.
+                weapon.slot.isHardpoint -> listOf(facing)
+
+                // Ship front is within weapon arc.
+                facing.length < arc / 2f -> listOf(Direction(0f))
+
+                // Ship back is within weapon arc, return both angles.
+                180f - facing.length < arc / 2f -> listOf(facing - arc / 2f, facing + arc / 2f)
+
+                // Return weapon arc boundary closer to ship front.
+                else -> listOf(facing - facing.sign * (arc / 2f))
+            }
+        }
+
+        return angles.toSet().associateWith { angle ->
+            weapons.filter { it.isAngleInArc(angle) }.sumOf { it.effectiveDPS }
         }
     }
 }

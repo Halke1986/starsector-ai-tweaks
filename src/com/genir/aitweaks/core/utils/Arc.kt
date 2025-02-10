@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.utils
 
 import com.genir.aitweaks.core.extensions.facing
+import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
@@ -8,25 +9,49 @@ import kotlin.math.min
 class Arc(angle: Float, val facing: Direction) {
     val angle = min(360f, abs(angle))
 
-    fun overlaps(second: Arc): Boolean {
-        val offset = (this.facing - second.facing).length
-        return offset <= this.half + second.half
-    }
+    constructor(angle: Float, facing: Float) : this(angle, Direction(facing))
 
-    fun contains(facing: Direction): Boolean {
-        return (facing - this.facing).length <= half
-    }
+    val half: Float
+        get() = angle * 0.5f
 
-    fun contains(v: Vector2f): Boolean {
-        return contains(v.facing)
+    val arms: Pair<Direction, Direction>
+        get() = Pair(facing - half, facing + half)
+
+    fun rotated(rotation: Float): Arc {
+        return Arc(angle, facing + rotation)
     }
 
     fun extendedBy(degrees: Float): Arc {
         return Arc((angle + degrees).coerceIn(0f, 360f), facing)
     }
 
-    val half: Float
-        get() = angle * 0.5f
+    fun overlaps(second: Arc, tolerance: Float = 0f): Boolean {
+        val offset = (this.facing - second.facing).length
+        return offset <= half + second.half + tolerance
+    }
+
+    fun contains(facing: Direction, tolerance: Float = 0f): Boolean {
+        return (facing - this.facing).length <= half + tolerance
+    }
+
+    fun contains(v: Vector2f): Boolean {
+        return contains(v.facing)
+    }
+
+    /** Distance from arc to direction.
+     * 0f if arc contains the direction. */
+    fun distanceTo(d: Direction): Direction {
+        if (contains(d)) {
+            return 0f.direction
+        }
+
+        val arms = arms
+
+        val dist1 = d - arms.first
+        val dist2 = d - arms.second
+
+        return if (dist1.length < dist2.length) dist1 else dist2
+    }
 
     override fun toString(): String {
         return "Arc[$angle, $facing]"

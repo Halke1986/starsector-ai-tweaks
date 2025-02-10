@@ -6,9 +6,15 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.*
 import com.genir.aitweaks.core.state.State
+import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.angularSize
+import com.genir.aitweaks.core.utils.solve
 import org.lwjgl.util.vector.Vector2f
+
+// TODO bounds angular size?
+// TODO test ship with no weapons
 
 /** A group of weapons that should be able to fire along a single attack vector. */
 class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
@@ -33,106 +39,13 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         return if (all != 0f) inRange / all else 0f
     }
 
-    data class DPSArc(val arcStart: Float, val arcEnd: Float, val dps: Float) {
-        fun contains(angle: Float): Boolean {
-            return angle in arcStart..arcEnd
-        }
-    }
-
-    /** Calculate facing that maximizes DPS delivered to the target. */
-    fun attackFacing(target: CombatEntityAPI, targetLocationOverride: Vector2f? = null): Direction {
-        val ballisticTarget = BallisticTarget(
-            targetLocationOverride ?: target.location,
-            target.timeAdjustedVelocity,
-            State.state.bounds.radius(target),
-        )
-
-        val targetFacing = (target.location - ship.location).facing
-        val directFacing = targetFacing + defaultFacing
-
-        // Calculate offset angle between default facing and intercept arc for each weapon.
-        val facingStash = ship.facing
-        val solutions: List<DPSArc> = try {
-            // Aim the weapon as if the ship was facing the target directly.
-            // This allows to eliminate velocity and location translation errors.
-            ship.facing = directFacing.degrees
-
-            val defaultFacingVector = defaultFacing.unitVector
-            weapons.mapNotNull { weapon ->
-                // Full arcs are not relevant when aiming.
-                if (weapon.arc == 360f) {
-                    return@mapNotNull null
-                }
-
-                val defaultAttackPoint = defaultFacingVector * weapon.rangeInGroup
-                var defaultFacing: Direction = (defaultAttackPoint - weapon.slot.location).facing
-
-                // Default weapon facing falls outside the slot firing arc.
-                if (!weapon.isAngleInArc(defaultFacing)) {
-                    val toSlotBoundaryStart = (weapon.arcFacing.direction - weapon.arc / 2) - defaultFacing
-                    val toSlotBoundaryEnd = (weapon.arcFacing.direction + weapon.arc / 2) - defaultFacing
-
-                    defaultFacing += if (toSlotBoundaryStart.length > toSlotBoundaryEnd.length) toSlotBoundaryEnd else toSlotBoundaryStart
-                }
-
-                val interceptArc = interceptArc(weapon, ballisticTarget, defaultBallisticParams)
-                val relativeFacing = (interceptArc.facing - (defaultFacing + ship.facing.direction)).degrees
-                val halArc = interceptArc.half
-
-                // Prioritize aiming weapons with higher peak DPS over those with higher sustained DPS.
-                // This is because it's easier and more beneficial to land high-damage shots even for short durations.
-                // Also, prioritize aiming beam weapons, as they don’t require leading, making their targeting more stable.
-                val dps = weapon.peakDPS * if (weapon.isBeam) 2f else 1f
-                DPSArc(relativeFacing - halArc, relativeFacing + halArc, dps)
-            }
-        } finally {
-            ship.facing = facingStash
-        }
-
-        // Face the target directly if no firing solutions are available.
-        if (solutions.isEmpty()) {
-            return directFacing
-        }
-
-        // Sorted boundaries between firing arc offsets.
-        val boundaries: List<Float> = solutions.flatMap { solution ->
-            listOf(solution.arcStart, solution.arcEnd)
-        }.sorted()
-
-        // DPS sum of all weapons capable of firing in the given sub-arc.
-        val indices = boundaries.indices.reversed().asSequence().drop(1)
-        val subArcs: Sequence<DPSArc> = indices.map { i ->
-            val start = boundaries[i]
-            val end = boundaries[i + 1]
-            val arcFacing = (start + end) / 2
-            val dps = solutions.filter { solution -> solution.contains(arcFacing) }.sumOf { it.dps }
-
-            DPSArc(boundaries[i], boundaries[i + 1], dps)
-        }
-
-        val offsetFromCurrentFacing = fun(arc: DPSArc): Float {
-            val offset = (arc.arcEnd + arc.arcStart) / 2
-            val proposedFacing = directFacing + offset
-            return (ship.facing.direction - proposedFacing).length
-        }
-
-        // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
-        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromCurrentFacing(it) })!!
-        val offset = (optimalArc.arcEnd + optimalArc.arcStart) / 2
-
-        return directFacing + offset
-    }
+    private data class DPSArc(val arc: Arc, val dps: Float)
 
     private fun weaponRanges(): Map<WeaponAPI, Float> {
         return weapons.associateWith { weapon ->
             val rangeMod = if (weapon.hasAITag(Tag.APPROACH_CLOSER)) 0.8f else 1f
             weapon.rangeFromShipCenter(defaultFacing) * rangeMod
         }
-    }
-
-    private fun defaultAttackFacing(): Direction {
-        val anglesDPS: Map<Direction, Float> = attackAngles(weapons)
-        return anglesDPS.maxWithOrNull(compareBy { it.value })?.key ?: Direction(0f)
     }
 
     /** Range at which the ship can deliver at least
@@ -154,33 +67,143 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
     private val WeaponAPI.rangeInGroup: Float
         get() = rangeMap[this]!!
 
-    companion object {
-        /** Find firing arc angles closest to ship front for each weapon,
-         * or 0f for front facing weapons. Associate the angles with total
-         * DPS for the provided weapon list.*/
-        fun attackAngles(weapons: List<WeaponAPI>): Map<Direction, Float> {
-            val angles: List<Direction> = weapons.flatMap { weapon ->
-                val facing: Direction = weapon.arcFacing.direction
-                val arc = weapon.arc
+    private fun defaultAttackFacing(): Direction {
+        val dpsArcs: Sequence<DPSArc> = staticArcsInShipFrameOfReference(1e5f, 0f)
+        val optimalArc: Arc = dpsArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -it.arc.distanceTo(0f.direction).length })?.arc
+            ?: return 0f.direction
+        return optimalArc.distanceTo(0f.direction)
+    }
 
-                when {
-                    // Assume hardpoints have no arc at all.
-                    weapon.slot.isHardpoint -> listOf(facing)
+    /** Calculate facing that maximizes DPS delivered to the target. */
+    fun attackFacing(target: CombatEntityAPI, targetLocationOverride: Vector2f? = null): Direction {
+        val ballisticTarget = BallisticTarget(
+            targetLocationOverride ?: target.location,
+            target.timeAdjustedVelocity,
+            State.state.bounds.radius(target) / 2,
+        )
 
-                    // Ship front is within weapon arc.
-                    facing.length < arc / 2f -> listOf(Direction(0f))
+        val toTarget = (target.location - ship.location)
+        val targetFacing = toTarget.facing
+        val coarseFacing = staticAttackFacing(ballisticTarget)
+        val directFacing = targetFacing + coarseFacing
 
-                    // Ship back is within weapon arc, return both angles.
-                    180f - facing.length < arc / 2f -> listOf(facing - arc / 2f, facing + arc / 2f)
-
-                    // Return weapon arc boundary closer to ship front.
-                    else -> listOf(facing - facing.sign * (arc / 2f))
-                }
-            }
-
-            return angles.toSet().associateWith { angle ->
-                weapons.filter { it.isAngleInArc(angle) }.sumOf { it.effectiveDPS }
-            }
+        // Face the target directly if no firing solutions are available.
+        if (weapons.isEmpty()) {
+            return directFacing
         }
+
+        // Calculate offset angle between default facing and intercept arc for each weapon.
+        val facingStash = ship.facing
+        val solutions: List<DPSArc> = try {
+            // Aim the weapon as if the ship was facing the target directly.
+            // This allows to eliminate velocity and location translation errors.
+            ship.facing = directFacing.degrees
+
+            weapons.map { weapon ->
+                val weaponCoarseFacing: Direction = (target.location - weapon.location).facing
+                val interceptArc = interceptArc(weapon, ballisticTarget, defaultBallisticParams)
+                val offset = (interceptArc.facing - weaponCoarseFacing).degrees
+
+                DPSArc(Arc(interceptArc.angle, offset), effectivePeakDPS(weapon))
+            }
+        } finally {
+            ship.facing = facingStash
+        }
+
+        // DPS sum of all weapons capable of firing in the given sub-arc.
+        val subArcs: Sequence<DPSArc> = splitArcs(solutions)
+
+        val offsetFromCurrentFacing = fun(dpsArc: DPSArc): Float {
+            val proposedFacing = directFacing + dpsArc.arc.facing
+            return (ship.facing.direction - proposedFacing).length
+        }
+
+        // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
+        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromCurrentFacing(it) })!!
+        return directFacing + optimalArc.arc.facing
+    }
+
+    /** Returns ship facing that maximizes DPS delivered to the target,
+     * under the assumption the target is stationary and no leading is required. */
+    private fun staticAttackFacing(target: BallisticTarget): Direction {
+        val toTarget = (target.location - ship.location)
+        val subArcs: Sequence<DPSArc> = staticArcsInShipFrameOfReference(toTarget.length, target.radius)
+
+        val offsetFromTarget = fun(arcFacing: Direction): Float {
+            val proposedFacing = toTarget.facing - arcFacing
+            return (ship.facing.direction - proposedFacing).length
+        }
+
+        // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
+        val optimalArc: Arc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromTarget(it.arc.facing) })!!.arc
+        return optimalArc.distanceTo(0f.direction)
+    }
+
+    private fun staticArcsInShipFrameOfReference(range: Float, targetRadius: Float): Sequence<DPSArc> {
+        val targetSize: Float = (angularSize(range * range, targetRadius) - 4f).coerceAtLeast(1f)
+
+        val dpsArcs: List<DPSArc> = weapons.map { weapon ->
+            val weaponArc = Arc(weapon.arc + targetSize, weapon.arcFacing.direction)
+            val shipArc = weaponArcInShipFrameOfReference(weapon.slot.location, weaponArc, range)
+            DPSArc(shipArc, effectivePeakDPS(weapon))
+        }
+
+        return splitArcs(dpsArcs)
+    }
+
+    /** Computes the angular span of the weapon's firing range as seen
+     * from the ship's center. Because the weapon is offset from the center,
+     * the visible arc differs from its actual firing arc. */
+    private fun weaponArcInShipFrameOfReference(slotLocation: Vector2f, arc: Arc, range: Float): Arc {
+        val fullArc = Arc(360f, 180f)
+        if (arc.angle == 360f) {
+            return fullArc
+        }
+
+        // Arms of the weapon firing arc.
+        val arm1 = arc.arms.first.unitVector
+        val arm2 = arc.arms.second.unitVector
+
+        // Distance from the weapon slot at which the arms cross the range threshold.
+        val dist1 = solve(Pair(slotLocation, arm1), range) ?: return fullArc
+        val dist2 = solve(Pair(slotLocation, arm2), range) ?: return fullArc
+
+        // Limits of the weapon arc, as seen from the ship's center.
+        val point1 = arm1 * dist1 + slotLocation
+        val point2 = arm2 * dist2 + slotLocation
+
+        val angle = (point2.facing - arc.facing).degrees - (point1.facing - arc.facing).degrees
+        return Arc(angle, point1.facing + angle / 2)
+    }
+
+    /** Splits a collection of potentially overlapping 2D arcs into non-overlapping sub-arcs.
+     *
+     * The function computes and returns sub-arcs that span the angular intervals between
+     * adjacent arc boundaries ("arms") of the input arcs. */
+    private fun splitArcs(arcs: List<DPSArc>): Sequence<DPSArc> {
+        if (arcs.isEmpty()) {
+            return sequenceOf()
+        }
+
+        // Sorted boundaries between the arcs. Add 0f and +/-180f boundary as a reference point.
+        val boundaries: List<Float> = arcs.flatMap { dpsArc -> dpsArc.arc.arms.toList() }.map { it.degrees }
+        val sortedBoundaries: List<Float> = (boundaries + listOf(-180f, 0f, 180f)).sorted()
+
+        // DPS sum of all weapons capable of firing in the given sub-arc.
+        val indices = sortedBoundaries.indices.reversed().asSequence().drop(1)
+        return indices.map { i ->
+            val subArc = Arc.fromTo(sortedBoundaries[i].direction, sortedBoundaries[i + 1].direction)
+            val dps = arcs.filter { dpsArc -> dpsArc.arc.overlaps(subArc, tolerance = -0.1f) }.sumOf { it.dps }
+            DPSArc(subArc, dps)
+        }
+    }
+
+    /** Calculate weapon effective DPS for the purpose of arc selection.
+     * Prioritize aiming weapons with higher peak DPS over those with higher
+     * sustained DPS. This is because it's easier and more beneficial to land
+     * high-damage shots even for short durations. Also, prioritize aiming beam
+     * weapons, as they don’t require leading, making their targeting more stable. */
+    private fun effectivePeakDPS(weapon: WeaponAPI): Float {
+        return weapon.peakDPS * if (weapon.isBeam) 2f else 1f
     }
 }
