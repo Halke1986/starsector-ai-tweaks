@@ -83,19 +83,22 @@ val WeaponAPI.ignoresFlares: Boolean
 
 /** Is angle in weapon arc in SHIP COORDINATES. */
 fun WeaponAPI.isAngleInArc(angle: Direction): Boolean {
-    val tolerance = 0.01f
-    return (angle - arcFacing.direction).length <= (arc + tolerance) / 2f
+    return Arc.contains(angle, tolerance = 0.01f)
 }
 
 val WeaponAPI.isFrontFacing: Boolean
     get() = isAngleInArc(Direction(0f))
 
+val WeaponAPI.Arc: Arc
+    get() {
+        val isMissileHardpoint = type == WeaponAPI.WeaponType.MISSILE && slot.isHardpoint
+        val angle = if (isMissileHardpoint) 0f else arc
+        return Arc(angle, arcFacing.direction)
+    }
+
 /** weapon arc in absolute coordinates, instead of ship coordinates */
 val WeaponAPI.absoluteArc: Arc
-    get() = Arc(arc, arcFacing.direction + ship.facing.direction)
-
-val WeaponAPI.Arc: Arc
-    get() = Arc(arc, arcFacing.direction)
+    get() = Arc.rotated(ship.facing)
 
 val WeaponAPI.totalRange: Float
     get() = Range + projectileFadeRange * 0.33f

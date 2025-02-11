@@ -143,7 +143,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         val targetSize: Float = angularSize(range * range, targetRadius).coerceAtLeast(1f)
 
         val dpsArcs: List<DPSArc> = weapons.map { weapon ->
-            val weaponArc = Arc(weapon.arc + targetSize, weapon.arcFacing.direction)
+            val weaponArc = weapon.Arc.extendedBy(targetSize)
             val shipArc = weaponArcInShipFrameOfReference(weapon.slot.location, weaponArc, range)
             DPSArc(shipArc, effectivePeakDPS(weapon))
         }
