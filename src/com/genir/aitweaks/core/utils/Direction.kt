@@ -32,10 +32,6 @@ class Direction(degrees: Float) {
             return Vector2f(x, y)
         }
 
-    override fun toString(): String {
-        return degrees.toString()
-    }
-
     operator fun plus(other: Direction): Direction {
         return Direction(degrees + other.degrees)
     }
@@ -62,6 +58,27 @@ class Direction(degrees: Float) {
 
     operator fun unaryMinus(): Direction {
         return Direction(-degrees)
+    }
+
+    override fun toString(): String {
+        return degrees.toString()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return when {
+            other === this -> true
+            other !is Direction -> false
+            other.degrees == degrees -> true
+            other.length == 180f && length == 180f -> true
+            else -> false
+        }
+    }
+
+    override fun hashCode(): Int {
+        return when (degrees) {
+            -180f -> 180f.hashCode()
+            else -> degrees.hashCode()
+        }
     }
 
     companion object {

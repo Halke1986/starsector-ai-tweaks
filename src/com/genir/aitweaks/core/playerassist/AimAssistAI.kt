@@ -46,7 +46,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val target: CombatEntityAPI? = selectTarget()
         target?.let { Debug.drawCircle(it.location, it.collisionRadius / 2, Color.YELLOW) }
 
-        if (manager.strafeModeOn && State.state.config.aimAssistRotateShip) aimShip(dt, ship, target)
+        if (manager.strafeModeOn && state.config.aimAssistRotateShip) aimShip(dt, ship, target)
 
         // Override weapon behavior if there is a target.
         // Otherwise, let vanilla control the weapons.
@@ -196,7 +196,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
                 it.owner == 0 -> false
                 it.isFighter -> false
 
-                else -> State.state.bounds.isPointWithin(mousePosition(), it)
+                else -> state.bounds.isPointWithin(mousePosition(), it)
             }
         }.firstOrNull()?.let { return it }
 
@@ -247,7 +247,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     private fun closestTarget(entities: Sequence<CombatEntityAPI>): CombatEntityAPI? {
         val distances = entities.map { entity ->
             val closestPoint = if (!entity.isShip) entity.location
-            else State.state.bounds.closestPoint(mousePosition(), entity as ShipAPI)
+            else state.bounds.closestPoint(mousePosition(), entity as ShipAPI)
 
             // Apply target switching hysteresis.
             val currentTargetBonus = if (entity == currentTarget) 2 else 1

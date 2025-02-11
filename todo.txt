@@ -33,16 +33,14 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - notify systems of overridden facing in extended AI
 
-- nova rotating when potential target in front
-
 check Lidar on faster ships - destroyer : ass pinetree, frigate DEX Catapult
-
-- automatic front shields?
 
 - why SO ships backing off so far away
 - nova backing off too far to vent
     - probably missileDangerDir
 
-- nova hardpoints (hil) targeting fighters?
-
 - Unify "$\ " keys!
+
+----------------------------------------------------------------
+
+- nova rotating when potential target in front

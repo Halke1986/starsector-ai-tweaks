@@ -156,3 +156,6 @@ val ShipAPI.maxRange: Float
 
 val ShipAPI.AIPersonality: String
     get() = (ai as? BasicShipAI)?.config?.personalityOverride ?: (this as Ship).personality
+
+val ShipAPI.Id: String
+    get() = hullSpec?.hullId ?: "-"
