@@ -43,4 +43,6 @@ check Lidar on faster ships - destroyer : ass pinetree, frigate DEX Catapult
 - nova backing off too far to vent
     - probably missileDangerDir
 
+- nova hardpoints (hil) targeting fighters?
+
 - Unify "$\ " keys!

@@ -12,7 +12,6 @@ import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.Obfuscated
-import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
@@ -257,17 +256,7 @@ val WeaponAPI.totalReloadTimeRemaining: Float
     }
 
 val WeaponAPI.isInLongReload: Boolean
-    get() = when {
-        isInFiringCycle -> false
-
-        totalReloadTimeRemaining < 2f -> false
-
-        totalReloadTime < Preset.weaponMaxReloadTime -> false
-
-        ammo >= maxAmmo * 0.75f -> false
-
-        else -> true
-    }
+    get() = customAI?.reloadTracker?.isInLongReload == true
 
 val WeaponAPI.isForceFireOneFrame: Boolean
     get() = when (this) {

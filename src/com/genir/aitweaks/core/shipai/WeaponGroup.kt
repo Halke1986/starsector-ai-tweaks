@@ -71,7 +71,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         val dpsArcs: Sequence<DPSArc> = staticArcsInShipFrameOfReference(1e5f, 0f)
         val optimalArc: Arc = dpsArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -it.arc.distanceTo(0f.direction).length })?.arc
             ?: return 0f.direction
-        return optimalArc.distanceTo(0f.direction)
+        return -optimalArc.distanceTo(0f.direction)
     }
 
     /** Calculate facing that maximizes DPS delivered to the target. */
@@ -79,13 +79,13 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         val ballisticTarget = BallisticTarget(
             targetLocationOverride ?: target.location,
             target.timeAdjustedVelocity,
-            State.state.bounds.radius(target) / 2,
+            State.state.bounds.radius(target) * 0.7f,
         )
 
         val toTarget = (target.location - ship.location)
         val targetFacing = toTarget.facing
         val coarseFacing = staticAttackFacing(ballisticTarget)
-        val directFacing = targetFacing + coarseFacing
+        val directFacing = targetFacing - coarseFacing
 
         // Face the target directly if no firing solutions are available.
         if (weapons.isEmpty()) {
@@ -101,8 +101,9 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
 
             weapons.map { weapon ->
                 val weaponCoarseFacing: Direction = (target.location - weapon.location).facing
+                val outOfArcCorrection = weapon.absoluteArc.distanceTo(weaponCoarseFacing)
                 val interceptArc = interceptArc(weapon, ballisticTarget, defaultBallisticParams)
-                val offset = (interceptArc.facing - weaponCoarseFacing).degrees
+                val offset = (interceptArc.facing - weaponCoarseFacing + outOfArcCorrection).degrees
 
                 DPSArc(Arc(interceptArc.angle, offset), effectivePeakDPS(weapon))
             }
@@ -130,17 +131,16 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         val subArcs: Sequence<DPSArc> = staticArcsInShipFrameOfReference(toTarget.length, target.radius)
 
         val offsetFromTarget = fun(arcFacing: Direction): Float {
-            val proposedFacing = toTarget.facing - arcFacing
-            return (ship.facing.direction - proposedFacing).length
+            return (toTarget.facing - (arcFacing + ship.facing)).length
         }
 
         // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
         val optimalArc: Arc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromTarget(it.arc.facing) })!!.arc
-        return optimalArc.distanceTo(0f.direction)
+        return -optimalArc.distanceTo(0f.direction)
     }
 
     private fun staticArcsInShipFrameOfReference(range: Float, targetRadius: Float): Sequence<DPSArc> {
-        val targetSize: Float = (angularSize(range * range, targetRadius) - 4f).coerceAtLeast(1f)
+        val targetSize: Float = angularSize(range * range, targetRadius).coerceAtLeast(1f)
 
         val dpsArcs: List<DPSArc> = weapons.map { weapon ->
             val weaponArc = Arc(weapon.arc + targetSize, weapon.arcFacing.direction)
@@ -181,18 +181,20 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
      * The function computes and returns sub-arcs that span the angular intervals between
      * adjacent arc boundaries ("arms") of the input arcs. */
     private fun splitArcs(arcs: List<DPSArc>): Sequence<DPSArc> {
-        if (arcs.isEmpty()) {
-            return sequenceOf()
-        }
-
-        // Sorted boundaries between the arcs. Add 0f and +/-180f boundary as a reference point.
-        val boundaries: List<Float> = arcs.flatMap { dpsArc -> dpsArc.arc.arms.toList() }.map { it.degrees }
-        val sortedBoundaries: List<Float> = (boundaries + listOf(-180f, 0f, 180f)).sorted()
+        // Sorted boundaries between the arcs.
+        val boundaries: List<Float> = arcs.flatMap { dpsArc -> dpsArc.arc.arms.toList() }.map { it.degrees }.sorted()
 
         // DPS sum of all weapons capable of firing in the given sub-arc.
-        val indices = sortedBoundaries.indices.reversed().asSequence().drop(1)
-        return indices.map { i ->
-            val subArc = Arc.fromTo(sortedBoundaries[i].direction, sortedBoundaries[i + 1].direction)
+        return boundaries.indices.asSequence().map { i ->
+            val start = boundaries[i]
+            val end = boundaries[(i + 1) % boundaries.size]
+
+            // Handle wrap around.
+            val angle = if (i + 1 < boundaries.size) end - start else 360f + end - start
+            val facing = start + angle / 2
+
+            val subArc = Arc(angle, facing)
+
             val dps = arcs.filter { dpsArc -> dpsArc.arc.overlaps(subArc, tolerance = -0.1f) }.sumOf { it.dps }
             DPSArc(subArc, dps)
         }

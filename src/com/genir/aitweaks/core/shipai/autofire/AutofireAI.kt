@@ -25,6 +25,7 @@ import kotlin.math.min
 open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
     var syncFire: SyncFire = SyncFire(weapon, null)
+    val reloadTracker: ReloadTracker = ReloadTracker(weapon)
 
     // Aiming data.
     protected var target: CombatEntityAPI? = null
@@ -55,6 +56,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         trackAttackTimes(dt)
         updateAim(dt)
         syncFire.advance()
+        reloadTracker.advance()
 
         val updateTargetImmediately = shouldUpdateTargetImmediately(target)
         val updateTargetInterval = updateTargetInterval.intervalElapsed() && shouldUpdateTarget(target)
