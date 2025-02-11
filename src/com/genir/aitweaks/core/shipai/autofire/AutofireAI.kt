@@ -13,7 +13,6 @@ import com.genir.aitweaks.core.shipai.autofire.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.shipai.autofire.UpdateTarget.Companion.TARGET_SEARCH_MULT
-import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix
@@ -370,7 +369,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Vanilla AI lacks precise aiming, so hardpoints need flexibility to compensate.
         // Aim directly at the intercept point when the ship is close to aligned.
         if (customAIFacing == null && wrapperAIFacing == null) {
-            if (Arc(weapon.arc, weapon.absoluteArcFacing).contains(intercept)) return intercept
+            if (weapon.absoluteArc.contains(intercept)) return intercept
         }
 
         // Aim the hardpoint as if the ship was already rotated to the expected facing.
@@ -393,7 +392,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         fun advance(dt: Float, intercept: Vector2f?) {
             if (intercept == null) return
 
-            val angleToIntercept: Direction = intercept.facing - weapon.absoluteArcFacing
+            val angleToIntercept: Direction = intercept.facing - weapon.absoluteArc.facing
             interceptVelocity = (angleToIntercept - (prevAngleToIntercept ?: angleToIntercept)).degrees / dt
             prevAngleToIntercept = angleToIntercept
         }

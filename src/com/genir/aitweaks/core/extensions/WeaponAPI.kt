@@ -90,12 +90,12 @@ fun WeaponAPI.isAngleInArc(angle: Direction): Boolean {
 val WeaponAPI.isFrontFacing: Boolean
     get() = isAngleInArc(Direction(0f))
 
-/** weapon arc facing in absolute coordinates, instead of ship coordinates */
-val WeaponAPI.absoluteArcFacing: Direction
-    get() = arcFacing.direction + ship.facing.direction
-
+/** weapon arc in absolute coordinates, instead of ship coordinates */
 val WeaponAPI.absoluteArc: Arc
     get() = Arc(arc, arcFacing.direction + ship.facing.direction)
+
+val WeaponAPI.Arc: Arc
+    get() = Arc(arc, arcFacing.direction)
 
 val WeaponAPI.totalRange: Float
     get() = Range + projectileFadeRange * 0.33f

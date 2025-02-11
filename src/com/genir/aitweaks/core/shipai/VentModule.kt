@@ -273,7 +273,7 @@ class VentModule(private val ai: CustomShipAI) {
 
         // Check if the ship is out of weapons arc.
         val isGuidedFinisherMissile = weapon.isFinisherMissile && !weapon.isUnguidedMissile
-        val weaponArc = Arc(weapon.arc, weapon.absoluteArcFacing).extendedBy(adjustedMovementTime * weapon.ship.maxTurnRate)
+        val weaponArc = weapon.absoluteArc.extendedBy(adjustedMovementTime * weapon.ship.maxTurnRate)
         if (!isGuidedFinisherMissile && !weaponArc.contains(toShip.facing)) {
             return false
         }

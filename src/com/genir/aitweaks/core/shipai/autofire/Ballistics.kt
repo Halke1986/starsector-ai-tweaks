@@ -58,7 +58,7 @@ fun canTrack(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams
     if (closestHit > (rangeOverride ?: weapon.totalRange)) return false
 
     val interceptArc = interceptArc(weapon, target, params)
-    return Arc(weapon.arc, weapon.absoluteArcFacing).overlaps(interceptArc)
+    return weapon.absoluteArc.overlaps(interceptArc)
 }
 
 /** Calculates the target intercept arc. If weapon facing is within this arc,
