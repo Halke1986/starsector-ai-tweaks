@@ -63,6 +63,11 @@ class UpdateTarget(
                     return target
                 }
 
+                // Special case for hardpoints, which should target ship target even when it's out of range.
+                if (weapon.slot.isHardpoint && !weapon.ship.engineController.isFlamedOut && target == attackTarget) {
+                    return target
+                }
+
                 // Stash potential out of range target.
                 if (outOfRangeTarget == null) {
                     outOfRangeTarget = target
@@ -101,28 +106,22 @@ class UpdateTarget(
     }
 
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
-        val priorityTarget: ShipAPI? = attackTarget
-
         // Try to follow the ship attack target.
-        val selectPriorityTarget = when {
-            priorityTarget == null -> false
+        val priorityTarget: ShipAPI? = attackTarget
+        when {
+            priorityTarget == null -> Unit
 
-            !priorityTarget.isValidTarget -> false
+            !priorityTarget.isValidTarget -> Unit
 
             // Don't attack allies.
-            priorityTarget.owner == weapon.ship.owner -> false
+            priorityTarget.owner == weapon.ship.owner -> Unit
 
-            // Hardpoint weapons select ship target even when it's outside their firing arc.
-            weapon.slot.isHardpoint -> true
+            // Hardpoint weapons select ship target even when it's outside their firing arc,
+            // unless the ship is incapable of following the target.
+            weapon.slot.isHardpoint && !weapon.ship.engineController.isFlamedOut -> return priorityTarget
 
             // Turreted weapons select ship target if it can be tracked.
-            canTrack(weapon, BallisticTarget.collisionRadius(priorityTarget), params) -> true
-
-            else -> false
-        }
-
-        if (selectPriorityTarget) {
-            return priorityTarget
+            canTrack(weapon, BallisticTarget.collisionRadius(priorityTarget), params) -> return priorityTarget
         }
 
         // Select alternative target.
