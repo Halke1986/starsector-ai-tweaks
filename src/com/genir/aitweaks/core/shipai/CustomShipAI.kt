@@ -9,6 +9,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
 import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
+import com.genir.aitweaks.core.debug.expectedFacing
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset.Companion.assaultShipApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
@@ -28,7 +29,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     val assignment: Assignment = Assignment(this)
     val ventModule: VentModule = VentModule(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
-    val vanilla: VanillaModule = VanillaModule(ship, systemAI != null)
+    val vanilla: VanillaModule = VanillaModule(ship, systemAI?.overrideVanillaSystemAI() == true)
 
     // Helper classes.
     private val updateInterval: IntervalUtil = defaultAIInterval()
@@ -265,7 +266,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }.resized(1f)
     }
 
-    // Keep track of previous target until weapon bursts subside.
+    /** Keep track of previous target until weapon bursts subside. */
     private fun updateFinishBurstTarget() {
         if (finishBurstTarget?.isValidTarget != true) {
             finishBurstTarget = null
@@ -424,8 +425,12 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }
 
         // Try to stay on target.
-        if (target == attackTarget && currentEffectiveRange(target) <= weaponGroup.effectiveRange) {
-            evaluation += 1f
+        if (target == attackTarget) {
+            val withinRange = currentEffectiveRange(target) <= weaponGroup.effectiveRange
+            val withinArc = (expectedFacing - ship.facing).length < 60f
+            if (withinRange && withinArc) {
+                evaluation += 1f
+            }
         }
 
         // Strongly prioritize eliminate assignment.

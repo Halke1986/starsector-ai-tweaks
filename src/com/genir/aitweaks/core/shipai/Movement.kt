@@ -4,15 +4,12 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipCommand.USE_SYSTEM
-import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
-import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 
@@ -38,7 +35,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     fun advance(dt: Float) {
         setHeading(dt, ai.maneuverTarget)
         setFacing(dt)
-        manageMobilitySystems()
     }
 
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?) {
@@ -293,34 +289,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val point2Dir = (points.second + toShip).facing - toAttackLocation.facing
 
         return ship.location + if (point1Dir.length < point2Dir.length) points.first else points.second
-    }
-
-    private fun manageMobilitySystems() {
-        val system: ShipSystemAPI = ship.system ?: return
-
-        when (system.specAPI?.AIType) {
-
-            ShipSystemAIType.BURN_DRIVE -> {
-                // Prevent vanilla AI from jumping closer to target with
-                // BURN_DRIVE, if the target is already within weapons range.
-                if (ai.attackTarget != null && ai.currentEffectiveRange(ai.attackTarget!!) < ai.attackingGroup.effectiveRange) {
-                    ship.blockCommandForOneFrame(USE_SYSTEM)
-                }
-
-                if (ai.ventModule.isBackingOff) {
-                    ship.blockCommandForOneFrame(USE_SYSTEM)
-                }
-            }
-
-            ShipSystemAIType.TEMPORAL_SHELL -> {
-                // Use temporal shell for backing off.
-                if (ai.ventModule.isBackingOff && ship.canUseSystemThisFrame()) {
-                    ship.command(USE_SYSTEM)
-                }
-            }
-
-            else -> Unit
-        }
     }
 
     private fun gatherSpeedLimits(dt: Float): List<EngineController.Limit> {

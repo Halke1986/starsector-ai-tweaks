@@ -14,6 +14,9 @@ abstract class SystemAI(val ai: CustomShipAI) {
 
     open fun holdTargets(): Boolean = system.isOn
 
+    /** Should custom system AI replace vanilla system AI. */
+    open fun overrideVanillaSystemAI(): Boolean = true
+
     open fun overrideHeading(): Vector2f? = null
 
     open fun overrideFacing(): Direction? = null

@@ -10,12 +10,18 @@ class SystemAIManager {
         fun overrideVanillaSystem(ai: CustomShipAI): SystemAI? {
             val aiType: ShipSystemAIType = ai.ship.system?.specAPI?.AIType ?: return null
 
-            return when {
-                aiType == BURN_DRIVE_TOGGLE -> BurnDriveToggle(ai)
+            return when (aiType) {
+                BURN_DRIVE_TOGGLE -> BurnDriveToggle(ai)
 
-                aiType == LIDAR_ARRAY -> LidarArray(ai)
+                BURN_DRIVE -> BurnDrive(ai)
 
-                aiType == MANEUVERING_JETS && ai.ship.hullSpec.hullId == "sr_melvillei" -> SrBurstBoost(ai)
+                LIDAR_ARRAY -> LidarArray(ai)
+
+                TEMPORAL_SHELL -> TemporalShell(ai)
+
+                MANEUVERING_JETS -> {
+                    if (ai.ship.hullSpec.hullId == "sr_melvillei") SrBurstBoost(ai) else null
+                }
 
                 else -> null
             }
