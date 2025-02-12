@@ -1,4 +1,5 @@
-- Player shield assist now works with front shields. 
+- Player shield assist now works with front shields.
+- Right ALT + K speed-up the combat by a factor of 5.  
 
 Version 1.12.2
 

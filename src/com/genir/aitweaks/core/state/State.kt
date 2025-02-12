@@ -51,6 +51,7 @@ class State : BaseEveryFrameCombatPlugin() {
         fleetCohesion[0],
         fleetCohesion[1],
         accelerationTracker,
+        Speedup(),
         AimAssistManager(),
         ShieldAssist(),
         AttackCoordinator(),
