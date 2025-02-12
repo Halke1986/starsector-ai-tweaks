@@ -87,7 +87,7 @@ class HighEnergyFocus : ShipSystemAIScript {
 
             // Check firing cycle.
             weapon.isIdle -> 0f
-            weapon.cooldownRemaining > weapon.ship.system.chargeActiveDur -> 0f
+            weapon.cooldown > weapon.ship.system.chargeActiveDur && weapon.cooldownRemaining > 0.5f -> 0f
 
             // Check if target is valid.
             !target.isValidTarget -> 0f

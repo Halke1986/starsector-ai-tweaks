@@ -208,7 +208,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { reason -> return reason }
 
         when {
-            hit.type == SHIELD && hit.range > weapon.Range -> return OUT_OF_RANGE
+            (hit.type == SHIELD || weapon.conserveAmmo) && hit.range > weapon.Range -> return OUT_OF_RANGE
 
             hit.type != SHIELD && hit.range > weapon.totalRange -> return OUT_OF_RANGE
         }

@@ -29,7 +29,6 @@ class Preset {
         // Targeting & Weapon groups
         const val validWeaponGroupDPSThreshold = 0.9f
         const val noWeaponsAttackRange = 2000f
-        const val weaponMaxReloadTime = 12f
         const val effectiveDpsThreshold = 0.80f
         const val targetThickness = 60f
         const val assaultShipApproachFactor = 0.875f

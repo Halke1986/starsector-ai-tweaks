@@ -22,7 +22,6 @@ import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.solve
 import kotlin.math.floor
-import kotlin.math.max
 
 val WeaponAPI.isAntiFighter: Boolean
     get() = hasAITag(Tag.ANTI_FIGHTER) || hasAIHint(ANTI_FTR)
@@ -70,7 +69,7 @@ val WeaponAPI.isPlainBeam: Boolean
     get() = isBeam && !conserveAmmo
 
 val WeaponAPI.conserveAmmo: Boolean
-    get() = usesAmmo() || isBurstBeam
+    get() = usesAmmo() || isBurstBeam || cooldown > 5f
 
 val WeaponAPI.hasAmmoToSpare: Boolean
     get() = !usesAmmo() || ammoTracker.let { it.ammoPerSecond > 0 && (it.ammo + it.reloadSize > it.maxAmmo) }
@@ -230,33 +229,6 @@ val WeaponAPI.isOutOfAmmo: Boolean
 
 val WeaponAPI.isPermanentlyOutOfAmmo: Boolean
     get() = isOutOfAmmo && ammoTracker.ammoPerSecond <= 0f
-
-/** Total time required for the weapon to reload from empty to full ammunition. */
-val WeaponAPI.totalReloadTime: Float
-    get() {
-        // Weapon does not use ammo.
-        if (!usesAmmo()) return cooldown
-
-        // Weapon is permanently out if ammo.
-        val tracker = ammoTracker!!
-        if (tracker.ammoPerSecond <= 0f) return Float.MAX_VALUE
-
-        val reloadTime = tracker.maxAmmo / tracker.ammoPerSecond
-        return max(reloadTime, cooldown)
-    }
-
-val WeaponAPI.totalReloadTimeRemaining: Float
-    get() {
-        // Weapon does not use ammo.
-        if (!usesAmmo()) return cooldownRemaining
-
-        // Weapon is permanently out if ammo.
-        val tracker = ammoTracker!!
-        if (tracker.ammoPerSecond <= 0f) return Float.MAX_VALUE
-
-        val reloadTime = (tracker.maxAmmo - (tracker.ammo + tracker.reloadProgress * tracker.reloadSize)) / tracker.ammoPerSecond
-        return max(reloadTime, cooldownRemaining)
-    }
 
 val WeaponAPI.isInLongReload: Boolean
     get() = customAI?.reloadTracker?.isInLongReload == true

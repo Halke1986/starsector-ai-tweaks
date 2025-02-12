@@ -1,29 +1,40 @@
 package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.extensions.totalReloadTime
-import com.genir.aitweaks.core.extensions.totalReloadTimeRemaining
-import com.genir.aitweaks.core.shipai.Preset
 
 class ReloadTracker(private val weapon: WeaponAPI) {
+    private var isInAmmoRegen = false
     var isInLongReload = false
 
     fun advance() {
-        // Weapon is not reloading ammo.
-        if (!weapon.usesAmmo() || weapon.ammoPerSecond == 0f) {
-            return
-        }
+        val fullAmmoThreshold = 0.75f
+        val longReloadThreshold = 6f
 
         isInLongReload = when {
-            weapon.totalReloadTimeRemaining < 2f -> false
+            // Is in long cooldown
+            weapon.cooldown >= longReloadThreshold && weapon.cooldownRemaining >= 2f -> true
 
-            weapon.totalReloadTime < Preset.weaponMaxReloadTime -> false
+            !weapon.usesAmmo() -> false
 
-            weapon.ammo == 0 -> true
+            // Is permanently out of ammo.
+            weapon.ammo == 0 && weapon.ammoPerSecond == 0f -> true
 
-            isInLongReload && weapon.ammo <= weapon.maxAmmo * 0.75f -> true
+            // Weapon regenerates ammo quickly.
+            (weapon.maxAmmo * fullAmmoThreshold) / weapon.ammoPerSecond < longReloadThreshold -> false
 
-            else -> isInLongReload
+            // Weapon has full ammo.
+            weapon.ammo > weapon.maxAmmo * fullAmmoThreshold -> {
+                isInAmmoRegen = false
+                false
+            }
+
+            // Weapon ran out of ammo.
+            weapon.ammo == 0 -> {
+                isInAmmoRegen = true
+                true
+            }
+
+            else -> isInAmmoRegen
         }
     }
 }
