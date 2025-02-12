@@ -89,7 +89,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
 
         // Face the target directly if no firing solutions are available.
         if (weapons.isEmpty()) {
-            return directFacing
+            return targetFacing
         }
 
         // Calculate offset angle between default facing and intercept arc for each weapon.
@@ -120,7 +120,9 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         }
 
         // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
-        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromCurrentFacing(it) })!!
+        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromCurrentFacing(it) })
+            ?: return directFacing
+
         return directFacing + optimalArc.arc.facing
     }
 
@@ -135,8 +137,10 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         }
 
         // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
-        val optimalArc: Arc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromTarget(it.arc.facing) })!!.arc
-        return -optimalArc.distanceTo(0f.direction)
+        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromTarget(it.arc.facing) })
+            ?: return 0f.direction
+
+        return -optimalArc.arc.distanceTo(0f.direction)
     }
 
     private fun staticArcsInShipFrameOfReference(range: Float, targetRadius: Float): Sequence<DPSArc> {
