@@ -1,3 +1,5 @@
+Version 1.12.3
+ 
 - Shield Assist now works with front shields.
 - Aim Assist now has a Perfect Targeting mode, where it disregards the mouse input and aims precisely at the target center. Perfect Targeting can be enabled in LunaLib settings.
 - Fixed a special case in ship facing calculation when using unusual weapon groups, such as both back-facing weapon slots on a Harbinger.
