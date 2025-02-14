@@ -1,5 +1,6 @@
-- Player shield assist now works with front shields.
-- Right ALT + K speed-up the combat by a factor of 5.  
+- Shield Assist now works with front shields.
+- Pressing right ALT + K speeds up the combat by a factor of 5.
+- Aim Assist now has a Perfect Targeting mode, where it disregards the mouse input and aims precisely at the target center. Perfect Targeting can be enabled in LunaLib settings.
 
 Version 1.12.2
 

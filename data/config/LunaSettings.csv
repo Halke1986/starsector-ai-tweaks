@@ -9,6 +9,7 @@ aitweaks_shield_assist_keybind,,Shield Assist Toggle Keybind,Keycode,27,,,,Hotke
 aitweaks_aim_bot_keybind,,Aim Assist Toggle Keybind,Keycode,26,,,,"Hotkey to toggle aim assist for manually controlled weapon groups. When enabled, aim assist automatically calculates and applies target leading for all projectile and unguided missile weapons in the selected weapon group.",,,,,Player Assist
 aitweaks_aim_bot_rotate_ship,,Aim Assist Controls Ship Facing,Boolean,true,,,,"Allow aim assist to correct ship facing when auto-turning to cursor. Aim assist will rotate the ship to correctly aim the selected weapon group.",,,,,Player Assist
 aitweaks_aim_bot_target_junk,,Aim Assist Targets Hulks And Asteroids,Boolean,false,,,,Allow aim assist to target hulks and asteroids when no enemy ships are nearby. This setting is primarily used for testing and development.,,,,,Player Assist
+aitweaks_aim_bot_perfect,,Aim Assist Perfect Targeting,Boolean,false,,,,"Aim assist disregards mouse input and aims precisely at the target center.",,,,,Player Assist
 aitweaks_enable_devmode,,Dev Mode,Boolean,false,,,,"Enable AI Tweaks dev mode.",,,,,Debug
 aitweaks_highlight_custom_ai,,Highlight Custom AI,Boolean,false,,,,"Highlight ships piloted by AI Tweaks custom AI. Works only in devmode.",,,,,Debug
 aitweaks_remove_combat_map_grid,,Remove Combat Map Grid,Boolean,false,,,,"Remove the square grid in combat map.",,,,,Debug

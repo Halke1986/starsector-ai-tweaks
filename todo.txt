@@ -10,8 +10,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - area targeting for devastator
 
-- REPORTED: vanilla ai fleets gathering in the middle of the map, on maps with no objectives
-
 - do not track targets with angular velocity higher than weapon rotation
 
 - avoid blocking burn vector via collision avoidance
@@ -19,8 +17,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 - revisit hiding behind allies to vent
 
 - extract vanilla missile decisioning
-
-- drop the "frame-perfect" description from readme
 
 - take damage type into account when calculating history of calculated damage, to not ignore hellbores when venting
 
@@ -43,4 +39,3 @@ check Lidar on faster ships - destroyer : ass pinetree, frigate DEX Catapult
 
 ----------------------------------------------------------------
 
-- nova rotating when potential target in front

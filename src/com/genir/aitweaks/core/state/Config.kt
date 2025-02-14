@@ -21,6 +21,7 @@ class Config {
     val aimAssistKeybind: Int = LunaSettings.getInt("aitweaks", "aitweaks_aim_bot_keybind")!!
     val aimAssistRotateShip: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_aim_bot_rotate_ship")!!
     val aimAssistTargetJunk: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_aim_bot_target_junk")!!
+    val aimAssistPerfect: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_aim_bot_perfect")!!
 
     // Debug
     val devMode: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_devmode")!!

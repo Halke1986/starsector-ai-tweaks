@@ -13,9 +13,6 @@ import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.solve
 import org.lwjgl.util.vector.Vector2f
 
-// TODO bounds angular size?
-// TODO test ship with no weapons
-
 /** A group of weapons that should be able to fire along a single attack vector. */
 class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
     val defaultFacing: Direction = defaultAttackFacing()

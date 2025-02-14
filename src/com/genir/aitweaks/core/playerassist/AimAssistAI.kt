@@ -13,7 +13,6 @@ import com.genir.aitweaks.core.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.shipai.BasicEngineController
 import com.genir.aitweaks.core.shipai.WeaponGroup
 import com.genir.aitweaks.core.shipai.autofire.*
-import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.*
@@ -46,11 +45,15 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val target: CombatEntityAPI? = selectTarget()
         target?.let { Debug.drawCircle(it.location, it.collisionRadius / 2, Color.YELLOW) }
 
-        if (manager.strafeModeOn && state.config.aimAssistRotateShip) aimShip(dt, ship, target)
+        if (manager.strafeModeOn && state.config.aimAssistRotateShip) {
+            aimShip(dt, ship, target)
+        }
 
         // Override weapon behavior if there is a target.
         // Otherwise, let vanilla control the weapons.
-        if (target != null) aimWeapons(ship, target)
+        if (target != null) {
+            aimWeapons(ship, target)
+        }
 
         this.currentTarget = target
     }
@@ -62,22 +65,24 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
             engineController = BasicEngineController(ship)
         }
 
-        controlShipHeading(dt, ship)
+        controlShipHeading(dt, ship, target)
         controlShipFacing(dt, ship, target)
     }
 
-    private fun controlShipHeading(dt: Float, ship: ShipAPI) {
+    private fun controlShipHeading(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
         // Do not attempt to override the ship movement if any of the movement commands is blocked.
         val commands = arrayOf(VanillaShipCommand.STRAFE_LEFT, VanillaShipCommand.STRAFE_RIGHT, VanillaShipCommand.ACCELERATE, VanillaShipCommand.ACCELERATE_BACKWARDS)
         val blockedCommands = (ship as Obfuscated.Ship).blockedCommands
-        if (commands.any { blockedCommands.contains(it.obfuscated) }) return
+        if (commands.any { blockedCommands.contains(it.obfuscated) }) {
+            return
+        }
 
         // Remove vanilla move commands.
         clearVanillaCommands(ship, *commands)
 
         // Compensate ship movement for the fact the ship
         // is not necessary facing the target directly.
-        val r = (mousePosition() - ship.location).facing.rotationMatrix
+        val r = (targetLocation(target) - ship.location).facing.rotationMatrix
         val front = Vector2f(1e4f, 0f).rotated(r)
         val back = Vector2f(-1e4f, 0f).rotated(r)
         val left = Vector2f(0f, 1e4f).rotated(r)
@@ -99,14 +104,18 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         // Do not attempt to override the ship movement if any of the movement commands is blocked.
         val commands = arrayOf(VanillaShipCommand.TURN_LEFT, VanillaShipCommand.TURN_RIGHT)
         val blockedCommands = (ship as Obfuscated.Ship).blockedCommands
-        if (commands.any { blockedCommands.contains(it.obfuscated) }) return
+        if (commands.any { blockedCommands.contains(it.obfuscated) }) {
+            return
+        }
 
         // Remove vanilla move commands.
         clearVanillaCommands(ship, *commands)
 
         // Continue aiming with an alternating weapon until it finishes its firing sequence.
         val holdCurrent = currentAlternatingWeapon?.isInFiringSequence == true
-        if (!holdCurrent) currentAlternatingWeapon = null
+        if (!holdCurrent) {
+            currentAlternatingWeapon = null
+        }
 
         // Select weapons to aim.
         val selectedGroup = ship.selectedGroupAPI
@@ -127,7 +136,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val weaponGroup = WeaponGroup(ship, weapons.filter { it.shouldAim })
         if (target != null) {
             // Rotate ship to face the target intercept with the selected weapon group.
-            val expectedFacing = weaponGroup.attackFacing(target, mousePosition())
+            val expectedFacing = weaponGroup.attackFacing(target, targetLocation(target))
             val facingChange = angularVelocity(target.location - ship.location, target.velocity - ship.velocity)
             engineController!!.facing(dt, expectedFacing, facingChange)
         } else {
@@ -138,7 +147,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     }
 
     private fun aimWeapons(ship: ShipAPI, target: CombatEntityAPI) {
-        val ballisticTarget = BallisticTarget(mousePosition(), target.velocity, target.collisionRadius)
+        val ballisticTarget = BallisticTarget(targetLocation(target), target.velocity, target.collisionRadius)
         val selectedWeapons: Set<WeaponAPI> = ship.selectedWeapons
         val aimableWeapons: Set<WeaponAPI> = ship.nonAutofireWeapons + selectedWeapons
         val params = defaultBallisticParams
@@ -261,6 +270,14 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
 
         return if (closest.second > targetEnvelope) null
         else closest.first
+    }
+
+    private fun targetLocation(target: CombatEntityAPI?): Vector2f {
+        return if (target == null || !state.config.aimAssistPerfect) {
+            mousePosition()
+        } else {
+            target.location
+        }
     }
 
     private val WeaponAPI.shouldAim: Boolean
