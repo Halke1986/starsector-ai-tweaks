@@ -219,7 +219,7 @@ Now, with AI Tweaks it's possible to pilot ship manually while leaving shield in
 According to playtesters the feature may be a bit too powerful. Still, "it's not so OP that it's unusable" as playtester
 snark said. The assist works for both omni and front shields.
 
-Shield assist van be toggled with `]` (right bracket) key by default. Keybinding can be configured via LunaLib
+Shield assist can be toggled with `]` (right bracket) key by default. Keybinding can be configured via LunaLib
 settings. When AI is in control, a circular indicator is displayed around the ship. The player can override AI and force
 the shields to drop with right mouse button.
 
