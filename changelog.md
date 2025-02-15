@@ -1,3 +1,7 @@
+Version 1.12.4
+
+- Fixed null pointer exception in ship maneuver logic. Reported by TimeDiver0.
+
 Version 1.12.3
  
 - Shield Assist now works with front shields.

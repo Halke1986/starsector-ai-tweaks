@@ -262,10 +262,10 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         // Do calculations in target frame of reference.
         val toShip = ship.location - maneuverTarget.location
         val toAttackLocation = attackLocation - maneuverTarget.location
-        val dist = toShip.length
 
-        // Ship is already too close to target. Cap the angle to avoid getting even closer.
-        if (dist <= ai.attackRange) {
+        val pointsOfTangency: Pair<Vector2f, Vector2f>? = pointsOfTangency(-toShip, ai.attackRange)
+        if (pointsOfTangency == null) {
+            // Ship is already too close to target. Cap the angle to avoid getting even closer.
             val maxAngle = 15f
             val angle = toShip.facing - toAttackLocation.facing
             if (angle.length > maxAngle) {
@@ -278,17 +278,17 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
 
         // If heading directly to the attack location would bring the ship too close to the target,
         // instead, navigate to a tangential point on the attack radius around the target.
+        val dist = toShip.length
         val cosTangent: Float = ai.attackRange / dist
         val cosTarget: Float = dotProduct(toAttackLocation, toShip) / (ai.attackRange * dist)
         if (cosTangent <= cosTarget) {
             return attackLocation
         }
 
-        val points: Pair<Vector2f, Vector2f> = pointsOfTangency(-toShip, ai.attackRange)!!
-        val point1Dir = (points.first + toShip).facing - toAttackLocation.facing
-        val point2Dir = (points.second + toShip).facing - toAttackLocation.facing
+        val point1Dir = (pointsOfTangency.first + toShip).facing - toAttackLocation.facing
+        val point2Dir = (pointsOfTangency.second + toShip).facing - toAttackLocation.facing
 
-        return ship.location + if (point1Dir.length < point2Dir.length) points.first else points.second
+        return ship.location + if (point1Dir.length < point2Dir.length) pointsOfTangency.first else pointsOfTangency.second
     }
 
     private fun gatherSpeedLimits(dt: Float): List<EngineController.Limit> {
