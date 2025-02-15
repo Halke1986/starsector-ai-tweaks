@@ -1,0 +1,56 @@
+package com.genir.aitweaks.core.playerassist
+
+import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.campaign.rules.MemoryAPI
+import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.input.InputEventAPI
+import com.fs.starfarer.campaign.CampaignEngine
+import com.genir.aitweaks.core.state.State
+
+class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
+    private var aiDrone: ShipAPI? = null
+    var ai: ShieldAssistAI? = null
+    var enableShieldAssist = false
+
+    companion object {
+        const val ENABLE_SHIELD_ASSIST_KEY = "\$aitweaks_AUTO_OMNI_SHIELDS"
+        const val RENDER_PLUGIN_KEY = "aitweaks_shield_assist_renderer"
+    }
+
+    override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
+        // Load shield assist setting from memory.
+        val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
+        enableShieldAssist = memory.getBoolean(ENABLE_SHIELD_ASSIST_KEY)
+
+        // Handle input. The input needs to be handled even when the game
+        // is paused, therefore the handler can't be placed in the AI class.
+        events?.forEach {
+            // Toggle the shield assist and persist the setting to memory.
+            if (!it.isConsumed && it.isKeyDownEvent && it.eventValue == State.state.config.shieldAssistKeybind) {
+                enableShieldAssist = !enableShieldAssist
+                memory.set(ENABLE_SHIELD_ASSIST_KEY, enableShieldAssist)
+            }
+        }
+
+        // Nothing to do, exit early.
+        if (!enableShieldAssist) {
+            return
+        }
+
+        // Make a drone to hold the player ship shield AI.
+        if (aiDrone == null) {
+            ai = ShieldAssistAI(this)
+            aiDrone = makeAIDrone(ai!!)
+
+            Global.getCombatEngine().addEntity(aiDrone)
+        }
+
+        // Initialize shield assist rendering plugin.
+        val engine = Global.getCombatEngine()
+        if (!engine.customData.containsKey(RENDER_PLUGIN_KEY)) {
+            engine.addLayeredRenderingPlugin(ShieldAssistIndicator(this))
+            engine.customData[RENDER_PLUGIN_KEY] = true
+        }
+    }
+}

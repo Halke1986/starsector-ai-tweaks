@@ -9,7 +9,6 @@ import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.playerassist.LeadingPipIntegration.overrideTargetingLeadIndicator
 import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.state.VanillaKeymap
-import com.genir.aitweaks.core.utils.makeAIDrone
 
 class AimAssistManager : BaseEveryFrameCombatPlugin() {
     private var aiDrone: ShipAPI? = null
