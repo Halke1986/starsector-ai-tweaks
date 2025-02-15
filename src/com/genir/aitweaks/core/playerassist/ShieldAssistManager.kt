@@ -39,12 +39,16 @@ class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
         }
 
         // Make a drone to hold the player ship shield AI.
+        var aiDrone = aiDrone
         if (aiDrone == null) {
             ai = ShieldAssistAI(this)
             aiDrone = makeAIDrone(ai!!)
 
             Global.getCombatEngine().addEntity(aiDrone)
+            this.aiDrone = aiDrone
         }
+
+        syncTimeWithPlayerShip(aiDrone)
 
         // Initialize shield assist rendering plugin.
         val engine = Global.getCombatEngine()

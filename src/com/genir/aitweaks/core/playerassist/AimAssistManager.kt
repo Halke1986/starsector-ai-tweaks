@@ -22,6 +22,7 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
     }
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
+        val engine = Global.getCombatEngine()
         val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
         enableAimAssist = memory.getBoolean(ENABLE_AIM_ASSIST_KEY)
 
@@ -35,18 +36,22 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        if (!enableAimAssist) return
+        if (!enableAimAssist) {
+            return
+        }
 
         // Make a drone to hold player ship aim assist AI.
+        var aiDrone = aiDrone
         if (aiDrone == null) {
             aiDrone = makeAIDrone(AimAssistAI(this))
             Global.getCombatEngine().addEntity(aiDrone)
+            this.aiDrone = aiDrone
         }
 
+        syncTimeWithPlayerShip(aiDrone)
         overrideTargetingLeadIndicator(this)
 
         // Display status icon.
-        val engine = Global.getCombatEngine()
         val icon = "graphics/icons/hullsys/interdictor_array.png"
         engine.maintainStatusForPlayerShip(statusKey, icon, "aim assist", "automatic target leading", false)
     }

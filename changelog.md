@@ -1,3 +1,5 @@
+- Aim Assist now correctly handles attack and movement when the player ship in fast-time advance.
+
 Version 1.12.4
 
 - Fixed a null pointer exception in ship maneuver logic. Reported by TimeDiver0.
