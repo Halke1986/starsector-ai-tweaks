@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.playerassist.LeadingPipIntegration.overrideTargetingLeadIndicator
-import com.genir.aitweaks.core.state.State
+import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.state.VanillaKeymap
 
 class AimAssistManager : BaseEveryFrameCombatPlugin() {
@@ -30,7 +30,7 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
         updateStrafeMode()
         events?.forEach {
             // Toggle the aim bot and persist the setting to memory.
-            if (!it.isConsumed && it.isKeyDownEvent && it.eventValue == State.state.config.aimAssistKeybind) {
+            if (!it.isConsumed && it.isKeyDownEvent && it.eventValue == config.aimAssistKeybind) {
                 enableAimAssist = !enableAimAssist
                 memory.set(ENABLE_AIM_ASSIST_KEY, enableAimAssist)
             }

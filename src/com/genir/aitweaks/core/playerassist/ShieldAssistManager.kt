@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.campaign.CampaignEngine
-import com.genir.aitweaks.core.state.State
+import com.genir.aitweaks.core.state.Config.Companion.config
 
 class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
     private var aiDrone: ShipAPI? = null
@@ -27,7 +27,7 @@ class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
         // is paused, therefore the handler can't be placed in the AI class.
         events?.forEach {
             // Toggle the shield assist and persist the setting to memory.
-            if (!it.isConsumed && it.isKeyDownEvent && it.eventValue == State.state.config.shieldAssistKeybind) {
+            if (!it.isConsumed && it.isKeyDownEvent && it.eventValue == config.shieldAssistKeybind) {
                 enableShieldAssist = !enableShieldAssist
                 memory.set(ENABLE_SHIELD_ASSIST_KEY, enableShieldAssist)
             }

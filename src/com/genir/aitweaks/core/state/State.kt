@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.playerassist.AimAssistManager
 import com.genir.aitweaks.core.playerassist.ShieldAssistManager
 import com.genir.aitweaks.core.shipai.AttackCoordinator
 import com.genir.aitweaks.core.shipai.FleetSegmentation
+import com.genir.aitweaks.core.state.Config.Companion.config
 import java.lang.ref.WeakReference
 
 class State : BaseEveryFrameCombatPlugin() {
@@ -33,9 +34,11 @@ class State : BaseEveryFrameCombatPlugin() {
     init {
         // Register state to be used by plugins init method.
         stateValue = WeakReference(this)
+
+        // Reload config.
+        config = Config()
     }
 
-    val config: Config = Config()
     var frameCount: Int = 0
     val debugPlugin: DebugPlugin? = if (config.devMode) DebugPlugin() else null
 

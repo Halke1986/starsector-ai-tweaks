@@ -16,6 +16,7 @@ import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
 import com.genir.aitweaks.core.shipai.systems.BurnDriveToggle
 import com.genir.aitweaks.core.shipai.systems.SystemAI
 import com.genir.aitweaks.core.shipai.systems.SystemAIManager
+import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import org.lwjgl.util.vector.Vector2f
@@ -97,7 +98,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     override fun getAIFlags(): ShipwideAIFlags = vanilla.flags
 
     private fun debug() {
-        if (state.config.highlightCustomAI) {
+        if (Config.config.highlightCustomAI) {
             Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.BLUE)
         }
 

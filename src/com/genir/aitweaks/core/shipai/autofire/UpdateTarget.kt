@@ -5,7 +5,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.Grid
@@ -28,7 +28,7 @@ class UpdateTarget(
     private val targetSearchRange = weapon.totalRange * TARGET_SEARCH_MULT
 
     fun target(): CombatEntityAPI? = when {
-        Global.getCurrentState() == GameState.TITLE && state.config.enableTitleScreenFire -> selectAsteroid()
+        Global.getCurrentState() == GameState.TITLE && config.enableTitleScreenFire -> selectAsteroid()
 
         // Obligatory PD
         weapon.hasAIHint(PD_ONLY) && weapon.isAntiFighter -> selectTarget(::selectFighter, ::selectMissile)

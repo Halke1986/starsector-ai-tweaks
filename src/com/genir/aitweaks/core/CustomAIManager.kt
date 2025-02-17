@@ -15,7 +15,7 @@ import com.genir.aitweaks.core.extensions.isAutomated
 import com.genir.aitweaks.core.extensions.isModule
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.ExtendedShipAI
-import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.state.Config.Companion.config
 
 object CustomAIManager {
     fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
@@ -104,7 +104,7 @@ object CustomAIManager {
                 ship.hullSpec.shipSystemId == "lidararray" -> true
 
                 // Simulator.
-                state.config.enableSimulatorCustomAI && Global.getCombatEngine().isSimulation -> true
+                config.enableSimulatorCustomAI && Global.getCombatEngine().isSimulation -> true
 
                 else -> false
             }
@@ -119,14 +119,14 @@ object CustomAIManager {
 
             ship.owner != 0 || ship.isAlly -> false
 
-            state.config.aiPersonality?.lowercase() == "vanilla" -> false
+            config.aiPersonality?.lowercase() == "vanilla" -> false
 
             else -> true
         }
     }
 
     private fun customPersonality(): String {
-        return when (val personality = state.config.aiPersonality?.lowercase()) {
+        return when (val personality = config.aiPersonality?.lowercase()) {
             "timid", "cautious", "steady", "aggressive", "reckless" -> personality
 
             // Default.

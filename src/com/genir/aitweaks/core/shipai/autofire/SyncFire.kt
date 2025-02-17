@@ -4,7 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.state.Config.Companion.config
 import kotlin.math.min
 import kotlin.math.round
 
@@ -154,7 +154,7 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
     companion object {
         /** Ensure all weapons that are to fire in staggered mode share an up-to date state. */
         fun updateWeaponSync(ship: ShipAPI) {
-            if (!state.config.enabledStaggeredFire) {
+            if (!config.enabledStaggeredFire) {
                 return
             }
 

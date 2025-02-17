@@ -16,7 +16,7 @@ import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.autofire.hasAITag
-import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Arc
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
@@ -28,7 +28,7 @@ val WeaponAPI.isAntiFighter: Boolean
 
 val WeaponAPI.isStrictlyAntiShield: Boolean
     get() = when {
-        !state.config.enableNeedlerFix -> false
+        !config.enableNeedlerFix -> false
 
         hasAITag(Tag.ANTI_SHIELD) -> true
 

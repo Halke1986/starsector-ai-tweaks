@@ -8,6 +8,10 @@ import lunalib.lunaSettings.LunaSettings
  * However, the configuration must be refreshed at the beginning of each combat.
  */
 class Config {
+    companion object {
+        var config = Config()
+    }
+
     // General
     val enableFleetCohesion: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai")!!
     val enabledStaggeredFire: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_staggered_fire")!!

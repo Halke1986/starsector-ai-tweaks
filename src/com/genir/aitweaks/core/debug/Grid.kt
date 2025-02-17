@@ -3,11 +3,11 @@ package com.genir.aitweaks.core.debug
 import com.fs.graphics.Sprite
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatUIAPI
-import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.state.Config.Companion.config
 import java.lang.reflect.Field
 
 fun removeGrid() {
-    if (!state.config.removeCombatMapGrid) return
+    if (!config.removeCombatMapGrid) return
 
     val ui: CombatUIAPI = Global.getCombatEngine().combatUI ?: return
     val warroom: Any = ui::class.java.getMethod("getWarroom").invoke(ui) ?: return

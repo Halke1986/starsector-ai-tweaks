@@ -8,7 +8,7 @@ import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.state.State
+import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.VanillaShipCommand
@@ -46,7 +46,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
     }
 
     private fun debug() {
-        if (State.state.config.highlightCustomAI) {
+        if (Config.config.highlightCustomAI) {
             Debug.drawCircle(ship.location, ship.collisionRadius / 2f, Color.GREEN)
         }
     }

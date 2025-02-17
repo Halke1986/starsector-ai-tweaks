@@ -46,7 +46,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val target: CombatEntityAPI? = selectTarget()
         target?.let { Debug.drawCircle(it.location, it.collisionRadius / 2, Color.YELLOW) }
 
-        if (manager.strafeModeOn && state.config.aimAssistRotateShip) {
+        if (manager.strafeModeOn && Config.config.aimAssistRotateShip) {
             aimShip(dt, ship, target)
         }
 
@@ -221,7 +221,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
 
         closestTarget(ships)?.let { return it }
 
-        if (state.config.aimAssistTargetJunk) {
+        if (Config.config.aimAssistTargetJunk) {
             return selectJunkTarget()
         }
 
@@ -274,7 +274,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     }
 
     private fun targetLocation(target: CombatEntityAPI?): Vector2f {
-        return if (target == null || !state.config.aimAssistPerfect) {
+        return if (target == null || !Config.config.aimAssistPerfect) {
             mousePosition()
         } else {
             target.location

@@ -9,6 +9,7 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.closestEntity
 import com.genir.aitweaks.core.utils.isCloseToEnemy
@@ -30,7 +31,7 @@ class FleetCohesionAI(private val side: Int) : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         val engine = Global.getCombatEngine()
         when {
-            !state.config.enableFleetCohesion -> return
+            !config.enableFleetCohesion -> return
 
             engine.isSimulation -> return
 
