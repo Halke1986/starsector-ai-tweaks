@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.EngineController.Destination
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.defaultAIInterval
@@ -98,7 +99,7 @@ class VentModule(private val ai: CustomShipAI) {
     }
 
     /** Control the ship heading when backing off. */
-    fun overrideHeading(maneuverTarget: ShipAPI?): Vector2f? {
+    fun overrideHeading(maneuverTarget: ShipAPI?): Destination? {
         if (!isBackingOff) {
             return null
         }
@@ -115,19 +116,33 @@ class VentModule(private val ai: CustomShipAI) {
         // Calculate backoff heading.
         return when {
             ai.ventModule.isSafe -> when {
-                ship.fluxTracker.isVenting && ship.fluxTracker.timeToVent < 3f -> null
+                // Stop backing off when venting is close to finished.
+                // Otherwise, ship will start reversing course too late and back off too far.
+                ship.fluxTracker.isVenting && ship.fluxTracker.timeToVent < 3f -> {
+                    null
+                }
 
-                // Maintain const distance from maneuver target.
-                maneuverTarget != null -> maneuverTarget.location - ai.threatVector.resized(backoffDistance)
+                // Maintain const distance from the maneuver target.
+                maneuverTarget != null -> {
+                    val location = maneuverTarget.location - ai.threatVector.resized(backoffDistance)
+                    Destination(location, maneuverTarget.timeAdjustedVelocity)
+                }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
 
             // Move opposite to threat vector.
-            ai.threatVector.isNonZero -> ship.location - ai.threatVector.resized(farAway)
+            ai.threatVector.isNonZero -> {
+                val location = ship.location - ai.threatVector.resized(farAway)
+                Destination(location, Vector2f())
+            }
 
             // Continue present course if no threat vector is available.
-            else -> ship.location + ship.velocity.resized(farAway)
+            else -> {
+                Destination(ship.location, ship.velocity.resized(farAway))
+            }
         }
     }
 

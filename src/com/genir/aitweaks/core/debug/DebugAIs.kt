@@ -57,7 +57,7 @@ class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
         val shouldStopRotation = toMouse.length < ship.collisionRadius / 2f
 
         controller.facing(dt, toMouse.facing, shouldStopRotation)
-        controller.heading(dt, mousePosition())
+        controller.heading(dt, EngineController.Destination(mousePosition(), Vector2f()))
 
         Debug.drawEngineLines(ship)
     }
@@ -90,36 +90,6 @@ fun debugMissilePath(dt: Float) {
     trail = SimulateMissile.missilePath(weapon)
 }
 
-class DroneFormationAI(private val drone: ShipAPI, val ship: ShipAPI, private val offset: Vector2f) : BaseEngineControllerAI() {
-    private val controller = EngineController(drone)
-
-    override fun advance(dt: Float) {
-        val currentOffset = offset.rotated(ship.facing.direction.rotationMatrix)
-
-        controller.heading(dt, ship.location + currentOffset, false)
-        controller.facing(dt, currentOffset.facing, false)
-    }
-}
-
-private fun makeDroneFormation() {
-    if (Global.getCombatEngine().getTotalElapsedTime(false) < 8f) return
-
-    val ship = Global.getCombatEngine().playerShip ?: return
-    val drones = Global.getCombatEngine().ships.filter { it.isFighter }
-
-    val angle = 360f / drones.size
-
-    for (i in drones.indices) {
-        val drone = drones[i]
-
-        if (((drone.ai as? Ship.ShipAIWrapper)?.ai !is DroneFormationAI)) {
-            val offset = Vector2f(0f, 500f).rotated(RotationMatrix(angle * i))
-            drone.shipAI = DroneFormationAI(drone, ship, offset)
-        }
-
-        Debug.drawEngineLines(drone)
-    }
-}
 
 fun removeAsteroids() {
     val engine = Global.getCombatEngine()

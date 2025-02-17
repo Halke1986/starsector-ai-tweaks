@@ -1,11 +1,12 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.extensions.facing
+import com.genir.aitweaks.core.extensions.length
+import com.genir.aitweaks.core.extensions.resized
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
-import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
@@ -13,27 +14,15 @@ import kotlin.math.min
 /** Engine Controller for AI piloted ships. */
 class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     private var prevFacing: Direction = Direction(0f)
-    private var prevHeading: Vector2f = Vector2f()
 
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
     data class Limit(val heading: Direction, val speed: Float)
 
-    fun heading(dt: Float, heading: Vector2f, limits: List<Limit> = listOf()): Vector2f {
-        return heading(dt, heading, false, limits)
-    }
+    data class Destination(val location: Vector2f, val velocity: Vector2f)
 
-    fun heading(dt: Float, heading: Vector2f, shouldStop: Boolean, limits: List<Limit> = listOf()): Vector2f {
-        if (shouldStop) {
-            return heading(dt, ship.location, Vector2f())
-        }
-
-        // Estimate target linear velocity.
-        val globalVelocityLimit = 600f
-        val vt = ((heading - prevHeading) / dt).clampLength(globalVelocityLimit)
-        prevHeading = heading.copy
-
-        return heading(dt, heading, vt) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
+    fun heading(dt: Float, destination: Destination, limits: List<Limit> = listOf()): Vector2f {
+        return heading(dt, destination.location, destination.velocity) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
     }
 
     fun facing(dt: Float, facing: Direction) {

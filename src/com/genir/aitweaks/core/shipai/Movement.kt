@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.EngineController.Destination
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
@@ -38,45 +39,42 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
     }
 
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?) {
-        val systemOverride: Vector2f? = ai.systemAI?.overrideHeading()
-        val backoffOverride: Vector2f? = ai.ventModule.overrideHeading(maneuverTarget)
+        val systemOverride: Destination? = ai.systemAI?.overrideHeading()
+        val backoffOverride: Destination? = ai.ventModule.overrideHeading(maneuverTarget)
         val navigateTo: Vector2f? = ai.assignment.navigateTo
 
-        val newHeadingPoint: Vector2f? = interpolateHeading.advance(dt) {
-            when {
-                // Let movement system determine ship heading.
-                systemOverride != null -> {
-                    systemOverride
-                }
+        val destination: Destination = when {
+            // Let movement system determine ship heading.
+            systemOverride != null -> {
+                systemOverride
+            }
 
-                // Heading to assignment location takes priority.
-                navigateTo != null && (ai.threatVector.isZero || !ai.assignment.arrivedAt) -> {
-                    navigateTo
-                }
+            // Heading to assignment location takes priority.
+            navigateTo != null && (ai.threatVector.isZero || !ai.assignment.arrivedAt) -> {
+                Destination(navigateTo, Vector2f())
+            }
 
-                // Hand over control to backoff module when the ship is backing off.
-                backoffOverride != null -> {
-                    backoffOverride
-                }
+            // Hand over control to backoff module when the ship is backing off.
+            backoffOverride != null -> {
+                backoffOverride
+            }
 
-                // Orbit target at the effective weapon range.
-                // Rotate away from threat if there are multiple enemy ships around.
-                // Chase the target if there are no other enemy ships around.
-                // Strafe target randomly if in range and no other threat.
-                maneuverTarget != null -> {
-                    calculateAttackLocation(maneuverTarget)
-                }
+            // Orbit target at the effective weapon range.
+            // Rotate away from threat if there are multiple enemy ships around.
+            // Chase the target if there are no other enemy ships around.
+            // Strafe target randomly if in range and no other threat.
+            maneuverTarget != null -> {
+                calculateAttackLocation(dt, maneuverTarget)
+            }
 
-                // Nothing to do, stop the ship.
-                else -> null
-
-            }?.copy // Copy to avoid relying on changing value.
+            // Nothing to do, stop the ship.
+            else -> {
+                Destination(ship.location, Vector2f())
+            }
         }
 
-        val shouldStop = newHeadingPoint == null
-        headingPoint = newHeadingPoint ?: ship.location
-
-        expectedVelocity = engineController.heading(dt, headingPoint, shouldStop, gatherSpeedLimits(dt))
+        headingPoint = destination.location.copy // Copy to avoid relying on changing value.
+        expectedVelocity = engineController.heading(dt, destination, gatherSpeedLimits(dt))
     }
 
     private fun setFacing(dt: Float) {
@@ -122,10 +120,12 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         engineController.facing(dt, expectedFacing, shouldStop)
     }
 
-    private fun calculateAttackLocation(maneuverTarget: ShipAPI): Vector2f {
+    private fun calculateAttackLocation(dt: Float, maneuverTarget: ShipAPI): Destination {
         // If the ship is near the navigation objective, it should
         // position itself between the objective and the target.
-        ai.assignment.navigateTo?.let { return maneuverTarget.location - it }
+        ai.assignment.navigateTo?.let {
+            return Destination(maneuverTarget.location - it, Vector2f())
+        }
 
         val targetRoot = maneuverTarget.root
 
@@ -163,7 +163,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             }
 
             // Strafe the target randomly, when it's the only threat.
-            ai.is1v1 && ai.currentEffectiveRange(maneuverTarget) <= ai.attackingGroup.effectiveRange -> {
+            ai.is1v1 -> {
                 -ai.threatVector.rotated(strafeRotation)
             }
 
@@ -173,15 +173,16 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             }
         }
 
-        val attackLocation = preferMapCenter(attackVector).resized(ai.attackRange) + maneuverTarget.location
-        val coordinatedAttackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
+        var attackLocation = preferMapCenter(attackVector).resized(ai.attackRange) + maneuverTarget.location
+        attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
 
         // Assault ships don't need angle adjustment, as it interferes with the burn drive.
         if (ai.isAssaultShip && !isAttackingStation) {
-            return coordinatedAttackLocation
+            return Destination(attackLocation, maneuverTarget.timeAdjustedVelocity)
         }
 
-        return avoidGoingThroughTarget(maneuverTarget, coordinatedAttackLocation)
+        attackLocation = avoidGoingThroughTarget(maneuverTarget, attackLocation)
+        return Destination(attackLocation, maneuverTarget.timeAdjustedVelocity)
     }
 
     /** Take into account other entities when planning ship attack location. */

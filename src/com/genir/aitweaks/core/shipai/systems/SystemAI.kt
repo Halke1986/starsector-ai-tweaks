@@ -3,8 +3,8 @@ package com.genir.aitweaks.core.shipai.systems
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.shipai.EngineController
 import com.genir.aitweaks.core.utils.Direction
-import org.lwjgl.util.vector.Vector2f
 
 abstract class SystemAI(val ai: CustomShipAI) {
     protected val ship: ShipAPI = ai.ship
@@ -17,7 +17,7 @@ abstract class SystemAI(val ai: CustomShipAI) {
     /** Should custom system AI replace vanilla system AI. */
     open fun overrideVanillaSystemAI(): Boolean = true
 
-    open fun overrideHeading(): Vector2f? = null
+    open fun overrideHeading(): EngineController.Destination? = null
 
     open fun overrideFacing(): Direction? = null
 }
