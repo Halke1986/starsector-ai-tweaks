@@ -189,7 +189,7 @@ val WeaponAPI.peakDPS: Float
         val burstsNumber = when {
             // Non-burst weapons or burst weapons with short cycle.
             !isBurstWeapon || cycle.duration <= t -> {
-                floor(t / cycle.duration)
+                floor(t / cycle.duration).coerceAtLeast(1f)
             }
 
             else -> {

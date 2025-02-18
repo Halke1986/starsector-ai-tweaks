@@ -1,4 +1,5 @@
 - Aim Assist now correctly handles attack and movement when the player ship in fast-time advance.
+- Fixed a bug where low rate of fire weapons, like the Hellbore, had their DPS estimated incorrectly, which led to improper aiming behavior.
 
 Version 1.12.4
 
