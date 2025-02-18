@@ -43,6 +43,8 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("$core\$ProjectileWeapon", symbols.projectileWeapon.classPath),
             Transformer.newTransform("$core\$LoadingUtils", symbols.loadingUtils.classPath),
             Transformer.newTransform("$core\$FrontShieldAI", symbols.frontShieldAI.classPath),
+            Transformer.newTransform("$core\$Bounds", symbols.bounds.classPath),
+            Transformer.newTransform("$core\$BoundsSegment", symbols.boundsSegment.classPath),
 
             // Fields and methods.
             Transformer.newTransform("autofireManager_advance", symbols.autofireManager_advance.name),

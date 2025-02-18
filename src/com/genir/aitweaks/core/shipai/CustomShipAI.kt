@@ -492,6 +492,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     private fun targetBoundsDistance(target: ShipAPI): Float {
         val position = ship.location - target.location
         val velocity = position.resized(-1f)
-        return state.bounds.collision(position, velocity, target) ?: 0f
+        return Bounds.collision(position, velocity, target) ?: 0f
     }
 }

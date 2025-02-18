@@ -12,7 +12,6 @@ import com.genir.aitweaks.core.playerassist.AimAssistManager
 import com.genir.aitweaks.core.playerassist.ShieldAssistManager
 import com.genir.aitweaks.core.shipai.AttackCoordinator
 import com.genir.aitweaks.core.shipai.FleetSegmentation
-import com.genir.aitweaks.core.utils.Bounds
 import java.lang.ref.WeakReference
 
 class State : BaseEveryFrameCombatPlugin() {
@@ -37,7 +36,6 @@ class State : BaseEveryFrameCombatPlugin() {
     }
 
     val config: Config = Config()
-    val bounds = Bounds()
     var frameCount: Int = 0
     val debugPlugin: DebugPlugin? = if (config.devMode) DebugPlugin() else null
 

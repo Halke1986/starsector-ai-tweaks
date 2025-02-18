@@ -5,12 +5,8 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.*
-import com.genir.aitweaks.core.state.State
-import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.Direction
+import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.angularSize
-import com.genir.aitweaks.core.utils.solve
 import org.lwjgl.util.vector.Vector2f
 
 /** A group of weapons that should be able to fire along a single attack vector. */
@@ -76,7 +72,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         val ballisticTarget = BallisticTarget(
             targetLocationOverride ?: target.location,
             target.timeAdjustedVelocity,
-            State.state.bounds.radius(target) * 0.7f,
+            Bounds.radius(target) * 0.7f,
         )
 
         val toTarget = (target.location - ship.location)

@@ -1,8 +1,11 @@
 package com.genir.aitweaks.core.utils
 
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.Obfuscated
+import com.genir.aitweaks.core.extensions.lengthSquared
+import com.genir.aitweaks.core.extensions.minus
+import com.genir.aitweaks.core.extensions.plus
+import com.genir.aitweaks.core.extensions.times
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
@@ -12,16 +15,13 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-class Bounds {
-    private val radiusCache = mutableMapOf<CombatEntityAPI, Pair<Float, Float>>()
-
+object Bounds {
     /** Calculates the length ratio along vector with given starting position
      * and velocity, at which first collision with target bounds happens.
      * The vector position and direction are in target frame of reference!. */
     fun collision(position: Vector2f, velocity: Vector2f, target: CombatEntityAPI): Float? {
         // Check if there's a possibility of collision.
-        val bounds = target.exactBounds ?: return null
-        if (radius(target) < distanceToOrigin(position, velocity)) return null
+        val bounds = target.exactBounds as? Obfuscated.Bounds ?: return null
 
         // Rotate vector coordinates from target frame of
         // reference to target bounds frame of reference.
@@ -37,10 +37,14 @@ class Bounds {
 
             val m = crossProductZ(d, v)
             val k = crossProductZ(v, q) / m
-            if (k < 0 || k > 1) return@forEach // no collision
+            if (k < 0 || k > 1) {
+                return@forEach // no collision
+            }
 
             val t = crossProductZ(d, q) / m
-            if (t >= 0) closest = min(t, closest)
+            if (t >= 0) {
+                closest = min(t, closest)
+            }
         }
 
         return if (closest != MAX_VALUE) closest else null
@@ -49,7 +53,7 @@ class Bounds {
     /** Point on ship bounds closest to 'position'.
      * 'position' and result are in global frame of reference. */
     fun closestPoint(position: Vector2f, target: CombatEntityAPI): Vector2f {
-        val bounds = target.exactBounds ?: return target.location
+        val bounds = target.exactBounds as? Obfuscated.Bounds ?: return target.location
 
         val r = (-target.facing.direction).rotationMatrix
         val o = (position - target.location).rotated(r)
@@ -70,8 +74,7 @@ class Bounds {
      * 'position' is in global frame of reference. */
     fun isPointWithin(position: Vector2f, target: CombatEntityAPI): Boolean {
         // Check if there's a possibility of a collision.
-        val bounds = target.exactBounds ?: return false
-        if (radius(target) < (position - target.location).length) return false
+        val bounds = target.exactBounds as? Obfuscated.Bounds ?: return false
 
         val r = (-target.facing.direction).rotationMatrix
         val p = (position - target.location).rotated(r)
@@ -80,7 +83,9 @@ class Bounds {
         val count = bounds.origSegments.count { segment ->
             val x1 = min(segment.p1.x, segment.p2.x)
             val x2 = max(segment.p1.x, segment.p2.x)
-            if (p.x < x1 || p.x >= x2) return@count false
+            if (p.x < x1 || p.x >= x2) {
+                return@count false
+            }
 
             val q = p - segment.p1
             val d = segment.p2 - segment.p1
@@ -92,20 +97,16 @@ class Bounds {
 
     /** Radius of a circle encompassing the entity bounds. */
     fun radius(entity: CombatEntityAPI): Float {
-        val bounds = entity.exactBounds ?: return entity.collisionRadius
-        val now = Global.getCombatEngine().getTotalElapsedTime(false)
+        // Use obfuscated Bounds implementation, because it allows
+        // to access Segments list without copying it.
+        val bounds = entity.exactBounds as? Obfuscated.Bounds ?: return entity.collisionRadius
 
-        radiusCache[entity]?.let { (radius, timestamp) ->
-            if (now - timestamp < 1f) {
-                return radius
-            }
+        var radius = 0f
+        bounds.origSegments.forEach { segment: Obfuscated.BoundsSegment ->
+            radius = max(radius, segment.x1 * segment.x1 + segment.y1 + segment.y1)
+            radius = max(radius, segment.x2 * segment.x2 + segment.y2 + segment.y2)
         }
 
-        val points = bounds.origSegments.flatMap { listOf(it.p1, it.p2) }
-        val radius = points.maxOfOrNull { it.lengthSquared }?.let { sqrt(it) } ?: 0f
-
-        radiusCache[entity] = Pair(radius, now)
-
-        return radius
+        return sqrt(radius)
     }
 }

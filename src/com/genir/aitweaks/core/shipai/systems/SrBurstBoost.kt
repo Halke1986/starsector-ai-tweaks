@@ -7,13 +7,9 @@ import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
-import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.Direction
+import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
-import com.genir.aitweaks.core.utils.solve
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 
@@ -248,7 +244,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
     /** Distance along burn vector at which collision with target bounds occurs. */
     private fun boundsCollision(position: Vector2f, velocity: Vector2f, target: ShipAPI): Float? {
-        val distanceRelative = state.bounds.collision(position, velocity, target)
+        val distanceRelative = Bounds.collision(position, velocity, target)
         return distanceRelative?.let { it * velocity.length }
     }
 }

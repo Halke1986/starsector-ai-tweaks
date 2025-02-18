@@ -19,6 +19,7 @@ import org.objectweb.asm.Opcodes
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
 
 @Suppress("PropertyName")
 class Symbols {
@@ -39,8 +40,8 @@ class Symbols {
     val approachManeuver: Class<*> = findApproachManeuver()
     val autofireManager: Class<*> = attackAIModule.declaredFields.first { it.type.isInterface && it.type.methods.size == 1 }.type
     val maneuver: Class<*> = basicShipAI.getMethod("getCurrentManeuver").returnType
-    val shipCommandWrapper: Class<*> = ship.getMethod("getCommands").genericReturnTypeArgument(0)
-    val shipCommand: Class<*> = ship.getMethod("getBlockedCommands").genericReturnTypeArgument(0)
+    val shipCommandWrapper: Class<*> = ship.getMethod("getCommands").genericReturnType.typeArgument(0)
+    val shipCommand: Class<*> = ship.getMethod("getBlockedCommands").genericReturnType.typeArgument(0)
     val combatEntity: Class<*> = ship.getMethod("getEntity").returnType
     val weapon: Class<*> = ship.getMethod("getSelectedWeapon").returnType
     val aimTracker: Class<*> = weapon.getMethod("getAimTracker").returnType
@@ -59,6 +60,8 @@ class Symbols {
     val beamWeapon: Class<*> = findWeaponTypes()[0]
     val projectileWeapon: Class<*> = findWeaponTypes()[2]
     val frontShieldAI: Class<*> = findFrontShieldAI()
+    val bounds: Class<*> = ship.getMethod("getVisualBounds").returnType
+    val boundsSegment: Class<*> = bounds.getField("segments").genericType.typeArgument(0)
 
     // Methods and fields.
     val autofireManager_advance: Method = autofireManager.methods.first { it.name != "<init>" }
@@ -81,8 +84,12 @@ class Symbols {
     val missionDefinitionPluginContainer_getEveryFrameCombatPlugin: Method = missionDefinitionPluginContainer.methods.first { it.returnType == EveryFrameCombatPlugin::class.java }
     val loadingUtils_loadSpec: Method = loadingUtils.methods.first { it.returnType == JSONObject::class.java && it.hasParameters(String::class.java, Set::class.java) }
 
-    private fun Method.genericReturnTypeArgument(idx: Int): Class<*> {
-        return (genericReturnType as ParameterizedType).actualTypeArguments[idx] as Class<*>
+//    private fun Method.genericReturnTypeArgument(idx: Int): Class<*> {
+//        return (genericReturnType as ParameterizedType).actualTypeArguments[idx] as Class<*>
+//    }
+
+    private fun Type.typeArgument(idx: Int): Class<*> {
+        return (this as ParameterizedType).actualTypeArguments[idx] as Class<*>
     }
 
     private fun Method.hasParameters(vararg params: Class<*>): Boolean {

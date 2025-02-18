@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags;
 import org.json.JSONObject;
 import org.lwjgl.util.vector.Vector2f;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -215,5 +216,18 @@ public class Obfuscated {
     public static class FrontShieldAI {
         public FrontShieldAI(com.fs.starfarer.combat.entities.Ship ship, ShipwideAIFlags flags) {
         }
+    }
+
+    public static class BoundsSegment {
+        public float x1;
+        public float y1;
+        public float x2;
+        public float y2;
+        public Vector2f p1;
+        public Vector2f p2;
+    }
+
+    public static class Bounds {
+        public List<BoundsSegment> origSegments = new ArrayList<>();
     }
 }

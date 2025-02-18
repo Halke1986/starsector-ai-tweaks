@@ -3,12 +3,8 @@ package com.genir.aitweaks.core.shipai.autofire
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.Direction
+import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.pointsOfTangency
-import com.genir.aitweaks.core.utils.solve
 import org.lwjgl.util.vector.Vector2f
 
 /**
@@ -105,7 +101,7 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
  * given current weapon facing. Collision range is returned, null if no collision. */
 fun willHitBounds(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): Float? {
     val (p, v) = projectileCoords(weapon, BallisticTarget.collisionRadius(target), params)
-    return state.bounds.collision(p, v, target)
+    return Bounds.collision(p, v, target)
 }
 
 /** Target location and velocity in weapon frame of reference. */

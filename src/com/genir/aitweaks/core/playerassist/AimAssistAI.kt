@@ -13,6 +13,7 @@ import com.genir.aitweaks.core.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.shipai.BasicEngineController
 import com.genir.aitweaks.core.shipai.WeaponGroup
 import com.genir.aitweaks.core.shipai.autofire.*
+import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.*
@@ -205,7 +206,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
                 it.owner == 0 -> false
                 it.isFighter -> false
 
-                else -> state.bounds.isPointWithin(mousePosition(), it)
+                else -> Bounds.isPointWithin(mousePosition(), it)
             }
         }.firstOrNull()?.let { return it }
 
@@ -256,7 +257,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     private fun closestTarget(entities: Sequence<CombatEntityAPI>): CombatEntityAPI? {
         val distances = entities.map { entity ->
             val closestPoint = if (!entity.isShip) entity.location
-            else state.bounds.closestPoint(mousePosition(), entity as ShipAPI)
+            else Bounds.closestPoint(mousePosition(), entity as ShipAPI)
 
             // Apply target switching hysteresis.
             val currentTargetBonus = if (entity == currentTarget) 2 else 1
