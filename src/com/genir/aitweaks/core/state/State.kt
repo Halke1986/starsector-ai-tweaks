@@ -13,38 +13,24 @@ import com.genir.aitweaks.core.playerassist.ShieldAssistManager
 import com.genir.aitweaks.core.shipai.AttackCoordinator
 import com.genir.aitweaks.core.shipai.FleetSegmentation
 import com.genir.aitweaks.core.state.Config.Companion.config
-import java.lang.ref.WeakReference
 
 class State : BaseEveryFrameCombatPlugin() {
     companion object {
-        // Store the state instance as a weak reference to allow it
-        // to be deallocated after combat ends. This prevents the
-        // state from persisting across game reloads, which could
-        // trigger a Starsector memory leak warning.
-        private var stateValue: WeakReference<State>? = null
-
-        // Global combat state. It remains accessible throughout combat
-        // despite being stored as a weak reference. This works because
-        // the state is an instance of EveryFrameCombatPlugin, which is
-        // referenced by the game's Combat Engine.
         val state: State
-            get() = stateValue!!.get()!!
+            get() = Global.getCombatEngine().customData["aitweaks_combat_state"] as State
     }
 
     init {
-        // Register state to be used by plugins init method.
-        stateValue = WeakReference(this)
-
-        // Reload config.
+        // Reload config at beginning of each battle.
         config = Config()
     }
 
     var frameCount: Int = 0
     val debugPlugin: DebugPlugin? = if (config.devMode) DebugPlugin() else null
 
-    val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
-    val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
     val accelerationTracker: AccelerationTracker = AccelerationTracker()
+    val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
+    private val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
 
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
         fleetSegmentation[0],
@@ -59,15 +45,11 @@ class State : BaseEveryFrameCombatPlugin() {
     )
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        // Make sure the active combat state instance is accessible via the
-        // global variable. This is required because SS initializes multiple
-        // instances of EveryFrameCombatPlugin per combat but uses only one
-        // of them, not necessarily the latest.
-        stateValue = WeakReference(this)
-
         debugPlugin?.advance(dt, events)
 
-        if (frameCount == 0) removeGrid()
+        if (frameCount == 0) {
+            removeGrid()
+        }
 
         // Advance plugins only in combat.
         if (Global.getCurrentState() == GameState.COMBAT) {
