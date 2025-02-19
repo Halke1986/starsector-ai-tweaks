@@ -125,35 +125,42 @@ open class BasicEngineController(val ship: ShipAPI) {
         }
     }
 
-    /** Calculates the maximum velocity in a given direction to avoid
-     * overshooting a target at distance `s` with acceleration `a`. */
-    private fun vMax(s: Float, a: Float): Float {
-        // The Starsector engine simulates motion in a discrete manner, where
-        // the distance covered during accelerated motion is described using
-        // a non-Newtonian formula:
-        //
-        // s(0) = 0
-        // s(n) = s(n-1) + n a u
-        //
-        // where `s(n)` is the distance covered after `n` frames, `a` is
-        // acceleration per frame and `u` is the duration of a single
-        // simulation frame (here normalized to 1). This recursive formula
-        // can be converted into an explicit integer function and solved
-        // for `v` (where `v = a n`), giving:
-        //
-        // v(s) = sqrt(a² / 4 + 2 a s) - a / 2
-        //
-        // Finally, v(s) can be extended to real arguments by using the
-        // following approximation:
-        return sqrt((a * a) + (2 * a * s)) - a
-    }
+    companion object {
+        /** Calculates the maximum velocity in a given direction to avoid
+         * overshooting the target at distance `s` with acceleration `a`. */
+        private fun vMax(s: Float, a: Float): Float {
+            // The Starsector engine simulates motion in a discrete manner, where
+            // the distance covered during accelerated motion is described using
+            // a non-Newtonian formula:
+            //
+            // s(0) = 0
+            // s(n) = s(n-1) + n a u
+            //
+            // where `s(n)` is the distance covered after `n` frames, `a` is
+            // acceleration per frame and `u` is the duration of a single
+            // simulation frame (here normalized to 1). This recursive formula
+            // can be converted into an explicit integer function and solved
+            // for `v` (where `v = a n`), giving:
+            //
+            // v(s) = sqrt(a² / 4 + 2 a s) - a / 2
+            //
+            // Finally, v(s) can be extended to real arguments by using
+            // the following approximation:
+            return sqrt((a * a) + (2 * a * s)) - a
+        }
 
-    /** Decide if the ship should accelerate in the given
-     * direction to reach its target without overshooting. */
-    private fun shouldAccelerate(d: Float, f: Float, m: Float) = when {
-        f < 0.5f -> false
-        d < 0f && f >= 0.5f -> true // braking to not overshoot target
-        f >= m -> true
-        else -> f / m > Random.nextFloat() // apply proportional thrust
+        /** Maximum velocity calculations for use outside the engine controller. */
+        fun vMax(dt: Float, dist: Float, deceleration: Float): Float {
+            return vMax(dist, deceleration * dt * dt) / dt
+        }
+
+        /** Decide if the ship should accelerate in the given
+         * direction to reach its target without overshooting. */
+        private fun shouldAccelerate(d: Float, f: Float, m: Float) = when {
+            f < 0.5f -> false
+            d < 0f && f >= 0.5f -> true // braking to not overshoot target
+            f >= m -> true
+            else -> f / m > Random.nextFloat() // apply proportional thrust
+        }
     }
 }

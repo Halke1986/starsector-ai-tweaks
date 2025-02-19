@@ -8,54 +8,6 @@ const val DEGREES_TO_RADIANS: Float = 0.017453292F
 const val RADIANS_TO_DEGREES: Float = 57.29578F
 const val PI = Math.PI.toFloat()
 
-/** Solve quadratic equation [ax² + bx + c = 0] for x. */
-fun quad(a: Float, b: Float, c: Float): Pair<Float, Float>? {
-    val d = b * b - 4 * a * c
-    return when {
-        d < 0 -> null
-        a == 0f -> (2 * c / -b).let { Pair(it, it) }
-        else -> sqrt(d).let { Pair((-b + it) / (2 * a), (-b - it) / (2 * a)) }
-    }
-}
-
-/** Time after which point P travelling with velocity V
- * will find itself at R distance from (0,0). */
-fun solve(pv: Pair<Vector2f, Vector2f>, r: Float): Float? {
-    return solve(pv, 0f, 0f, r, 0f)
-}
-
-/**
- * Solve the following cosine law equation for t:
- *
- * a(t)² = b(t)² + r² - 2*b(t)*r*cosA
- *
- * where
- *
- * a(t) = |P + V * t|
- * b(t) =  q + w * t
- *
- * The smaller positive solutions is returned.
- * If no positive solution exists, null is returned.
- *
- * Equation can be expanded in the following way:
- * (Px + Vx * t)²          + (Py + Vy * t)²          = (q + w * t)²        + r² - 2((q + w * t) * r * cosA)
- * Px² + 2Px*Vx*t + Vx²*t² + Py² + 2Py*Vy*t + Vy²*t² = q² + 2q*w*t + w²*t² + r² - 2q*r*cosA - 2w*t*r*cosA
- * 0 = (Vx² + Vy² - w²)*t² + 2(Px*Vx + Py*Vy - w*q + r*w*cosA)*t + (Px² + Py² - q² - r² + 2q*r*cosA)
- */
-fun solve(pv: Pair<Vector2f, Vector2f>, q: Float, w: Float, r: Float, cosA: Float): Float? {
-    val (p, v) = pv
-    val a = (v.x * v.x) + (v.y * v.y) - (w * w)
-    val b = (p.x * v.x) + (p.y * v.y) - (w * q) + (w * r * cosA)
-    val c = (p.x * p.x) + (p.y * p.y) - (r * r) - (q * q) + (2 * q * r * cosA)
-
-    val (t1, t2) = quad(a, 2 * b, c) ?: return null
-    return when {
-        t1 >= 0 && t2 >= 0 -> min(t1, t2)
-        t1 <= 0 != t2 <= 0 -> max(t1, t2)
-        else -> null
-    }
-}
-
 fun dotProduct(a: Vector2f, b: Vector2f): Float {
     return a.x * b.x + a.y * b.y
 }

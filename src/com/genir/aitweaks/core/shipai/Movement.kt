@@ -12,7 +12,10 @@ import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.*
+import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sign
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
@@ -392,7 +395,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                 val obstacleVDirection = if (angleToObstacle.sign == obstacleW.sign) 1
                 else -1
 
-                vMax(dt, distance, ship.strafeAcceleration) + obstacleVDirection * obstacleVComponent
+                BasicEngineController.vMax(dt, distance, ship.strafeAcceleration) + obstacleVDirection * obstacleVComponent
             }
 
             // Line-of-fire blocking occurs when ships orbiting the same target
@@ -404,11 +407,11 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             // away from the heading. This allows the ship to keep moving toward the target
             // even when constrained by opposing limits.
             if (angleToObstacle.sign > 0) {
-                if (maxLimitRight == null || maxLimitRight!!.speed > vMax) {
+                if (maxLimitRight == null || maxLimitRight!!.speedLimit > vMax) {
                     maxLimitRight = EngineController.Limit(shipFacing + 88f, vMax)
                 }
             } else {
-                if (maxLimitLeft == null || maxLimitLeft!!.speed > vMax) {
+                if (maxLimitLeft == null || maxLimitLeft!!.speedLimit > vMax) {
                     maxLimitLeft = EngineController.Limit(shipFacing - 88f, vMax)
                 }
             }
@@ -476,7 +479,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             // The acceleration is approximated as total velocity loss. Including actual
             // acceleration (shipAcc + aAbs) in calculations leads to erratic behavior.
             vObstacle > 0f && aObstacle < 0f -> {
-                vMax(dt, distanceLeft, decelShip)
+                BasicEngineController.vMax(dt, distanceLeft, decelShip)
             }
 
             // Obstacle is moving towards the ship. If the obstacle is a friendly,
@@ -485,11 +488,11 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
                 val decelObstacle = obstacle.collisionDeceleration(-dirFacing)
                 val decelDistObstacle = decelerationDist(dt, -vObstacle, decelObstacle)
 
-                vMax(dt, distanceLeft - decelDistObstacle, decelShip)
+                BasicEngineController.vMax(dt, distanceLeft - decelDistObstacle, decelShip)
             }
 
             // Maximum velocity that will not lead to collision with inert obstacle.
-            else -> vMax(dt, distanceLeft, decelShip) + vObstacle
+            else -> BasicEngineController.vMax(dt, distanceLeft, decelShip) + vObstacle
         }
 
         return if (vMax > ship.maxSpeed) null
@@ -504,12 +507,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             angleFromBow < 150f -> strafeAcceleration
             else -> acceleration
         }
-    }
-
-    /** Maximum velocity in given direction to not overshoot target. */
-    private fun vMax(dt: Float, dist: Float, deceleration: Float): Float {
-        val (q, _) = quad(0.5f, 0.5f, -dist / (deceleration * dt * dt)) ?: return 0f
-        return floor(q) * deceleration * dt
     }
 
     /** Distance covered by ship when decelerating from given velocity. */

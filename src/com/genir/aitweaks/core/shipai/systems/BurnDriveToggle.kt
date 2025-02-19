@@ -224,7 +224,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
             // Calculate time to collision.
             if (p.lengthSquared <= r * r) 0f
-            else solve(Pair(p, v), r)
+            else solve(p, v, r)
         }.minOrNull() ?: Float.MAX_VALUE
     }
 }

@@ -107,7 +107,7 @@ val WeaponAPI.totalRange: Float
 fun WeaponAPI.rangeFromShipCenter(attackFacing: Direction): Float {
     val p = -slot.location
     val v = attackFacing.unitVector
-    return solve(Pair(p, v), Range) ?: 0f
+    return solve(p, v, Range) ?: 0f
 }
 
 val WeaponAPI.autofirePlugin: AutofireAIPlugin?
