@@ -162,8 +162,8 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         val arm2 = arc.arms.second.unitVector
 
         // Distance from the weapon slot at which the arms cross the range threshold.
-        val dist1 = solve(Pair(slotLocation, arm1), range) ?: return fullArc
-        val dist2 = solve(Pair(slotLocation, arm2), range) ?: return fullArc
+        val dist1 = solve(slotLocation, arm1, range) ?: return fullArc
+        val dist2 = solve(slotLocation, arm2, range) ?: return fullArc
 
         // Limits of the weapon arc, as seen from the ship's center.
         val point1 = arm1 * dist1 + slotLocation

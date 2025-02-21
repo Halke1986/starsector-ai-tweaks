@@ -44,7 +44,7 @@ fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParam
     val (p, v) = targetCoords(weapon, target, params)
     if (targetAboveWeapon(p, weapon, target)) return target.location
 
-    val range = solve(Pair(p, v), weapon.barrelOffset, 1f, 0f, 0f) ?: approachesInfinity
+    val range = solve(p, v, weapon.barrelOffset, 1f, 0f, 0f) ?: approachesInfinity
     return p + v * range
 }
 
@@ -91,7 +91,7 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
     if (shield.isOff) return null
 
     val (p, v) = projectileCoords(weapon, BallisticTarget.shieldRadius(target), params)
-    val range = solve(Pair(p, v), shield.radius) ?: return null
+    val range = solve(p, v, shield.radius) ?: return null
     val hitPoint = p + v * range
 
     return if (Arc(shield.activeArc, shield.facing.direction).contains(hitPoint)) range else null

@@ -17,7 +17,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
-    data class Limit(val heading: Direction, val speed: Float)
+    data class Limit(val heading: Direction, val speedLimit: Float)
 
     data class Destination(val location: Vector2f, val velocity: Vector2f)
 
@@ -50,7 +50,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         // distinguishable by producing a slightly different value
         // of f(x) = 1/cos(x) for a given hading, instead of all
         // being equal to 0f.
-        val limits = absLimits.map { Limit(it.heading + toShipFacing, (it.speed * dt).coerceAtLeast(0.00001f)) }
+        val limits = absLimits.map { Limit(it.heading + toShipFacing, (it.speedLimit * dt).coerceAtLeast(0.00001f)) }
 
         // Find the most severe speed limit.
         val expectedSpeed = expectedVelocity.length
@@ -92,7 +92,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         if (angleFromLimit >= 90f) return expectedSpeed
 
         val t = (PI / 2f - angleFromLimit * DEGREES_TO_RADIANS)
-        val e = speed * (1f / t + t / 5f)
+        val e = speedLimit * (1f / t + t / 5f)
         return min(e, expectedSpeed)
     }
 
@@ -100,10 +100,10 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
      * with expectedSpeed will not break the limit. */
     private fun Limit.headingOffset(expectedSpeed: Float): Float {
         val a = 1f
-        val b = -5f * (expectedSpeed / speed)
+        val b = -5f * (expectedSpeed / speedLimit)
         val c = 5f
 
-        val t = quad(a, b, c)!!.second
+        val t = quad(a, b, c, Solution.SMALLER_NON_NEGATIVE) ?: 0f
         return abs(t - PI / 2f) * RADIANS_TO_DEGREES
     }
 }
