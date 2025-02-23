@@ -43,7 +43,9 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
     private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocity: Vector2f, absLimits: List<Limit>): Vector2f {
         // No relevant speed limits found, move ahead.
-        if (absLimits.isEmpty()) return expectedVelocity
+        if (absLimits.isEmpty()) {
+            return expectedVelocity
+        }
 
         // Translate speed limit to ship frame of reference.
         // Clamp the speed limit so that different limits remain
@@ -59,7 +61,9 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
             ?: return expectedVelocity
 
         // Most severe speed limit does not influence speed ahead.
-        if (lowestLimit.clampSpeed(expectedHeading, expectedSpeed) == expectedSpeed) return expectedVelocity
+        if (lowestLimit.clampSpeed(expectedHeading, expectedSpeed) == expectedSpeed) {
+            return expectedVelocity
+        }
 
         // Find new heading that circumvents the lowest speed limit.
         val headingOffset = lowestLimit.headingOffset(expectedSpeed)
@@ -69,7 +73,9 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
         // Stop if angle to new heading is right, to avoid erratic behavior
         // when avoiding collision and being stopped close to destination.
-        if (angleToNewFacing.length >= 89f) return Vector2f()
+        if (angleToNewFacing.length >= 89f) {
+            return Vector2f()
+        }
 
         // Clamp new heading to not violate any of the speed limits.
         val newSpeed = limits.fold(expectedSpeed) { clampedSpeed, lim ->
@@ -89,7 +95,9 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
      * g(t) = 1/t + t/5 where t = PI/2 - x. */
     private fun Limit.clampSpeed(expectedHeading: Direction, expectedSpeed: Float): Float {
         val angleFromLimit = (heading - expectedHeading).length
-        if (angleFromLimit >= 90f) return expectedSpeed
+        if (angleFromLimit >= 90f) {
+            return expectedSpeed
+        }
 
         val t = (PI / 2f - angleFromLimit * DEGREES_TO_RADIANS)
         val e = speedLimit * (1f / t + t / 5f)

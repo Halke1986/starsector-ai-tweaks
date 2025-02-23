@@ -65,7 +65,9 @@ open class BasicEngineController(val ship: ShipAPI) {
         // target in case the low velocity is the result of a
         // collision avoidance speed limit.
         if (vec.length < af / 2f) {
-            if (ship.velocity.isNonZero) ship.command(DECELERATE)
+            if (ship.velocity.isNonZero) {
+                ship.command(DECELERATE)
+            }
             return Vector2f()
         }
 
@@ -126,9 +128,18 @@ open class BasicEngineController(val ship: ShipAPI) {
     }
 
     companion object {
+        /** Maximum velocity calculations for use outside the engine controller. */
+        fun vMax(dt: Float, dist: Float, deceleration: Float): Float {
+            return vMax(dist, deceleration * dt * dt) / dt
+        }
+
         /** Calculates the maximum velocity in a given direction to avoid
          * overshooting the target at distance `s` with acceleration `a`. */
         private fun vMax(s: Float, a: Float): Float {
+            if (s <= 0f) {
+                return 0f
+            }
+
             // The Starsector engine simulates motion in a discrete manner, where
             // the distance covered during accelerated motion is described using
             // a non-Newtonian formula:
@@ -147,11 +158,6 @@ open class BasicEngineController(val ship: ShipAPI) {
             // Finally, v(s) can be extended to real arguments by using
             // the following approximation:
             return sqrt((a * a) + (2 * a * s)) - a
-        }
-
-        /** Maximum velocity calculations for use outside the engine controller. */
-        fun vMax(dt: Float, dist: Float, deceleration: Float): Float {
-            return vMax(dist, deceleration * dt * dt) / dt
         }
 
         /** Decide if the ship should accelerate in the given

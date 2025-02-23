@@ -487,7 +487,9 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
         val distanceLeft = direction.length - distance
 
         // Already colliding.
-        if (distanceLeft <= 0f) return EngineController.Limit(dirFacing, 0f)
+        if (distanceLeft <= 0f) {
+            return EngineController.Limit(dirFacing, 0f)
+        }
 
         val vObstacle = vectorProjectionLength(obstacle.timeAdjustedVelocity, direction)
         val aObstacle = vectorProjectionLength(state.accelerationTracker[obstacle], direction)
