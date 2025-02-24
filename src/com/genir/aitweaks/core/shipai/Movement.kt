@@ -409,12 +409,10 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             val vMax: Float = if (distance < 0f) {
                 0f // Already blocking.
             } else {
-                val obstacleW = angularVelocity(obstacleLineOfFire, obstacle.ship.timeAdjustedVelocity)
-                val obstacleVComponent = obstacleW / obstacleLineOfFire.length
-                val obstacleVDirection = if (angleToObstacle.sign == obstacleW.sign) 1
-                else -1
+                val obstacleW = angularVelocity(obstacleLineOfFire, obstacle.ship.timeAdjustedVelocity) * DEGREES_TO_RADIANS
+                val obstacleV = obstacleW * obstacleLineOfFire.length * angleToObstacle.sign
 
-                BasicEngineController.vMax(dt, distance, ship.strafeAcceleration) + obstacleVDirection * obstacleVComponent
+                BasicEngineController.vMax(dt, distance, ship.strafeAcceleration) + obstacleV
             }
 
             // Line-of-fire blocking occurs when ships orbiting the same target
@@ -513,7 +511,9 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
             }
 
             // Maximum velocity that will not lead to collision with inert obstacle.
-            else -> BasicEngineController.vMax(dt, distanceLeft, decelShip) + vObstacle
+            else -> {
+                BasicEngineController.vMax(dt, distanceLeft, decelShip) + vObstacle
+            }
         }
 
         return if (vMax > ship.maxSpeed) null
