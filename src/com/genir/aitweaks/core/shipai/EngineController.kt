@@ -17,7 +17,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
-    data class Limit(val heading: Direction, val speedLimit: Float)
+    data class Limit(val direction: Direction, val speedLimit: Float)
 
     data class Destination(val location: Vector2f, val velocity: Vector2f)
 
@@ -52,7 +52,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         // distinguishable by producing a slightly different value
         // of f(x) = 1/cos(x) for a given hading, instead of all
         // being equal to 0f.
-        val limits = absLimits.map { Limit(it.heading + toShipFacing, (it.speedLimit * dt).coerceAtLeast(0.00001f)) }
+        val limits = absLimits.map { Limit(it.direction + toShipFacing, (it.speedLimit * dt).coerceAtLeast(0.00001f)) }
 
         // Find the most severe speed limit.
         val expectedSpeed = expectedVelocity.length
@@ -67,7 +67,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
         // Find new heading that circumvents the lowest speed limit.
         val headingOffset = lowestLimit.headingOffset(expectedSpeed)
-        val angleToLimit = lowestLimit.heading - expectedHeading
+        val angleToLimit = lowestLimit.direction - expectedHeading
         val angleToNewFacing = angleToLimit - headingOffset * angleToLimit.sign
         val newFacing = expectedHeading + angleToNewFacing
 
@@ -94,7 +94,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
      * To avoid using trigonometric functions, f(x) = 1/cos(x) is approximated as
      * g(t) = 1/t + t/5 where t = PI/2 - x. */
     private fun Limit.clampSpeed(expectedHeading: Direction, expectedSpeed: Float): Float {
-        val angleFromLimit = (heading - expectedHeading).length
+        val angleFromLimit = (direction - expectedHeading).length
         if (angleFromLimit >= 90f) {
             return expectedSpeed
         }
