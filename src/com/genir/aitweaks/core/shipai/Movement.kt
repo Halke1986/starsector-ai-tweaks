@@ -18,7 +18,7 @@ import kotlin.math.min
 import kotlin.math.sign
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinable {
+class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable {
     private val ship: ShipAPI = ai.ship
     private val engineController: EngineController = EngineController(ship)
 

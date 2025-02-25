@@ -14,7 +14,7 @@ import org.lwjgl.util.vector.Vector2f
  * same target, so that the ships don't try to crowd in the same spot.
  */
 class AttackCoordinator : BaseEveryFrameCombatPlugin() {
-    interface Coordinable {
+    interface Coordinatable {
         var proposedHeadingPoint: Vector2f?
         var reviewedHeadingPoint: Vector2f? // will be null is ship requires no coordination
         val ai: CustomShipAI
@@ -28,19 +28,20 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
             return
         }
 
-        val ships = Global.getCombatEngine().ships.asSequence().mapNotNull { it.customShipAI }
+        val ships = Global.getCombatEngine().ships.asSequence()
+        val coordinatables = ships.mapNotNull { it.customShipAI?.movement }
 
-        val movements = ships.map { it.movement }
-        val systems = ships.mapNotNull { it.systemAI as? Coordinable }
+        val taskForces: Collection<List<Unit>> = buildTaskForces(coordinatables)
+        val structuredTaskForces: Collection<List<Formation>> = taskForces.map { buildFormations(it) }
 
-        buildTaskForces(movements).forEach { coordinateUnits(buildFormations(it.value)) }
-        buildTaskForces(systems).forEach { coordinateUnits(buildFormations(it.value)) }
+        structuredTaskForces.forEach { coordinateTaskForce(it) }
     }
 
-    // Divide attacking AIs into task forces attacking the same target.
-    private fun buildTaskForces(coordinables: Sequence<Coordinable>): Map<ShipAPI, List<Unit>> {
+    // Divide attacking coordinatables into task forces attacking the same target.
+    private fun buildTaskForces(coordinatables: Sequence<Coordinatable>): Collection<List<Unit>> {
         val taskForces: MutableMap<ShipAPI, MutableList<Unit>> = mutableMapOf()
-        coordinables.forEach { coordinable ->
+
+        coordinatables.forEach { coordinable ->
             val target = coordinable.ai.maneuverTarget
             val proposedHeadingPoint = coordinable.proposedHeadingPoint
 
@@ -55,11 +56,14 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
             val unit = Unit(target, proposedHeadingPoint, coordinable)
             val taskForce = taskForces[target]
 
-            if (taskForce == null) taskForces[target] = mutableListOf(unit)
-            else taskForce.add(unit)
+            if (taskForce == null) {
+                taskForces[target] = mutableListOf(unit)
+            } else {
+                taskForce.add(unit)
+            }
         }
 
-        return taskForces
+        return taskForces.values
     }
 
     private fun buildFormations(taskForce: List<Unit>): List<Formation> {
@@ -85,24 +89,25 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
         else mergeFormations(l2)
     }
 
-    private fun coordinateUnits(taskForce: List<Formation>) {
-        val target = taskForce.first().units.first().target
-
+    private fun coordinateTaskForce(taskForce: List<Formation>) {
         // Formations with only one unit do not require coordination.
         val formationsToCoordinate = taskForce.filter { formation -> formation.units.size > 1 }
 
-        formationsToCoordinate.forEach { formation ->
-            var facing = formation.facing - formation.angularSize / 2f
+        formationsToCoordinate.forEach { coordinateFormation(it) }
+    }
 
-            formation.units.sortBy { (it.currentFacing - formation.facing).degrees }
+    private fun coordinateFormation(formation: Formation) {
+        val target: ShipAPI = formation.units.first().target
+        var facing = formation.facing - formation.angularSize / 2f
 
-            formation.units.forEach { entity ->
-                val angle = facing + entity.angularSize / 2f
-                val pos = target.location + angle.unitVector.resized(entity.attackRange)
+        formation.units.sortBy { (it.currentFacing - formation.facing).degrees }
 
-                facing += entity.angularSize
-                entity.coordinable.reviewedHeadingPoint = pos
-            }
+        formation.units.forEach { entity ->
+            val angle = facing + entity.angularSize / 2f
+            val pos = target.location + angle.unitVector.resized(entity.attackRange)
+
+            facing += entity.angularSize
+            entity.coordinable.reviewedHeadingPoint = pos
         }
     }
 
@@ -128,7 +133,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
         }
     }
 
-    private class Unit(val target: ShipAPI, proposedHeadingPoint: Vector2f, val coordinable: Coordinable) {
+    private class Unit(val target: ShipAPI, proposedHeadingPoint: Vector2f, val coordinable: Coordinatable) {
         val ship: ShipAPI = coordinable.ai.ship
         val attackRange: Float = (proposedHeadingPoint - target.location).length
         val angularSize: Float = angularSize(attackRange * attackRange, ship.totalCollisionRadius * 1.4f)
