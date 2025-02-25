@@ -22,8 +22,8 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - aim slow turrets
 - DEPRECATED: use front facing turrets with rotation speed lower than ship turn rate as hardpoints
- - unless flamed out
- - not for player
+- unless flamed out
+- not for player
 
 - try to attack same enemy battle group during initial split
 
@@ -39,3 +39,14 @@ check Lidar on faster ships - destroyer : ass pinetree, frigate DEX Catapult
 
 ----------------------------------------------------------------
 
+disable staggered fire through a config file
+
+Yes, so I'm talking about all kinetic energy weapons and special ships that cannot be locked by these two shield
+modules. After turning off that setting, pinning the shieldless ship like the fortress can be attacked normally, but it
+has no effect on these two bodies. Shield, but ships with shields with hidden modules will still make mistakes
+Guess it might be the problem AI Revised AI Tweaks 1.12.4 ai wants to judge the opposite module shield, but because it
+cannot be locked, it cannot be judged, resulting in a direct dull fire
+
+- In the original post, the mod referenced as “ghost troops” is written as 幽灵部队 (with “戒灵” being a ship name from
+  that mod), and the one referred to as “Big rice dumplings” is written as 大粽子 (preceded by “fsf的壁垒盾” in the
+  text).

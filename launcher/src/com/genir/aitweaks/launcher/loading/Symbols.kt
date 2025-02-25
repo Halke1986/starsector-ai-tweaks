@@ -84,10 +84,6 @@ class Symbols {
     val missionDefinitionPluginContainer_getEveryFrameCombatPlugin: Method = missionDefinitionPluginContainer.methods.first { it.returnType == EveryFrameCombatPlugin::class.java }
     val loadingUtils_loadSpec: Method = loadingUtils.methods.first { it.returnType == JSONObject::class.java && it.hasParameters(String::class.java, Set::class.java) }
 
-//    private fun Method.genericReturnTypeArgument(idx: Int): Class<*> {
-//        return (genericReturnType as ParameterizedType).actualTypeArguments[idx] as Class<*>
-//    }
-
     private fun Type.typeArgument(idx: Int): Class<*> {
         return (this as ParameterizedType).actualTypeArguments[idx] as Class<*>
     }

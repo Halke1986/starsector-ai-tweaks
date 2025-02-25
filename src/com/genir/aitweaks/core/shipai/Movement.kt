@@ -370,17 +370,27 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         // Calculations are done in target frame of reference. Obstacle
         // is assumed to be stationary to simplify the calculations.
         val shipLineOfFire = ship.location - target.location
+        val shipDestination = ai.movement.headingPoint - target.location
         val shipFacing = shipLineOfFire.facing
         val distToTarget = shipLineOfFire.length
         val shipW = angularVelocity(shipLineOfFire, ship.timeAdjustedVelocity)
+        val shipMovementArc = Arc.fromTo(shipFacing, shipDestination.facing)
 
         var maxLimitLeft: EngineController.Limit? = null
         var maxLimitRight: EngineController.Limit? = null
 
         squad.forEach { obstacle: CustomShipAI ->
             val obstacleLineOfFire = obstacle.ship.location - target.location
+            val obstacleDestination = obstacle.movement.headingPoint - target.location
             val obstacleFacing = obstacleLineOfFire.facing
             val angleToObstacle = obstacleFacing - shipFacing
+            val obstacleMovementArc = Arc.fromTo(obstacleFacing, obstacleDestination.facing)
+
+            // Allow both ships to cross each other line of fire and swap positions.
+            // Otherwise, the logic will lead to deadlocks.
+            if (shipMovementArc.contains(obstacleFacing) && obstacleMovementArc.contains(shipFacing)) {
+                return@forEach
+            }
 
             // Consider the ship farther from the target as potentially being blocked.
             val blocked = if (obstacleLineOfFire.lengthSquared < shipLineOfFire.lengthSquared) ai
