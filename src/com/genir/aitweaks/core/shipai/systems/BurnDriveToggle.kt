@@ -24,7 +24,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
     private var burnVector: Vector2f = Vector2f() // In ship frame of reference.
     private var shouldInitBurn: Boolean = false
-    private var prevAngleToDestination: Direction = Direction(0f)
+    private var prevAngleToDestination: Direction = 0f.direction
 
     private val burnDriveFlatBonus: Float = 200f // Hardcoded vanilla value.
     private var maxBurnDist: Float = 0f
@@ -169,7 +169,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun angleToDestination(): Direction {
-        return if (burnVector.isZero) Direction(180f)
+        return if (burnVector.isZero) 180f.direction
         else (ship.facing.direction - burnVector.facing)
     }
 

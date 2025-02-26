@@ -50,7 +50,7 @@ class SimulateMissile {
             val v: Vector2f = target.velocity * dt
 
             var minDist: Float = Float.MAX_VALUE
-            var rotation = Direction(0f)
+            var rotation = 0f.direction
 
             path.forEachIndexed { idx, frame ->
                 val p = p0 + v * idx.toFloat()

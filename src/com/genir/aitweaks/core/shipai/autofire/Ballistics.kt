@@ -3,8 +3,11 @@ package com.genir.aitweaks.core.shipai.autofire
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.Arc
+import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.pointsOfTangency
+import com.genir.aitweaks.core.utils.solve
 import org.lwjgl.util.vector.Vector2f
 
 /**
@@ -63,7 +66,7 @@ fun canTrack(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams
  * For simplicity, the barrel offset is omitted. */
 fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Arc {
     val (p, _) = targetCoords(weapon, target, params)
-    val points = pointsOfTangency(p, target.radius) ?: return Arc(360f, Direction(0f))
+    val points = pointsOfTangency(p, target.radius) ?: return Arc(360f, 0f.direction)
 
     val target1 = BallisticTarget(weapon.location + points.first, target.velocity, 0f)
     val target2 = BallisticTarget(weapon.location + points.second, target.velocity, 0f)

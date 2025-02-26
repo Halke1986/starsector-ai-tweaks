@@ -96,7 +96,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
                 val weaponCoarseFacing: Direction = (target.location - weapon.location).facing
                 val outOfArcCorrection = weapon.absoluteArc.distanceTo(weaponCoarseFacing)
                 val interceptArc = interceptArc(weapon, ballisticTarget, defaultBallisticParams)
-                val offset = (interceptArc.facing - weaponCoarseFacing + outOfArcCorrection).degrees
+                val offset = interceptArc.facing - weaponCoarseFacing + outOfArcCorrection
 
                 DPSArc(Arc(interceptArc.angle, offset), effectivePeakDPS(weapon))
             }
@@ -152,7 +152,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
      * from the ship's center. Because the weapon is offset from the center,
      * the visible arc differs from its actual firing arc. */
     private fun weaponArcInShipFrameOfReference(slotLocation: Vector2f, arc: Arc, range: Float): Arc {
-        val fullArc = Arc(360f, 180f)
+        val fullArc = Arc(360f, 180f.direction)
         if (arc.angle == 360f) {
             return fullArc
         }
@@ -190,7 +190,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
             val angle = if (i + 1 < boundaries.size) end - start else 360f + end - start
             val facing = start + angle / 2
 
-            val subArc = Arc(angle, facing)
+            val subArc = Arc(angle, facing.direction)
 
             val dps = arcs.filter { dpsArc -> dpsArc.arc.overlaps(subArc, tolerance = -0.1f) }.sumOf { it.dps }
             DPSArc(subArc, dps)

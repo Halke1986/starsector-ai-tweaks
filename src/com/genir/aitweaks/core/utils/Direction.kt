@@ -4,9 +4,8 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 
 /** Represents a directional angle in degrees, normalized into the range [-180, 180]. */
-class Direction(degrees: Float) {
-    val degrees: Float = degrees - round(degrees / 360) * 360
-
+@JvmInline
+value class Direction private constructor(val degrees: Float) {
     val radians: Float
         get() = degrees * DEGREES_TO_RADIANS
 
@@ -33,56 +32,43 @@ class Direction(degrees: Float) {
         }
 
     operator fun plus(other: Direction): Direction {
-        return Direction(degrees + other.degrees)
+        return makeDirection(degrees + other.degrees)
     }
 
     operator fun plus(other: Float): Direction {
-        return Direction(degrees + other)
+        return makeDirection(degrees + other)
     }
 
     operator fun minus(other: Direction): Direction {
-        return Direction(degrees - other.degrees)
+        return makeDirection(degrees - other.degrees)
     }
 
     operator fun minus(other: Float): Direction {
-        return Direction(degrees - other)
+        return makeDirection(degrees - other)
     }
 
     operator fun div(f: Float): Direction {
-        return Direction(degrees / f)
+        return makeDirection(degrees / f)
     }
 
     operator fun times(f: Float): Direction {
-        return Direction(degrees * f)
+        return makeDirection(degrees * f)
     }
 
     operator fun unaryMinus(): Direction {
-        return Direction(-degrees)
+        return makeDirection(-degrees)
     }
 
     override fun toString(): String {
         return degrees.toString()
     }
 
-    override fun equals(other: Any?): Boolean {
-        return when {
-            other === this -> true
-            other !is Direction -> false
-            other.degrees == degrees -> true
-            other.length == 180f && length == 180f -> true
-            else -> false
-        }
-    }
-
-    override fun hashCode(): Int {
-        return when (degrees) {
-            -180f -> 180f.hashCode()
-            else -> degrees.hashCode()
-        }
-    }
-
     companion object {
+        private fun makeDirection(degrees: Float): Direction {
+            return Direction(degrees - round(degrees / 360) * 360)
+        }
+
         val Float.direction: Direction
-            get() = Direction(this)
+            get() = makeDirection(this)
     }
 }

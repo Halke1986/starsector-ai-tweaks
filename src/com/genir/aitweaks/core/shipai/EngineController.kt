@@ -13,7 +13,7 @@ import kotlin.math.min
 
 /** Engine Controller for AI piloted ships. */
 class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
-    private var prevFacing: Direction = Direction(0f)
+    private var prevFacing: Direction = 0f.direction
 
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */

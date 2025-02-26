@@ -9,8 +9,6 @@ import kotlin.math.min
 class Arc(angle: Float, val facing: Direction) {
     val angle = min(360f, abs(angle))
 
-    constructor(angle: Float, facing: Float) : this(angle, Direction(facing))
-
     val half: Float
         get() = angle * 0.5f
 
@@ -62,7 +60,7 @@ class Arc(angle: Float, val facing: Direction) {
          * Assumes that the list forms a single, unbroken arc.
          * If this assumption is violated, the result is undefined. */
         fun mergeOverlapping(arcsInput: List<Arc>): List<Arc> {
-            val toBeRemoved = Arc(0f, Direction(0f))
+            val toBeRemoved = Arc(0f, 0f.direction)
             val arcs: MutableList<Arc> = arcsInput.toMutableList()
 
             for (i in 0 until arcs.size) {

@@ -15,7 +15,7 @@ class ShipStats(private val ship: ShipAPI) {
 
     private fun calculateThreatSearchRange(): Float {
         val rangeEnvelope = 1.5f
-        val totalMaxRange = significantWeapons.maxOfOrNull { it.rangeFromShipCenter(Direction(0f)) } ?: 0f
+        val totalMaxRange = significantWeapons.maxOfOrNull { it.rangeFromShipCenter(0f.direction) } ?: 0f
 
         return max(Preset.threatSearchRange, totalMaxRange * rangeEnvelope)
     }
@@ -80,7 +80,7 @@ class ShipStats(private val ship: ShipAPI) {
                 weapon.slot.isHardpoint -> listOf(facing)
 
                 // Ship front is within weapon arc.
-                facing.length < arc / 2f -> listOf(Direction(0f))
+                facing.length < arc / 2f -> listOf(0f.direction)
 
                 // Ship back is within weapon arc, return both angles.
                 180f - facing.length < arc / 2f -> listOf(facing - arc / 2f, facing + arc / 2f)

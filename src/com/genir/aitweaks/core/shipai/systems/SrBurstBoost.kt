@@ -237,7 +237,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
         val time = solve(position, velocity, shield.radius) ?: return null
         val hitPoint = position + velocity * time
-        val willHitShield = Arc(shield.activeArc, Direction(shield.facing)).contains(hitPoint)
+        val willHitShield = Arc(shield.activeArc, shield.facing.direction).contains(hitPoint)
 
         return if (willHitShield) (velocity * time).length else null
     }

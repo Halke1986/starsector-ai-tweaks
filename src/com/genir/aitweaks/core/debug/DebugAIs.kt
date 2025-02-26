@@ -9,7 +9,6 @@ import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController
 import com.genir.aitweaks.core.shipai.autofire.SimulateMissile
-import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
@@ -17,7 +16,7 @@ import com.genir.aitweaks.core.utils.mousePosition
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
-var expectedFacing = Direction(90f)
+var expectedFacing = 90f.direction
 const val df = -1f * 60f
 
 class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : BaseEngineControllerAI() {
