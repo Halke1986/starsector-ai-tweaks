@@ -7,7 +7,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /** 2D rotation matrix. */
-class RotationMatrix(private val sin: Float, private val cos: Float) {
+data class RotationMatrix(val sin: Float, val cos: Float) {
 
     constructor(angle: Float) : this(
         sin(angle * DEGREES_TO_RADIANS),
