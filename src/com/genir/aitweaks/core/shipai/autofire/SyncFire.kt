@@ -164,6 +164,7 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
                 when {
                     it.isBeam -> false
                     it.isMissile -> false
+                    it.hasAITag(Tag.NO_STAGGERED_FIRE) -> false
 
                     else -> true
                 }

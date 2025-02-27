@@ -1,3 +1,5 @@
+- It is now possible to disable staggered fire mode for selected weapon types via the /data/weapons/*.ait configuration file.
+
 Version 1.12.5
 
 - Aim Assist now correctly handles attack and movement when the player ship in fast-time advance.
