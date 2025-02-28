@@ -6,17 +6,15 @@ import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import org.lazywizard.lazylib.ui.LazyFont
 import java.awt.Color
-import java.util.*
 
 // DebugPlugin is used to render debug information during combat.
 class DebugPlugin : BaseEveryFrameCombatPlugin() {
     private var font: LazyFont? = null
-    private var logs: MutableMap<String, Pair<String, LazyFont.DrawableString>> = TreeMap()
+    private var logs: MutableMap<Any, Pair<String, LazyFont.DrawableString>> = mutableMapOf()
     val renderer = Renderer()
 
-    operator fun set(index: Any, value: Any?) {
+    operator fun set(key: Any, value: Any?) {
         val font = this.font ?: return
-        val key: String = index.toString()
         val text: String = value?.toString() ?: ""
 
         when {

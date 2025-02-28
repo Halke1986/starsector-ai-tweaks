@@ -99,44 +99,63 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
 /** Avoiding friendly fire works under the assumption that the provided
  * actual hit is the first non-fighter, non-phased ship or phased friendly
  * ship along the line of fire. */
-fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire? = when {
-    // There are no obstacles in the line of fire.
-    actual == null -> fire
+fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire? {
+    return when {
+        // There are no obstacles in the line of fire.
+        actual == null -> {
+            fire
+        }
 
-    // Weapon will hit an unidentified entity. Allow fire.
-    actual.target !is ShipAPI -> fire
+        // Weapon will hit an unidentified entity. Allow fire.
+        actual.target !is ShipAPI -> {
+            fire
+        }
 
-    // Obstacle is in front of the expected target.
-    actual.range < expected.range -> when {
+        // Weapon will hit a friendly ship.
+        actual.target.owner == weapon.ship.owner -> when {
 
-        // True friendly fire.
-        actual.target.owner == weapon.ship.owner -> AVOID_FF
+            // Obstacle is in front of the expected target. A case of true friendly fire.
+            actual.range < expected.range -> {
+                AVOID_FF
+            }
 
-        // Beams transiting to a new target are allowed to hit inert targets.
-        expected.type == ROTATE_BEAM -> fire
+            // Allow risk of friendly fire if PD weapon misses its target.
+            allowPDFriendlyFire(weapon, expected) -> {
+                fire
+            }
 
-        // PD beam fire is allowed to hit inert targets.
-        weapon.isPD && weapon.isPlainBeam && expected.target.isPDTarget -> fire
+            else -> {
+                AVOID_FF
+            }
+        }
 
-        !actual.target.isAlive -> AVOID_FF_JUNK
+        // Weapon will hit inert or enemy ship.
+        else -> when {
 
-        !actual.target.isHullDamageable -> AVOID_FF_INERT
+            // Beams transiting to a new target are allowed to hit inert targets.
+            expected.type == ROTATE_BEAM -> {
+                fire
+            }
 
-        // Weapon will hit other non-friendly entity. Allow fire.
-        else -> fire
+            // PD beam fire is allowed to hit inert targets.
+            weapon.isPD && weapon.isPlainBeam && expected.target.isPDTarget -> {
+                fire
+            }
+
+            !actual.target.isAlive -> {
+                AVOID_FF_JUNK
+            }
+
+            !actual.target.isHullDamageable && actual.type != SHIELD -> {
+                AVOID_FF_INERT
+            }
+
+            // Weapon will hit a damageable enemy ship. Allow fire.
+            else -> {
+                fire
+            }
+        }
     }
-
-    // Obstacle is behind the expected target. This happens in case of PD fire.
-    actual.target.owner == weapon.ship.owner -> when {
-
-        // Allow risk of friendly fire if PD weapon misses its target.
-        allowPDFriendlyFire(weapon, expected) -> fire
-
-        else -> AVOID_FF
-    }
-
-    // Weapon may hit other non-friendly entity if PD weapon misses its target. Allow fire.
-    else -> fire
 }
 
 /** Allow friendly fire with in some cases of PD defense. */
