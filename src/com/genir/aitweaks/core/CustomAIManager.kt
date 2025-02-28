@@ -20,7 +20,10 @@ import com.genir.aitweaks.core.state.Config.Companion.config
 object CustomAIManager {
     fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
         when {
-            Global.getCurrentState() != GameState.COMBAT -> return null
+            // Do not override AI in title screen. NOTE: for player ship modules
+            // in simulator Global.getCurrentState() returns CAMPAIGN, as opposed
+            // to the expected COMBAT.
+            Global.getCurrentState() == GameState.TITLE -> return null
 
             ship.isFighter -> return null
         }
