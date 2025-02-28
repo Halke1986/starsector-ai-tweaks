@@ -1,4 +1,5 @@
 - It is now possible to disable staggered fire mode for selected weapon types via the /data/weapons/*.ait configuration file.
+- Ships are less likely to select weird attack angles, especially when equipped with front shields. This fixes the issue of Gryphons flying backwards. It's still possible to force ships equipped with omni shields to fly backwards. Reported by 无烟.
 
 Version 1.12.5
 

@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core.shipai
 
+import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
@@ -55,13 +56,25 @@ class ShipStats(private val ship: ShipAPI) {
             }
         }
 
-        // Find firing arc boundary closest to ship front for
-        // each weapon, or 0f for front facing weapons.
-        val attackAngles: Map<Direction, Float> = attackAngles(significantWeapons).ifEmpty { return listOf() }
+        // Find dps for each possible firing arc.
+        val attackAngles: Map<Direction, Float> = attackAngles(significantWeapons)
+
+        // Assign lower weight to arcs more distant from the ship front.
+        val weightedAngles = attackAngles.mapValues { (direction, dps) -> dps * (1f - direction.length / 360f) }
+
+        // Ignore firing arcs that are close to or fall outside front shield arc.
+        val shield = ship.shield
+        val validAngles = if (shield?.type == ShieldAPI.ShieldType.FRONT) {
+            val limit = shield.arc / 3
+            weightedAngles.filter { it.key.length < limit }
+        } else {
+            weightedAngles
+        }
 
         // Find all weapon groups with acceptable DPS.
-        val bestWeaponGroup = attackAngles.maxWithOrNull(compareBy<Map.Entry<Direction, Float>> { it.value }.thenBy { -it.key.length })!!
-        val validWeaponGroups = attackAngles.filter { it.value >= bestWeaponGroup.value * Preset.validWeaponGroupDPSThreshold }
+        val bestWeaponGroup = validAngles.maxWithOrNull(compareBy { it.value }) ?: return listOf()
+        val validWeaponGroups = validAngles.filter { it.value >= bestWeaponGroup.value * Preset.validWeaponGroupDPSThreshold }
+
         return validWeaponGroups.map { (angle, _) ->
             WeaponGroup(ship, significantWeapons.filter { it.isAngleInArc(angle) })
         }
