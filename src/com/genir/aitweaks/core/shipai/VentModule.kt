@@ -356,10 +356,14 @@ class VentModule(private val ai: CustomShipAI) {
             target.root.isFrigate -> return false
 
             // Target is behind healthy shields.
-            target.shield?.isOn == true && target.fluxLevel < 0.8f -> return false
+            target.shield?.isOn == true && target.fluxLevel < 0.8f -> {
+                return false
+            }
 
             // Target is too far.
-            ai.currentEffectiveRange(target) > ai.attackingGroup.effectiveRange -> return false
+            ai.currentEffectiveRange(target) > min(ai.attackingGroup.maxRange, 1.1f * ai.attackingGroup.effectiveRange) -> {
+                return false
+            }
 
             // The ship is the victim, not the target.
             target.hullLevel > ship.hullLevel -> return false

@@ -464,6 +464,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         }
 
         val approachFactor = if (isAssaultShip) assaultShipApproachFactor else 1f
+
         attackRange = (effectiveTargetRadius(maneuverTarget) + range) * approachFactor
     }
 
