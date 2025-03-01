@@ -1,3 +1,5 @@
+Version 1.12.6
+
 - It is now possible to disable staggered fire mode for selected weapon types via the /data/weapons/*.ait configuration file. Suggested by Ioulaum. 
 - Ships are less likely to select unusual attack angles, especially when equipped with front shields. This fixes the issue of Gryphons flying backwards. Reported by 颯爽的夏亞.
 - Autofire AI: Fixed an edge case where weapons would not fire on some shielded modular ships, e.g. 幽灵部队. Reported by 无烟.
