@@ -1,4 +1,6 @@
-- Fixed a NullPointerException related to empty weapon groups. Reported by multiple users. 
+Version 1.12.7
+
+- Fixed a NullPointerException related to empty weapon groups in CustomShipAI and ExtendedShipAI. Reported by multiple users.
 
 Version 1.12.6
 
