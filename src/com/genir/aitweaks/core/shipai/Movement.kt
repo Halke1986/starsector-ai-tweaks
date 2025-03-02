@@ -332,12 +332,12 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         val friendlies = allObstacles.filter { it.owner == ship.owner }
         val hulks = allObstacles.filter { it.owner == 100 && it.mass / ship.mass > hulkSizeFactor }
 
-        val limits: MutableList<EngineController.Limit?> = mutableListOf()
+        // Calculate speed limits.
+        val lineOfFire = avoidBlockingLineOfFire(dt, friendlies)
+        val collisions = avoidCollisions(dt, friendlies + hulks)
+        val border = avoidBorder()
 
-        limits.addAll(avoidBlockingLineOfFire(dt, friendlies))
-        limits.addAll(avoidCollisions(dt, friendlies + hulks))
-        limits.add(avoidBorder())
-
+        val limits: List<EngineController.Limit?> = mutableListOf(border) + lineOfFire + collisions
         return limits.filterNotNull()
     }
 

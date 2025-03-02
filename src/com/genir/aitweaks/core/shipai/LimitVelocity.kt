@@ -1,6 +1,5 @@
 package com.genir.aitweaks.core.shipai
 
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
@@ -13,10 +12,9 @@ import org.lwjgl.util.vector.Vector2f
 
 data class LimitData(val l: EngineController.Limit, val r: RotationMatrix, val h: Float, val p: Vector2f, val v: Vector2f)
 
-fun limitVelocity2(dt: Float, ship: ShipAPI, toShipFacing: Direction, expectedVelocity: Vector2f, limits: List<EngineController.Limit>): Vector2f {
+fun limitVelocity2(dt: Float, toShipFacing: Direction, expectedVelocity: Vector2f, limits: List<EngineController.Limit>): Vector2f {
     val l = expectedVelocity.length
     val relevantLimits = limits.filter { it.speedLimit < l }
-
 
     // No relevant speed limits found, move ahead.
     if (relevantLimits.isEmpty()) {
@@ -25,7 +23,11 @@ fun limitVelocity2(dt: Float, ship: ShipAPI, toShipFacing: Direction, expectedVe
 
     val toVelocityFrameOfReference = toShipFacing + 90f - expectedVelocity.facing
     val floor = listOf(EngineController.Limit((-90f).direction, 0f))
-    val localLimits = floor + relevantLimits.map { EngineController.Limit(it.direction + toVelocityFrameOfReference, it.speedLimit * dt) }
+    val localLimits = floor + relevantLimits.map {
+        val direction = it.direction + toVelocityFrameOfReference
+        val speed = it.speedLimit.coerceAtLeast(0f) * dt
+        EngineController.Limit(direction, speed)
+    }
 
     val l2 = expectedVelocity.lengthSquared
 
