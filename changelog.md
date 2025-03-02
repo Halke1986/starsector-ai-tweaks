@@ -1,3 +1,5 @@
+- Fixed a NullPointerException related to empty weapon groups. Reported by multiple users. 
+
 Version 1.12.6
 
 - It is now possible to disable staggered fire mode for selected weapon types via the /data/weapons/*.ait configuration file. Suggested by Ioulaum. 
