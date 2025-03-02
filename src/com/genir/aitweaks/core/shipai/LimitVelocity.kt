@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
@@ -9,8 +8,8 @@ import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.crossProductZ
+import com.genir.aitweaks.core.utils.sqrt
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.sqrt
 
 data class LimitData(val l: EngineController.Limit, val r: RotationMatrix, val h: Float, val p: Vector2f, val v: Vector2f)
 
@@ -82,9 +81,9 @@ fun limitVelocity2(dt: Float, ship: ShipAPI, toShipFacing: Direction, expectedVe
         return Vector2f()
     }
 
-    if (best.length.isNaN()) {
-        Debug.print["nan"] = "NaN"
-    }
+//    if (best.length.isNaN()) {
+//        Debug.print["nan"] = "NaN"
+//    }
 
     return (best.facing + expectedVelocity.facing - 90f).unitVector * best.length
 }

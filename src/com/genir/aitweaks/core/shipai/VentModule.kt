@@ -12,10 +12,10 @@ import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.distanceToOrigin
+import com.genir.aitweaks.core.utils.sqrt
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
 
 class VentModule(private val ai: CustomShipAI) {

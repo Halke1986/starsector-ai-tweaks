@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.Obfuscated
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.BallisticParams
@@ -168,4 +169,16 @@ enum class VanillaShipCommand {
 fun isCloseToEnemy(ship: ShipAPI, enemy: ShipAPI): Boolean {
     val maxRange = max(max(Preset.threatSearchRange, ship.maxRange * 2f), enemy.maxRange)
     return (ship.location - enemy.location).lengthSquared <= maxRange * maxRange
+}
+
+fun sqrt(x: Float): Float {
+    val result = kotlin.math.sqrt(x)
+
+    if (result.isNaN()) {
+        Debug.print["NaN"] = "NaN"
+        val e = Exception("NaN")
+        Global.getLogger(Log::class.java).error(e, e)
+    }
+
+    return result
 }

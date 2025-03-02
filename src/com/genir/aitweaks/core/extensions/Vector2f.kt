@@ -4,8 +4,8 @@ import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RADIANS_TO_DEGREES
 import com.genir.aitweaks.core.utils.atan2
+import com.genir.aitweaks.core.utils.sqrt
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.sqrt
 
 operator fun Vector2f.plus(b: Vector2f): Vector2f {
     return Vector2f(x + b.x, y + b.y)

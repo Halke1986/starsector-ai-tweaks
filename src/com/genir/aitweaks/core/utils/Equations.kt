@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.utils
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
 
 enum class Solution {
     LARGER_NON_NEGATIVE,

@@ -13,7 +13,6 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.Float.Companion.MAX_VALUE
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
 
 object Bounds {
     /** Calculates the length ratio along vector with given starting position

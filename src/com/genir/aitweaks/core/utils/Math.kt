@@ -2,7 +2,10 @@ package com.genir.aitweaks.core.utils
 
 import com.genir.aitweaks.core.extensions.*
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.sign
+import kotlin.math.withSign
 
 const val DEGREES_TO_RADIANS: Float = 0.017453292F
 const val RADIANS_TO_DEGREES: Float = 57.29578F
