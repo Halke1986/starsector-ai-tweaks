@@ -47,13 +47,9 @@ class ShipStats(private val ship: ShipAPI) {
 
     /** A ship can have multiple valid weapon groups. */
     private fun findWeaponGroups(): List<WeaponGroup> {
-        when {
-            significantWeapons.isEmpty() -> return listOf(WeaponGroup(ship, listOf()))
-
-            // Special case for front facing hardpoints.
-            significantWeapons.any { it.slot.isHardpoint && it.arcFacing.direction.isZero } -> {
-                listOf(WeaponGroup(ship, significantWeapons.filter { it.isFrontFacing }))
-            }
+        // If ship has front facing hardpoints, assume it's designed to not be a broadside ship.
+        if (significantWeapons.any { it.slot.isHardpoint && it.arcFacing.direction.isZero }) {
+            listOf(WeaponGroup(ship, significantWeapons.filter { it.isFrontFacing }))
         }
 
         // Find dps for each possible firing arc.
@@ -61,7 +57,7 @@ class ShipStats(private val ship: ShipAPI) {
 
         // Assign lower weight to arcs more distant from the ship front.
         val weightedAngles = attackAngles.mapValues { (direction, dps) ->
-            val weight = if (direction.length <= 90f) 1f else 0.5f
+            val weight = if (direction.length <= 90f) 1f else 0.66f
             dps * weight
         }
 
@@ -74,10 +70,12 @@ class ShipStats(private val ship: ShipAPI) {
             weightedAngles
         }
 
-        // Find all weapon groups with acceptable DPS.
-        val bestWeaponGroup = validAngles.maxWithOrNull(compareBy { it.value }) ?: return listOf()
-        val validWeaponGroups = validAngles.filter { it.value >= bestWeaponGroup.value * Preset.validWeaponGroupDPSThreshold }
+        // Find weapon group with the best DPS. If no such group exists, return front facing group.
+        val bestWeaponGroup = validAngles.maxWithOrNull(compareBy { it.value })
+            ?: return listOf(WeaponGroup(ship, listOf()))
 
+        // Find all weapon groups with acceptable DPS.
+        val validWeaponGroups = validAngles.filter { it.value >= bestWeaponGroup.value * Preset.validWeaponGroupDPSThreshold }
         return validWeaponGroups.map { (angle, _) ->
             WeaponGroup(ship, significantWeapons.filter { it.isAngleInArc(angle) })
         }
