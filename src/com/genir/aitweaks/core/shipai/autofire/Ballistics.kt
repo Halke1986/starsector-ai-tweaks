@@ -36,7 +36,7 @@ fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: Ballisti
     val pv = targetCoords(weapon, target, params)
     if (targetAboveWeapon(pv.first, weapon, target)) return 0f
 
-    val rangeFromBarrel = solve(pv, weapon.barrelOffset, 1f, target.radius, cos180)
+    val rangeFromBarrel = solve(pv, weapon.barrelOffset, 1f, target.radius, cos180)?.smallerNonNegative
     return weapon.barrelOffset + (rangeFromBarrel ?: approachesInfinity)
 }
 
@@ -47,7 +47,7 @@ fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParam
     val (p, v) = targetCoords(weapon, target, params)
     if (targetAboveWeapon(p, weapon, target)) return target.location
 
-    val range = solve(p, v, weapon.barrelOffset, 1f, 0f, 0f) ?: approachesInfinity
+    val range = solve(p, v, weapon.barrelOffset, 1f, 0f, 0f)?.smallerNonNegative ?: approachesInfinity
     return p + v * range
 }
 
@@ -83,7 +83,7 @@ fun interceptArc(weapon: WeaponAPI, target: BallisticTarget, params: BallisticPa
 /** Calculates if projectile will collide with the target circumference,
  * given current weapon facing. Weapon range is ignored. */
 fun willHitCircumference(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Float? {
-    return solve(projectileCoords(weapon, target, params), target.radius)
+    return solve(projectileCoords(weapon, target, params), target.radius)?.smallerNonNegative
 }
 
 /** Calculates if a perfectly accurate projectile will collide with target shield,
@@ -94,7 +94,7 @@ fun willHitShield(weapon: WeaponAPI, target: ShipAPI, params: BallisticParams): 
     if (shield.isOff) return null
 
     val (p, v) = projectileCoords(weapon, BallisticTarget.shieldRadius(target), params)
-    val range = solve(p, v, shield.radius) ?: return null
+    val range = solve(p, v, shield.radius)?.smallerNonNegative ?: return null
     val hitPoint = p + v * range
 
     return if (Arc(shield.activeArc, shield.facing.direction).contains(hitPoint)) range else null

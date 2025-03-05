@@ -113,7 +113,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         val b = -5f * (expectedSpeed / speedLimit)
         val c = 5f
 
-        val t = quad(a, b, c, Solution.SMALLER_NON_NEGATIVE) ?: 0f
+        val t = quad(a, b, c)?.smallerNonNegative ?: 0f
         return abs(t - PI / 2f) * RADIANS_TO_DEGREES
     }
 }
