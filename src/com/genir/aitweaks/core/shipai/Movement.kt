@@ -305,7 +305,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         // If the maneuver target is slower than the ship, use the
         // remaining ship velocity to move around the orbit.
         val maxSpeed = max(ship.maxSpeed, ship.velocity.length) + ship.acceleration * dt
-        val t = solve(maneuverTarget.velocity, orbitVelocityVector, maxSpeed, Solution.LARGER_NON_NEGATIVE)
+        val t = solve(maneuverTarget.velocity, orbitVelocityVector, maxSpeed)?.largerNonNegative
 
         val approximateOrbitLength = (attackLocation - closestLocationOnOrbit).length
         val orbitSpeed = BasicEngineController.vMax(dt, approximateOrbitLength, ship.acceleration)
