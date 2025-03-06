@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
@@ -10,6 +11,7 @@ import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.sqrt
 import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -63,6 +65,11 @@ open class BasicEngineController(val ship: ShipAPI) {
         val ve = (vtt + vt).clampLength(vMax)
         val vec = limitVelocity?.invoke(toShipFacing, ve) ?: ve
         val dv = vec - v
+
+//        Debug.drawLine(ship.location, ship.location + ve.rotatedReverse(r) / dt, PINK)
+        Debug.drawLine(ship.location, ship.location + vec.rotatedReverse(r) / dt, RED)
+        Debug.drawLine(ship.location, ship.location + v.rotatedReverse(r) / dt, GREEN)
+        Debug.drawLine(ship.location + (v + dv).rotatedReverse(r) / dt, ship.location + v.rotatedReverse(r) / dt, YELLOW)
 
         // Stop if expected velocity is less than half of velocity
         // change unit. Stop is applied regardless of distance to

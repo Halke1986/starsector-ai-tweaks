@@ -19,6 +19,10 @@ data class RotationMatrix(val sin: Float, val cos: Float) {
             return Vector2f(x * r.cos - y * r.sin, x * r.sin + y * r.cos)
         }
 
+        fun Vector2f.rotatedX(r: RotationMatrix): Float {
+            return x * r.cos - y * r.sin
+        }
+
         fun Vector2f.rotatedAroundPivot(r: RotationMatrix, p: Vector2f): Vector2f {
             return (this - p).rotated(r) + p
         }

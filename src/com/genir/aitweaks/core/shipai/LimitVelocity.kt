@@ -1,120 +1,193 @@
 package com.genir.aitweaks.core.shipai
 
+import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
 import com.genir.aitweaks.core.utils.crossProductZ
-import com.genir.aitweaks.core.utils.sqrt
+import com.genir.aitweaks.core.utils.solve
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sign
 
-data class LimitData(val l: EngineController.Limit, val r: RotationMatrix, val h: Float, val p: Vector2f, val v: Vector2f)
+data class PV(val p: Vector2f, val v: Vector2f) {
+    fun rotated(r: RotationMatrix): PV {
+        return PV(p.rotated(r), v.rotated(r))
+    }
+}
 
-fun limitVelocity2(dt: Float, toShipFacing: Direction, expectedVelocity: Vector2f, limits: List<EngineController.Limit>): Vector2f {
-    val l = expectedVelocity.length
-    val relevantLimits = limits.filter { it.speedLimit < l }
-
-    // No relevant speed limits found, move ahead.
-    if (relevantLimits.isEmpty()) {
-        return expectedVelocity
+fun limitVelocity2(dt: Float, ship: ShipAPI, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<EngineController.Limit>): Vector2f {
+    if (limits.isEmpty()) {
+        return expectedVelocityRaw
     }
 
-    val toVelocityFrameOfReference = toShipFacing + 90f - expectedVelocity.facing
-    val floor = listOf(EngineController.Limit((-90f).direction, 0f))
-    val localLimits = floor + relevantLimits.map {
-        val direction = it.direction + toVelocityFrameOfReference
-        val speed = it.speedLimit.coerceAtLeast(0f) * dt
-        EngineController.Limit(direction, speed)
+    val vMax = expectedVelocityRaw.length / dt
+
+    val expectedPV: PV = run {
+        val r = (expectedVelocityRaw.facing - toShipFacing).rotationMatrix
+        val p = Vector2f(0f, 0f)
+        val v = Vector2f(vMax, 0f)
+        PV(p, v).rotated(r)
     }
 
-    val l2 = expectedVelocity.lengthSquared
+    val walls: List<PV> = limits.map { limit ->
+        val r = limit.direction.rotationMatrix
+        val p = Vector2f(limit.speedLimit.coerceAtLeast(0f), 0f) // TODO handle negative limits
+        val v = Vector2f(0f, 1f)
+        PV(p, v).rotated(r)
+    }
 
-    val ds: Array<LimitData> = Array(localLimits.size) { i ->
-        val r = localLimits[i].direction.rotationMatrix
+//    walls.forEach {
+//        Debug.drawLine(ship.location, ship.location + it.p, RED)
+//        Debug.drawLine(ship.location + it.p + it.v * 100f, ship.location + it.p, GREEN)
+//    }
+//
+//    Debug.drawLine(ship.location, ship.location + expectedPV.v, YELLOW)
 
-        val limit = localLimits[i]
-        val h = limit.speedLimit
+    var lowestLimit: Float = Float.MAX_VALUE
+    var lowestLimitDirection: Float = 1f
 
-        val w = sqrt(l2 - (h * h))
+    walls.forEach { wall ->
+//        val direction = dotProduct(expectedPV.v, wall.v) / vMax
+        val (distance, direction) = intersection(expectedPV, wall) ?: return@forEach
 
-        val p1 = Vector2f(h, +w).rotated(r)
-        val p2 = Vector2f(h, -w).rotated(r)
+//        Debug.print["dir"] = "dir ${direction / vMax}"
 
-        LimitData(limit, r, h, p1, p2 - p1)
+        if (distance < 0f) {
+            return@forEach // TODO handle negative limits
+        }
+
+        if (direction < 0f) {
+            return@forEach // TODO handle negative limits
+        }
+
+        if (distance < lowestLimit) {
+            lowestLimit = distance
+            lowestLimitDirection = direction / vMax
+        }
+    }
+
+//    Debug.print["lim"] = "$lowestLimit ${abs(lowestLimitDirection - 1f)}"
+
+    // No relevant limit found.
+    if (lowestLimit >= 1) {
+        return expectedVelocityRaw
+    }
+
+    if (abs(lowestLimitDirection - 1f) < 0.01f) {
+        return expectedVelocityRaw * lowestLimit
     }
 
     val points: MutableList<Vector2f> = mutableListOf()
 
-    val default = Vector2f(0f, expectedVelocity.length)
-    if (filterPoint(default, l2, ds, -1, -1)) {
-        points.add(default)
-    }
+    walls.forEach { limit ->
+        var min = -Float.MAX_VALUE
+        var max = Float.MAX_VALUE
 
-    ds.forEachIndexed { idx, data ->
-        for (i in idx + 1 until ds.size) {
-            val b = ds[i]
+        walls.forEach inner@{ other ->
+            val (distance, direction) = intersection(limit, other) ?: return@inner
 
-            val intersection = intersection(data.p, data.v, b.p, b.v) ?: continue
-            if (filterPoint(intersection, l2, ds, idx, i)) {
-                points.add(intersection)
+            if (direction < 0f) {
+                min = max(min, distance)
+            } else {
+                max = min(max, distance)
             }
         }
 
-        if (filterPoint(data.p, l2, ds, idx, -1)) {
-            points.add(data.p)
+        // No possibility of movement along the limit.
+        if (min > max) {
+            return@forEach
         }
 
-        val p2 = data.p + data.v
-        if (filterPoint(p2, l2, ds, idx, -1)) {
-            points.add(p2)
-        }
+        // Coerce movement along the limit to vMax.
+        val withinVMax = solve(limit.p, limit.v, vMax) ?: return@forEach // TODO handle negative limits beyond vMax
+
+        min = min.coerceIn(withinVMax.x1, withinVMax.x2)
+        max = max.coerceIn(withinVMax.x1, withinVMax.x2)
+
+        val pMin = limit.p + limit.v * min.coerceAtLeast(-500f)
+        val pMax = limit.p + limit.v * max.coerceAtMost(+500f)
+
+        Debug.drawLine(ship.location + pMax, ship.location + pMin, BLUE)
+
+        points.add(pMin)
+        points.add(pMax)
     }
 
+    val expectedFacing = expectedPV.v.facing
     val best: Vector2f? = points.maxWithOrNull(compareBy {
-        val angle = (it.facing - 90f).length
+        val angle = (it.facing - expectedFacing).length
         val angleWeight = (180f - angle) / 180f
 
-        it.lengthSquared.coerceAtMost(l2) * angleWeight * angleWeight
+        if (angle > 89f){
+            return@compareBy 0f
+        }
+
+        it.lengthSquared * angleWeight * angleWeight
+//        it.lengthSquared.coerceAtMost(l2) * angleWeight * angleWeight
     })
 
     if (best == null) {
         return Vector2f()
     }
 
-//    if (best.length.isNaN()) {
-//        Debug.print["nan"] = "NaN"
-//    }
+    Debug.drawCircle(ship.location, vMax, YELLOW)
 
-    return (best.facing + expectedVelocity.facing - 90f).unitVector * best.length
+//    Debug.drawLine(ship.location, ship.location + best, PINK)
+    Debug.drawLine(ship.location, ship.location + expectedPV.v, MAGENTA)
+
+    return best.rotated(toShipFacing.rotationMatrix) * dt//  expectedVelocityRaw * lowestLimit
 }
 
-fun filterPoint(p: Vector2f, l2: Float, ds: Array<LimitData>, skip1: Int, skip2: Int): Boolean {
-    if (p.lengthSquared > l2 + 0.01f) {
-        return false
-    }
-
-    for (i in ds.indices) {
-        if (i == skip1 || i == skip2) {
-            continue
-        }
-
-        val d = ds[i]
-        if (p.rotatedReverse(d.r).x > d.h) {
-            return false
-        }
-    }
-
-    return true
-}
-
-fun intersection(v: Vector2f, dv: Vector2f, w: Vector2f, dw: Vector2f): Vector2f? {
-    val a = crossProductZ(dw, dv)
-    if (a == 0f) {
+fun intersection(v: PV, w: PV): Pair<Float, Float>? {
+    val direction = crossProductZ(v.v, w.v)
+    if (direction == 0f) {
+        // Limits are perpendicular.
         return null
     }
 
-    val b = crossProductZ(dw, v - w)
-    return v - dv * (b / a)
+    val offset = crossProductZ(w.v, v.p - w.p)
+    return Pair(offset / direction, direction)
+}
+
+fun vMaxToObstacle2(dt: Float, ship: ShipAPI, obstacle: ShipAPI, minDistance: Float): EngineController.Limit? {
+    val toObstacle = obstacle.location - ship.location
+    val toObstacleFacing = toObstacle.facing
+    val r = (-toObstacleFacing).rotationMatrix
+
+    val distance = toObstacle.rotatedX(r)
+    val distanceLeft = distance - minDistance
+
+    val decelShip = ship.collisionDeceleration(toObstacleFacing)
+    val vMax = BasicEngineController.vMax(dt, abs(distanceLeft), decelShip) * distanceLeft.sign
+
+    val vShip = 0f//ship.velocity.rotatedX(r)
+    val vObstacle = obstacle.velocity.rotatedX(r)
+    val approachSpeed = vShip - vObstacle
+
+//    Debug.print["vShip"] = "vShip $vShip"
+//    Debug.print["vObstacle"] = "vObstacle $vObstacle"
+//    Debug.print["approachSpeed"] = "approachSpeed $approachSpeed"
+//    Debug.print["vMax"] = "vMax $vMax"
+
+//    val lim = vMax - approachSpeed
+//    Debug.drawLine(ship.location, ship.location + toObstacle.resized(lim), if (lim < 0f) BLUE else RED)
+
+    return EngineController.Limit(toObstacleFacing, vMax - approachSpeed)
+}
+
+private fun ShipAPI.collisionDeceleration(collisionFacing: Direction): Float {
+    val angleFromBow = (collisionFacing - facing.direction).length
+    return when {
+        angleFromBow < 30f -> deceleration
+        angleFromBow < 150f -> strafeAcceleration
+        else -> acceleration
+    }
 }
