@@ -16,7 +16,7 @@ data class QuadSolution(val x1: Float, val x2: Float) {
             // x1 is the only positive solution.
             x2 < 0f -> x1
 
-            else -> min(x1, x2)
+            else -> x1
         }
 
     val largerNonNegative: Float?
@@ -30,7 +30,7 @@ data class QuadSolution(val x1: Float, val x2: Float) {
             // x1 is the only positive solution.
             x2 < 0f -> x1
 
-            else -> max(x1, x2)
+            else -> x2
         }
 }
 
@@ -58,7 +58,7 @@ fun quad(a: Float, b: Float, c: Float): QuadSolution? {
     val x1 = (-b + d) / (2 * a)
     val x2 = (-b - d) / (2 * a)
 
-    return QuadSolution(x1, x2)
+    return QuadSolution(min(x1, x2), max(x1, x2))
 }
 
 /**

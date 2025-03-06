@@ -344,8 +344,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     /** Do not ram friendly ships. */
     private fun avoidCollisions(dt: Float, friendlies: List<ShipAPI>): List<EngineController.Limit?> {
         return friendlies.map { obstacle ->
-            val distance = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
-            vMaxToObstacle(dt, obstacle, distance)
+            val minDistance = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
+            vMaxToObstacle(dt, obstacle, minDistance)
         }
     }
 
@@ -489,10 +489,10 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         return EngineController.Limit(borderIntrusion.facing, ship.maxSpeed * (1f - avoidForce))
     }
 
-    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, distance: Float): EngineController.Limit? {
+    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, minDistance: Float): EngineController.Limit? {
         val direction = obstacle.location - ship.location
         val dirFacing = direction.facing
-        val distanceLeft = direction.length - distance
+        val distanceLeft = direction.length - minDistance
 
         // Already colliding.
         if (distanceLeft <= 0f) {
