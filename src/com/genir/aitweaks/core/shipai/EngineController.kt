@@ -42,7 +42,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     }
 
     private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocity: Vector2f, absLimits: List<Limit>): Vector2f {
-        return limitVelocity2(dt, ship, toShipFacing, expectedVelocity, absLimits)
+//        return limitVelocity2(dt, ship, toShipFacing, expectedVelocity, absLimits)
 
         // No relevant speed limits found, move ahead.
         if (absLimits.isEmpty()) {

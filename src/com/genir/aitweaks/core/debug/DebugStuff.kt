@@ -21,7 +21,7 @@ import java.awt.Color.CYAN
  */
 
 internal fun debug(dt: Float) {
-//    val ship = Global.getCombatEngine().playerShip ?: return
+    val ship = Global.getCombatEngine().playerShip ?: return
     val ships = Global.getCombatEngine().ships
 
     ships.forEach{
@@ -29,4 +29,6 @@ internal fun debug(dt: Float) {
 
 //        Debug.drawAccelerationLines(it)
     }
+
+//    installAI(ship) { FollowMouseAI(ship) }
 }

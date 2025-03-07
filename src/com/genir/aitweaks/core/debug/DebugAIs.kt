@@ -7,11 +7,13 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.BasicEngineController
 import com.genir.aitweaks.core.shipai.EngineController
 import com.genir.aitweaks.core.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.angularVelocity
 import com.genir.aitweaks.core.utils.mousePosition
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -48,25 +50,27 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
 }
 
 class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = EngineController(ship)
+    private val controller = BasicEngineController(ship)
+    private val prevP: Vector2f = Vector2f()
 
     override fun advance(dt: Float) {
-        val toMouse = mousePosition() - ship.location
+        val p: Vector2f = mousePosition()
+        val v: Vector2f = (p - prevP) / dt
 
-        val shouldStopRotation = toMouse.length < ship.collisionRadius / 2f
+        val toP = (p - ship.location)
 
-        controller.facing(dt, toMouse.facing, shouldStopRotation)
-        controller.heading(dt, EngineController.Destination(mousePosition(), Vector2f()))
+//        if (toP.length < ship.collisionRadius / 2f) {
+//            controller.facing(dt, ship.facing.direction, 0f)
+//        } else {
+//            val w: Float = angularVelocity(toP, v - ship.velocity)
+//            controller.facing(dt, toP.facing, w)
+//        }
+
+        controller.heading(dt, p, v)
 
         Debug.drawEngineLines(ship)
-    }
 
-    companion object {
-        fun install(ship: ShipAPI) {
-            if (((ship.ai as? Ship.ShipAIWrapper)?.ai !is FollowMouseAI)) {
-                ship.shipAI = FollowMouseAI(ship)
-            }
-        }
+        prevP.set(p)
     }
 }
 

@@ -11,7 +11,8 @@ import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.sqrt
 import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.*
+import java.awt.Color.GREEN
+import java.awt.Color.RED
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -67,9 +68,10 @@ open class BasicEngineController(val ship: ShipAPI) {
         val dv = vec - v
 
 //        Debug.drawLine(ship.location, ship.location + ve.rotatedReverse(r) / dt, PINK)
-        Debug.drawLine(ship.location, ship.location + vec.rotatedReverse(r) / dt, RED)
-        Debug.drawLine(ship.location, ship.location + v.rotatedReverse(r) / dt, GREEN)
-        Debug.drawLine(ship.location + (v + dv).rotatedReverse(r) / dt, ship.location + v.rotatedReverse(r) / dt, YELLOW)
+
+//        Debug.drawLine(ship.location, ship.location + vec.rotatedReverse(r) / dt, RED)
+//        Debug.drawLine(ship.location, ship.location + v.rotatedReverse(r) / dt, GREEN)
+//        Debug.drawLine(ship.location + (v + dv).rotatedReverse(r) / dt, ship.location + v.rotatedReverse(r) / dt, YELLOW)
 
         // Stop if expected velocity is less than half of velocity
         // change unit. Stop is applied regardless of distance to
@@ -90,11 +92,28 @@ open class BasicEngineController(val ship: ShipAPI) {
         val fr = +dv.x / al
         val fMax = max(max(ff, fb), max(fl, fr))
 
+        val overspeedX = isOverspeed(vmx, v.x) || isOverspeed(vec.x, v.x)
+        val overspeedY = isOverspeed(vmy, v.y) || isOverspeed(vec.y, v.y)
+//        val overspeedX = isOverspeed(vec.x, v.x)
+//        val overspeedY = isOverspeed(vec.y, v.y)
+
+//        Debug.print["x"] = if (overspeedX) "X" else ""
+//        Debug.print["y"] = if (overspeedY) "Y" else ""
+
+        if (overspeedX || overspeedY) {
+            Debug.drawCircle(ship.location, ship.collisionRadius, RED)
+        }
+
+        Debug.drawLine(ship.location, ship.location + vec.rotatedReverse(r) / dt, RED)
+        Debug.drawLine(ship.location, ship.location + v.rotatedReverse(r) / dt, GREEN)
+        //        Debug.drawLine(ship.location, ship.location + v.rotatedReverse(r) / dt, GREEN)
+
+
         // Give commands to achieve the calculated thrust.
-        if (shouldAccelerate(+d.y, ff, fMax)) ship.command(ACCELERATE)
-        if (shouldAccelerate(-d.y, fb, fMax)) ship.command(ACCELERATE_BACKWARDS)
-        if (shouldAccelerate(-d.x, fl, fMax)) ship.command(STRAFE_LEFT)
-        if (shouldAccelerate(+d.x, fr, fMax)) ship.command(STRAFE_RIGHT)
+        if (shouldAccelerate(overspeedY, ff, fMax)) ship.command(ACCELERATE)
+        if (shouldAccelerate(overspeedY, fb, fMax)) ship.command(ACCELERATE_BACKWARDS)
+        if (shouldAccelerate(overspeedX, fl, fMax)) ship.command(STRAFE_LEFT)
+        if (shouldAccelerate(overspeedX, fr, fMax)) ship.command(STRAFE_RIGHT)
 
         return vec.rotatedReverse(r) / dt
     }
@@ -138,6 +157,18 @@ open class BasicEngineController(val ship: ShipAPI) {
         }
     }
 
+    private fun isOverspeed(expected: Float, actual: Float): Boolean {
+        return when {
+            expected == 0f && actual != 0f -> true
+            expected > 0f && (actual > expected || actual < 0f) -> true
+            expected < 0f && (actual < expected || actual > 0f) -> true
+            else -> false
+        }
+
+//        val dv = expected - actual
+//        return dv != 0f && dv.sign != actual.sign
+    }
+
     companion object {
         /** Maximum velocity calculations for use outside the engine controller. */
         fun vMax(dt: Float, dist: Float, deceleration: Float): Float {
@@ -173,9 +204,9 @@ open class BasicEngineController(val ship: ShipAPI) {
 
         /** Decide if the ship should accelerate in the given
          * direction to reach its target without overshooting. */
-        private fun shouldAccelerate(d: Float, f: Float, m: Float) = when {
+        private fun shouldAccelerate(overspeed: Boolean, f: Float, m: Float) = when {
             f < 0.5f -> false
-            d < 0f && f >= 0.5f -> true // braking to not overshoot target
+            overspeed && f >= 0.5f -> true // braking to not overshoot target
             f >= m -> true
             else -> f / m > Random.nextFloat() // apply proportional thrust
         }
