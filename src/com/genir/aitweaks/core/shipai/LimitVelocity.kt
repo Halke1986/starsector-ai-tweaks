@@ -11,7 +11,7 @@ import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
 import com.genir.aitweaks.core.utils.crossProductZ
 import com.genir.aitweaks.core.utils.solve
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.*
+import java.awt.Color.RED
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -52,25 +52,29 @@ fun limitVelocity2(dt: Float, ship: ShipAPI, toShipFacing: Direction, expectedVe
 //    Debug.drawLine(ship.location, ship.location + expectedPV.v, YELLOW)
 
     var lowestLimit: Float = Float.MAX_VALUE
-    var lowestLimitDirection: Float = 1f
+    var lowestLimitDirection: Float = 0f
+    var lowestWall: PV = PV(Vector2f(), Vector2f())
+    var lowestIdx = 0
 
-    walls.forEach { wall ->
+    walls.forEachIndexed { idx, wall ->
 //        val direction = dotProduct(expectedPV.v, wall.v) / vMax
-        val (distance, direction) = intersection(expectedPV, wall) ?: return@forEach
+        val (distance, direction) = intersection(expectedPV, wall) ?: return@forEachIndexed
 
 //        Debug.print["dir"] = "dir ${direction / vMax}"
 
-        if (distance < 0f) {
-            return@forEach // TODO handle negative limits
-        }
+//        if (distance < 0f) {
+//            return@forEachIndexed // TODO handle negative limits
+//        }
 
         if (direction < 0f) {
-            return@forEach // TODO handle negative limits
+            return@forEachIndexed // TODO handle negative limits
         }
 
         if (distance < lowestLimit) {
             lowestLimit = distance
             lowestLimitDirection = direction / vMax
+            lowestWall = wall
+            lowestIdx = idx
         }
     }
 
@@ -81,9 +85,50 @@ fun limitVelocity2(dt: Float, ship: ShipAPI, toShipFacing: Direction, expectedVe
         return expectedVelocityRaw
     }
 
-    if (abs(lowestLimitDirection - 1f) < 0.01f) {
+
+    val actualPV = PV(Vector2f(), ship.velocity)
+    val overspeed = run {
+        val (distance, direction) = intersection(actualPV, lowestWall) ?: return@run false
+
+        if (distance < 0f) {
+            return@run false // TODO handle negative limits
+        }
+
+        if (direction < 0f) {
+            return@run false // TODO handle negative limits
+        }
+
+//        Debug.print["over"] = distance
+
+        distance< 1
+    }
+
+    if (overspeed) {
+        Debug.drawCollisionRadius(ship, RED)
+
+        val v = (ship.velocity - limits[lowestIdx].direction.unitVector.resized(ship.maxSpeed))
+//        return Pair(v.rotated(toShipFacing.rotationMatrix) * dt , overspeed)
+        return v.rotated(toShipFacing.rotationMatrix) * dt
+    }
+
+//    Debug.drawLine(ship.location, ship.location + limits[lowestIdx].direction.unitVector * limits[lowestIdx].speedLimit, WHITE)
+
+    Debug.print[ship] = "${ship.name} $lowestLimit $lowestLimitDirection"
+
+    if (abs(lowestLimitDirection - 1f) < 0.005f) {
+//        if (overspeed) {
+//            val vmax = ship.maxSpeed * dt
+//            return Pair(ship.velocity.rotated(toShipFacing.rotationMatrix) * dt - expectedVelocityRaw.resized(vmax), overspeed)
+//        }
+
         return expectedVelocityRaw * lowestLimit
     }
+
+//    if (overspeed < 1f) {
+//        Debug.print["vover"] = overspeed
+//
+//        return Pair((ship.velocity * overspeed).rotated(toShipFacing.rotationMatrix) * dt, true)
+//    }
 
     val points: MutableList<Vector2f> = mutableListOf()
 
@@ -115,35 +160,47 @@ fun limitVelocity2(dt: Float, ship: ShipAPI, toShipFacing: Direction, expectedVe
         val pMin = limit.p + limit.v * min.coerceAtLeast(-500f)
         val pMax = limit.p + limit.v * max.coerceAtMost(+500f)
 
-        Debug.drawLine(ship.location + pMax, ship.location + pMin, BLUE)
+//        Debug.drawLine(ship.location + pMax, ship.location + pMin, BLUE)
 
         points.add(pMin)
         points.add(pMax)
     }
 
     val expectedFacing = expectedPV.v.facing
+
+//    points.forEachIndexed { idx, p ->
+//        val angle = (p.facing - expectedFacing).length
+//        val angleWeight = (180f - angle) / 180f
+//
+//        val score = p.lengthSquared * angleWeight * angleWeight
+//
+////        Debug.print[idx] = "$angle $angleWeight ${p.length} $score"
+//    }
+
     val best: Vector2f? = points.maxWithOrNull(compareBy {
         val angle = (it.facing - expectedFacing).length
         val angleWeight = (180f - angle) / 180f
 
-        if (angle > 89f){
+        if (angle > 89f) {
             return@compareBy 0f
         }
 
         it.lengthSquared * angleWeight * angleWeight
-//        it.lengthSquared.coerceAtMost(l2) * angleWeight * angleWeight
     })
 
     if (best == null) {
-        return Vector2f()
+        return Vector2f()// TODO what to return here?
     }
 
-    Debug.drawCircle(ship.location, vMax, YELLOW)
+//    Debug.drawCircle(ship.location, vMax, YELLOW)
 
 //    Debug.drawLine(ship.location, ship.location + best, PINK)
-    Debug.drawLine(ship.location, ship.location + expectedPV.v, MAGENTA)
+//    Debug.drawLine(ship.location, ship.location + expectedPV.v, MAGENTA)
 
-    return best.rotated(toShipFacing.rotationMatrix) * dt//  expectedVelocityRaw * lowestLimit
+//    return best.rotated(toShipFacing.rotationMatrix) * dt//  expectedVelocityRaw * lowestLimit
+
+
+    return best.rotated(toShipFacing.rotationMatrix) * dt
 }
 
 fun intersection(v: PV, w: PV): Pair<Float, Float>? {

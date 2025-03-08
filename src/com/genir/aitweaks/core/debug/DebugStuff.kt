@@ -27,8 +27,10 @@ internal fun debug(dt: Float) {
     ships.forEach{
         Debug.drawCircle(it.location, it.collisionRadius + 15f, CYAN)
 
-//        Debug.drawAccelerationLines(it)
+        Debug.drawAccelerationLines(it)
     }
+
+    removeAsteroids()
 
 //    installAI(ship) { FollowMouseAI(ship) }
 }

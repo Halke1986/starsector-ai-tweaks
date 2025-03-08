@@ -11,8 +11,7 @@ import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.sqrt
 import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.GREEN
-import java.awt.Color.RED
+import java.awt.Color.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -67,11 +66,11 @@ open class BasicEngineController(val ship: ShipAPI) {
         val vec = limitVelocity?.invoke(toShipFacing, ve) ?: ve
         val dv = vec - v
 
-//        Debug.drawLine(ship.location, ship.location + ve.rotatedReverse(r) / dt, PINK)
-
 //        Debug.drawLine(ship.location, ship.location + vec.rotatedReverse(r) / dt, RED)
 //        Debug.drawLine(ship.location, ship.location + v.rotatedReverse(r) / dt, GREEN)
-//        Debug.drawLine(ship.location + (v + dv).rotatedReverse(r) / dt, ship.location + v.rotatedReverse(r) / dt, YELLOW)
+        Debug.drawLine(ship.location + (v + dv).rotatedReverse(r) / dt, ship.location + v.rotatedReverse(r) / dt, YELLOW)
+//        Debug.drawLine(ship.location, ship.location + dv.rotatedReverse(r) / dt, YELLOW)
+        Debug.drawLine(ship.location, ship.location + d.rotatedReverse(r), MAGENTA)
 
         // Stop if expected velocity is less than half of velocity
         // change unit. Stop is applied regardless of distance to
@@ -92,22 +91,11 @@ open class BasicEngineController(val ship: ShipAPI) {
         val fr = +dv.x / al
         val fMax = max(max(ff, fb), max(fl, fr))
 
-        val overspeedX = isOverspeed(vmx, v.x) || isOverspeed(vec.x, v.x)
-        val overspeedY = isOverspeed(vmy, v.y) || isOverspeed(vec.y, v.y)
-//        val overspeedX = isOverspeed(vec.x, v.x)
-//        val overspeedY = isOverspeed(vec.y, v.y)
-
-//        Debug.print["x"] = if (overspeedX) "X" else ""
-//        Debug.print["y"] = if (overspeedY) "Y" else ""
-
-        if (overspeedX || overspeedY) {
-            Debug.drawCircle(ship.location, ship.collisionRadius, RED)
-        }
+        val overspeedX = vmx.sign == v.x.sign && abs(vmx) < abs(v.x)
+        val overspeedY = vmy.sign == v.y.sign && abs(vmy) < abs(v.y)
 
         Debug.drawLine(ship.location, ship.location + vec.rotatedReverse(r) / dt, RED)
         Debug.drawLine(ship.location, ship.location + v.rotatedReverse(r) / dt, GREEN)
-        //        Debug.drawLine(ship.location, ship.location + v.rotatedReverse(r) / dt, GREEN)
-
 
         // Give commands to achieve the calculated thrust.
         if (shouldAccelerate(overspeedY, ff, fMax)) ship.command(ACCELERATE)
@@ -155,18 +143,6 @@ open class BasicEngineController(val ship: ShipAPI) {
             el < ed -> ship.command(TURN_LEFT)
             else -> Unit // Let the ship decelerate.
         }
-    }
-
-    private fun isOverspeed(expected: Float, actual: Float): Boolean {
-        return when {
-            expected == 0f && actual != 0f -> true
-            expected > 0f && (actual > expected || actual < 0f) -> true
-            expected < 0f && (actual < expected || actual > 0f) -> true
-            else -> false
-        }
-
-//        val dv = expected - actual
-//        return dv != 0f && dv.sign != actual.sign
     }
 
     companion object {
