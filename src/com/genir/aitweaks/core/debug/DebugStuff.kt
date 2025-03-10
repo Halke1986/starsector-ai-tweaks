@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
-import com.genir.aitweaks.core.utils.log
 import java.awt.Color.CYAN
 
 /**
