@@ -25,7 +25,7 @@ internal fun debug(dt: Float) {
     val ships = Global.getCombatEngine().ships
 
     ships.forEach{
-//        Debug.drawCircle(it.location, it.collisionRadius + 15f, CYAN)
+        Debug.drawCircle(it.location, it.collisionRadius + 15f, CYAN)
 
 //        Debug.drawAccelerationLines(it)
     }

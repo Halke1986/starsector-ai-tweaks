@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
@@ -9,23 +10,13 @@ import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedY
-import com.genir.aitweaks.core.utils.crossProductZ
-import com.genir.aitweaks.core.utils.solve
+import com.genir.aitweaks.core.utils.sqrt
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.BLUE
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
-
-data class PV(val p: Vector2f, val v: Vector2f) {
-    fun rotated(r: RotationMatrix): PV {
-        return PV(p.rotated(r), v.rotated(r))
-    }
-
-    fun rotatedReverse(r: RotationMatrix): PV {
-        return PV(p.rotatedReverse(r), v.rotatedReverse(r))
-    }
-}
 
 data class Bound(val r: RotationMatrix, val speedLimit: Float, val pMin: Float, val pMax: Float)
 
@@ -38,12 +29,12 @@ fun limitVelocity2(dt: Float, ship: ShipAPI, toShipFacing: Direction, expectedVe
         return expectedVelocityRaw
     }
 
-//    bounds.forEach { bound ->
-//        val p1 = ship.location + Vector2f(bound.speedLimit, bound.pMin).rotatedReverse(bound.r)
-//        val p2 = ship.location + Vector2f(bound.speedLimit, bound.pMax).rotatedReverse(bound.r)
-//
-//        Debug.drawLine(p1, p2, BLUE)
-//    }
+    bounds.forEach { bound ->
+        val p1 = ship.location + Vector2f(bound.speedLimit, bound.pMin).rotatedReverse(bound.r)
+        val p2 = ship.location + Vector2f(bound.speedLimit, bound.pMax).rotatedReverse(bound.r)
+
+        Debug.drawLine(p1, p2, BLUE)
+    }
 
     val overspeed = handleOngoingOverspeed(ship, bounds)
     if (overspeed != null) {
@@ -129,64 +120,75 @@ fun handlePotentialOverspeed(bounds: List<Bound>, expectedVelocity: Vector2f): V
 }
 
 fun buildBounds(limits: List<EngineController.Limit>, expectedVelocity: Vector2f): List<Bound> {
-    data class RawBound(val limit: EngineController.Limit, val r: RotationMatrix, val pv: PV)
-
-    val radius = expectedVelocity.length
-    val rawBounds: List<RawBound> = limits.map { limit ->
+    val radius2 = expectedVelocity.lengthSquared
+    val rawBounds: List<Bound> = limits.mapNotNull { limit ->
         val r = (-limit.direction).rotationMatrix
-        val p = Vector2f(limit.speedLimit.coerceAtLeast(0f), 0f) // TODO handle negative limits
-        val v = Vector2f(0f, 1f)
-        RawBound(limit, r, PV(p, v).rotatedReverse(r))
+        val vLim2 = limit.speedLimit * limit.speedLimit
+        val pMin: Float
+        val pMax: Float
+
+        when {
+            // Limit is higher than ship max speed.
+            limit.speedLimit > 0 && vLim2 > radius2 -> {
+                return@mapNotNull null
+            }
+
+            // Negative limit higher than ship max speed.
+            // It effectively has no common point with ship
+            // max speed radius. Setting both points to zero
+            // results in the shortest possible velocity vector.
+            vLim2 > radius2 -> {
+                pMin = 0f
+                pMax = 0f
+            }
+
+            else -> {
+                val h = sqrt(radius2 - vLim2)
+
+                pMin = -h
+                pMax = +h
+            }
+        }
+
+        Bound(r, limit.speedLimit, pMin, pMax)
     }
 
+    // Find enclosing velocity bounds.
     val bounds = rawBounds.mapNotNull { bound ->
-        var min = -Float.MAX_VALUE
-        var max = Float.MAX_VALUE
+        var pMin = bound.pMin
+        var pMax = bound.pMax
+
+        val p = Vector2f(bound.speedLimit, 0f).rotatedReverse(bound.r)
+        val v = Vector2f(0f, 1f).rotatedReverse(bound.r)
 
         // Intersect bounds.
         rawBounds.forEach inner@{ other ->
-            val (distance, direction) = intersection(bound.pv, other.pv) ?: return@inner
+            val vx = v.rotatedX(other.r)
 
-            if (direction < 0f) {
-                min = max(min, distance)
+            // Limits are perpendicular.
+            if (vx == 0f) {
+                return@inner
+            }
+
+            val px = p.rotatedX(other.r)
+            val distance = (other.speedLimit - px) / vx
+
+            if (vx > 0f) {
+                pMax = min(pMax, distance)
             } else {
-                max = min(max, distance)
+                pMin = max(pMin, distance)
             }
         }
 
         // Bound is entirely behind other bounds.
-        if (min > max) {
+        if (pMin > pMax) {
             return@mapNotNull null
         }
 
-        // Coerce the bound to the enclosing radius.
-        val pv = bound.pv
-        val withinVMax = solve(pv.p, pv.v, radius) ?: return@mapNotNull null // TODO handle negative limits beyond vMax
-
-        // Bound is entirely outside the enclosing radius.
-        if (max < withinVMax.x1 || min > withinVMax.x2) {
-            return@mapNotNull null
-        }
-
-        // Start and end points of the bound line.
-        val pMin = pv.p + pv.v * min.coerceIn(withinVMax.x1, withinVMax.x2)
-        val pMax = pv.p + pv.v * max.coerceIn(withinVMax.x1, withinVMax.x2)
-
-        Bound(bound.r, bound.limit.speedLimit, pMin.rotatedY(bound.r), pMax.rotatedY(bound.r))
+        Bound(bound.r, bound.speedLimit, pMin, pMax)
     }
 
     return bounds
-}
-
-fun intersection(v: PV, w: PV): Pair<Float, Float>? {
-    val direction = crossProductZ(v.v, w.v)
-    if (direction == 0f) {
-        // Vectors are perpendicular.
-        return null
-    }
-
-    val offset = crossProductZ(w.v, v.p - w.p)
-    return Pair(offset / direction, direction)
 }
 
 fun vMaxToObstacle2(dt: Float, ship: ShipAPI, obstacle: ShipAPI, minDistance: Float): EngineController.Limit? {
