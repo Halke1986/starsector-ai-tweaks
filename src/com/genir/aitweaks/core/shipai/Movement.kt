@@ -490,6 +490,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     }
 
     private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, minDistance: Float): EngineController.Limit? {
+        return vMaxToObstacle2(dt, ship, obstacle, minDistance)
+
         val direction = obstacle.location - ship.location
         val dirFacing = direction.facing
         val distanceLeft = direction.length - minDistance
