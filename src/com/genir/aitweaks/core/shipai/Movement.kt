@@ -10,8 +10,9 @@ import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.ceil
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
@@ -344,7 +345,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     private fun avoidCollisions(dt: Float, friendlies: List<ShipAPI>): List<EngineController.Limit?> {
         return friendlies.map { obstacle ->
             val minDistance = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
-            vMaxToObstacle(dt, obstacle, minDistance)
+            vMaxToObstacle(dt, obstacle, false, minDistance)
         }
     }
 
@@ -488,47 +489,28 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         return EngineController.Limit(borderIntrusion.facing, ship.maxSpeed * (1f - avoidForce))
     }
 
-    private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, minDistance: Float): EngineController.Limit? {
-        return vMaxToObstacle2(dt, ship, obstacle, false, minDistance)
-//
-//        val direction = obstacle.location - ship.location
-//        val dirFacing = direction.facing
-//        val distanceLeft = direction.length - minDistance
-//
-//        // Already colliding.
-//        if (distanceLeft <= 0f) {
-//            return EngineController.Limit(dirFacing, 0f)
-//        }
-//
-//        val vObstacle = vectorProjectionLength(obstacle.timeAdjustedVelocity, direction)
-//        val aObstacle = 0f//vectorProjectionLength(state.accelerationTracker[obstacle], direction)
-//        val decelShip = ship.collisionDeceleration(dirFacing)
-//
-//        val vMax: Float = when {
-//            // Take obstacle acceleration into account when the obstacle is doing a brake check.
-//            // The acceleration is approximated as total velocity loss. Including actual
-//            // acceleration (shipAcc + aAbs) in calculations leads to erratic behavior.
-//            vObstacle > 0f && aObstacle < 0f -> {
-//                BasicEngineController.vMax(dt, distanceLeft, decelShip)
-//            }
-//
-//            // Obstacle is moving towards the ship. If the obstacle is a friendly,
-//            // non flamed out ship, assume both ship will try to avoid the collision.
-//            vObstacle < 0f && obstacle.owner == ship.owner && !obstacle.engineController.isFlamedOut -> {
-//                val decelObstacle = obstacle.collisionDeceleration(-dirFacing)
-//                val decelDistObstacle = decelerationDist(dt, -vObstacle, decelObstacle)
-//
-//                BasicEngineController.vMax(dt, distanceLeft - decelDistObstacle, decelShip)
-//            }
-//
-//            // Maximum velocity that will not lead to collision with inert obstacle.
-//            else -> {
-//                BasicEngineController.vMax(dt, distanceLeft, decelShip) + vObstacle
-//            }
-//        }
-//
-//        return if (vMax > ship.maxSpeed) null
-//        else EngineController.Limit(dirFacing, vMax)
+    /** Calculate maximum velocity that will not lead to collision with an obstacle. */
+    fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, makeWay: Boolean, minDistance: Float): EngineController.Limit {
+        val toObstacle = obstacle.location - ship.location
+        val toObstacleFacing = toObstacle.facing
+        val r = (-toObstacleFacing).rotationMatrix
+
+        val distance = toObstacle.rotatedX(r)
+        val distanceLeft = distance - minDistance
+
+        val decelShip = ship.collisionDeceleration(toObstacleFacing)
+        val vMax = BasicEngineController.vMax(dt, abs(distanceLeft), decelShip) * distanceLeft.sign
+        val vObstacle = obstacle.velocity.rotatedX(r)
+
+        // Consider moving backwards if the obstacle has movement
+        // priority or ship and obstacle are already colliding.
+        val speedLimit = if (makeWay || distanceLeft < 0) {
+            vMax + vObstacle
+        } else {
+            (vMax + vObstacle).coerceAtLeast(0f)
+        }
+
+        return EngineController.Limit(toObstacleFacing, speedLimit)
     }
 
     /** Ship deceleration for collision avoidance purposes. */
@@ -539,14 +521,5 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
             angleFromBow < 150f -> strafeAcceleration
             else -> acceleration
         }
-    }
-
-    /** Distance covered by ship when decelerating from given velocity. */
-    private fun decelerationDist(dt: Float, velocity: Float, deceleration: Float): Float {
-        val v = velocity * dt
-        val a = deceleration * dt * dt
-
-        val t = ceil(v / a)
-        return (v + a) * t * 0.5f
     }
 }

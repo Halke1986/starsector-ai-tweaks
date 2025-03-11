@@ -1,14 +1,17 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.extensions.facing
-import com.genir.aitweaks.core.extensions.length
-import com.genir.aitweaks.core.extensions.resized
-import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
+import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedY
+import com.genir.aitweaks.core.utils.sqrt
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 /** Engine Controller for AI piloted ships. */
@@ -20,6 +23,8 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     data class Limit(val direction: Direction, val speedLimit: Float)
 
     data class Destination(val location: Vector2f, val velocity: Vector2f)
+
+    private data class Bound(val r: RotationMatrix, val speedLimit: Float, val pMin: Float, val pMax: Float)
 
     fun heading(dt: Float, destination: Destination, limits: List<Limit> = listOf()): Vector2f {
         return heading(dt, destination.location, destination.velocity) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
@@ -41,79 +46,179 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         facing(dt, facing, wt)
     }
 
-    private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocity: Vector2f, absLimits: List<Limit>): Vector2f {
-        return limitVelocity2(dt, ship, toShipFacing, expectedVelocity, absLimits)
-
-        // No relevant speed limits found, move ahead.
-        if (absLimits.isEmpty()) {
-            return expectedVelocity
+    private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<Limit>): Vector2f {
+        if (limits.isEmpty()) {
+            return expectedVelocityRaw
         }
 
-        // Translate speed limit to ship frame of reference.
-        // Clamp the speed limit so that different limits remain
-        // distinguishable by producing a slightly different value
-        // of f(x) = 1/cos(x) for a given hading, instead of all
-        // being equal to 0f.
-        val limits = absLimits.map { Limit(it.direction + toShipFacing, (it.speedLimit * dt).coerceAtLeast(0.00001f)) }
-
-        // Find the most severe speed limit.
-        val expectedSpeed = expectedVelocity.length
-        val expectedHeading = expectedVelocity.facing
-        val lowestLimit = limits.minByOrNull { it.clampSpeed(expectedHeading, expectedSpeed) }
-            ?: return expectedVelocity
-
-        // Most severe speed limit does not influence speed ahead.
-        if (lowestLimit.clampSpeed(expectedHeading, expectedSpeed) == expectedSpeed) {
-            return expectedVelocity
-        }
-
-        // Find new heading that circumvents the lowest speed limit.
-        val headingOffset = lowestLimit.headingOffset(expectedSpeed)
-        val angleToLimit = lowestLimit.direction - expectedHeading
-        val angleToNewFacing = angleToLimit - headingOffset * angleToLimit.sign
-        val newFacing = expectedHeading + angleToNewFacing
-
-        // Stop if angle to new heading is right, to avoid erratic behavior
-        // when avoiding collision and being stopped close to destination.
-        if (angleToNewFacing.length >= 89f) {
+        val bounds: List<Bound> = buildBounds(limits)
+        if (bounds.isEmpty()) {
             return Vector2f()
         }
 
-        // Clamp new heading to not violate any of the speed limits.
-        val newSpeed = limits.fold(expectedSpeed) { clampedSpeed, lim ->
-            lim.clampSpeed(newFacing, clampedSpeed)
+//    bounds.forEach { bound ->
+//        val p1 = ship.location + Vector2f(bound.speedLimit, bound.pMin.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
+//        val p2 = ship.location + Vector2f(bound.speedLimit, bound.pMax.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
+//        Debug.drawLine(p1, p2, BLUE)
+//    }
+
+        val rotationToShip = toShipFacing.rotationMatrix
+        val expectedVelocity = expectedVelocityRaw.rotatedReverse(rotationToShip) / dt
+
+        val overspeed = handleOngoingOverspeed(bounds) ?: handlePotentialOverspeed(bounds, expectedVelocity)
+        if (overspeed != null) {
+            return overspeed.rotated(rotationToShip) * dt
         }
 
-        return expectedVelocity.rotated(angleToNewFacing.rotationMatrix).resized(newSpeed)
+        return expectedVelocityRaw
     }
 
-    /** Clamp expectedSpeed to maximum speed in which ship can travel
-     * along the expectedHeading and not break the Limit.
-     *
-     * From right triangle, the equation for max speed is:
-     * maxSpeed = speedLimit / cos( abs(limitFacing - velocityFacing) )
-     *
-     * To avoid using trigonometric functions, f(x) = 1/cos(x) is approximated as
-     * g(t) = 1/t + t/5 where t = PI/2 - x. */
-    private fun Limit.clampSpeed(expectedHeading: Direction, expectedSpeed: Float): Float {
-        val angleFromLimit = (direction - expectedHeading).length
-        if (angleFromLimit >= 90f) {
-            return expectedSpeed
+    private fun handleOngoingOverspeed(bounds: List<Bound>): Vector2f? {
+        var closestPoint: Vector2f? = null
+        var closestDist = Float.MAX_VALUE
+
+        bounds.forEach { bound ->
+            // Velocity does not exceed the bound.
+            val vx = ship.velocity.rotatedX(bound.r)
+            if (vx <= bound.speedLimit) {
+                return@forEach
+            }
+
+            // Find the closest point on the boundary relative to the velocity vector.
+            val vy = ship.velocity.rotatedY(bound.r)
+            val closestLocal = Vector2f(bound.speedLimit, vy.coerceIn(bound.pMin, bound.pMax))
+            val closest = closestLocal.rotatedReverse(bound.r)
+            val dist = closest.lengthSquared
+
+            if (dist < closestDist) {
+                closestPoint = closest
+                closestDist = dist
+            }
         }
 
-        val t = (PI / 2f - angleFromLimit * DEGREES_TO_RADIANS)
-        val e = speedLimit * (1f / t + t / 5f)
-        return min(e, expectedSpeed)
+        // No ongoing overspeed found.
+        if (closestPoint == null) {
+            return null
+        }
+
+        val dv = if (closestDist <= 0f) {
+            ship.velocity
+        } else {
+            ship.velocity - closestPoint!!
+        }
+
+        return ship.velocity - dv.resized(ship.maxSpeed)
     }
 
-    /** Calculate angle from the limit heading, at which traveling
-     * with expectedSpeed will not break the limit. */
-    private fun Limit.headingOffset(expectedSpeed: Float): Float {
-        val a = 1f
-        val b = -5f * (expectedSpeed / speedLimit)
-        val c = 5f
+    private fun handlePotentialOverspeed(bounds: List<Bound>, expectedVelocity: Vector2f): Vector2f? {
+        val vMax2 = expectedVelocity.lengthSquared
+        val points: MutableList<Vector2f> = mutableListOf()
 
-        val t = quad(a, b, c)?.smallerNonNegative ?: 0f
-        return abs(t - PI / 2f) * RADIANS_TO_DEGREES
+        bounds.forEach { bound ->
+            // Velocity does not exceed the bound.
+            val vx = expectedVelocity.rotatedX(bound.r)
+            if (vx <= bound.speedLimit) {
+                return@forEach
+            }
+
+            val vLim2 = bound.speedLimit * bound.speedLimit
+            val boundSpan = if (vMax2 > vLim2) {
+                sqrt(vMax2 - vLim2)
+            } else {
+                0f
+            }
+
+            points.add(Vector2f(bound.speedLimit, bound.pMin.coerceIn(-boundSpan, boundSpan)).rotatedReverse(bound.r))
+            points.add(Vector2f(bound.speedLimit, bound.pMax.coerceIn(-boundSpan, boundSpan)).rotatedReverse(bound.r))
+        }
+
+        // No relevant speed limits.
+        if (points.isEmpty()) {
+            return null
+        }
+
+        val expectedFacing = expectedVelocity.facing
+        val best: Vector2f? = points.maxWithOrNull(compareBy {
+            val angle = (it.facing - expectedFacing).length
+            val angleWeight = (180f - angle) / 180f
+
+            if (angle > 89f) {
+                return@compareBy 0f
+            }
+
+            it.lengthSquared * angleWeight * angleWeight
+        })
+
+        return best ?: Vector2f()
+    }
+
+    private fun buildBounds(limits: List<Limit>): List<Bound> {
+        val rawBounds: List<Bound> = limits.map { limit ->
+            val r = (-limit.direction).rotationMatrix
+            Bound(r, limit.speedLimit, 0f, 0f)
+        }
+
+        val strictBounds = intersectBounds(rawBounds, 0f)
+        if (strictBounds.isNotEmpty()) {
+            return strictBounds
+        }
+
+        val minLimit = limits.minOf { it.speedLimit }
+        val span = 600f - minLimit
+
+        var step: Float = span / 2
+        var tolerance = span / 2
+        var relaxedBounds = listOf<Bound>()
+
+        for (i in 0..7) {
+            relaxedBounds = intersectBounds(rawBounds, tolerance)
+
+            step /= 2
+            tolerance += if (relaxedBounds.isEmpty()) {
+                step
+            } else {
+                -step
+            }
+        }
+
+        return relaxedBounds
+    }
+
+    private fun intersectBounds(rawBounds: List<Bound>, tolerance: Float): List<Bound> {
+        return rawBounds.mapNotNull { bound ->
+            // Find enclosing velocity bounds.
+            val speedLimit = bound.speedLimit + tolerance
+            val p = Vector2f(speedLimit, 0f).rotatedReverse(bound.r)
+            val v = Vector2f(0f, 1f).rotatedReverse(bound.r)
+
+            var pMax = 1e4f
+            var pMin = -1e4f
+
+            // Intersect bounds.
+            rawBounds.forEach inner@{ other ->
+                val vx = v.rotatedX(other.r)
+
+                // Limits are perpendicular.
+                if (vx == 0f) {
+                    return@inner
+                }
+
+                val px = p.rotatedX(other.r)
+                val distance = (other.speedLimit + tolerance - px) / vx
+
+                if (vx > 0f) {
+                    pMax = min(pMax, distance)
+                } else {
+                    pMin = max(pMin, distance)
+                }
+            }
+
+            // Bound is entirely behind other bounds.
+            if (pMin > pMax) {
+                return@mapNotNull null
+            }
+
+            return@mapNotNull Bound(bound.r, speedLimit, pMin, pMax)
+        }
     }
 }
