@@ -86,10 +86,6 @@ open class BasicEngineController(val ship: ShipAPI) {
         val overspeedX = vmx.sign == v.x.sign && abs(vmx) < abs(v.x)
         val overspeedY = vmy.sign == v.y.sign && abs(vmy) < abs(v.y)
 
-//        Debug.drawLine(ship.location + (v + dv).rotatedReverse(r) / dt, ship.location + v.rotatedReverse(r) / dt, YELLOW)
-//        Debug.drawLine(ship.location, ship.location + vec.rotatedReverse(r) / dt, RED)
-//        Debug.drawLine(ship.location, ship.location + v.rotatedReverse(r) / dt, GREEN)
-
         // Give commands to achieve the calculated thrust.
         if (shouldAccelerate(overspeedY, ff, fMax)) ship.command(ACCELERATE)
         if (shouldAccelerate(overspeedY, fb, fMax)) ship.command(ACCELERATE_BACKWARDS)

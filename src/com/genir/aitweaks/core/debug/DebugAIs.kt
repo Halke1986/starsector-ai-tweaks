@@ -58,13 +58,12 @@ class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
         val v: Vector2f = (p - prevP) / dt
 
         val toP = (p - ship.location)
-
-//        if (toP.length < ship.collisionRadius / 2f) {
-//            controller.facing(dt, ship.facing.direction, 0f)
-//        } else {
-//            val w: Float = angularVelocity(toP, v - ship.velocity)
-//            controller.facing(dt, toP.facing, w)
-//        }
+        if (toP.length < ship.collisionRadius / 2f) {
+            controller.facing(dt, ship.facing.direction, 0f)
+        } else {
+            val w: Float = angularVelocity(toP, v - ship.velocity)
+            controller.facing(dt, toP.facing, w)
+        }
 
         controller.heading(dt, p, v)
 
