@@ -7,7 +7,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController.Destination
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
-import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
@@ -502,7 +501,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         }
 
         val vObstacle = vectorProjectionLength(obstacle.timeAdjustedVelocity, direction)
-        val aObstacle = vectorProjectionLength(state.accelerationTracker[obstacle], direction)
+        val aObstacle = 0f//vectorProjectionLength(state.accelerationTracker[obstacle], direction)
         val decelShip = ship.collisionDeceleration(dirFacing)
 
         val vMax: Float = when {

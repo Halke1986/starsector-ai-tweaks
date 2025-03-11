@@ -28,7 +28,6 @@ class State : BaseEveryFrameCombatPlugin() {
     var frameCount: Int = 0
     val debugPlugin: DebugPlugin? = if (config.devMode) DebugPlugin() else null
 
-    val accelerationTracker: AccelerationTracker = AccelerationTracker()
     val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
     private val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
 
@@ -37,7 +36,6 @@ class State : BaseEveryFrameCombatPlugin() {
         fleetSegmentation[1],
         fleetCohesion[0],
         fleetCohesion[1],
-        accelerationTracker,
         Speedup(),
         AimAssistManager(),
         ShieldAssistManager(),

@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix
@@ -11,7 +10,6 @@ import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedY
-import com.genir.aitweaks.core.utils.log
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
 import kotlin.math.abs
@@ -37,16 +35,11 @@ fun limitVelocity2(dt: Float, ship: ShipAPI, toShipFacing: Direction, expectedVe
         return Vector2f()
     }
 
-    bounds.forEach { bound ->
-        val p1 = ship.location + Vector2f(bound.speedLimit, bound.pMin.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
-        val p2 = ship.location + Vector2f(bound.speedLimit, bound.pMax.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
-
-//        Debug.print["p1"] = p1 - ship.location
-//        Debug.print["p2"] = p2 - ship.location
-//        Debug.print["limit"] = bound.speedLimit
-
-        Debug.drawLine(p1, p2, BLUE)
-    }
+//    bounds.forEach { bound ->
+//        val p1 = ship.location + Vector2f(bound.speedLimit, bound.pMin.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
+//        val p2 = ship.location + Vector2f(bound.speedLimit, bound.pMax.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
+//        Debug.drawLine(p1, p2, BLUE)
+//    }
 
     val overspeed = handleOngoingOverspeed(ship, bounds)
     if (overspeed != null) {
@@ -216,14 +209,8 @@ fun vMaxToObstacle2(dt: Float, ship: ShipAPI, obstacle: ShipAPI, minDistance: Fl
     val decelShip = ship.collisionDeceleration(toObstacleFacing)
     val vMax = BasicEngineController.vMax(dt, abs(distanceLeft), decelShip) * distanceLeft.sign
     val vObstacle = obstacle.velocity.rotatedX(r)
-    val aObstacle = State.state.accelerationTracker[obstacle].rotatedX(r)
 
-    // Take obstacle acceleration into account when the obstacle is doing a brake check.
-    // The acceleration is approximated as total velocity loss. Including actual
-    // acceleration (shipAcc + aAbs) in calculations leads to erratic behavior.
-    if (vObstacle > 0 && aObstacle < 0) {
-        return EngineController.Limit(toObstacleFacing, vMax)
-    }
+//    log("${ship.name} ${vMax + vObstacle}")
 
     return EngineController.Limit(toObstacleFacing, vMax + vObstacle)
 }
