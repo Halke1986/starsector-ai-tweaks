@@ -39,6 +39,6 @@ check Lidar on faster ships - destroyer : ass pinetree, frigate DEX Catapult
 
 - tahlan shipworks hel hound module has speed 0
 
-- dobermann from ED shipyards
+- why manticore targets fighters
 
 ----------------------------------------------------------------

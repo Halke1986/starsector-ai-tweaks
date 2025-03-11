@@ -106,6 +106,8 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             return
         }
 
+        Debug.drawCircle(ship.location, ship.collisionRadius, Color.BLUE)
+
 //        Debug.drawTurnLines(ship)
 //        Debug.drawCircle(movement.headingPoint, ship.collisionRadius)
 

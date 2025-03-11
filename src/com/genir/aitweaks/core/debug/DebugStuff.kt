@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
 import com.genir.aitweaks.core.utils.log
+import java.awt.Color.BLUE
 import java.awt.Color.CYAN
 
 /**
@@ -28,7 +29,7 @@ internal fun debug(dt: Float) {
 //    log("***********************************************")
 
     ships.forEach{
-        Debug.drawCircle(it.location, it.collisionRadius + 15f, CYAN)
+
 
 //        Debug.drawAccelerationLines(it)
     }

@@ -489,46 +489,46 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     }
 
     private fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, minDistance: Float): EngineController.Limit? {
-        return vMaxToObstacle2(dt, ship, obstacle, minDistance)
-
-        val direction = obstacle.location - ship.location
-        val dirFacing = direction.facing
-        val distanceLeft = direction.length - minDistance
-
-        // Already colliding.
-        if (distanceLeft <= 0f) {
-            return EngineController.Limit(dirFacing, 0f)
-        }
-
-        val vObstacle = vectorProjectionLength(obstacle.timeAdjustedVelocity, direction)
-        val aObstacle = 0f//vectorProjectionLength(state.accelerationTracker[obstacle], direction)
-        val decelShip = ship.collisionDeceleration(dirFacing)
-
-        val vMax: Float = when {
-            // Take obstacle acceleration into account when the obstacle is doing a brake check.
-            // The acceleration is approximated as total velocity loss. Including actual
-            // acceleration (shipAcc + aAbs) in calculations leads to erratic behavior.
-            vObstacle > 0f && aObstacle < 0f -> {
-                BasicEngineController.vMax(dt, distanceLeft, decelShip)
-            }
-
-            // Obstacle is moving towards the ship. If the obstacle is a friendly,
-            // non flamed out ship, assume both ship will try to avoid the collision.
-            vObstacle < 0f && obstacle.owner == ship.owner && !obstacle.engineController.isFlamedOut -> {
-                val decelObstacle = obstacle.collisionDeceleration(-dirFacing)
-                val decelDistObstacle = decelerationDist(dt, -vObstacle, decelObstacle)
-
-                BasicEngineController.vMax(dt, distanceLeft - decelDistObstacle, decelShip)
-            }
-
-            // Maximum velocity that will not lead to collision with inert obstacle.
-            else -> {
-                BasicEngineController.vMax(dt, distanceLeft, decelShip) + vObstacle
-            }
-        }
-
-        return if (vMax > ship.maxSpeed) null
-        else EngineController.Limit(dirFacing, vMax)
+        return vMaxToObstacle2(dt, ship, obstacle, false, minDistance)
+//
+//        val direction = obstacle.location - ship.location
+//        val dirFacing = direction.facing
+//        val distanceLeft = direction.length - minDistance
+//
+//        // Already colliding.
+//        if (distanceLeft <= 0f) {
+//            return EngineController.Limit(dirFacing, 0f)
+//        }
+//
+//        val vObstacle = vectorProjectionLength(obstacle.timeAdjustedVelocity, direction)
+//        val aObstacle = 0f//vectorProjectionLength(state.accelerationTracker[obstacle], direction)
+//        val decelShip = ship.collisionDeceleration(dirFacing)
+//
+//        val vMax: Float = when {
+//            // Take obstacle acceleration into account when the obstacle is doing a brake check.
+//            // The acceleration is approximated as total velocity loss. Including actual
+//            // acceleration (shipAcc + aAbs) in calculations leads to erratic behavior.
+//            vObstacle > 0f && aObstacle < 0f -> {
+//                BasicEngineController.vMax(dt, distanceLeft, decelShip)
+//            }
+//
+//            // Obstacle is moving towards the ship. If the obstacle is a friendly,
+//            // non flamed out ship, assume both ship will try to avoid the collision.
+//            vObstacle < 0f && obstacle.owner == ship.owner && !obstacle.engineController.isFlamedOut -> {
+//                val decelObstacle = obstacle.collisionDeceleration(-dirFacing)
+//                val decelDistObstacle = decelerationDist(dt, -vObstacle, decelObstacle)
+//
+//                BasicEngineController.vMax(dt, distanceLeft - decelDistObstacle, decelShip)
+//            }
+//
+//            // Maximum velocity that will not lead to collision with inert obstacle.
+//            else -> {
+//                BasicEngineController.vMax(dt, distanceLeft, decelShip) + vObstacle
+//            }
+//        }
+//
+//        return if (vMax > ship.maxSpeed) null
+//        else EngineController.Limit(dirFacing, vMax)
     }
 
     /** Ship deceleration for collision avoidance purposes. */
