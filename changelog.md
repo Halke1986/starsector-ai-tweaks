@@ -1,3 +1,5 @@
+- Custom AI: Fixed a bug where ships were not attempting to intercept and block the escape route of retreating enemies.
+
 Version 1.12.7
 
 - Fixed a NullPointerException related to empty weapon groups in CustomShipAI and ExtendedShipAI. Reported by multiple users.

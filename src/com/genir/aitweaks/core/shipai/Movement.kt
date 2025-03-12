@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController.Destination
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
@@ -12,6 +13,7 @@ import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -133,6 +135,10 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         val isAttackingStation = targetRoot.isStation && maneuverTarget.isModule && targetRoot != maneuverTarget
         val directApproach = ship.location - maneuverTarget.location
 
+        // Post-processing flags.
+        var approachDirectly = false
+        var preferMapCenter = true
+
         val attackVector: Vector2f = when {
             // When attacking a station, avoid positioning the ship
             // with station bulk obstructing the targeted module.
@@ -142,11 +148,14 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
 
             // Move straight to the target if ship is an assault ship.
             ai.isAssaultShip -> {
+                // Assault ships don't need angle adjustment, as it interferes with the burn drive.
+                approachDirectly = true
                 directApproach
             }
 
             // If the enemy is retreating, attempt to intercept and block its escape route.
             Global.getCombatEngine().getFleetManager(ship.owner xor 1).getTaskManager(false).isInFullRetreat -> {
+                preferMapCenter = false
                 when (ship.owner) {
                     0 -> Vector2f(0f, 1f)
                     else -> Vector2f(0f, -1f)
@@ -176,11 +185,17 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         }
 
         // Calculate attack location in global coordinates.
-        var attackLocation = preferMapCenter(attackVector).resized(ai.attackRange) + maneuverTarget.location
-        attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
+        var attackLocation = if (preferMapCenter) {
+            preferMapCenter(attackVector)
+        } else {
+            attackVector
+        }
 
-        // Assault ships don't need angle adjustment, as it interferes with the burn drive.
-        val approachDirectly = ai.isAssaultShip && !isAttackingStation
+        attackLocation = attackLocation.resized(ai.attackRange) + maneuverTarget.location
+
+//        Debug.drawLine(ship.location, attackLocation.copy, Color.CYAN)
+
+        attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
         return approachTarget(dt, maneuverTarget, attackLocation, approachDirectly)
     }
 

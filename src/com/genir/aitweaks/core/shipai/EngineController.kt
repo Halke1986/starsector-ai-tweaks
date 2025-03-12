@@ -56,11 +56,11 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
             return Vector2f()
         }
 
-//    bounds.forEach { bound ->
-//        val p1 = ship.location + Vector2f(bound.speedLimit, bound.pMin.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
-//        val p2 = ship.location + Vector2f(bound.speedLimit, bound.pMax.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
-//        Debug.drawLine(p1, p2, BLUE)
-//    }
+//        bounds.forEach { bound ->
+//            val p1 = ship.location + Vector2f(bound.speedLimit, bound.pMin.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
+//            val p2 = ship.location + Vector2f(bound.speedLimit, bound.pMax.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
+//            Debug.drawLine(p1, p2, BLUE)
+//        }
 
         val rotationToShip = toShipFacing.rotationMatrix
         val expectedVelocity = expectedVelocityRaw.rotatedReverse(rotationToShip) / dt
@@ -90,7 +90,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
             val closest = closestLocal.rotatedReverse(bound.r)
             val dist = closest.lengthSquared
 
-            if (dist < closestDist) {
+            if (dist > 0f && dist < closestDist) {
                 closestPoint = closest
                 closestDist = dist
             }
@@ -101,12 +101,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
             return null
         }
 
-        val dv = if (closestDist <= 0f) {
-            ship.velocity
-        } else {
-            ship.velocity - closestPoint!!
-        }
-
+        val dv = ship.velocity - closestPoint!!
         return ship.velocity - dv.resized(ship.maxSpeed)
     }
 
