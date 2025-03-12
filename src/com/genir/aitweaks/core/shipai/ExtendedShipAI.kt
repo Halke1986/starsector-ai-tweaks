@@ -18,7 +18,7 @@ import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */
 class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.BasicShipAI(ship as Obfuscated.Ship, config) {
-    private val engineController: EngineController = EngineController(ship)
+    private val engineController: BasicEngineController = BasicEngineController(ship)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     // Attack details.
@@ -100,6 +100,6 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
 
         // Control the ship rotation.
         expectedFacing = weaponGroup.attackFacing(target)
-        engineController.facing(dt, expectedFacing!!)
+        engineController.facing(dt, expectedFacing!!, false)
     }
 }

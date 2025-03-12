@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
@@ -16,8 +15,6 @@ import kotlin.math.min
 
 /** Engine Controller for AI piloted ships. */
 class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
-    private var prevFacing: Direction = 0f.direction
-
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
     data class Limit(val direction: Direction, val speedLimit: Float)
@@ -28,22 +25,6 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
     fun heading(dt: Float, destination: Destination, limits: List<Limit> = listOf()): Vector2f {
         return heading(dt, destination.location, destination.velocity) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
-    }
-
-    fun facing(dt: Float, facing: Direction) {
-        facing(dt, facing, false)
-    }
-
-    fun facing(dt: Float, facing: Direction, shouldStop: Boolean) {
-        if (shouldStop) {
-            return facing(dt, ship.facing.direction, 0f)
-        }
-
-        // Estimate target angular velocity.
-        val wt = (facing - prevFacing).degrees / dt
-        prevFacing = facing
-
-        facing(dt, facing, wt)
     }
 
     private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<Limit>): Vector2f {

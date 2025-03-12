@@ -25,6 +25,8 @@ import kotlin.random.Random
  * opposed to every frame combat plugin.
  */
 open class BasicEngineController(val ship: ShipAPI) {
+    private var prevFacing: Direction = 0f.direction
+
     /**
      * Set ship heading towards selected location. Appropriate target
      * leading is calculated based on provided target velocity. If the ship
@@ -132,6 +134,19 @@ open class BasicEngineController(val ship: ShipAPI) {
             el < ed -> ship.command(TURN_LEFT)
             else -> Unit // Let the ship decelerate.
         }
+    }
+
+    /** Set ship facing using estimated target angular velocity. */
+    fun facing(dt: Float, facing: Direction, shouldStop: Boolean) {
+        if (shouldStop) {
+            return facing(dt, ship.facing.direction, 0f)
+        }
+
+        // Estimate target angular velocity.
+        val wt = (facing - prevFacing).degrees / dt
+        prevFacing = facing
+
+        facing(dt, facing, wt)
     }
 
     companion object {

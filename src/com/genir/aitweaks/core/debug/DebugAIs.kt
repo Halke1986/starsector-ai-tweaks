@@ -22,7 +22,7 @@ var expectedFacing = 90f.direction
 const val df = -1f * 60f
 
 class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : BaseEngineControllerAI() {
-    private val controller = EngineController(ship)
+    private val controller = BasicEngineController(ship)
 
     override fun advance(dt: Float) {
         val toTarget = target.location - ship.location
@@ -31,7 +31,7 @@ class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : Base
 
 
         controller.heading(dt, toTarget.resized(-r) + target.location, v + target.velocity)
-        controller.facing(dt, toTarget.facing)
+        controller.facing(dt, toTarget.facing, false)
     }
 }
 

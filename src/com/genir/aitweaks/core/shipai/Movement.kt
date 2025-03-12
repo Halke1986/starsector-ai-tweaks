@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController.Destination
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
@@ -13,7 +12,6 @@ import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
