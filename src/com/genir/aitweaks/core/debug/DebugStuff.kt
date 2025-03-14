@@ -1,6 +1,8 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
+import com.genir.aitweaks.core.utils.log
+import java.awt.Color
 
 /**
  *
@@ -23,8 +25,9 @@ internal fun debug(dt: Float) {
     val ship = Global.getCombatEngine().playerShip ?: return
     val ships = Global.getCombatEngine().ships
 
-//    log("***********************************************")
+    log("***********************************************")
 
     ships.forEach {
+        Debug.drawCollisionRadius(it, Color.CYAN)
     }
 }

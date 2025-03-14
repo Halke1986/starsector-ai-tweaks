@@ -21,6 +21,7 @@ import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
+import java.awt.Color.RED
 import kotlin.math.max
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -105,6 +106,12 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         if (ship.owner != 0) {
             return
         }
+
+        if (ventModule.isBackingOff) {
+            Debug.drawCollisionRadius(ship, RED)
+        }
+
+//        Debug.print[ship] = movement.priority
 
 //        Debug.drawTurnLines(ship)
 //        Debug.drawCircle(movement.headingPoint, ship.collisionRadius)

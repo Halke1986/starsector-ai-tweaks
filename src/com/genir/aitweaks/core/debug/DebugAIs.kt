@@ -8,7 +8,6 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.BasicEngineController
-import com.genir.aitweaks.core.shipai.EngineController
 import com.genir.aitweaks.core.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix
@@ -36,7 +35,7 @@ class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : Base
 }
 
 class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = EngineController(ship)
+    private val controller = BasicEngineController(ship)
 
     override fun advance(dt: Float) {
         expectedFacing += df * dt

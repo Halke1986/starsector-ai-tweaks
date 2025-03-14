@@ -1,6 +1,6 @@
 package com.genir.aitweaks.core.shipai
 
-import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.RotationMatrix
@@ -10,14 +10,15 @@ import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedY
 import com.genir.aitweaks.core.utils.sqrt
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color.BLUE
 import kotlin.math.max
 import kotlin.math.min
 
 /** Engine Controller for AI piloted ships. */
-class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
+class EngineController(val ai: CustomShipAI) : BasicEngineController(ai.ship) {
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
-    data class Limit(val direction: Direction, val speedLimit: Float)
+    data class Limit(val direction: Direction, val speedLimit: Float, val priority: Float = 0f)
 
     data class Destination(val location: Vector2f, val velocity: Vector2f)
 
@@ -28,30 +29,58 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     }
 
     private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<Limit>): Vector2f {
-        if (limits.isEmpty()) {
+        val relevantLimits = limits.filter { limit ->
+            limit.priority >= ai.movement.priority
+        }
+
+        if (relevantLimits.isEmpty()) {
             return expectedVelocityRaw
         }
 
-        val bounds: List<Bound> = buildBounds(limits)
-        if (bounds.isEmpty()) {
-            return Vector2f()
-        }
-
-//        bounds.forEach { bound ->
-//            val p1 = ship.location + Vector2f(bound.speedLimit, bound.pMin.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
-//            val p2 = ship.location + Vector2f(bound.speedLimit, bound.pMax.coerceIn(-200f, 200f)).rotatedReverse(bound.r)
-//            Debug.drawLine(p1, p2, BLUE)
-//        }
+        val bounds: List<Bound> = buildBounds(relevantLimits)
+        debug(bounds)
 
         val rotationToShip = toShipFacing.rotationMatrix
         val expectedVelocity = expectedVelocityRaw.rotatedReverse(rotationToShip) / dt
-
         val overspeed = handleOngoingOverspeed(bounds) ?: handlePotentialOverspeed(bounds, expectedVelocity)
         if (overspeed != null) {
             return overspeed.rotated(rotationToShip) * dt
         }
 
         return expectedVelocityRaw
+    }
+
+    private fun debug(bounds: List<Bound>) {
+        bounds.forEach { bound ->
+            val pMin: Float
+            val pMax: Float
+
+            when {
+                bound.pMin == -1e4f && bound.pMax == 1e4f -> {
+                    pMin = bound.pMin.coerceIn(-200f, 200f)
+                    pMax = bound.pMax.coerceIn(-200f, 200f)
+                }
+
+                bound.pMin == -1e4f -> {
+                    pMin = bound.pMin.coerceAtLeast(min(-200f, bound.pMax))
+                    pMax = bound.pMax
+                }
+
+                bound.pMax == 1e4f -> {
+                    pMin = bound.pMin
+                    pMax = bound.pMax.coerceAtMost(max(200f, bound.pMin))
+                }
+
+                else -> {
+                    pMin = bound.pMin
+                    pMax = bound.pMax
+                }
+            }
+
+            val p1 = ship.location + Vector2f(bound.speedLimit, pMin).rotatedReverse(bound.r)
+            val p2 = ship.location + Vector2f(bound.speedLimit, pMax).rotatedReverse(bound.r)
+            Debug.drawLine(p1, p2, BLUE)
+        }
     }
 
     private fun handleOngoingOverspeed(bounds: List<Bound>): Vector2f? {
@@ -88,7 +117,21 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
     private fun handlePotentialOverspeed(bounds: List<Bound>, expectedVelocity: Vector2f): Vector2f? {
         val vMax2 = expectedVelocity.lengthSquared
-        val points: MutableList<Vector2f> = mutableListOf()
+
+        val expectedFacing = expectedVelocity.facing
+        val evaluatePoint = fun(p: Vector2f, speedLimit: Float): Float {
+            val angle = (p.facing - expectedFacing).length
+            val angleWeight = (180f - angle) / 180f
+
+            if (angle > 89f && speedLimit >= 0) {
+                return 0f
+            }
+
+            return p.lengthSquared * angleWeight * angleWeight
+        }
+
+        var bestPoint: Vector2f? = null
+        var bestPointEval = 0f
 
         bounds.forEach { bound ->
             // Velocity does not exceed the bound.
@@ -104,28 +147,22 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
                 0f
             }
 
-            points.add(Vector2f(bound.speedLimit, bound.pMin.coerceIn(-boundSpan, boundSpan)).rotatedReverse(bound.r))
-            points.add(Vector2f(bound.speedLimit, bound.pMax.coerceIn(-boundSpan, boundSpan)).rotatedReverse(bound.r))
-        }
-
-        // No relevant speed limits.
-        if (points.isEmpty()) {
-            return null
-        }
-
-        val expectedFacing = expectedVelocity.facing
-        val best: Vector2f? = points.maxWithOrNull(compareBy {
-            val angle = (it.facing - expectedFacing).length
-            val angleWeight = (180f - angle) / 180f
-
-            if (angle > 89f) {
-                return@compareBy 0f
+            val p1 = Vector2f(bound.speedLimit, bound.pMin.coerceIn(-boundSpan, boundSpan)).rotatedReverse(bound.r)
+            val p1Eval = evaluatePoint(p1, bound.speedLimit)
+            if (p1Eval > bestPointEval) {
+                bestPoint = p1
+                bestPointEval = p1Eval
             }
 
-            it.lengthSquared * angleWeight * angleWeight
-        })
+            val p2 = Vector2f(bound.speedLimit, bound.pMax.coerceIn(-boundSpan, boundSpan)).rotatedReverse(bound.r)
+            val p2Eval = evaluatePoint(p2, bound.speedLimit)
+            if (p2Eval > bestPointEval) {
+                bestPoint = p2
+                bestPointEval = p2Eval
+            }
+        }
 
-        return best ?: Vector2f()
+        return bestPoint ?: expectedVelocity
     }
 
     private fun buildBounds(limits: List<Limit>): List<Bound> {
@@ -147,12 +184,13 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         var relaxedBounds = listOf<Bound>()
 
         for (i in 0..7) {
-            relaxedBounds = intersectBounds(rawBounds, tolerance)
+            val newRelaxedBounds = intersectBounds(rawBounds, tolerance)
 
             step /= 2
-            tolerance += if (relaxedBounds.isEmpty()) {
+            tolerance += if (newRelaxedBounds.isEmpty()) {
                 step
             } else {
+                relaxedBounds = newRelaxedBounds
                 -step
             }
         }
@@ -172,15 +210,26 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
 
             // Intersect bounds.
             rawBounds.forEach inner@{ other ->
+                if (other === bound) {
+                    return@inner
+                }
+
+                val otherSpeedLimit = other.speedLimit + tolerance
                 val vx = v.rotatedX(other.r)
 
                 // Limits are perpendicular.
                 if (vx == 0f) {
+
+                    // Bound is entirely behind other bounds.
+                    if (otherSpeedLimit < speedLimit) {
+                        pMin = Float.MAX_VALUE
+                        pMax = -Float.MAX_VALUE
+                    }
                     return@inner
                 }
 
                 val px = p.rotatedX(other.r)
-                val distance = (other.speedLimit + tolerance - px) / vx
+                val distance = (otherSpeedLimit - px) / vx
 
                 if (vx > 0f) {
                     pMax = min(pMax, distance)
