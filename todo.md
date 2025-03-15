@@ -41,4 +41,6 @@ check Lidar on faster ships - destroyer : ass pinetree, frigate DEX Catapult
 
 - why manticore targets fighters
 
+- weapons on invictus not shooting sometimes, when one is disabled?
+
 ----------------------------------------------------------------

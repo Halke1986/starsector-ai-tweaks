@@ -1,7 +1,9 @@
 package com.genir.aitweaks.core.shipai
 
+import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.Movement.Companion.movementPriority
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
@@ -15,7 +17,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 /** Engine Controller for AI piloted ships. */
-class EngineController(val ai: CustomShipAI) : BasicEngineController(ai.ship) {
+class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
     data class Limit(val direction: Direction, val speedLimit: Float, val priority: Float = 0f)
@@ -29,8 +31,9 @@ class EngineController(val ai: CustomShipAI) : BasicEngineController(ai.ship) {
     }
 
     private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<Limit>): Vector2f {
+        // Ignore speed limits with priority lower than ships' own priority.
         val relevantLimits = limits.filter { limit ->
-            limit.priority >= ai.movement.priority
+            limit.priority >= ship.movementPriority
         }
 
         if (relevantLimits.isEmpty()) {
@@ -38,7 +41,12 @@ class EngineController(val ai: CustomShipAI) : BasicEngineController(ai.ship) {
         }
 
         val bounds: List<Bound> = buildBounds(relevantLimits)
-        debug(bounds)
+        if (bounds.isEmpty()) {
+            // In case of strongly contradicting speed limits, stop the ship.
+            return Vector2f()
+        }
+
+        // debugDrawBounds(bounds)
 
         val rotationToShip = toShipFacing.rotationMatrix
         val expectedVelocity = expectedVelocityRaw.rotatedReverse(rotationToShip) / dt
@@ -50,7 +58,7 @@ class EngineController(val ai: CustomShipAI) : BasicEngineController(ai.ship) {
         return expectedVelocityRaw
     }
 
-    private fun debug(bounds: List<Bound>) {
+    private fun debugDrawBounds(bounds: List<Bound>) {
         bounds.forEach { bound ->
             val pMin: Float
             val pMax: Float
@@ -117,13 +125,16 @@ class EngineController(val ai: CustomShipAI) : BasicEngineController(ai.ship) {
 
     private fun handlePotentialOverspeed(bounds: List<Bound>, expectedVelocity: Vector2f): Vector2f? {
         val vMax2 = expectedVelocity.lengthSquared
-
         val expectedFacing = expectedVelocity.facing
+
         val evaluatePoint = fun(p: Vector2f, speedLimit: Float): Float {
             val angle = (p.facing - expectedFacing).length
             val angleWeight = (180f - angle) / 180f
 
-            if (angle > 89f && speedLimit >= 0) {
+            // Do not reverse when trying to slow down to meet a maximum speed limit,
+            // as this causes erratic behavior. However, reversing is acceptable when
+            // trying to reach a required minimum speed.
+            if (angle > 90f && speedLimit >= 0) {
                 return 0f
             }
 
@@ -166,9 +177,19 @@ class EngineController(val ai: CustomShipAI) : BasicEngineController(ai.ship) {
     }
 
     private fun buildBounds(limits: List<Limit>): List<Bound> {
+        val shipPriority = ship.movementPriority
         val rawBounds: List<Bound> = limits.map { limit ->
+
+            // For speed limits of equal priority, decelerate to a stop rather than reversing.
+            // Otherwise, ships will try to make way for each other and be unable to stop.
+            val speedLimit = if (limit.priority == shipPriority) {
+                limit.speedLimit.coerceAtLeast(0f)
+            } else {
+                limit.speedLimit
+            }
+
             val r = (-limit.direction).rotationMatrix
-            Bound(r, limit.speedLimit, 0f, 0f)
+            Bound(r, speedLimit, 0f, 0f)
         }
 
         val strictBounds = intersectBounds(rawBounds, 0f)
@@ -176,6 +197,8 @@ class EngineController(val ai: CustomShipAI) : BasicEngineController(ai.ship) {
             return strictBounds
         }
 
+        // If conflicting speed limits are detected, use a binary search
+        // algorithm to determine bounds that minimally violates them.
         val minLimit = limits.minOf { it.speedLimit }
         val span = 600f - minLimit
 
@@ -219,12 +242,12 @@ class EngineController(val ai: CustomShipAI) : BasicEngineController(ai.ship) {
 
                 // Limits are perpendicular.
                 if (vx == 0f) {
-
                     // Bound is entirely behind other bounds.
                     if (otherSpeedLimit < speedLimit) {
                         pMin = Float.MAX_VALUE
                         pMax = -Float.MAX_VALUE
                     }
+
                     return@inner
                 }
 

@@ -20,14 +20,13 @@ import kotlin.math.sign
 @Suppress("MemberVisibilityCanBePrivate")
 class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable {
     private val ship: ShipAPI = ai.ship
-    private val engineController: EngineController = EngineController(ai)
+    private val engineController: EngineController = EngineController(ship)
 
     var headingPoint: Vector2f = Vector2f()
     var expectedVelocity: Vector2f = Vector2f()
     var expectedFacing: Direction = ship.facing.direction
-    var priority: Float = 0f
 
-    // Used for communication with attack coordinator.
+    // Fields used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
     override var reviewedHeadingPoint: Vector2f? = null
 
@@ -37,14 +36,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 90f else -90f)
 
     fun advance(dt: Float) {
-        priority = when {
-            ship == Global.getCombatEngine().playerShip -> 1f  // TODO remove
-
-            ai.ventModule.isBackingOff -> 1f
-
-            else -> 0f
-        }
-
         setFacing(dt)
         setHeading(dt, ai.maneuverTarget)
     }
@@ -354,36 +345,18 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
 
         // Calculate speed limits.
         val lineOfFireLimits = avoidBlockingLineOfFire(dt, allies)
-        val hulkLimits = avoidHulkCollisions(dt, hulks)
-        val allyLimits = manageFleetCollisions(dt, allies)
+        val collisionLimits = avoidCollisions(dt, allies + hulks)
         val borderLimit = avoidBorder()
 
-        val limits: List<EngineController.Limit?> = mutableListOf(borderLimit) + lineOfFireLimits + allyLimits + hulkLimits
+        val limits: List<EngineController.Limit?> = mutableListOf(borderLimit) + lineOfFireLimits + collisionLimits
         return limits.filterNotNull()
     }
 
-    private fun avoidHulkCollisions(dt: Float, obstacles: List<ShipAPI>): List<EngineController.Limit?> {
+    private fun avoidCollisions(dt: Float, obstacles: List<ShipAPI>): List<EngineController.Limit?> {
         return obstacles.map { obstacle ->
             val minDistance = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius + Preset.collisionBuffer
-            vMaxToObstacle(dt, obstacle, 2f, minDistance, false)
+            vMaxToObstacle(dt, obstacle, minDistance)
         }
-    }
-
-    private fun manageFleetCollisions(dt: Float, allies: List<ShipAPI>): List<EngineController.Limit?> {
-        val limits = mutableListOf<EngineController.Limit?>()
-
-        allies.forEach { ally ->
-            val minDistance = ai.stats.totalCollisionRadius + ally.totalCollisionRadius + Preset.collisionBuffer
-
-            val allyMovement = ally.customShipAI?.movement
-            val allyPriority = allyMovement?.priority ?: 0f
-
-            // Avoid colliding with an ally.
-            val makeWay = priority < allyPriority
-            limits.add(vMaxToObstacle(dt, ally, allyPriority, minDistance, makeWay))
-        }
-
-        return limits
     }
 
     /** Position the ship to avoid blocking allied ships' lines of fire
@@ -527,7 +500,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     }
 
     /** Calculate maximum velocity that will not lead to collision with an obstacle. */
-    fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, obstaclePriority: Float, minDistance: Float, makeWay: Boolean): EngineController.Limit {
+    fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, minDistance: Float): EngineController.Limit {
         val toObstacle = obstacle.location - ship.location
         val toObstacleFacing = toObstacle.facing
         val r = (-toObstacleFacing).rotationMatrix
@@ -538,16 +511,18 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         val decelShip = ship.collisionDeceleration(toObstacleFacing)
         val vMax = BasicEngineController.vMax(dt, abs(distanceLeft), decelShip) * distanceLeft.sign
         val vObstacle = obstacle.velocity.rotatedX(r)
+        val speedLimit = vMax + vObstacle
 
-        // Consider moving backwards if the obstacle has higher movement
-        // priority or ship and obstacle are already colliding.
-        val speedLimit = if (makeWay || distanceLeft < 0) {
-            vMax + vObstacle
-        } else {
-            (vMax + vObstacle).coerceAtLeast(0f)
+        val priority = when {
+            // In case of serious collision, do not allow to ignore the speed limit.
+            distanceLeft < -30f -> Float.MAX_VALUE
+
+            distanceLeft < 0f -> obstacle.movementPriority + 0.5f
+
+            else -> obstacle.movementPriority
         }
 
-        return EngineController.Limit(toObstacleFacing, speedLimit, obstaclePriority)
+        return EngineController.Limit(toObstacleFacing, speedLimit, priority)
     }
 
     /** Ship deceleration for collision avoidance purposes. */
@@ -558,5 +533,22 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
             angleFromBow < 150f -> strafeAcceleration
             else -> acceleration
         }
+    }
+
+    companion object {
+        val ShipAPI.movementPriority: Float
+            get() {
+                return when {
+                    this == Global.getCombatEngine().playerShip -> 2f
+
+                    root.isStation -> 2f
+
+                    isHulk -> 2f
+
+                    customShipAI?.ventModule?.isBackingOff == true -> 1f
+
+                    else -> 0f
+                }
+            }
     }
 }
