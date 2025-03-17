@@ -30,32 +30,45 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         return heading(dt, destination.location, destination.velocity) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
     }
 
-    private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<Limit>): Vector2f {
-        // Ignore speed limits with priority lower than ships' own priority.
+    private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<Limit>): Pair<Vector2f, Boolean> {
+        val rotationToShip = toShipFacing.rotationMatrix
+        val expectedVelocity = expectedVelocityRaw.rotatedReverse(rotationToShip) / dt
+        val vLim = max(ship.velocity.length, expectedVelocity.length)
+
         val relevantLimits = limits.filter { limit ->
-            limit.priority >= ship.movementPriority
+            when {
+                // Ignore speed limits with priority lower than ships' own priority.
+                limit.priority < ship.movementPriority -> false
+
+                limit.speedLimit > vLim -> false
+
+                else -> true
+            }
         }
 
         if (relevantLimits.isEmpty()) {
-            return expectedVelocityRaw
+            return Pair(expectedVelocityRaw, false)
         }
 
         val bounds: List<Bound> = buildBounds(relevantLimits)
         if (bounds.isEmpty()) {
             // In case of strongly contradicting speed limits, stop the ship.
-            return Vector2f()
+            return Pair(Vector2f(), false)
         }
 
-        // debugDrawBounds(bounds)
+//        debugDrawBounds(bounds)
 
-        val rotationToShip = toShipFacing.rotationMatrix
-        val expectedVelocity = expectedVelocityRaw.rotatedReverse(rotationToShip) / dt
-        val overspeed = handleOngoingOverspeed(bounds) ?: handlePotentialOverspeed(bounds, expectedVelocity)
+        val overspeed = handleOngoingOverspeed(bounds)
         if (overspeed != null) {
-            return overspeed.rotated(rotationToShip) * dt
+            return Pair(overspeed.rotated(rotationToShip) * dt, true)
         }
 
-        return expectedVelocityRaw
+        val avoidOverspeed = handlePotentialOverspeed(bounds, expectedVelocity)
+        if (avoidOverspeed != null) {
+            return Pair(avoidOverspeed.rotated(rotationToShip) * dt, false)
+        }
+
+        return Pair(expectedVelocityRaw, false)
     }
 
     private fun debugDrawBounds(bounds: List<Bound>) {

@@ -34,7 +34,7 @@ open class BasicEngineController(val ship: ShipAPI) {
      * `limitVelocity` lambda is used to restrict the velocity, e.g. for
      * collision avoidance purposes. Returns the calculated expected velocity.
      */
-    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> Vector2f)? = null): Vector2f {
+    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> Pair<Vector2f, Boolean>)? = null): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val af = ship.acceleration * dt * dt
@@ -63,7 +63,7 @@ open class BasicEngineController(val ship: ShipAPI) {
 
         // Expected velocity change.
         val ve = (vtt + vt).clampLength(vMax)
-        val vec = limitVelocity?.invoke(toShipFacing, ve) ?: ve
+        val (vec, overspeed) = limitVelocity?.invoke(toShipFacing, ve) ?: Pair(ve, false)
         val dv = vec - v
 
         // Stop if expected velocity is less than half of velocity
@@ -85,8 +85,8 @@ open class BasicEngineController(val ship: ShipAPI) {
         val fr = +dv.x / al
         val fMax = max(max(ff, fb), max(fl, fr))
 
-        val overspeedX = vmx.sign == v.x.sign && abs(vmx) < abs(v.x)
-        val overspeedY = vmy.sign == v.y.sign && abs(vmy) < abs(v.y)
+        val overspeedX = overspeed || (vmx.sign == v.x.sign && abs(vmx) < abs(v.x))
+        val overspeedY = overspeed || (vmy.sign == v.y.sign && abs(vmy) < abs(v.y))
 
         // Give commands to achieve the calculated thrust.
         if (shouldAccelerate(overspeedY, ff, fMax)) ship.command(ACCELERATE)
