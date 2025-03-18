@@ -28,10 +28,9 @@ internal fun debug(dt: Float) {
 //    log("***********************************************")
 
     ships.forEach {
-//        Debug.drawCollisionRadius(it, Color.CYAN)
+        Debug.drawCollisionRadius(it, Color.CYAN)
 //        Debug.drawAccelerationLines(it)
-
     }
 
-//    removeAsteroids()
+    removeAsteroids()
 }

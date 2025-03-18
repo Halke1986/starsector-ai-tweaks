@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
@@ -10,6 +11,7 @@ import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.sqrt
 import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -34,7 +36,7 @@ open class BasicEngineController(val ship: ShipAPI) {
      * `limitVelocity` lambda is used to restrict the velocity, e.g. for
      * collision avoidance purposes. Returns the calculated expected velocity.
      */
-    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> Pair<Vector2f, Boolean>)? = null): Vector2f {
+    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> Vector2f?)? = null): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val af = ship.acceleration * dt * dt
@@ -63,18 +65,24 @@ open class BasicEngineController(val ship: ShipAPI) {
 
         // Expected velocity change.
         val ve = (vtt + vt).clampLength(vMax)
-        val (vec, overspeed) = limitVelocity?.invoke(toShipFacing, ve) ?: Pair(ve, false)
-        val dv = vec - v
+        val dv = ve - v
 
-        // Stop if expected velocity is less than half of velocity
-        // change unit. Stop is applied regardless of distance to
-        // target in case the low velocity is the result of a
-        // collision avoidance speed limit.
-        if (vec.length < af / 2f) {
+        // Stop if arrived at location, that is when expected velocity change
+        // and location change is less than half of velocity change unit.
+        if (ve.length < af / 2 && d.length < af / 2) {
             if (ship.velocity.isNonZero) {
                 ship.command(DECELERATE)
             }
             return Vector2f()
+        }
+
+        // Allow velocity limiting logic to handle the ship movement, if required.
+        limitVelocity?.invoke(toShipFacing, ve)?.let { vExpectedLimited ->
+            Debug.drawLine(ship.location, ship.location + ve.rotatedReverse(r) / dt, Color.MAGENTA)
+            Debug.drawLine(ship.location, ship.location + v.rotatedReverse(r) / dt, Color.GREEN)
+            Debug.drawLine(ship.location, ship.location + vExpectedLimited, Color.ORANGE)
+
+            return vExpectedLimited
         }
 
         // Proportional thrust required to achieve
@@ -85,8 +93,8 @@ open class BasicEngineController(val ship: ShipAPI) {
         val fr = +dv.x / al
         val fMax = max(max(ff, fb), max(fl, fr))
 
-        val overspeedX = overspeed || (vmx.sign == v.x.sign && abs(vmx) < abs(v.x))
-        val overspeedY = overspeed || (vmy.sign == v.y.sign && abs(vmy) < abs(v.y))
+        val overspeedX = vmx.sign == v.x.sign && abs(vmx) < abs(v.x)
+        val overspeedY = vmy.sign == v.y.sign && abs(vmy) < abs(v.y)
 
         // Give commands to achieve the calculated thrust.
         if (shouldAccelerate(overspeedY, ff, fMax)) ship.command(ACCELERATE)
@@ -94,7 +102,7 @@ open class BasicEngineController(val ship: ShipAPI) {
         if (shouldAccelerate(overspeedX, fl, fMax)) ship.command(STRAFE_LEFT)
         if (shouldAccelerate(overspeedX, fr, fMax)) ship.command(STRAFE_RIGHT)
 
-        return vec.rotatedReverse(r) / dt
+        return ve.rotatedReverse(r) / dt
     }
 
     /**

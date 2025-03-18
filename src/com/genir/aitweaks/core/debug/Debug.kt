@@ -43,6 +43,10 @@ object Debug {
         debugPlugin?.renderer?.lines?.add(Renderer.Line(a, b, color))
     }
 
+    fun drawVector(p: Vector2f, v: Vector2f, color: Color = Color.YELLOW) {
+        debugPlugin?.renderer?.lines?.add(Renderer.Line(p, p + v, color))
+    }
+
     fun drawEngineLines(ship: ShipAPI) {
         drawAccelerationLines(ship)
         drawTurnLines(ship)
