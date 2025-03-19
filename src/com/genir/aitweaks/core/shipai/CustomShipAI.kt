@@ -107,9 +107,11 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             return
         }
 
-        if (ventModule.isBackingOff) {
-            Debug.drawCollisionRadius(ship, RED)
-        }
+//        if (ventModule.isBackingOff) {
+//            Debug.drawCollisionRadius(ship, RED)
+//        } else {
+//            Debug.drawCollisionRadius(ship, Color.CYAN)
+//        }
 
 //        Debug.print[ship] = movement.priority
 
@@ -122,7 +124,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 //        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
 //        Debug.drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 
-//        Debug.drawLine(ship.location, ship.location + (maneuverTarget?.velocity ?: ship.location), Color.GREEN)
 //        Debug.drawLine(ship.location, movement.headingPoint, Color.MAGENTA)
 
 //        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, Color.GREEN)

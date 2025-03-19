@@ -98,15 +98,18 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
 
     private fun coordinateFormation(formation: Formation) {
         val target: ShipAPI = formation.units.first().target
-        var facing = formation.facing - formation.angularSize / 2f
+        var facingOffset: Float = -formation.angularSize / 2f
 
         formation.units.sortBy { (it.currentFacing - formation.facing).degrees }
 
         formation.units.forEach { entity ->
-            val angle = facing + entity.angularSize / 2f
+            // Cap the angle offset, so that very large formations don't wrap
+            // around the target, resulting in crossing heading vectors.
+            val cappedOffset = (facingOffset + entity.angularSize / 2f).coerceIn(-130f, 130f)
+            val angle = formation.facing + cappedOffset
             val pos = target.location + angle.unitVector.resized(entity.attackRange)
 
-            facing += entity.angularSize
+            facingOffset += entity.angularSize
             entity.coordinable.reviewedHeadingPoint = pos
         }
     }
@@ -136,7 +139,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
     private class Unit(val target: ShipAPI, proposedHeadingPoint: Vector2f, val coordinable: Coordinatable) {
         val ship: ShipAPI = coordinable.ai.ship
         val attackRange: Float = (proposedHeadingPoint - target.location).length
-        val angularSize: Float = angularSize(attackRange * attackRange, ship.totalCollisionRadius * 1.4f)
+        val angularSize: Float = angularSize(attackRange * attackRange, ship.totalCollisionRadius * 1.6f)
         val proposedFacing: Direction = (proposedHeadingPoint - target.location).facing
         val currentFacing: Direction = (ship.location - target.location).facing
     }

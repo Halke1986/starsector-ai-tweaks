@@ -40,6 +40,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
                 // Ignore speed limits with priority lower than ships' own priority.
                 limit.priority < ship.movementPriority -> false
 
+                // The speed limit has too high value to affect the ship movement.
                 limit.speedLimit > vLim -> false
 
                 else -> true

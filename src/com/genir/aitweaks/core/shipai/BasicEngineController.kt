@@ -76,11 +76,12 @@ open class BasicEngineController(val ship: ShipAPI) {
             return Vector2f()
         }
 
+//        Debug.drawVector(ship.location, ve.rotatedReverse(r) * 5f / dt, Color.MAGENTA)
+//        Debug.drawVector(ship.location, v.rotatedReverse(r) * 5f / dt, Color.GREEN)
+
         // Allow velocity limiting logic to handle the ship movement, if required.
         limitVelocity?.invoke(toShipFacing, ve)?.let { vExpectedLimited ->
-            Debug.drawLine(ship.location, ship.location + ve.rotatedReverse(r) / dt, Color.MAGENTA)
-            Debug.drawLine(ship.location, ship.location + v.rotatedReverse(r) / dt, Color.GREEN)
-            Debug.drawLine(ship.location, ship.location + vExpectedLimited, Color.ORANGE)
+//            Debug.drawVector(ship.location, vExpectedLimited * 5f, Color.ORANGE)
 
             return vExpectedLimited
         }
