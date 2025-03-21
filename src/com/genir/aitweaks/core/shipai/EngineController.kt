@@ -4,7 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.Movement.Companion.movementPriority
+import com.genir.aitweaks.core.shipai.CollisionAvoidance.Companion.movementPriority
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
