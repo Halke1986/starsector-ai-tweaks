@@ -28,8 +28,8 @@ internal fun debug(dt: Float) {
 
     ships.filter { it.owner == 0 }.forEach {
 //        Debug.drawCollisionRadius(it, Color.CYAN)
-        //Debug.drawAccelerationLines(it)
+//        Debug.drawAccelerationLines(it)
     }
 
-    //removeAsteroids()
+//    removeAsteroids()
 }

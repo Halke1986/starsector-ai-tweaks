@@ -2,7 +2,6 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
-import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
@@ -11,7 +10,6 @@ import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.sqrt
 import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -67,23 +65,21 @@ open class BasicEngineController(val ship: ShipAPI) {
         val ve = (vtt + vt).clampLength(vMax)
         val dv = ve - v
 
+//        Debug.drawVector(ship.location, ve.rotatedReverse(r) / dt, Color.MAGENTA)
+//        Debug.drawVector(ship.location, v.rotatedReverse(r) / dt, Color.GREEN)
+
+        // Allow velocity limiting logic to handle the ship movement, if required.
+        limitVelocity?.invoke(toShipFacing, ve)?.let { vExpectedLimited ->
+            return vExpectedLimited
+        }
+
         // Stop if arrived at location, that is when expected velocity change
         // and location change is less than half of velocity change unit.
-        if (ve.length < af / 2 && d.length < af / 2) {
+        if (ve.length < af / 2) {
             if (ship.velocity.isNonZero) {
                 ship.command(DECELERATE)
             }
             return Vector2f()
-        }
-
-//        Debug.drawVector(ship.location, ve.rotatedReverse(r) * 5f / dt, Color.MAGENTA)
-//        Debug.drawVector(ship.location, v.rotatedReverse(r) * 5f / dt, Color.GREEN)
-
-        // Allow velocity limiting logic to handle the ship movement, if required.
-        limitVelocity?.invoke(toShipFacing, ve)?.let { vExpectedLimited ->
-//            Debug.drawVector(ship.location, vExpectedLimited * 5f, Color.ORANGE)
-
-            return vExpectedLimited
         }
 
         // Proportional thrust required to achieve

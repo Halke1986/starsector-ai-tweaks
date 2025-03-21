@@ -15,16 +15,28 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sign
 
 /** Engine Controller for AI piloted ships. */
 class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
-    /** Limit allows to restrict velocity to not exceed
-     * max speed in a direction along a given heading. */
-    data class Limit(val direction: Direction, val speedLimit: Float, val priority: Float = 0f)
-
     data class Destination(val location: Vector2f, val velocity: Vector2f)
 
-    private data class Bound(val r: RotationMatrix, val speedLimit: Float, val pMin: Float, val pMax: Float)
+    /** Limit allows to restrict velocity to not exceed
+     * max speed in a direction along a given heading. */
+    data class Limit(
+        val direction: Direction,
+        val speedLimit: Float,
+        val obstacle: ShipAPI?,
+        val priority: Float = 0f,
+    )
+
+    private data class Bound(
+        val r: RotationMatrix,
+        val speedLimit: Float,
+        val obstacle: ShipAPI?,
+        val pMin: Float,
+        val pMax: Float,
+    )
 
     fun heading(dt: Float, destination: Destination, limits: List<Limit> = listOf()): Vector2f {
         return heading(dt, destination.location, destination.velocity) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
@@ -61,9 +73,9 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
             return Vector2f()
         }
 
-        debugDrawBounds(bounds)
+//        debugDrawBounds(bounds)
 
-        val deltaV: Vector2f? = findSafeVelocityDV(bounds)
+        val deltaV: Vector2f? = findSafeVelocityDV(bounds, expectedVelocity)
         if (deltaV != null) {
             // Use the two ship thrust vectors that form the quadrant containing
             // the velocity delta (DV) vector, rather than applying proportional
@@ -86,23 +98,36 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     /** If the ship's current velocity exceeds any speed limit, calculate
      * a new velocity vector that does not exceed the speed limit and can
      * be reached in the shortest possible time. */
-    private fun findSafeVelocityDV(bounds: List<Bound>): Vector2f? {
-        val v = ship.velocity
+    private fun findSafeVelocityDV(bounds: List<Bound>, expectedVelocity: Vector2f): Vector2f? {
         var lowestDeltaV: Vector2f? = null
 
         // Find the closest point on the boundary relative to the velocity vector.
         // This point will be the new, limited velocity.
         for (bound in bounds) {
             // Velocity does not exceed the bound.
-            val vx = v.rotatedX(bound.r)
+            val vx = ship.velocity.rotatedX(bound.r)
             if (vx <= bound.speedLimit) {
                 continue
             }
 
-            val vy = ship.velocity.rotatedY(bound.r)
+            // If the obstacle is pushing the ship away from its destination,
+            // try to deliberately slide past it.
+            val expectedX = expectedVelocity.rotatedX(bound.r)
+            val slidePastObstacle = bound.obstacle != null && expectedX >= bound.speedLimit
+
+            val vy = if (slidePastObstacle) {
+                val obstacle = bound.obstacle!!
+                val obstacleVelocity = obstacle.customShipAI?.movement?.expectedVelocity ?: obstacle.velocity
+                val obstacleY = obstacleVelocity.rotatedY(bound.r)
+                val slideOffset = (bound.speedLimit - vx) * obstacleY.sign
+                ship.velocity.rotatedY(bound.r) + slideOffset
+            } else {
+                ship.velocity.rotatedY(bound.r)
+            }
+
             val closestPoint = Vector2f(bound.speedLimit, vy.coerceIn(bound.pMin, bound.pMax))
             val limitedVelocity = closestPoint.rotatedReverse(bound.r)
-            val dv = limitedVelocity - v
+            val dv = limitedVelocity - ship.velocity
 
             if (lowestDeltaV == null || dv.lengthSquared < lowestDeltaV.lengthSquared) {
                 lowestDeltaV = dv
@@ -115,7 +140,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     private fun buildBounds(limits: List<Limit>): List<Bound> {
         val rawBounds: List<Bound> = limits.map { limit ->
             val r = (-limit.direction).rotationMatrix
-            Bound(r, limit.speedLimit, 0f, 0f)
+            Bound(r, limit.speedLimit, limit.obstacle, 0f, 0f)
         }
 
         val strictBounds = intersectBounds(rawBounds, 0f)
@@ -192,7 +217,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
                 return@mapNotNull null
             }
 
-            return@mapNotNull Bound(bound.r, speedLimit, pMin, pMax)
+            return@mapNotNull Bound(bound.r, speedLimit, bound.obstacle, pMin, pMax)
         }
     }
 

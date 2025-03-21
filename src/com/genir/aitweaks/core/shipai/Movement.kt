@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.EngineController.Destination
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
@@ -348,8 +349,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
 
         // Calculate speed limits.
         val targetLimit = avoidManeuverTarget(dt)
-        val lineOfFireLimits = listOf<EngineController.Limit>()
-//        val lineOfFireLimits = avoidBlockingLineOfFire(dt, allies)
+        val lineOfFireLimits = listOf<EngineController.Limit>() // avoidBlockingLineOfFire(dt, allies)
         val collisionLimits = avoidCollisions(dt, allies + hulks)
         val borderLimit = avoidBorder()
 
@@ -365,15 +365,25 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
 
     private fun avoidCollisions(dt: Float, obstacles: List<ShipAPI>): List<EngineController.Limit?> {
         return obstacles.map { obstacle ->
-            val factor = if (obstacle.isHulk) {
-                0.8f
-            } else if (ai.ventModule.isBackingOff) {
-                1.0f
-            } else {
-                1.4f
+            val distanceFactor = when {
+                // Hulks have big collision radii. Don't be afraid to get close.
+                obstacle.isHulk -> {
+                    0.75f
+                }
+
+                // Allow backing off ships to squeeze between allies in formation.
+                ai.ventModule.isBackingOff || obstacle.aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
+                    0.9f
+                }
+
+                // Leave some space between ships. This prevents blocking
+                // line of fire and allows for formation flexibility.
+                else -> {
+                    1.4f
+                }
             }
 
-            val minDistance = (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius) * factor
+            val minDistance = (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius) * distanceFactor
 
             vMaxToObstacle(dt, obstacle, minDistance) { distanceLeft ->
                 // In case of serious collision, do not allow to ignore the speed limit.
@@ -468,11 +478,11 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
             // speed limit is used, as all calculated limits are parallel.
             if (angleToObstacle.sign > 0) {
                 if (maxLimitRight == null || maxLimitRight!!.speedLimit > vMax) {
-                    maxLimitRight = EngineController.Limit(shipFacing + 90f, vMax)
+                    maxLimitRight = EngineController.Limit(shipFacing + 90f, vMax, null)
                 }
             } else {
                 if (maxLimitLeft == null || maxLimitLeft!!.speedLimit > vMax) {
-                    maxLimitLeft = EngineController.Limit(shipFacing - 90f, vMax)
+                    maxLimitLeft = EngineController.Limit(shipFacing - 90f, vMax, null)
                 }
             }
         }
@@ -520,7 +530,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         // the heading transformation away from the border.
         val avoidForce = (d / (Preset.borderNoGoZone - Preset.borderHardNoGoZone)).coerceAtMost(1f)
         val highPriority = 100f
-        return EngineController.Limit(borderIntrusion.facing, ship.maxSpeed * (1f - avoidForce), highPriority)
+        return EngineController.Limit(borderIntrusion.facing, ship.maxSpeed * (1f - avoidForce), null, highPriority)
     }
 
     /** Calculate maximum velocity that will not lead to collision with an obstacle. */
@@ -538,7 +548,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         val vObstacle = obstacle.velocity.rotatedX(r)
         val speedLimit = vMax + vObstacle
 
-        return EngineController.Limit(toObstacleFacing, speedLimit, priority)
+        return EngineController.Limit(toObstacleFacing, speedLimit, obstacle, priority)
     }
 
     /** Ship deceleration for collision avoidance purposes. */
