@@ -33,7 +33,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
             }
         }
 
-        val allies = allObstacles.filter { it.owner == ship.owner }
+        val allies = allObstacles.filter { it.owner == ship.owner && !it.root.isFrigate }
         val hulks = allObstacles.filter { it.owner == 100 && it.mass / ship.mass > hulkSizeFactor }
 
         // Calculate speed limits.
@@ -52,15 +52,24 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidCollisions(dt: Float, obstacles: List<ShipAPI>): List<EngineController.Limit?> {
+        val shipPriority = ship.movementPriority
+
         return obstacles.map { obstacle ->
+            val shipHasPriority = shipPriority > obstacle.movementPriority
+
             val distanceFactor = when {
                 // Hulks have big collision radii. Don't be afraid to get close.
                 obstacle.isHulk -> {
-                    0.75f
+                    0.8f
                 }
 
-                // Allow backing off ships to squeeze between allies in formation.
+                // Allow tighter formations for backing off ships.
                 ai.ventModule.isBackingOff || obstacle.aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
+                    0.9f
+                }
+
+                // Allow priority ships to squeeze between allies in formation.
+                shipHasPriority -> {
                     0.9f
                 }
 
@@ -71,16 +80,13 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 }
             }
 
-            val minDistance = (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius) * distanceFactor
+            // Increase apparent deceleration for priority ships. A higher deceleration
+            // reduces the calculated braking distance, causing the ships to brake later,
+            // maintain higher speed, and push through allied formations more aggressively.
+            val decelMult = if (shipHasPriority) 3f else 1f
 
-            vMaxToObstacle(dt, obstacle, minDistance) { distanceLeft ->
-                // In case of serious collision, do not allow to ignore the speed limit.
-                if (distanceLeft < -30f) {
-                    Float.MAX_VALUE
-                } else {
-                    obstacle.movementPriority
-                }
-            }
+            val minDistance = (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius) * distanceFactor
+            vMaxToObstacle(dt, obstacle, minDistance, decelMult)
         }
     }
 
@@ -97,11 +103,16 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val l = ship.location
 
         val borderIntrusion = Vector2f(
-            if (l.x > 0) (l.x - mapW + borderZone).coerceAtLeast(0f)
-            else (l.x + mapW - borderZone).coerceAtMost(0f),
-
-            if (l.y > 0) (l.y - mapH + borderZone).coerceAtLeast(0f)
-            else (l.y + mapH - borderZone).coerceAtMost(0f),
+            if (l.x > 0) {
+                (l.x - mapW + borderZone).coerceAtLeast(0f)
+            } else {
+                (l.x + mapW - borderZone).coerceAtMost(0f)
+            },
+            if (l.y > 0) {
+                (l.y - mapH + borderZone).coerceAtLeast(0f)
+            } else {
+                (l.y + mapH - borderZone).coerceAtMost(0f)
+            },
         )
 
         // Distance into the border zone.
@@ -123,26 +134,24 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         // The closer the ship is to map edge, the stronger
         // the heading transformation away from the border.
         val avoidForce = (d / (Preset.borderNoGoZone - Preset.borderHardNoGoZone)).coerceAtMost(1f)
-        val highPriority = 100f
-        return EngineController.Limit(borderIntrusion.facing, ship.maxSpeed * (1f - avoidForce), null, highPriority)
+        return EngineController.Limit(borderIntrusion.facing, ship.maxSpeed * (1f - avoidForce), null)
     }
 
     /** Calculate maximum velocity that will not lead to collision with an obstacle. */
-    fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, minDistance: Float, priorityFn: ((Float) -> Float)? = null): EngineController.Limit {
+    fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, minDistance: Float, decelMult: Float = 1f): EngineController.Limit {
         val toObstacle = obstacle.location - ship.location
         val toObstacleFacing = toObstacle.facing
         val r = (-toObstacleFacing).rotationMatrix
 
         val distance = toObstacle.rotatedX(r)
         val distanceLeft = distance - minDistance
-        val priority = priorityFn?.invoke(distanceLeft) ?: 0f
 
-        val decelShip = ship.collisionDeceleration(toObstacleFacing)
+        val decelShip = ship.collisionDeceleration(toObstacleFacing) * decelMult
         val vMax = BasicEngineController.vMax(dt, abs(distanceLeft), decelShip) * distanceLeft.sign
         val vObstacle = obstacle.velocity.rotatedX(r)
         val speedLimit = vMax + vObstacle
 
-        return EngineController.Limit(toObstacleFacing, speedLimit, obstacle, priority)
+        return EngineController.Limit(toObstacleFacing, speedLimit, obstacle)
     }
 
     /** Ship deceleration for collision avoidance purposes. */
@@ -155,24 +164,22 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }
     }
 
-    companion object {
-        val ShipAPI.movementPriority: Float
-            get() {
-                return when {
-                    this == Global.getCombatEngine().playerShip && isUnderManualControl -> 2f
+    private val ShipAPI.movementPriority: Float
+        get() {
+            return when {
+                this == Global.getCombatEngine().playerShip && isUnderManualControl -> 2f
 
-                    root.isStation -> 2f
+                root.isStation -> 2f
 
-                    isHulk -> 2f
+                isHulk -> 2f
 
-                    engineController?.isFlamedOut == true -> 2f
+                engineController?.isFlamedOut == true -> 2f
 
-                    root.isFrigate -> -1f
+                root.isFrigate -> -1f
 
-                    aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> 1f
+                aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> 1f
 
-                    else -> 0f
-                }
+                else -> 0f
             }
-    }
+        }
 }

@@ -4,7 +4,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.CollisionAvoidance.Companion.movementPriority
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.RotationMatrix
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
@@ -27,7 +26,6 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         val direction: Direction,
         val speedLimit: Float,
         val obstacle: ShipAPI?,
-        val priority: Float = 0f,
     )
 
     private data class Bound(
@@ -47,16 +45,9 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         val expectedVelocity = expectedVelocityRaw.rotatedReverse(rotationToShip) / dt
         val vLim = max(ship.velocity.length, expectedVelocity.length)
 
+        // Discard speed limits with value too high to affect the ship movement.
         val relevantLimits = limits.filter { limit ->
-            when {
-                // Ignore speed limits with priority lower than ships' own priority.
-                limit.priority < ship.movementPriority -> false
-
-                // The speed limit has too high value to affect the ship movement.
-                limit.speedLimit > vLim -> false
-
-                else -> true
-            }
+            limit.speedLimit <= vLim
         }
 
         if (relevantLimits.isEmpty()) {
