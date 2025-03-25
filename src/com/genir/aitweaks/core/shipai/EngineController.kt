@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedY
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
@@ -44,6 +45,11 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         val rotationToShip = toShipFacing.rotationMatrix
         val expectedVelocity = expectedVelocityRaw.rotatedReverse(rotationToShip) / dt
         val vLim = max(ship.velocity.length, expectedVelocity.length)
+
+//        limits.forEach { lim ->
+//            val obs = lim.obstacle?.let { "${it.velocity}" } ?: ""
+//            log("${ship.name} $lim V ${ship.velocity} E $expectedVelocity $obs")
+//        }
 
         // Discard speed limits with value too high to affect the ship movement.
         val relevantLimits = limits.filter { limit ->
@@ -80,6 +86,10 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
             if (dvs.x < 0) ship.command(ShipCommand.STRAFE_LEFT)
             if (dvs.x > 0) ship.command(ShipCommand.STRAFE_RIGHT)
 
+//            Debug.drawVector(ship.location, ship.velocity, GREEN)
+//            Debug.drawVector(ship.location, ship.velocity + deltaV, YELLOW)
+//            Debug.drawLine(ship.location, ship.customShipAI!!.movement.headingPoint, MAGENTA)
+
             return ship.velocity + deltaV
         }
 
@@ -101,22 +111,32 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
                 continue
             }
 
-            // If the obstacle is pushing the ship away from its destination,
-            // try to deliberately slide past it.
+            val obstacle = bound.obstacle
             val expectedX = expectedVelocity.rotatedX(bound.r)
-            val slidePastObstacle = bound.obstacle != null && expectedX >= bound.speedLimit
 
-            val vy = if (slidePastObstacle) {
-                val obstacle = bound.obstacle!!
-                val obstacleVelocity = obstacle.customShipAI?.movement?.expectedVelocity ?: obstacle.velocity
-                val obstacleY = obstacleVelocity.rotatedY(bound.r)
-                val slideOffset = (bound.speedLimit - vx) * obstacleY.sign
-                ship.velocity.rotatedY(bound.r) + slideOffset
-            } else {
-                ship.velocity.rotatedY(bound.r)
+            val slideOffset = when {
+                // If an allied or inert obstacle is pushing the ship away
+                // from its destination, try to deliberately slide past it.
+                obstacle != null && !obstacle.isHostile(ship) && expectedX >= bound.speedLimit -> {
+                    val obstacleVelocity = obstacle.customShipAI?.movement?.expectedVelocity ?: obstacle.velocity
+                    val obstacleY = obstacleVelocity.rotatedY(bound.r)
+                    abs(bound.speedLimit - vx) * -obstacleY.sign
+                }
+
+                // Apply an acceleration in the expected direction on top of
+                // avoiding the speed limit.
+                obstacle != null -> {
+                    val expectedY = expectedVelocity.rotatedY(bound.r)
+                    abs(bound.speedLimit - vx) * expectedY.sign
+                }
+
+                else -> {
+                    0f
+                }
             }
 
-            val closestPoint = Vector2f(bound.speedLimit, vy.coerceIn(bound.pMin, bound.pMax))
+            val vCorrectedY = ship.velocity.rotatedY(bound.r) + slideOffset
+            val closestPoint = Vector2f(bound.speedLimit, vCorrectedY.coerceIn(bound.pMin, bound.pMax))
             val limitedVelocity = closestPoint.rotatedReverse(bound.r)
             val dv = limitedVelocity - ship.velocity
 

@@ -188,9 +188,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         attackLocation = attackLocation.resized(ai.attackRange) + maneuverTarget.location
 
         attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
-
-//        Debug.drawLine(ship.location, attackLocation.copy, YELLOW)
-
         return approachTarget(dt, maneuverTarget, attackLocation, approachDirectly)
     }
 

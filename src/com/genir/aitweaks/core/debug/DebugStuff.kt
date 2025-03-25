@@ -23,9 +23,11 @@ internal fun debug(dt: Float) {
     val ship = Global.getCombatEngine().playerShip ?: return
     val ships = Global.getCombatEngine().ships
 
-//    log("***********************************************")
+//    if (!Global.getCombatEngine().isPaused){
+//        log("***********************************************")
+//    }
 
-    ships.filter { it.owner == 0 }.forEach {
+    ships.forEach {
 //        Debug.drawCollisionRadius(it, Color.CYAN)
 //        Debug.drawAccelerationLines(it)
     }
