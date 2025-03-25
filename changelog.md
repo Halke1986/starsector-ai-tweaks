@@ -1,4 +1,7 @@
+Version 1.12.8
+
 - Custom AI: Fixed a bug where ships were not attempting to intercept and block the escape route of retreating enemies.
+- Custom AI: Improved collision avoidance logic: Ships will now yield to allied vessels that are falling back to vent flux behind the line of battle.
 
 Version 1.12.7
 
