@@ -9,6 +9,7 @@ import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
+import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.getShortestRotation
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
@@ -46,8 +47,13 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidManeuverTarget(dt: Float): EngineController.Limit? {
-        if (ai.ventModule.isBackingOff) {
-            return null
+        // Ship can approach the target when on an assignment on when backing off.
+        when {
+            ai.ventModule.isBackingOff -> return null
+
+            ai.assignment.eliminate != null -> return null
+
+            ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> return null
         }
 
         val target: ShipAPI = ai.maneuverTarget ?: return null
@@ -144,10 +150,16 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     /** Calculate maximum velocity that will not lead to collision with an obstacle. */
-    fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, minDistance: Float): EngineController.Limit {
+    fun vMaxToObstacle(dt: Float, obstacle: ShipAPI, minDistance: Float): EngineController.Limit? {
         val toObstacle = obstacle.location - ship.location
         val toObstacleFacing = toObstacle.facing
         val r = (-toObstacleFacing).rotationMatrix
+
+        // If the ships maintain their current course, they will not collide.
+        val predictedMinDistance = distanceToOrigin(toObstacle, obstacle.velocity - ship.velocity)
+        if (predictedMinDistance > minDistance * 1.5f) {
+            return null
+        }
 
         val distance = toObstacle.rotatedX(r)
         val distanceLeft = distance - minDistance
@@ -172,20 +184,44 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
     private val ShipAPI.movementPriority: Float
         get() {
+            val ai = customShipAI
+
             return when {
-                this == Global.getCombatEngine().playerShip && isUnderManualControl -> 2f
+                root.isStation -> {
+                    10f
+                }
 
-                root.isStation -> 2f
+                isHulk -> {
+                    10f
+                }
 
-                isHulk -> 2f
+                engineController?.isFlamedOut == true -> {
+                    10f
+                }
 
-                engineController?.isFlamedOut == true -> 2f
+                this == Global.getCombatEngine().playerShip && isUnderManualControl -> {
+                    3f
+                }
 
-                root.isFrigate -> -1f
+                root.isFrigate -> {
+                    -1f
+                }
 
-                aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> 1f
+                aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
+                    2f
+                }
 
-                else -> 0f
+                ai == null -> {
+                    0f
+                }
+
+                ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> {
+                    1f
+                }
+
+                else -> {
+                    0f
+                }
             }
         }
 }

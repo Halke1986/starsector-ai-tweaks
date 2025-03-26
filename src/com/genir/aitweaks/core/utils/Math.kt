@@ -20,8 +20,12 @@ fun crossProductZ(a: Vector2f, b: Vector2f): Float {
     return a.x * b.y - a.y * b.x
 }
 
-/** Time after which point p travelling with velocity v will be the closes to (0,0). */
+/** Time after which point p travelling with velocity v will be the closest to (0,0). */
 fun timeToOrigin(p: Vector2f, v: Vector2f): Float {
+    if (v.isZero) {
+        return 0f
+    }
+
     return -dotProduct(p, v) / v.lengthSquared
 }
 
