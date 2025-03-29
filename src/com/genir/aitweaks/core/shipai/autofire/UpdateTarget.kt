@@ -55,7 +55,7 @@ class UpdateTarget(
 
             if (target != null) {
                 val ballisticTarget = BallisticTarget.collisionRadius(target)
-                val dist = intercept(weapon, ballisticTarget, params).length
+                val dist = closestHitRange(weapon, ballisticTarget, params)
                 val range = weapon.totalRange
 
                 // New in-range target found.

@@ -1,3 +1,5 @@
+- Autofire AI: Fixed a bug where weapons would attack a target other than the ship’s designated attack target, even when the intended target was already within firing range. 
+
 Version 1.12.8
 
 - Custom AI: Fixed a bug where ships were not attempting to intercept and block the escape route of retreating enemies.
