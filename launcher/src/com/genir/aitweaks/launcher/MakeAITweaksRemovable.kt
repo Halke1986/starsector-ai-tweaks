@@ -12,8 +12,8 @@ class MakeAITweaksRemovable {
         private data class Hullmod(val name: String, val key: String)
 
         private val hullmods: List<Hullmod> = listOf(
-            Hullmod("fnisherbeamprotocol", "\$aitweaks_finisherbeamprotocol"), // TODO rename "aitweaks_finisherbeamprotocol"
-            Hullmod("aitweaks_systemshunt", "\$aitweaks_systemshunt"),
+            Hullmod("aitweaks_finisher_beam_protocol", "\$aitweaks_finisher_beam_protocol"),
+            Hullmod("aitweaks_system_shunt", "\$aitweaks_system_shunt"),
             Hullmod("aitweaks_custom_ship_ai", "\$aitweaks_custom_ship_ai"),
         )
 

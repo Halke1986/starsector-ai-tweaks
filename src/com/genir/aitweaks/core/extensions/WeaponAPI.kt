@@ -43,7 +43,7 @@ val WeaponAPI.isFinisherBeam
 
         !hasAITag(Tag.FINISHER_BEAM) -> false
 
-        !ship.variant.hasHullMod("fnisherbeamprotocol") -> false
+        !ship.variant.hasHullMod("aitweaks_finisher_beam_protocol") -> false
 
         else -> true
     }

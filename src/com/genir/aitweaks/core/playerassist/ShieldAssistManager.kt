@@ -14,7 +14,7 @@ class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
     var enableShieldAssist = false
 
     companion object {
-        const val ENABLE_SHIELD_ASSIST_KEY = "\$aitweaks_AUTO_OMNI_SHIELDS"
+        const val ENABLE_SHIELD_ASSIST_KEY = "\$aitweaks_enable_shield_assist"
         const val RENDER_PLUGIN_KEY = "aitweaks_shield_assist_renderer"
     }
 

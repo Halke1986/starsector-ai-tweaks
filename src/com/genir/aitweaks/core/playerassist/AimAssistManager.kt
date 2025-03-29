@@ -18,7 +18,7 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
 
     private companion object {
         val statusKey = Object()
-        const val ENABLE_AIM_ASSIST_KEY = "\$aitweaks_enableAimBot"
+        const val ENABLE_AIM_ASSIST_KEY = "\$aitweaks_enable_aim_assist"
     }
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
