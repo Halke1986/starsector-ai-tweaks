@@ -13,7 +13,7 @@ object Bytecode {
     fun getMethodsInOrder(c: Class<*>): List<Method> {
         val methods: MutableList<Method> = mutableListOf()
 
-        ClassReader(readClassBuffer(c.classLoader, c.name)).accept(object : ClassVisitor(Opcodes.ASM4) {
+        ClassReader(readClassBuffer(c.classLoader, c.name)).accept(object : ClassVisitor(Opcodes.ASM7) {
             override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
                 methods.add(Method(name, desc))
                 return null

@@ -96,9 +96,9 @@ class Symbols {
         val maneuvers = mutableListOf<String>()
 
         // Find all maneuver classes used by ship AI.
-        newClassReader(basicShipAI.classPath).accept(object : ClassVisitor(Opcodes.ASM4) {
+        newClassReader(basicShipAI.classPath).accept(object : ClassVisitor(Opcodes.ASM7) {
             override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor {
-                return object : MethodVisitor(Opcodes.ASM4) {
+                return object : MethodVisitor(Opcodes.ASM7) {
                     override fun visitTypeInsn(opcode: Int, type: String?) {
                         if (type?.startsWith("com/fs/starfarer/combat/ai/movement/maneuvers/") == true) {
                             maneuvers.add(type)
@@ -111,7 +111,7 @@ class Symbols {
         // Gather all possible candidate classes for approach maneuver.
         val candidates = mutableSetOf<String>()
         maneuvers.forEach { className ->
-            newClassReader(className).accept(object : ClassVisitor(Opcodes.ASM4) {
+            newClassReader(className).accept(object : ClassVisitor(Opcodes.ASM7) {
                 override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
                     if (name == "<init>" && desc?.startsWith("(L${ship.classPath};L${ship.classPath};FL${flockingAI.classPath};") == true) {
                         candidates.add(className)
@@ -144,14 +144,14 @@ class Symbols {
         var loadWeaponDesc = ""
 
         // Find weapon loading class and static method.
-        newClassReader(CombatEngine::class.java.classPath).accept(object : ClassVisitor(Opcodes.ASM4) {
+        newClassReader(CombatEngine::class.java.classPath).accept(object : ClassVisitor(Opcodes.ASM7) {
             override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
                 if (name != "createFakeWeapon") {
                     return null
                 }
 
-                return object : MethodVisitor(Opcodes.ASM4) {
-                    override fun visitMethodInsn(opcode: Int, owner: String?, type: String?, desc: String?) {
+                return object : MethodVisitor(Opcodes.ASM7) {
+                    override fun visitMethodInsn(opcode: Int, owner: String?, type: String?, desc: String?, isInterface: Boolean) {
                         if (opcode == Opcodes.INVOKESTATIC && owner?.startsWith("com/fs/starfarer/loading/specs") == true) {
                             loadWeaponClass = owner
                             loadWeaponName = type!!
@@ -165,13 +165,13 @@ class Symbols {
         val weaponTypes: MutableList<String> = mutableListOf()
 
         // Find NEW instructions in weapon loading static method.
-        newClassReader(loadWeaponClass).accept(object : ClassVisitor(Opcodes.ASM4) {
+        newClassReader(loadWeaponClass).accept(object : ClassVisitor(Opcodes.ASM7) {
             override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
                 if (name != loadWeaponName || desc != loadWeaponDesc) {
                     return null
                 }
 
-                return object : MethodVisitor(Opcodes.ASM4) {
+                return object : MethodVisitor(Opcodes.ASM7) {
                     override fun visitTypeInsn(opcode: Int, type: String?) {
                         if (opcode == Opcodes.NEW) {
                             weaponTypes.add(type!!)
@@ -190,13 +190,13 @@ class Symbols {
         var frontShieldAI: Class<*>? = null
 
         // Find OmniShieldAI in OmniShieldControlAI.
-        newClassReader(omniShieldControlAI.classPath).accept(object : ClassVisitor(Opcodes.ASM4) {
+        newClassReader(omniShieldControlAI.classPath).accept(object : ClassVisitor(Opcodes.ASM7) {
             override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
                 if (name != "<init>") {
                     return null
                 }
 
-                return object : MethodVisitor(Opcodes.ASM4) {
+                return object : MethodVisitor(Opcodes.ASM7) {
                     override fun visitTypeInsn(opcode: Int, type: String) {
                         val c = classLoader.loadClass(type.replace("/", "."))
                         if (shieldAI in c.interfaces) {
@@ -207,13 +207,13 @@ class Symbols {
             }
         })
 
-        newClassReader(BasicShipAI::class.java.classPath).accept(object : ClassVisitor(Opcodes.ASM4) {
+        newClassReader(BasicShipAI::class.java.classPath).accept(object : ClassVisitor(Opcodes.ASM7) {
             override fun visitMethod(access: Int, name: String?, desc: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
                 if (name != "<init>" || desc != "(Lcom/fs/starfarer/combat/entities/Ship;Lcom/fs/starfarer/api/combat/ShipAIConfig;)V") {
                     return null
                 }
 
-                return object : MethodVisitor(Opcodes.ASM4) {
+                return object : MethodVisitor(Opcodes.ASM7) {
                     override fun visitTypeInsn(opcode: Int, type: String) {
                         val c = classLoader.loadClass(type.replace("/", "."))
                         if (shieldAI in c.interfaces && c != omniShieldAI) {

@@ -12,7 +12,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="starsector-core" level="project" />
     <orderEntry type="library" name="LazyLib" level="project" />
-    <orderEntry type="library" name="asm-4.0" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library name="JUnit5.8.1">
         <CLASSES>
@@ -30,5 +29,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="LunaLib" level="project" />
+    <orderEntry type="library" name="asm-9.1" level="project" />
   </component>
 </module>

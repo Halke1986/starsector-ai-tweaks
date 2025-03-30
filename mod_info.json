@@ -5,10 +5,10 @@
   "utility": "true",
   "version": "1.12.8",
   "description": "A mod providing various ship AI improvements.",
-  "gameVersion": "0.97a-RC6",
+  "gameVersion": "0.98a-RC5",
   "jars": [
     "jars/aitweaks-launcher.jar",
-    "jars/asm-4.0.jar",
+    "jars/asm-9.1.jar",
   ],
   "modPlugin": "com.genir.aitweaks.launcher.AITweaksBaseModPlugin",
   "dependencies": [

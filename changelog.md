@@ -1,3 +1,4 @@
+- Compatibility update with Starsector 0.98a-RC5.
 - Autofire AI: Fixed a bug where weapons would attack a target other than the ship’s designated attack target, even when the intended target was already within firing range. 
 
 Version 1.12.8
