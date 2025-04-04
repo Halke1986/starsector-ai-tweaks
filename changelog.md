@@ -1,3 +1,5 @@
+- Autofire AI: Improved aiming logic for low turn rate turrets. Now it's significantly less likely a ship will interrupt a burst when turning towards the target. 
+
 Version 2.0.0
 
 - Compatibility update with Starsector 0.98a-RC5.

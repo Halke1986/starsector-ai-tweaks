@@ -342,13 +342,21 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             weapon.slot.isHardpoint -> aimHardpoint(target, intercept)
 
+            // If the turret's rotation rate is slower than the ship's turn rate, aim
+            // the weapon with the entire ship, similar to hardpoints. Otherwise, the
+            // ship rotation could bring the weapon off target. If the weapon is attacking
+            // a target other than the ship target, allow it to behave as a turret.
+            weapon.isSlowTurret && target == ship.attackTarget -> aimHardpoint(target, intercept)
+
             else -> aimTurret(dt, intercept)
         }
     }
 
     private fun aimTurret(dt: Float, intercept: Vector2f): Vector2f {
         // Beam weapons in turrets can be aimed directly at the target location.
-        if (weapon.isBeam) return intercept
+        if (weapon.isBeam) {
+            return intercept
+        }
 
         // Combat engine fires weapons before setting their aim location. This means
         // the aim location returned by this method will take effect the next frame.
@@ -369,7 +377,9 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Vanilla AI lacks precise aiming, so hardpoints need flexibility to compensate.
         // Aim directly at the intercept point when the ship is close to aligned.
         if (customAIFacing == null && wrapperAIFacing == null) {
-            if (weapon.absoluteArc.contains(intercept)) return intercept
+            if (weapon.absoluteArc.contains(intercept)) {
+                return intercept
+            }
         }
 
         // Aim the hardpoint as if the ship was already rotated to the expected facing.
@@ -390,7 +400,9 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         var interceptVelocity = 0f
 
         fun advance(dt: Float, intercept: Vector2f?) {
-            if (intercept == null) return
+            if (intercept == null) {
+                return
+            }
 
             val angleToIntercept: Direction = intercept.facing - weapon.absoluteArc.facing
             interceptVelocity = (angleToIntercept - (prevAngleToIntercept ?: angleToIntercept)).degrees / dt
@@ -404,4 +416,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             interceptVelocity = 0f
         }
     }
+
+    private val WeaponAPI.isSlowTurret: Boolean
+        get() = turnRateWhileFiring < ship.baseTurnRate
 }

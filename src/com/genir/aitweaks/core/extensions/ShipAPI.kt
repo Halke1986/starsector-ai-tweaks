@@ -136,20 +136,25 @@ val ShipAPI.isFast: Boolean
 
 /** Ship max speed not modified by zero flux boost or an active system. */
 val ShipAPI.baseMaxSpeed: Float
-    get() {
-        val stats = mutableStats.maxSpeed.createCopy()
+    get() = statWithoutMobilityBonuses(mutableStats.maxSpeed).modifiedValue
 
-        if (system != null) {
-            stats.unmodify(system.id + " effect")
-        }
+val ShipAPI.baseTurnRate: Float
+    get() = statWithoutMobilityBonuses(mutableStats.maxTurnRate).modifiedValue
 
-        // Remove zero flux boost for ships with no Safety Overrides.
-        if (mutableStats.zeroFluxMinimumFluxLevel.modifiedValue < 1f) {
-            stats.unmodify("zero_flux_boost")
-        }
+private fun ShipAPI.statWithoutMobilityBonuses(modifiedStat: MutableStat): MutableStat {
+    val stat = modifiedStat.createCopy()
 
-        return stats.modifiedValue
+    if (system != null) {
+        stat.unmodify(system.id + " effect")
     }
+
+    // Remove zero flux boost for ships with no Safety Overrides.
+    if (mutableStats.zeroFluxMinimumFluxLevel.modifiedValue < 1f) {
+        stat.unmodify("zero_flux_boost")
+    }
+
+    return stat
+}
 
 val ShipAPI.maxRange: Float
     get() = allGroupedWeapons.maxOfOrNull { it.rangeFromShipCenter(0f.direction) } ?: 0f
@@ -159,3 +164,4 @@ val ShipAPI.AIPersonality: String
 
 val ShipAPI.Id: String
     get() = hullSpec?.hullId ?: "-"
+
