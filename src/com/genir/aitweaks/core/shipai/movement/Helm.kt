@@ -8,7 +8,21 @@ import org.lwjgl.util.vector.Vector2f
 
 class Helm(val ship: ShipAPI) {
     // Command.
-    fun command(cmd: ShipCommand) = ship.giveCommand(cmd, null, 0)
+    val commands: MutableSet<ShipCommand> = mutableSetOf()
+
+    fun advance() {
+        commands.clear()
+    }
+
+    fun executeCommands() {
+        commands.forEach { cmd ->
+            ship.giveCommand(cmd, null, 0)
+        }
+    }
+
+    fun command(cmd: ShipCommand) {
+        commands.add(cmd)
+    }
 
     // Linear velocity.
     val velocity: Vector2f
