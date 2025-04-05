@@ -192,7 +192,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
 
         // Override the vanilla-computed should-fire decision.
         if (shouldFire) weapon.setForceFireOneFrame(true)
-        else weapon.setForceNoFireOneFrame(true)
+        else weapon.isForceNoFireOneFrame = true
     }
 
     private fun selectTarget(): CombatEntityAPI? {

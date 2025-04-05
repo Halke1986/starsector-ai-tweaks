@@ -25,7 +25,7 @@ val ShipAPI.isBig: Boolean
     get() = (root.isDestroyer || root.isCruiser || root.isCapital) && allGroupedWeapons.isNotEmpty()
 
 val ShipAPI.isHullDamageable: Boolean
-    get() = mutableStats.hullDamageTakenMult.getModifiedValue() > 0f
+    get() = mutableStats.hullDamageTakenMult.modifiedValue > 0f
 
 private val ShipAPI.taskManager: CombatTaskManagerAPI
     get() = Global.getCombatEngine().getFleetManager(owner).getTaskManager(isAlly)

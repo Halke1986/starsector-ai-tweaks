@@ -75,5 +75,7 @@ Next, I scuttled Atlases to check if I'm right, and bug's didn't occurred, auto-
     Conclusion, there's actually an auto-shield bug with AGC, that happens when there's more than one ship in the fleet, otherwise one ship will be fine.
 
 
+REPOTRED by Lprsti99:
+Having an issue with the shield assist, where if it's toggled on when a battle ends, it starts enabled in the next battles, but it's nonfunctional - doesn't raise the shield, and if I raise it manually it doesn't control it at all.  toggling it off and on doesn't solve this, the only fix I've found is to make sure it's toggled off at the end of *that* battle, in which case it's functional again next time.  Possibly a mod incompatibility - if so, my immediate suspect is Puretilt's QOL pack, due to the shield facing settings in there.  I mainly use the qol pack for automatically toggling the transponder in hyperspace anyway, but also possible that something in the 0.98 update caused it maybe? Keep forgetting to try disabling the qol mod and I can't try now unfortunately, irl stuff going on (I only just happened to think to make a comment).
 
 ----------------------------------------------------------------

@@ -1,4 +1,5 @@
-- Autofire AI: Improved aiming logic for low turn rate turrets. Now it's significantly less likely a ship will interrupt a burst when turning towards the target. 
+- Autofire AI: Improved aiming logic for low turn rate turrets. Now it's significantly less likely a ship will interrupt a burst when turning towards the target.
+- Custom AI: Subsystems delegated to vanilla AI no longer exhibit fearless behavior on automated ships.
 
 Version 2.0.0
 

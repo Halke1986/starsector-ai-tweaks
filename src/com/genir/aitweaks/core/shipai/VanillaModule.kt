@@ -7,10 +7,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
-import com.genir.aitweaks.core.extensions.facing
-import com.genir.aitweaks.core.extensions.getPrivateField
-import com.genir.aitweaks.core.extensions.isZero
-import com.genir.aitweaks.core.extensions.length
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
 import org.lwjgl.util.vector.Vector2f
 
@@ -35,6 +32,16 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     init {
         // Ensure AI Tweaks is in control of autofire management.
         AutofireManager.inject(ship, attackModule)
+
+        // Lock the personality to aggressive, ensuring AI elements
+        // delegated to vanilla do not behave reckless.
+        when {
+            ship.AIPersonality == "aggressive" -> Unit
+
+            ship.captain != null -> ship.captain.setPersonality("aggressive")
+
+            else -> (ship as Ship).setFallbackPersonalityId("aggressive")
+        }
     }
 
     /** Advance AI subsystems carried over from the vanilla BasicShipAI. To work
