@@ -1,6 +1,5 @@
 package com.genir.aitweaks.core.shipai.movement
 
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.Direction
@@ -24,7 +23,7 @@ import kotlin.random.Random
  * the controller works better when called from ship AI, as
  * opposed to every frame combat plugin.
  */
-open class BasicEngineController(val ship: ShipAPI) {
+open class BasicEngineController(val helm: Helm) {
     private var prevFacing: Direction = 0f.direction
 
     /**
@@ -37,19 +36,19 @@ open class BasicEngineController(val ship: ShipAPI) {
     fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> Vector2f?)? = null): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
-        val af = ship.acceleration * dt * dt
-        val ab = ship.deceleration * dt * dt
-        val al = ship.strafeAcceleration * dt * dt
-        val vMax = max(ship.maxSpeed, ship.velocity.length) * dt + af
+        val af = helm.acceleration * dt * dt
+        val ab = helm.deceleration * dt * dt
+        val al = helm.strafeAcceleration * dt * dt
+        val vMax = max(helm.maxSpeed, helm.velocity.length) * dt + af
 
         // Transform input into ship frame of reference. Account for
         // ship angular velocity, as linear acceleration is applied
         // by the game engine after rotation.
-        val w = ship.angularVelocity * dt
-        val toShipFacing = (-ship.facing.direction) - w + 90f
+        val w = helm.angularVelocity * dt
+        val toShipFacing = -helm.facing - w + 90f
         val r = toShipFacing.rotationMatrix
-        val d = (heading - ship.location).rotated(r)
-        val v = (ship.velocity).rotated(r) * dt
+        val d = (heading - helm.location).rotated(r)
+        val v = (helm.velocity).rotated(r) * dt
         val vt = targetVelocity.rotated(r) * dt
 
         // Maximum velocity towards target for both axis of movement.
@@ -76,8 +75,8 @@ open class BasicEngineController(val ship: ShipAPI) {
         // Stop if arrived at location, that is when expected velocity change
         // and location change is less than half of velocity change unit.
         if (ve.length < af / 2) {
-            if (ship.velocity.isNonZero) {
-                ship.command(DECELERATE)
+            if (helm.velocity.isNonZero) {
+                helm.command(DECELERATE)
             }
             return Vector2f()
         }
@@ -94,10 +93,10 @@ open class BasicEngineController(val ship: ShipAPI) {
         val overspeedY = vmy.sign == v.y.sign && abs(vmy) < abs(v.y)
 
         // Give commands to achieve the calculated thrust.
-        if (shouldAccelerate(overspeedY, ff, fMax)) ship.command(ACCELERATE)
-        if (shouldAccelerate(overspeedY, fb, fMax)) ship.command(ACCELERATE_BACKWARDS)
-        if (shouldAccelerate(overspeedX, fl, fMax)) ship.command(STRAFE_LEFT)
-        if (shouldAccelerate(overspeedX, fr, fMax)) ship.command(STRAFE_RIGHT)
+        if (shouldAccelerate(overspeedY, ff, fMax)) helm.command(ACCELERATE)
+        if (shouldAccelerate(overspeedY, fb, fMax)) helm.command(ACCELERATE_BACKWARDS)
+        if (shouldAccelerate(overspeedX, fl, fMax)) helm.command(STRAFE_LEFT)
+        if (shouldAccelerate(overspeedX, fr, fMax)) helm.command(STRAFE_RIGHT)
 
         return ve.rotatedReverse(r) / dt
     }
@@ -114,15 +113,15 @@ open class BasicEngineController(val ship: ShipAPI) {
     fun facing(dt: Float, facing: Direction, targetAngularVelocity: Float) {
         // Change unit of time from second to
         // animation frame duration (* dt).
-        val w = ship.angularVelocity * dt
-        val a = ship.turnAcceleration * dt * dt
-        val d = min(abs(w), ship.turnDeceleration * dt * dt) * -sign(w)
+        val w = helm.angularVelocity * dt
+        val a = helm.turnAcceleration * dt * dt
+        val d = min(abs(w), helm.turnDeceleration * dt * dt) * -sign(w)
 
         // Estimate target angular velocity.
         val wt = targetAngularVelocity * dt
 
         // Angular distance between expected facing and ship facing.
-        val r = facing - ship.facing.direction
+        val r = facing - helm.facing
 
         // Expected velocity change.
         val we = r.sign * vMax(r.length, a) + wt
@@ -135,8 +134,8 @@ open class BasicEngineController(val ship: ShipAPI) {
         val el = abs(dw - a)
 
         when {
-            er < el && er < ed -> ship.command(TURN_RIGHT)
-            el < ed -> ship.command(TURN_LEFT)
+            er < el && er < ed -> helm.command(TURN_RIGHT)
+            el < ed -> helm.command(TURN_LEFT)
             else -> Unit // Let the ship decelerate.
         }
     }
@@ -144,7 +143,7 @@ open class BasicEngineController(val ship: ShipAPI) {
     /** Set ship facing using estimated target angular velocity. */
     fun facing(dt: Float, facing: Direction, shouldStop: Boolean) {
         if (shouldStop) {
-            return facing(dt, ship.facing.direction, 0f)
+            return facing(dt, helm.facing, 0f)
         }
 
         // Estimate target angular velocity.

@@ -7,6 +7,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.AttackCoordinator
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
+import com.genir.aitweaks.core.shipai.movement.Helm.Companion.helm
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
@@ -17,7 +18,7 @@ import kotlin.math.min
 @Suppress("MemberVisibilityCanBePrivate")
 class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable {
     private val ship: ShipAPI = ai.ship
-    private val engineController: EngineController = EngineController(ship)
+    private val engineController: EngineController = EngineController(ship.helm)
     private val collisionAvoidance: CollisionAvoidance = CollisionAvoidance(ai)
 
     var headingPoint: Vector2f = Vector2f()

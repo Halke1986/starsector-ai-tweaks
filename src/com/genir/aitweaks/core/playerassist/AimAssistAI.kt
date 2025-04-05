@@ -13,6 +13,7 @@ import com.genir.aitweaks.core.shipai.BaseShipAIPlugin
 import com.genir.aitweaks.core.shipai.WeaponGroup
 import com.genir.aitweaks.core.shipai.autofire.*
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
+import com.genir.aitweaks.core.shipai.movement.Helm.Companion.helm
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.*
@@ -62,7 +63,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         // Update engine controller if player ship changed.
         if (ship != prevPlayerShip) {
             prevPlayerShip = ship
-            engineController = BasicEngineController(ship)
+            engineController = BasicEngineController(ship.helm)
         }
 
         controlShipHeading(dt, ship, target)

@@ -1,6 +1,5 @@
 package com.genir.aitweaks.core.shipai.movement
 
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
@@ -18,7 +17,7 @@ import kotlin.math.min
 import kotlin.math.sign
 
 /** Engine Controller for AI piloted ships. */
-class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
+class EngineController(helm: Helm) : BasicEngineController(helm) {
     data class Destination(val location: Vector2f, val velocity: Vector2f)
 
     /** Limit allows to restrict velocity to not exceed
@@ -26,13 +25,13 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     data class Limit(
         val direction: Direction,
         val speedLimit: Float,
-        val obstacle: ShipAPI?,
+        val obstacle: Helm?,
     )
 
     private data class Bound(
         val r: RotationMatrix,
         val speedLimit: Float,
-        val obstacle: ShipAPI?,
+        val obstacle: Helm?,
         val pMin: Float,
         val pMax: Float,
     )
@@ -44,11 +43,11 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
     private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<Limit>): Vector2f? {
         val rotationToShip = toShipFacing.rotationMatrix
         val expectedVelocity = expectedVelocityRaw.rotatedReverse(rotationToShip) / dt
-        val vLim = max(ship.velocity.length, expectedVelocity.length)
+        val vLim = max(helm.velocity.length, expectedVelocity.length)
 
 //        limits.forEach { lim ->
 //            val obs = lim.obstacle?.let { "${it.velocity}" } ?: ""
-//            log("${ship.name} $lim V ${ship.velocity} E $expectedVelocity $obs")
+//            log("${ship.name} $lim V ${helm.velocity} E $expectedVelocity $obs")
 //        }
 
         // Discard speed limits with value too high to affect the ship movement.
@@ -63,8 +62,8 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         val bounds: List<Bound> = buildBounds(relevantLimits)
         if (bounds.isEmpty()) {
             // In case of strongly contradicting speed limits, stop the ship.
-            if (ship.velocity.isNonZero) {
-                ship.command(ShipCommand.DECELERATE)
+            if (helm.velocity.isNonZero) {
+                helm.command(ShipCommand.DECELERATE)
             }
 
             return Vector2f()
@@ -81,16 +80,16 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
             // applies an additional perpendicular thrust component, allowing the
             // ship to "slide" past obstacles naturally.
             val dvs = deltaV.rotated(rotationToShip)
-            if (dvs.y > 0) ship.command(ShipCommand.ACCELERATE)
-            if (dvs.y < 0) ship.command(ShipCommand.ACCELERATE_BACKWARDS)
-            if (dvs.x < 0) ship.command(ShipCommand.STRAFE_LEFT)
-            if (dvs.x > 0) ship.command(ShipCommand.STRAFE_RIGHT)
+            if (dvs.y > 0) helm.command(ShipCommand.ACCELERATE)
+            if (dvs.y < 0) helm.command(ShipCommand.ACCELERATE_BACKWARDS)
+            if (dvs.x < 0) helm.command(ShipCommand.STRAFE_LEFT)
+            if (dvs.x > 0) helm.command(ShipCommand.STRAFE_RIGHT)
 
-//            Debug.drawVector(ship.location, ship.velocity, GREEN)
-//            Debug.drawVector(ship.location, ship.velocity + deltaV, YELLOW)
-//            Debug.drawLine(ship.location, ship.customShipAI!!.movement.headingPoint, MAGENTA)
+//            Debug.drawVector(helm.location, helm.velocity, GREEN)
+//            Debug.drawVector(helm.location, helm.velocity + deltaV, YELLOW)
+//            Debug.drawLine(helm.location, ship.customShipAI!!.movement.headingPoint, MAGENTA)
 
-            return ship.velocity + deltaV
+            return helm.velocity + deltaV
         }
 
         return null
@@ -106,7 +105,7 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
         // This point will be the new, limited velocity.
         for (bound in bounds) {
             // Velocity does not exceed the bound.
-            val vx = ship.velocity.rotatedX(bound.r)
+            val vx = helm.velocity.rotatedX(bound.r)
             if (vx <= bound.speedLimit) {
                 continue
             }
@@ -117,8 +116,8 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
             val slideOffset = when {
                 // If an allied or inert obstacle is pushing the ship away
                 // from its destination, try to deliberately slide past it.
-                obstacle != null && !obstacle.isHostile(ship) && expectedX >= bound.speedLimit -> {
-                    val obstacleVelocity = obstacle.customShipAI?.movement?.expectedVelocity ?: obstacle.velocity
+                obstacle != null && !obstacle.ship.isHostile(helm.ship) && expectedX >= bound.speedLimit -> {
+                    val obstacleVelocity = obstacle.ship.customShipAI?.movement?.expectedVelocity ?: obstacle.velocity
                     val obstacleY = obstacleVelocity.rotatedY(bound.r)
                     abs(bound.speedLimit - vx) * -obstacleY.sign
                 }
@@ -135,10 +134,10 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
                 }
             }
 
-            val vCorrectedY = ship.velocity.rotatedY(bound.r) + slideOffset
+            val vCorrectedY = helm.velocity.rotatedY(bound.r) + slideOffset
             val closestPoint = Vector2f(bound.speedLimit, vCorrectedY.coerceIn(bound.pMin, bound.pMax))
             val limitedVelocity = closestPoint.rotatedReverse(bound.r)
-            val dv = limitedVelocity - ship.velocity
+            val dv = limitedVelocity - helm.velocity
 
             if (lowestDeltaV == null || dv.lengthSquared < lowestDeltaV.lengthSquared) {
                 lowestDeltaV = dv
@@ -259,8 +258,8 @@ class EngineController(ship: ShipAPI) : BasicEngineController(ship) {
                 }
             }
 
-            val p1 = ship.location + Vector2f(bound.speedLimit, pMin).rotatedReverse(bound.r)
-            val p2 = ship.location + Vector2f(bound.speedLimit, pMax).rotatedReverse(bound.r)
+            val p1 = helm.location + Vector2f(bound.speedLimit, pMin).rotatedReverse(bound.r)
+            val p2 = helm.location + Vector2f(bound.speedLimit, pMax).rotatedReverse(bound.r)
             Debug.drawLine(p1, p2, BLUE)
         }
     }
