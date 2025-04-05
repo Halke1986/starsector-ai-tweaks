@@ -1,10 +1,12 @@
-package com.genir.aitweaks.core.shipai
+package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.EngineController.Destination
+import com.genir.aitweaks.core.shipai.AttackCoordinator
+import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated

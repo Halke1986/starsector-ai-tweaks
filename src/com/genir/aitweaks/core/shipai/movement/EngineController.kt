@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.shipai
+package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand

@@ -3,7 +3,7 @@ package com.genir.aitweaks.core.shipai.systems
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.genir.aitweaks.core.shipai.CustomShipAI
-import com.genir.aitweaks.core.shipai.EngineController
+import com.genir.aitweaks.core.shipai.movement.EngineController
 import com.genir.aitweaks.core.utils.Direction
 
 abstract class SystemAI(val ai: CustomShipAI) {

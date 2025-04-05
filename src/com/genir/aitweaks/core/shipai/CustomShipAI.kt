@@ -13,6 +13,7 @@ import com.genir.aitweaks.core.debug.expectedFacing
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset.Companion.assaultShipApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
+import com.genir.aitweaks.core.shipai.movement.Movement
 import com.genir.aitweaks.core.shipai.systems.BurnDriveToggle
 import com.genir.aitweaks.core.shipai.systems.SystemAI
 import com.genir.aitweaks.core.shipai.systems.SystemAIManager
