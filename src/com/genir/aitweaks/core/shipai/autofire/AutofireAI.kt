@@ -60,10 +60,14 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         val updateTargetImmediately = shouldUpdateTargetImmediately(target)
         val updateTargetInterval = updateTargetInterval.intervalElapsed() && shouldUpdateTarget(target)
 
+        val updateShouldFireImmediately = updateShouldFireImmediately(target)
+        val updateShouldFireInterval = shouldFireInterval.intervalElapsed()
+
         if (updateTargetImmediately || updateTargetInterval) {
             updateTarget(dt)
-            shouldHoldFire = calculateShouldFire()
-        } else if (shouldFireInterval.intervalElapsed()) {
+        }
+
+        if (updateTargetImmediately || updateTargetInterval || updateShouldFireImmediately || updateShouldFireInterval) {
             shouldHoldFire = calculateShouldFire()
         }
     }
@@ -153,6 +157,23 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
     }
 
+    /** For PD weapons, it is important to open fire immediately
+     * after acquiring a target. Any delay—even tenths of a second—can
+     * reduce effectiveness against swarms of low HP threats. */
+    private fun updateShouldFireImmediately(target: CombatEntityAPI?): Boolean {
+        return when {
+            target?.isPDTarget != true -> false
+
+            !weapon.isPD -> false
+
+            shouldHoldFire == NO_HIT_EXPECTED -> true
+
+            shouldHoldFire == OUT_OF_RANGE -> true
+
+            else -> false
+        }
+    }
+
     private fun updateTarget(dt: Float) {
         val previousTarget = target
         target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target()
@@ -177,8 +198,13 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             return NO_TARGET
         }
 
-        holdFireIfOverfluxed(target)?.let { reason -> return reason }
-        stabilizeOnTarget()?.let { reason -> return reason }
+        holdFireIfOverfluxed(target)?.let { reason ->
+            return reason
+        }
+
+        stabilizeOnTarget()?.let { reason ->
+            return reason
+        }
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
@@ -195,22 +221,32 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             return NO_HIT_EXPECTED
         }
 
+        when {
+            (expectedHit.type == SHIELD || weapon.conserveAmmo) && expectedHit.range > weapon.Range -> {
+                return OUT_OF_RANGE
+            }
+
+            expectedHit.type != SHIELD && expectedHit.range > weapon.totalRange -> {
+                return OUT_OF_RANGE
+            }
+        }
+
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, target, ballisticParams)
+
+        avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { reason ->
+            return reason
+        }
 
         // Rest of the should-fire decisioning will be based on the actual hit.
         val hit = when {
             actualHit == null -> expectedHit
+
+            // For PD targets, the actual hit may be detected at a longer range than
+            // the initially expected hit, since the projectile is assumed likely to miss.
             actualHit.range > expectedHit.range -> expectedHit
+
             else -> actualHit
-        }
-
-        avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { reason -> return reason }
-
-        when {
-            (hit.type == SHIELD || weapon.conserveAmmo) && hit.range > weapon.Range -> return OUT_OF_RANGE
-
-            hit.type != SHIELD && hit.range > weapon.totalRange -> return OUT_OF_RANGE
         }
 
         return AttackRules(weapon, hit, ballisticParams).shouldHoldFire
