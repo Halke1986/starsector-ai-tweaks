@@ -35,7 +35,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
             }
         }
 
-        val allies = allObstacles.filter { it.owner == helm.ship.owner && !it.root.isFrigate }
+        val allies = allObstacles.filter { it.owner == helm.ship.owner }
         val hulks = allObstacles.filter { it.owner == 100 && it.mass / helm.ship.mass > hulkSizeFactor }
 
         // Calculate speed limits.

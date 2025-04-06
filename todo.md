@@ -83,3 +83,5 @@ Having an issue with the shield assist, where if it's toggled on when a battle e
 
 PLAYER ASSIST EXECUTE COMMANDS !!!!!!!!!!!!!!!!!!
 and extended ship AI
+
+remove ShipAPI.timeAdjustedVelocity

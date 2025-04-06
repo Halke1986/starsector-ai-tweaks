@@ -8,6 +8,7 @@ import com.genir.aitweaks.core.shipai.AttackCoordinator
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
 import com.genir.aitweaks.core.shipai.movement.Helm.Companion.helm
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
@@ -19,6 +20,8 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     private val helm: Helm = ai.ship.helm
     private val engineController: EngineController = EngineController(helm)
     private val collisionAvoidance: CollisionAvoidance = CollisionAvoidance(ai)
+
+    private var prevFrameIdx = 0
 
     var headingPoint: Vector2f = Vector2f()
     var expectedVelocity: Vector2f = Vector2f()
@@ -32,12 +35,16 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 90f else -90f)
 
     fun advance(dt: Float) {
-        helm.advance()
+        if (prevFrameIdx != state.frameIndex) {
+            helm.clearCommands()
 
-        setFacing(dt)
-        setHeading(dt, ai.maneuverTarget)
+            setFacing(dt)
+            setHeading(dt, ai.maneuverTarget)
+        }
 
         helm.executeCommands()
+
+        prevFrameIdx = state.frameIndex
     }
 
     private fun setFacing(dt: Float) {

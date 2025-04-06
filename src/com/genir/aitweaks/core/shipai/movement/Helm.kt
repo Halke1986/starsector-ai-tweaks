@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
+import com.genir.aitweaks.core.extensions.times
 import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
@@ -10,7 +11,7 @@ class Helm(val ship: ShipAPI) {
     // Command.
     val commands: MutableSet<ShipCommand> = mutableSetOf()
 
-    fun advance() {
+    fun clearCommands() {
         commands.clear()
     }
 
@@ -25,20 +26,20 @@ class Helm(val ship: ShipAPI) {
     }
 
     // Linear velocity.
-    val velocity: Vector2f
-        get() = ship.velocity
-
     val location: Vector2f
         get() = ship.location
 
+    val velocity: Vector2f
+        get() = ship.velocity * timeMult
+
     val maxSpeed: Float
-        get() = ship.maxSpeed
+        get() = ship.maxSpeed * timeMult
 
     val acceleration: Float
-        get() = ship.acceleration
+        get() = ship.acceleration * timeMult
 
     val deceleration: Float
-        get() = ship.deceleration
+        get() = ship.deceleration * timeMult
 
     val strafeAcceleration: Float
         get() = acceleration * when (ship.hullSize) {
@@ -61,17 +62,21 @@ class Helm(val ship: ShipAPI) {
     }
 
     // Angular velocity.
-    val angularVelocity: Float
-        get() = ship.angularVelocity
-
     val facing: Direction
         get() = ship.facing.direction
 
+    val angularVelocity: Float
+        get() = ship.angularVelocity * timeMult
+
     val turnAcceleration: Float
-        get() = ship.turnAcceleration
+        get() = ship.turnAcceleration * timeMult
 
     val turnDeceleration: Float
-        get() = ship.turnDeceleration
+        get() = ship.turnDeceleration * timeMult
+
+    // Helpers.
+    private val timeMult: Float
+        get() = ship.mutableStats.timeMult.modifiedValue
 
     companion object {
         val ShipAPI.helm: Helm
