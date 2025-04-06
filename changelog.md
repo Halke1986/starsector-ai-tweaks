@@ -1,4 +1,5 @@
 - Autofire AI: Improved aiming logic for low turn rate turrets. Now it's significantly less likely a ship will interrupt a burst when turning towards the target.
+- Autofire AI: Improved aiming logic for PD weapons, Paladin in particular. Now they defend against swarms of low-HP threats more effectively. As if Anubis didn't invalidate missiles and strikecraft hard enough.
 - Custom AI: Subsystems delegated to vanilla AI no longer exhibit fearless behavior on automated ships.
 
 Version 2.0.0
