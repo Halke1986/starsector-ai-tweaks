@@ -14,7 +14,7 @@ import java.util.*
 class Renderer : BaseCombatLayeredRenderingPlugin() {
     data class Line(val a: Vector2f, val b: Vector2f, val color: Color)
     data class Circle(val pos: Vector2f, val r: Float, val color: Color)
-    data class Arc(val pos: Vector2f, val r: Float, val a: com.genir.aitweaks.core.utils.Arc, val color: Color)
+    data class Arc(val pos: Vector2f, val r: Float, val a: com.genir.aitweaks.core.utils.types.Arc, val color: Color)
 
     internal var lines: MutableSet<Line> = mutableSetOf()
     internal var circles: MutableSet<Circle> = mutableSetOf()

@@ -5,8 +5,12 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.*
-import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.Bounds
+import com.genir.aitweaks.core.utils.angularSize
+import com.genir.aitweaks.core.utils.solve
+import com.genir.aitweaks.core.utils.types.Arc
+import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 
 /** A group of weapons that should be able to fire along a single attack vector. */

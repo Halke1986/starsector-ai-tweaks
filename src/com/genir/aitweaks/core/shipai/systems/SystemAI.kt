@@ -4,7 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.EngineController
-import com.genir.aitweaks.core.utils.Direction
+import com.genir.aitweaks.core.utils.types.Direction
 
 abstract class SystemAI(val ai: CustomShipAI) {
     protected val ship: ShipAPI = ai.ship

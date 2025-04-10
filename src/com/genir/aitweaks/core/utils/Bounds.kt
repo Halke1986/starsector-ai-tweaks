@@ -6,9 +6,9 @@ import com.genir.aitweaks.core.extensions.lengthSquared
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.extensions.plus
 import com.genir.aitweaks.core.extensions.times
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import org.lwjgl.util.vector.Vector2f
 import kotlin.Float.Companion.MAX_VALUE
 import kotlin.math.max

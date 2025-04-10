@@ -7,8 +7,8 @@ import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.extensions.isShip
 import com.genir.aitweaks.core.extensions.noFF
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.*
-import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Arc
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 
 data class Hit(val target: CombatEntityAPI, val range: Float, val type: Type) {
     enum class Type {

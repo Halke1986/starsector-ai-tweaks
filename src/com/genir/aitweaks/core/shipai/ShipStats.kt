@@ -4,8 +4,8 @@ import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.Direction
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import kotlin.math.max
 
 class ShipStats(private val ship: ShipAPI) {

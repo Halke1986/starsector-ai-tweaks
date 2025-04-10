@@ -9,10 +9,10 @@ import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.sqrt
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min

@@ -3,8 +3,8 @@ package com.genir.aitweaks.core.shipai.movement
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.genir.aitweaks.core.extensions.times
-import com.genir.aitweaks.core.utils.Direction
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 
 class Helm(val ship: ShipAPI) {

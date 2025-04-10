@@ -10,7 +10,10 @@ import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
 import com.genir.aitweaks.core.shipai.movement.Helm.Companion.helm
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.types.Arc
+import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.RotationMatrix
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min

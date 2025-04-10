@@ -5,9 +5,9 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.types.Arc
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 

@@ -2,11 +2,11 @@ package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.Direction
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.sqrt
+import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.max

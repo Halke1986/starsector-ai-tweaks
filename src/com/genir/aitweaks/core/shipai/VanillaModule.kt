@@ -8,7 +8,7 @@ import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.Direction
+import com.genir.aitweaks.core.utils.types.Direction
 import org.lwjgl.util.vector.Vector2f
 
 /** AI modules carried over from vanilla ship AI. */

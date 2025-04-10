@@ -9,9 +9,9 @@ import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
 import com.genir.aitweaks.core.shipai.movement.Helm.Companion.helm
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedX
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.getShortestRotation
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.sign

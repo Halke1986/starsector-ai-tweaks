@@ -11,16 +11,15 @@ import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
-import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.state.Config.Companion.config
-import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.Direction
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.solve
+import com.genir.aitweaks.core.utils.types.Arc
+import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import kotlin.math.floor
 
 val WeaponAPI.isAntiFighter: Boolean
@@ -232,24 +231,6 @@ val WeaponAPI.isPermanentlyOutOfAmmo: Boolean
 
 val WeaponAPI.isInLongReload: Boolean
     get() = customAI?.reloadTracker?.isInLongReload == true
-
-val WeaponAPI.isForceFireOneFrame: Boolean
-    get() = when (this) {
-        is Obfuscated.BeamWeapon -> isForceFireOneFrame
-
-        is Obfuscated.ProjectileWeapon -> isForceFireOneFrame
-
-        else -> false
-    }
-
-val WeaponAPI.isForceNoFireOneFrame: Boolean
-    get() = when (this) {
-        is Obfuscated.BeamWeapon -> isForceNoFireOneFrame
-
-        is Obfuscated.ProjectileWeapon -> isForceNoFireOneFrame
-
-        else -> false
-    }
 
 val WeaponAPI.turnRateWhileIdle: Float
     get() {

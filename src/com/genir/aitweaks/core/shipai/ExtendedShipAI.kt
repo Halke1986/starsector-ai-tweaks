@@ -11,11 +11,11 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
 import com.genir.aitweaks.core.shipai.movement.Helm.Companion.helm
 import com.genir.aitweaks.core.state.Config
-import com.genir.aitweaks.core.utils.Direction
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.defaultAIInterval
+import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */

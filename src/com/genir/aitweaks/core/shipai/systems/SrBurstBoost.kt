@@ -7,9 +7,13 @@ import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
-import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.Bounds
+import com.genir.aitweaks.core.utils.solve
+import com.genir.aitweaks.core.utils.types.Arc
+import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.RotationMatrix
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 

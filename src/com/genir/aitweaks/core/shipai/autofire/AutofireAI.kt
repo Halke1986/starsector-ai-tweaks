@@ -13,11 +13,11 @@ import com.genir.aitweaks.core.shipai.autofire.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.shipai.autofire.UpdateTarget.Companion.TARGET_SEARCH_MULT
-import com.genir.aitweaks.core.utils.Direction
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.RotationMatrix
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
+import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.RotationMatrix
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
 

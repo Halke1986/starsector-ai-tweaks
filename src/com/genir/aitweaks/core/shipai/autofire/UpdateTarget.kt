@@ -6,9 +6,9 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.Config.Companion.config
-import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.Grid
+import com.genir.aitweaks.core.utils.types.Arc
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 

@@ -1,8 +1,8 @@
 package utils
 
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.PI
 import com.genir.aitweaks.core.utils.atan
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.vectorProjection
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

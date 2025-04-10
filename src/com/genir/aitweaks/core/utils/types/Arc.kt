@@ -1,7 +1,7 @@
-package com.genir.aitweaks.core.utils
+package com.genir.aitweaks.core.utils.types
 
 import com.genir.aitweaks.core.extensions.facing
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min

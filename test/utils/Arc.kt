@@ -1,7 +1,7 @@
 package utils
 
-import com.genir.aitweaks.core.utils.Arc
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Arc
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 

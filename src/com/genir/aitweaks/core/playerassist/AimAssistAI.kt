@@ -17,8 +17,8 @@ import com.genir.aitweaks.core.shipai.movement.Helm.Companion.helm
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 

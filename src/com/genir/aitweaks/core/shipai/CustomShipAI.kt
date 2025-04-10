@@ -20,6 +20,7 @@ import com.genir.aitweaks.core.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.types.Arc
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import kotlin.math.max

@@ -7,8 +7,8 @@ import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.shipai.CustomShipAI
-import com.genir.aitweaks.core.utils.Direction
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 

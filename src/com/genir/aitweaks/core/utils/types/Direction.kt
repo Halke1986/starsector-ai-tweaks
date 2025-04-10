@@ -1,5 +1,6 @@
-package com.genir.aitweaks.core.utils
+package com.genir.aitweaks.core.utils.types
 
+import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.*
 

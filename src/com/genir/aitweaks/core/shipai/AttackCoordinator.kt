@@ -5,8 +5,8 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.utils.Direction
 import com.genir.aitweaks.core.utils.angularSize
+import com.genir.aitweaks.core.utils.types.Direction
 import org.lwjgl.util.vector.Vector2f
 
 /**

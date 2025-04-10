@@ -14,6 +14,7 @@ import com.genir.aitweaks.core.shipai.autofire.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.Hit
 import com.genir.aitweaks.core.shipai.autofire.analyzeAllyHit
 import com.genir.aitweaks.core.shipai.autofire.analyzeHit
+import com.genir.aitweaks.core.utils.types.Direction
 import org.json.JSONObject
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max

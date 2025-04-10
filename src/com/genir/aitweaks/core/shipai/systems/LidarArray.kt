@@ -13,9 +13,9 @@ import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.shipai.autofire.canTrack
 import com.genir.aitweaks.core.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
+import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 
 class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
