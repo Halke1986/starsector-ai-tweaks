@@ -28,8 +28,19 @@ operator fun Vector2f.div(b: Float): Vector2f {
 }
 
 fun Vector2f.resized(length: Float): Vector2f {
-    return if (isZero) Vector2f()
-    else this * length / this.length
+    return if (isZero) {
+        Vector2f()
+    } else {
+        this * length / this.length
+    }
+}
+
+fun Vector2f.clampLength(maxLength: Float): Vector2f {
+    return if (lengthSquared > maxLength * maxLength) {
+        resized(maxLength)
+    } else {
+        copy
+    }
 }
 
 val Vector2f.copy: Vector2f

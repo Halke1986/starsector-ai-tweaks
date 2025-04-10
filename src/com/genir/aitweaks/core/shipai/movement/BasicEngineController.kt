@@ -7,7 +7,6 @@ import com.genir.aitweaks.core.utils.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.sqrt
-import org.lazywizard.lazylib.ext.clampLength
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.max
