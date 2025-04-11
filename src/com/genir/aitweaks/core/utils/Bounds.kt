@@ -35,6 +35,10 @@ object Bounds {
             val d = segment.p2 - segment.p1
 
             val m = crossProductZ(d, v)
+            if (m == 0f) {
+                return@forEach // lines are parallel
+            }
+
             val k = crossProductZ(v, q) / m
             if (k < 0 || k > 1) {
                 return@forEach // no collision
