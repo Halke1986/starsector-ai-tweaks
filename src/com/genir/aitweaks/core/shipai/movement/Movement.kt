@@ -21,7 +21,7 @@ import kotlin.math.min
 @Suppress("MemberVisibilityCanBePrivate")
 class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable {
     private val helm: Helm = ai.ship.helm
-    private val engineController: EngineController = EngineController(helm)
+    private val engineController: EngineController = EngineController(ai, helm)
     private val collisionAvoidance: CollisionAvoidance = CollisionAvoidance(ai)
 
     private var prevFrameIdx = 0

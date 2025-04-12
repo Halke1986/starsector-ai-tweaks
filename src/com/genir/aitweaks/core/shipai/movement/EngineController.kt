@@ -3,12 +3,16 @@ package com.genir.aitweaks.core.shipai.movement
 import com.fs.starfarer.api.combat.ShipCommand
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.shipai.movement.CollisionAvoidance.Companion.movementPriority
+import com.genir.aitweaks.core.utils.sqrt
 import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.LinearMotion
+import com.genir.aitweaks.core.utils.types.LinearMotion.Companion.intersection
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
-import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedY
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
 import kotlin.math.abs
@@ -17,7 +21,7 @@ import kotlin.math.min
 import kotlin.math.sign
 
 /** Engine Controller for AI piloted ships. */
-class EngineController(helm: Helm) : BasicEngineController(helm) {
+class EngineController(val ai: CustomShipAI, helm: Helm) : BasicEngineController(helm) {
     data class Destination(val location: Vector2f, val velocity: Vector2f)
 
     /** Limit allows to restrict velocity to not exceed
@@ -40,10 +44,9 @@ class EngineController(helm: Helm) : BasicEngineController(helm) {
         return heading(dt, destination.location, destination.velocity) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
     }
 
-    private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<Limit>): Vector2f? {
+    private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<Limit>): LimitedVelocity? {
         val rotationToShip = toShipFacing.rotationMatrix
-        val expectedVelocity = expectedVelocityRaw.rotatedReverse(rotationToShip) / dt
-        val vLim = max(helm.velocity.length, expectedVelocity.length)
+        val expectedVelocity = (expectedVelocityRaw.rotatedReverse(rotationToShip) / dt)
 
 //        limits.forEach { lim ->
 //            val obs = lim.obstacle?.let { "${it.velocity}" } ?: ""
@@ -51,6 +54,7 @@ class EngineController(helm: Helm) : BasicEngineController(helm) {
 //        }
 
         // Discard speed limits with value too high to affect the ship movement.
+        val vLim = max(helm.velocity.length, expectedVelocity.length)
         val relevantLimits = limits.filter { limit ->
             limit.speedLimit <= vLim
         }
@@ -66,12 +70,38 @@ class EngineController(helm: Helm) : BasicEngineController(helm) {
                 helm.command(ShipCommand.DECELERATE)
             }
 
-            return Vector2f()
+            return null
         }
 
 //        debugDrawBounds(bounds)
 
-        val deltaV: Vector2f? = findSafeVelocityDV(bounds, expectedVelocity)
+        val limitedVelocity = handleOngoingOverspeed(bounds, rotationToShip)
+            ?: handleExpectedOverspeed(bounds, expectedVelocity)
+
+        // Translate the limited velocity to ship frame of reference.
+        if (limitedVelocity != null) {
+            return LimitedVelocity(
+                limitedVelocity.movementOverridden,
+                limitedVelocity.velocity.rotated(rotationToShip) * dt,
+            )
+        }
+
+        return null
+    }
+
+    private fun handleOngoingOverspeed(bounds: List<Bound>, rotationToShip: RotationMatrix): LimitedVelocity? {
+        val deltaV = findSafeVelocityDV(bounds, calculateLimitedVelocityY = { bound ->
+            val velocity = helm.velocity.rotated(bound.r)
+            if (velocity.x <= bound.speedLimit) {
+                // Velocity does not exceed the bound.
+                return@findSafeVelocityDV null
+            }
+
+            val slideMagnitude = abs(bound.speedLimit - velocity.x)
+
+            velocity.y + slideMagnitude * slideDirection(bound)
+        })
+
         if (deltaV != null) {
             // Use the two ship thrust vectors that form the quadrant containing
             // the velocity delta (DV) vector, rather than applying proportional
@@ -87,9 +117,31 @@ class EngineController(helm: Helm) : BasicEngineController(helm) {
 
 //            Debug.drawVector(helm.location, helm.velocity, GREEN)
 //            Debug.drawVector(helm.location, helm.velocity + deltaV, YELLOW)
-//            Debug.drawLine(helm.location, ship.customShipAI!!.movement.headingPoint, MAGENTA)
+//            Debug.drawLine(helm.location, helm.ship.customShipAI!!.movement.headingPoint, MAGENTA)
 
-            return helm.velocity + deltaV
+            return LimitedVelocity(movementOverridden = true, helm.velocity + deltaV)
+        }
+
+        return null
+    }
+
+    private fun handleExpectedOverspeed(bounds: List<Bound>, expectedVelocity: Vector2f): LimitedVelocity? {
+        val expectedVelocityCapped = expectedVelocity.clampLength(helm.maxSpeed)
+
+        val deltaV = findSafeVelocityDV(bounds, calculateLimitedVelocityY = { bound ->
+            val vx = expectedVelocity.rotatedX(bound.r)
+            if (vx <= bound.speedLimit) {
+                // Velocity does not exceed the bound.
+                return@findSafeVelocityDV null
+            }
+
+            val slideMagnitude = sqrt(bound.speedLimit * bound.speedLimit + expectedVelocityCapped.lengthSquared)
+
+            slideMagnitude * slideDirection(bound)
+        })
+
+        if (deltaV != null) {
+            return LimitedVelocity(movementOverridden = false, helm.velocity + deltaV)
         }
 
         return null
@@ -98,47 +150,20 @@ class EngineController(helm: Helm) : BasicEngineController(helm) {
     /** If the ship's current velocity exceeds any speed limit, calculate
      * a new velocity vector that does not exceed the speed limit and can
      * be reached in the shortest possible time. */
-    private fun findSafeVelocityDV(bounds: List<Bound>, expectedVelocity: Vector2f): Vector2f? {
+    private fun findSafeVelocityDV(bounds: List<Bound>, calculateLimitedVelocityY: (Bound) -> Float?): Vector2f? {
         var lowestDeltaV: Vector2f? = null
 
         // Find the closest point on the boundary relative to the velocity vector.
         // This point will be the new, limited velocity.
         for (bound in bounds) {
-            // Velocity does not exceed the bound.
-            val vx = helm.velocity.rotatedX(bound.r)
-            if (vx <= bound.speedLimit) {
-                continue
-            }
+            val limitedVelocityY = calculateLimitedVelocityY(bound) ?: continue
 
-            val obstacle = bound.obstacle
-            val expectedX = expectedVelocity.rotatedX(bound.r)
+            val limitedVelocity = Vector2f(
+                bound.speedLimit,
+                limitedVelocityY.coerceIn(bound.pMin, bound.pMax),
+            )
 
-            val slideOffset = when {
-                // If an allied or inert obstacle is pushing the ship away
-                // from its destination, try to deliberately slide past it.
-                obstacle != null && !obstacle.ship.isHostile(helm.ship) && expectedX >= bound.speedLimit -> {
-                    val obstacleVelocity = obstacle.ship.customShipAI?.movement?.expectedVelocity ?: obstacle.velocity
-                    val obstacleY = obstacleVelocity.rotatedY(bound.r)
-                    abs(bound.speedLimit - vx) * -obstacleY.sign
-                }
-
-                // Apply an acceleration in the expected direction on top of
-                // avoiding the speed limit.
-                obstacle != null -> {
-                    val expectedY = expectedVelocity.rotatedY(bound.r)
-                    abs(bound.speedLimit - vx) * expectedY.sign
-                }
-
-                else -> {
-                    0f
-                }
-            }
-
-            val vCorrectedY = helm.velocity.rotatedY(bound.r) + slideOffset
-            val closestPoint = Vector2f(bound.speedLimit, vCorrectedY.coerceIn(bound.pMin, bound.pMax))
-            val limitedVelocity = closestPoint.rotatedReverse(bound.r)
-            val dv = limitedVelocity - helm.velocity
-
+            val dv = limitedVelocity.rotatedReverse(bound.r) - helm.velocity
             if (lowestDeltaV == null || dv.lengthSquared < lowestDeltaV.lengthSquared) {
                 lowestDeltaV = dv
             }
@@ -180,6 +205,47 @@ class EngineController(helm: Helm) : BasicEngineController(helm) {
         }
 
         return relaxedBounds
+    }
+
+    /** Calculate direction the ship should "slide" along the boundary to avoid an obstacle. */
+    private fun slideDirection(bound: Bound): Float {
+        val direction = (ai.movement.headingPoint - helm.location).rotated(bound.r)
+        val defaultDirection = direction.y.sign
+
+        val obstacle = bound.obstacle ?: return defaultDirection
+        val obstacleExpectedVelocity = obstacle.ship.customShipAI?.movement?.expectedVelocity
+        val obstacleVelocity = (obstacleExpectedVelocity ?: obstacle.velocity).rotated(bound.r)
+        val toObstacle = (obstacle.location - helm.location).rotated(bound.r)
+
+        // Check if ship intends to cross obstacle velocity vector.
+        val (k, t) = intersection(
+            LinearMotion(Vector2f(), direction),
+            LinearMotion(toObstacle, obstacleVelocity),
+        ) ?: return direction.y.sign
+
+        // Ship does not intend to cross the obstacle velocity vector.
+        if (k < 0f || k > 1f || t < 0f) {
+            return defaultDirection
+        }
+
+        // If two ships' paths intersect, one should yield the right of way.
+        val shouldYield = when {
+            helm.ship.movementPriority < obstacle.ship.movementPriority -> true
+
+            helm.acceleration > obstacle.acceleration -> true
+
+            helm.ship.mass < obstacle.ship.mass -> true
+
+            helm.ship.hashCode() < obstacle.ship.hashCode() -> true
+
+            else -> false
+        }
+
+        if (shouldYield) {
+            return -defaultDirection
+        }
+
+        return defaultDirection
     }
 
     private fun intersectBounds(rawBounds: List<Bound>, tolerance: Float): List<Bound> {

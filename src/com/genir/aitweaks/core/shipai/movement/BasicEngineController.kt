@@ -25,6 +25,8 @@ import kotlin.random.Random
 open class BasicEngineController(val helm: Helm) {
     private var prevFacing: Direction = 0f.direction
 
+    data class LimitedVelocity(val movementOverridden: Boolean, val velocity: Vector2f)
+
     /**
      * Set ship heading towards selected location. Appropriate target
      * leading is calculated based on provided target velocity. If the ship
@@ -32,7 +34,7 @@ open class BasicEngineController(val helm: Helm) {
      * `limitVelocity` lambda is used to restrict the velocity, e.g. for
      * collision avoidance purposes. Returns the calculated expected velocity.
      */
-    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> Vector2f?)? = null): Vector2f {
+    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> LimitedVelocity?)? = null): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val af = helm.acceleration * dt * dt
@@ -59,17 +61,15 @@ open class BasicEngineController(val helm: Helm) {
         val vtt = if (vmx == 0f || vmy == 0f) Vector2f(vmx, vmy)
         else d * min(vmx / d.x, vmy / d.y)
 
-        // Expected velocity change.
-        val ve = (vtt + vt).clampLength(vMax)
-        val dv = ve - v
-
-//        Debug.drawVector(ship.location, ve.rotatedReverse(r) / dt, Color.MAGENTA)
-//        Debug.drawVector(ship.location, v.rotatedReverse(r) / dt, Color.GREEN)
-
         // Allow velocity limiting logic to handle the ship movement, if required.
-        limitVelocity?.invoke(toShipFacing, ve)?.let { vExpectedLimited ->
-            return vExpectedLimited
+        val limitedVelocity = limitVelocity?.invoke(toShipFacing, vtt + vt)
+        if (limitedVelocity?.movementOverridden == true) {
+            return limitedVelocity.velocity.rotatedReverse(r) / dt
         }
+
+        // Expected velocity change.
+        val ve = limitedVelocity?.velocity ?: (vtt + vt).clampLength(vMax)
+        val dv = ve - v
 
         // Stop if arrived at location, that is when expected velocity change
         // and location change is less than half of velocity change unit.

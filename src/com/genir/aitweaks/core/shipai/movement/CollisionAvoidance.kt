@@ -173,46 +173,48 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         return EngineController.Limit(toObstacleFacing, speedLimit, obstacle)
     }
 
-    private val ShipAPI.movementPriority: Float
-        get() {
-            val ai = customShipAI
+    companion object {
+        val ShipAPI.movementPriority: Float
+            get() {
+                val ai = customShipAI
 
-            return when {
-                root.isStation -> {
-                    10f
-                }
+                return when {
+                    root.isStation -> {
+                        10f
+                    }
 
-                isHulk -> {
-                    10f
-                }
+                    isHulk -> {
+                        10f
+                    }
 
-                engineController?.isFlamedOut == true -> {
-                    10f
-                }
+                    engineController?.isFlamedOut == true -> {
+                        10f
+                    }
 
-                this == Global.getCombatEngine().playerShip && isUnderManualControl -> {
-                    3f
-                }
+                    this == Global.getCombatEngine().playerShip && isUnderManualControl -> {
+                        3f
+                    }
 
-                root.isFrigate -> {
-                    -1f
-                }
+                    root.isFrigate -> {
+                        -1f
+                    }
 
-                aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
-                    2f
-                }
+                    aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
+                        2f
+                    }
 
-                ai == null -> {
-                    0f
-                }
+                    ai == null -> {
+                        0f
+                    }
 
-                ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> {
-                    1f
-                }
+                    ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> {
+                        1f
+                    }
 
-                else -> {
-                    0f
+                    else -> {
+                        0f
+                    }
                 }
             }
-        }
+    }
 }
