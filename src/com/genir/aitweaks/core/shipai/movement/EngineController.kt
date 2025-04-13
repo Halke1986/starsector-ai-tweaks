@@ -14,7 +14,7 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.BLUE
+import java.awt.Color.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -73,7 +73,7 @@ class EngineController(val ai: CustomShipAI, helm: Helm) : BasicEngineController
             return null
         }
 
-//        debugDrawBounds(bounds)
+        debugDrawBounds(bounds)
 
         val limitedVelocity = handleOngoingOverspeed(bounds, rotationToShip)
             ?: handleExpectedOverspeed(bounds, expectedVelocity)
@@ -90,7 +90,15 @@ class EngineController(val ai: CustomShipAI, helm: Helm) : BasicEngineController
     }
 
     private fun handleOngoingOverspeed(bounds: List<Bound>, rotationToShip: RotationMatrix): LimitedVelocity? {
+        val shipPriority = helm.ship.movementPriority
         val deltaV = findSafeVelocityDV(bounds, calculateLimitedVelocityY = { bound ->
+            // When ship has a higher priority than the obstacle, do not brake sharply.
+            // Let the handleExpectedOverspeed method handle the collision gracefully.
+            val obstacle = bound.obstacle
+            if (obstacle != null && shipPriority > obstacle.ship.movementPriority) {
+                return@findSafeVelocityDV null
+            }
+
             val velocity = helm.velocity.rotated(bound.r)
             if (velocity.x <= bound.speedLimit) {
                 // Velocity does not exceed the bound.
@@ -116,8 +124,8 @@ class EngineController(val ai: CustomShipAI, helm: Helm) : BasicEngineController
             if (dvs.x > 0) helm.command(ShipCommand.STRAFE_RIGHT)
 
 //            Debug.drawVector(helm.location, helm.velocity, GREEN)
-//            Debug.drawVector(helm.location, helm.velocity + deltaV, YELLOW)
-//            Debug.drawLine(helm.location, helm.ship.customShipAI!!.movement.headingPoint, MAGENTA)
+            Debug.drawVector(helm.location, helm.velocity + deltaV, YELLOW)
+            Debug.drawLine(helm.location, helm.ship.customShipAI!!.movement.headingPoint, MAGENTA)
 
             return LimitedVelocity(movementOverridden = true, helm.velocity + deltaV)
         }
@@ -129,9 +137,14 @@ class EngineController(val ai: CustomShipAI, helm: Helm) : BasicEngineController
         val expectedVelocityCapped = expectedVelocity.clampLength(helm.maxSpeed)
 
         val deltaV = findSafeVelocityDV(bounds, calculateLimitedVelocityY = { bound ->
+            val obstacle = bound.obstacle
+            if (obstacle != null && obstacle.ship.isHostile(helm.ship)) {
+                return@findSafeVelocityDV null
+            }
+
+            // Velocity does not exceed the bound.
             val vx = expectedVelocity.rotatedX(bound.r)
             if (vx <= bound.speedLimit) {
-                // Velocity does not exceed the bound.
                 return@findSafeVelocityDV null
             }
 
@@ -141,6 +154,9 @@ class EngineController(val ai: CustomShipAI, helm: Helm) : BasicEngineController
         })
 
         if (deltaV != null) {
+            Debug.drawVector(helm.location, helm.velocity + deltaV, YELLOW)
+            Debug.drawLine(helm.location, helm.ship.customShipAI!!.movement.headingPoint, MAGENTA)
+
             return LimitedVelocity(movementOverridden = false, helm.velocity + deltaV)
         }
 
@@ -230,6 +246,8 @@ class EngineController(val ai: CustomShipAI, helm: Helm) : BasicEngineController
 
         // If two ships' paths intersect, one should yield the right of way.
         val shouldYield = when {
+            helm.ship.owner != obstacle.ship.owner -> false
+
             helm.ship.movementPriority < obstacle.ship.movementPriority -> true
 
             helm.acceleration > obstacle.acceleration -> true

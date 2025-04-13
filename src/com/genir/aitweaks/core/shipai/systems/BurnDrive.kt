@@ -9,7 +9,8 @@ class BurnDrive(ai: CustomShipAI) : SystemAI(ai) {
     override fun advance(dt: Float) {
         // Prevent vanilla AI from jumping closer to target with
         // BURN_DRIVE, if the target is already within weapons range.
-        if (ai.attackTarget != null && ai.currentEffectiveRange(ai.attackTarget!!) < ai.attackingGroup.effectiveRange) {
+        val rangeBuffer = 200f
+        if (ai.attackTarget != null && ai.currentEffectiveRange(ai.attackTarget!!) < ai.attackingGroup.effectiveRange + rangeBuffer) {
             ship.blockCommandForOneFrame(ShipCommand.USE_SYSTEM)
         }
 

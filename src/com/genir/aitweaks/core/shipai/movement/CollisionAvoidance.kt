@@ -21,30 +21,12 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     private val helm: Helm = ai.ship.helm
 
     fun gatherSpeedLimits(dt: Float): List<EngineController.Limit> {
-        val allObstacles = Global.getCombatEngine().ships.filter {
-            when {
-                it.root == helm.ship.root -> false
-                it.collisionClass != CollisionClass.SHIP -> false
-
-                // Modules and drones count towards
-                // their parent collision radius.
-                it.isModule -> false
-                it.isDrone -> false
-
-                else -> true
-            }
-        }
-
-        val allies = allObstacles.filter { it.owner == helm.ship.owner }
-        val hulks = allObstacles.filter { it.owner == 100 && it.mass / helm.ship.mass > hulkSizeFactor }
-
         // Calculate speed limits.
         val targetLimit = avoidManeuverTarget(dt)
-        val collisionLimits = avoidCollisions(dt, allies + hulks)
+        val collisionLimits = avoidCollisions(dt)
         val borderLimit = avoidBorder()
 
-        val limits: List<EngineController.Limit?> = listOf(targetLimit, borderLimit) + collisionLimits
-        return limits.filterNotNull()
+        return (listOf(targetLimit, borderLimit) + collisionLimits).filterNotNull()
     }
 
     private fun avoidManeuverTarget(dt: Float): EngineController.Limit? {
@@ -61,7 +43,30 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         return vMaxToObstacle(dt, target.helm, ai.attackRange * 0.9f)
     }
 
-    private fun avoidCollisions(dt: Float, obstacles: List<ShipAPI>): List<EngineController.Limit?> {
+    private fun avoidCollisions(dt: Float): List<EngineController.Limit?> {
+        val obstacles: List<ShipAPI> = Global.getCombatEngine().ships.filter {
+            when {
+                it.root == helm.ship.root -> false
+                it.collisionClass != CollisionClass.SHIP -> false
+
+                // Modules and drones count towards
+                // their parent collision radius.
+                it.isModule -> false
+                it.isDrone -> false
+
+                // Ignore frigates. Let them move out of the way.
+                it.isFrigate -> false
+
+                // Large hulks.
+                it.owner == 100 && it.mass / helm.ship.mass > hulkSizeFactor -> true
+
+                // Allies
+                it.owner == helm.ship.owner -> true
+
+                else -> false
+            }
+        }
+
         val shipPriority = helm.ship.movementPriority
 
         return obstacles.map { obstacle ->
@@ -91,14 +96,6 @@ class CollisionAvoidance(val ai: CustomShipAI) {
             }
 
             val minDistance = (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius) * distanceFactor
-
-            // Priority ships ignore collision risk until the collision is imminent.
-            // This causes the ships to brake later, maintain higher speed, and push
-            // through allied formations more aggressively.
-            if (minDistance > 0 && shipHasPriority) {
-                return@map null
-            }
-
             vMaxToObstacle(dt, obstacle.helm, minDistance)
         }
     }
@@ -188,6 +185,10 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                     }
 
                     engineController?.isFlamedOut == true -> {
+                        10f
+                    }
+
+                    this == Global.getCombatEngine().playerShip -> {
                         10f
                     }
 

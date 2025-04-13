@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
+import java.awt.Color
 
 /**
  *
@@ -28,11 +29,12 @@ internal fun debug(dt: Float) {
 //    }
 
     ships.forEach {
+//        Debug.drawCircle(it.location, it.collisionRadius * 1.4f, Color.CYAN)
 //        Debug.drawCollisionRadius(it, Color.CYAN)
 //        Debug.drawAccelerationLines(it)
 
 //        Debug.drawCircle(it.location, it.collisionRadius * 1.4f, CYAN)
     }
 
-//    removeAsteroids()
+    removeAsteroids()
 }
