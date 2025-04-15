@@ -74,9 +74,32 @@ Next, I scuttled Atlases to check if I'm right, and bug's didn't occurred, auto-
 
     Conclusion, there's actually an auto-shield bug with AGC, that happens when there's more than one ship in the fleet, otherwise one ship will be fine.
 
+----------------------------------------------------------------
 
 REPOTRED by Lprsti99:
 Having an issue with the shield assist, where if it's toggled on when a battle ends, it starts enabled in the next battles, but it's nonfunctional - doesn't raise the shield, and if I raise it manually it doesn't control it at all.  toggling it off and on doesn't solve this, the only fix I've found is to make sure it's toggled off at the end of *that* battle, in which case it's functional again next time.  Possibly a mod incompatibility - if so, my immediate suspect is Puretilt's QOL pack, due to the shield facing settings in there.  I mainly use the qol pack for automatically toggling the transponder in hyperspace anyway, but also possible that something in the 0.98 update caused it maybe? Keep forgetting to try disabling the qol mod and I can't try now unfortunately, irl stuff going on (I only just happened to think to make a comment).
+
+
+REPOTRED by CrashToDesktop:
+@Genir figured I'd give you a heads up, it looks like AI Tweaks makes the game forget how to properly use the Voltaic Discharge weapon from Threat
+it doesn't matter if the ship uses Custom AI or not, including the whole Threat lineup when you fight them
+
+REPORTED by Norath on the forums:
+found this while testing some ship explotion stuff
+with the mod on the turrets turn away and target some ghost ? (there is nothing up there) when geting close to other ship
+without mod turrets stay on target and keep fireing
+
+REPORTED by Archelius on the forums:
+Hello! Some mild incompatibilities with another mod, Random Assortment of Things:
+    "Leanira" cruiser ship system "deploys" a turret (ship) onto the battlefield. When the ship is controlled by an NPC, the ship system is never used. However, if this ship is piloted by the player, the autopilot will use the ship system. This behavior occurs with and without the Custom AI hullmod.
+    "Hypatia" destroyer ship system causes it to enter "phase space", allowing it to travel very quickly, but prevents the usage of weapons or shields. The system acts as a toggle, with activation causing the ship to enter "phase space" and re-activation causing it to exit "phase space". When the ship is controlled by an NPC, after some period of time in battle, the ship activates the system, but never deactivates the system, causing to circle endlessly in "phase space". 
+
+SUGGESTED by Alkkaid on the forums:
+Man, conceptually this is really cool, so I guess I'll try it, though I'm wary of the balance impacts and even more than that the 'uncanny behavior' (immersion is important after all.)
+I assume AI is too complicated to do piecemeal and make more modular in the sense of being able to keep the 'it should just work this way already' changes like broadsides but have vanilla PD behavior instead of a constant laser lightshow? And also accuracy. Don't really want inhumanly accurate ships, lol.
+Is the awful, awful, indescribably awful behavior exhibited by particularly Hyperions when there are fighters on the field something in the scope of this mod? It's the most obnoxious thing and probably the worst example of bad AI behavior I've seen. Imagine a Hyperion kitted out for anti-ship, it's got a reaper and some kinetic weapons, it's got 360 degree shields with extended shields. What does it do? It spins around in place trying to shoot little pirate fighters with machine guns or block their attacks from landing on its fully shielded self rather than... attacking the enemy carrier that's about a foot away from it.
+
+
 
 ----------------------------------------------------------------
 
