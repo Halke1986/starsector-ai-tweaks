@@ -1,3 +1,5 @@
+- Custom AI: Fixed an issue where weapon logic delegated to vanilla AI overrode the ship target selection. The issue affected especially Invictus Lidar burst, causing weapons to hold fire.
+
 Version 2.0.1
 
 - Autofire AI: Improved aiming logic for low turn rate turrets. Now it's significantly less likely a ship will interrupt a burst when turning towards the target.

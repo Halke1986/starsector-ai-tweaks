@@ -65,6 +65,8 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
         val collisionDangerDir: Vector2f? = null // TODO maybe implement?
 
         attackModule.attackAIModule_advance(dt, threatEvaluator, missileDangerDir)
+        ship.shipTarget = attackTarget // Vanilla AttackModule changes ship target. Switch it back to the proper one.
+
         shieldAI?.shieldAI_advance(dt, threatEvaluator, missileDangerDir, collisionDangerDir, target)
         systemAI?.systemAI_advance(dt, missileDangerDir, collisionDangerDir, target)
     }
