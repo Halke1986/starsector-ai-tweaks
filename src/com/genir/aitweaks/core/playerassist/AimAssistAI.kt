@@ -72,14 +72,19 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
 
     private fun controlShipHeading(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
         // Do not attempt to override the ship movement if any of the movement commands is blocked.
-        val commands = arrayOf(VanillaShipCommand.STRAFE_LEFT, VanillaShipCommand.STRAFE_RIGHT, VanillaShipCommand.ACCELERATE, VanillaShipCommand.ACCELERATE_BACKWARDS)
+        val commands = arrayOf(
+            VanillaShipCommand.STRAFE_LEFT,
+            VanillaShipCommand.STRAFE_RIGHT,
+            VanillaShipCommand.ACCELERATE,
+            VanillaShipCommand.ACCELERATE_BACKWARDS,
+        )
         val blockedCommands = (ship as Obfuscated.Ship).blockedCommands
         if (commands.any { blockedCommands.contains(it.obfuscated) }) {
             return
         }
 
         // Remove vanilla move commands.
-        clearVanillaCommands(ship, *commands)
+        clearVanillaCommands(ship, *commands)1
 
         // Compensate ship movement for the fact the ship
         // is not necessary facing the target directly.
