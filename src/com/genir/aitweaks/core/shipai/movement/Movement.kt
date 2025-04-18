@@ -39,13 +39,13 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
 
     fun advance(dt: Float) {
         if (prevFrameIdx != state.frameIndex) {
-            kinematics.clearCommands()
+            engineController.clearCommands()
 
             setFacing(dt)
             setHeading(dt, ai.maneuverTarget)
         }
 
-        kinematics.executeCommands()
+        engineController.executeCommands()
 
         prevFrameIdx = state.frameIndex
     }

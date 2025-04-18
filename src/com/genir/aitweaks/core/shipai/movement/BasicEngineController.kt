@@ -22,7 +22,7 @@ import kotlin.random.Random
  * the controller works better when called from ship AI, as
  * opposed to every frame combat plugin.
  */
-open class BasicEngineController(val kinematics: Kinematics) {
+open class BasicEngineController(val kinematics: Kinematics): Helm(kinematics.ship) {
     private var prevFacing: Direction = 0f.direction
 
     data class LimitedVelocity(val movementOverridden: Boolean, val velocity: Vector2f)
@@ -75,7 +75,7 @@ open class BasicEngineController(val kinematics: Kinematics) {
         // and location change is less than half of velocity change unit.
         if (ve.length < af / 2) {
             if (kinematics.velocity.isNonZero) {
-                kinematics.command(DECELERATE)
+                giveCommand(DECELERATE)
             }
             return Vector2f()
         }
@@ -92,10 +92,10 @@ open class BasicEngineController(val kinematics: Kinematics) {
         val overspeedY = vmy.sign == v.y.sign && abs(vmy) < abs(v.y)
 
         // Give commands to achieve the calculated thrust.
-        if (shouldAccelerate(overspeedY, ff, fMax)) kinematics.command(ACCELERATE)
-        if (shouldAccelerate(overspeedY, fb, fMax)) kinematics.command(ACCELERATE_BACKWARDS)
-        if (shouldAccelerate(overspeedX, fl, fMax)) kinematics.command(STRAFE_LEFT)
-        if (shouldAccelerate(overspeedX, fr, fMax)) kinematics.command(STRAFE_RIGHT)
+        if (shouldAccelerate(overspeedY, ff, fMax)) giveCommand(ACCELERATE)
+        if (shouldAccelerate(overspeedY, fb, fMax)) giveCommand(ACCELERATE_BACKWARDS)
+        if (shouldAccelerate(overspeedX, fl, fMax)) giveCommand(STRAFE_LEFT)
+        if (shouldAccelerate(overspeedX, fr, fMax)) giveCommand(STRAFE_RIGHT)
 
         return ve.rotatedReverse(r) / dt
     }
@@ -133,8 +133,8 @@ open class BasicEngineController(val kinematics: Kinematics) {
         val el = abs(dw - a)
 
         when {
-            er < el && er < ed -> kinematics.command(TURN_RIGHT)
-            el < ed -> kinematics.command(TURN_LEFT)
+            er < el && er < ed -> giveCommand(TURN_RIGHT)
+            el < ed -> giveCommand(TURN_LEFT)
             else -> Unit // Let the ship decelerate.
         }
     }

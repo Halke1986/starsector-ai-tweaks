@@ -66,8 +66,12 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
             engineController = BasicEngineController(ship.kinematics)
         }
 
+        engineController!!.clearCommands()
+
         controlShipHeading(dt, ship, target)
         controlShipFacing(dt, ship, target)
+
+        engineController!!.executeCommands()
     }
 
     private fun controlShipHeading(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
@@ -84,7 +88,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         }
 
         // Remove vanilla move commands.
-        clearVanillaCommands(ship, *commands)1
+        clearVanillaCommands(ship, *commands)
 
         // Compensate ship movement for the fact the ship
         // is not necessary facing the target directly.

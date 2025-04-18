@@ -1,6 +1,6 @@
 package com.genir.aitweaks.core.shipai.movement
 
-import com.fs.starfarer.api.combat.ShipCommand
+import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
@@ -67,7 +67,7 @@ class EngineController(val ai: CustomShipAI, kinematics: Kinematics) : BasicEngi
         if (bounds.isEmpty()) {
             // In case of strongly contradicting speed limits, stop the ship.
             if (kinematics.velocity.isNonZero) {
-                kinematics.command(ShipCommand.DECELERATE)
+                giveCommand(DECELERATE)
             }
 
             return null
@@ -118,10 +118,10 @@ class EngineController(val ai: CustomShipAI, kinematics: Kinematics) : BasicEngi
             // applies an additional perpendicular thrust component, allowing the
             // ship to "slide" past obstacles naturally.
             val dvs = deltaV.rotated(rotationToShip)
-            if (dvs.y > 0) kinematics.command(ShipCommand.ACCELERATE)
-            if (dvs.y < 0) kinematics.command(ShipCommand.ACCELERATE_BACKWARDS)
-            if (dvs.x < 0) kinematics.command(ShipCommand.STRAFE_LEFT)
-            if (dvs.x > 0) kinematics.command(ShipCommand.STRAFE_RIGHT)
+            if (dvs.y > 0) giveCommand(ACCELERATE)
+            if (dvs.y < 0) giveCommand(ACCELERATE_BACKWARDS)
+            if (dvs.x < 0) giveCommand(STRAFE_LEFT)
+            if (dvs.x > 0) giveCommand(STRAFE_RIGHT)
 
 //            Debug.drawVector(kinematics.location, kinematics.velocity, GREEN)
             Debug.drawVector(kinematics.location, kinematics.velocity + deltaV, YELLOW)

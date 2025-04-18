@@ -1,30 +1,12 @@
 package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipCommand
 import com.genir.aitweaks.core.extensions.times
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 
 class Kinematics(val ship: ShipAPI) {
-    // Command.
-    val commands: MutableSet<ShipCommand> = mutableSetOf()
-
-    fun clearCommands() {
-        commands.clear()
-    }
-
-    fun executeCommands() {
-        commands.forEach { cmd ->
-            ship.giveCommand(cmd, null, 0)
-        }
-    }
-
-    fun command(cmd: ShipCommand) {
-        commands.add(cmd)
-    }
-
     // Linear velocity.
     val location: Vector2f
         get() = ship.location

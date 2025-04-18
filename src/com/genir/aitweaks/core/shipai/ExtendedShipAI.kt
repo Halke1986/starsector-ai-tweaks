@@ -38,7 +38,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
         super.advance(dt)
         updateInterval.advance(dt)
 
-        engineController.kinematics.clearCommands()
+        engineController.clearCommands()
         controlFacing(dt)
 
         // Make sure the ship target is set. Vanilla AI may fail to do so
@@ -47,7 +47,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
             ship.shipTarget = ship.attackTarget
         }
 
-        engineController.kinematics.executeCommands()
+        engineController.executeCommands()
     }
 
     private fun debug() {
