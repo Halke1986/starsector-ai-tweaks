@@ -73,7 +73,7 @@ class EngineController(val ai: CustomShipAI, kinematics: Kinematics) : BasicEngi
             return null
         }
 
-        debugDrawBounds(bounds)
+//        debugDrawBounds(bounds)
 
         val limitedVelocity = handleOngoingOverspeed(bounds, rotationToShip)
             ?: handleExpectedOverspeed(bounds, expectedVelocity)
@@ -124,8 +124,8 @@ class EngineController(val ai: CustomShipAI, kinematics: Kinematics) : BasicEngi
             if (dvs.x > 0) giveCommand(STRAFE_RIGHT)
 
 //            Debug.drawVector(kinematics.location, kinematics.velocity, GREEN)
-            Debug.drawVector(kinematics.location, kinematics.velocity + deltaV, YELLOW)
-            Debug.drawLine(kinematics.location, kinematics.ship.customShipAI!!.movement.headingPoint, MAGENTA)
+//            Debug.drawVector(kinematics.location, kinematics.velocity + deltaV, YELLOW)
+//            Debug.drawLine(kinematics.location, kinematics.ship.customShipAI!!.movement.headingPoint, MAGENTA)
 
             return LimitedVelocity(movementOverridden = true, kinematics.velocity + deltaV)
         }
@@ -137,6 +137,7 @@ class EngineController(val ai: CustomShipAI, kinematics: Kinematics) : BasicEngi
         val expectedVelocityCapped = expectedVelocity.clampLength(kinematics.maxSpeed)
 
         val deltaV = findSafeVelocityDV(bounds, calculateLimitedVelocityY = { bound ->
+            // Avoiding collision with maneuver target is handled by Movement module.
             val obstacle = bound.obstacle
             if (obstacle != null && obstacle.ship.isHostile(kinematics.ship)) {
                 return@findSafeVelocityDV null
@@ -154,8 +155,8 @@ class EngineController(val ai: CustomShipAI, kinematics: Kinematics) : BasicEngi
         })
 
         if (deltaV != null) {
-            Debug.drawVector(kinematics.location, kinematics.velocity + deltaV, YELLOW)
-            Debug.drawLine(kinematics.location, kinematics.ship.customShipAI!!.movement.headingPoint, MAGENTA)
+//            Debug.drawVector(kinematics.location, kinematics.velocity + deltaV, YELLOW)
+//            Debug.drawLine(kinematics.location, kinematics.ship.customShipAI!!.movement.headingPoint, MAGENTA)
 
             return LimitedVelocity(movementOverridden = false, kinematics.velocity + deltaV)
         }

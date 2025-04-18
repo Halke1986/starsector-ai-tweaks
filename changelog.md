@@ -1,4 +1,5 @@
 - Custom AI: Fixed an issue where weapon logic delegated to vanilla AI overrode the ship target selection. The issue affected especially Invictus Lidar burst, causing weapons to hold fire.
+- Custom AI: Further improved collision avoidance logic: Ships will move pass each other more effectively and not bump into each other.
 
 Version 2.0.1
 
