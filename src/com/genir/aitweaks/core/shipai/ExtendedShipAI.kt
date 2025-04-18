@@ -9,7 +9,7 @@ import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
-import com.genir.aitweaks.core.shipai.movement.Helm.Companion.helm
+import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
@@ -20,7 +20,7 @@ import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */
 class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.BasicShipAI(ship as Obfuscated.Ship, config) {
-    private val engineController: BasicEngineController = BasicEngineController(ship.helm)
+    private val engineController: BasicEngineController = BasicEngineController(ship.kinematics)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     // Attack details.
@@ -38,7 +38,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
         super.advance(dt)
         updateInterval.advance(dt)
 
-        engineController.helm.clearCommands()
+        engineController.kinematics.clearCommands()
         controlFacing(dt)
 
         // Make sure the ship target is set. Vanilla AI may fail to do so
@@ -47,7 +47,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
             ship.shipTarget = ship.attackTarget
         }
 
-        engineController.helm.executeCommands()
+        engineController.kinematics.executeCommands()
     }
 
     private fun debug() {

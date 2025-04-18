@@ -7,7 +7,7 @@ import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 
-class Helm(val ship: ShipAPI) {
+class Kinematics(val ship: ShipAPI) {
     // Command.
     val commands: MutableSet<ShipCommand> = mutableSetOf()
 
@@ -79,7 +79,7 @@ class Helm(val ship: ShipAPI) {
         get() = ship.mutableStats.timeMult.modifiedValue
 
     companion object {
-        val ShipAPI.helm: Helm
-            get() = Helm(this)
+        val ShipAPI.kinematics: Kinematics
+            get() = Kinematics(this)
     }
 }

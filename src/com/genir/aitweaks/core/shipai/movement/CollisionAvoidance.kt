@@ -8,7 +8,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
-import com.genir.aitweaks.core.shipai.movement.Helm.Companion.helm
+import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.getShortestRotation
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
@@ -18,7 +18,7 @@ import kotlin.math.sign
 
 @Suppress("MemberVisibilityCanBePrivate")
 class CollisionAvoidance(val ai: CustomShipAI) {
-    private val helm: Helm = ai.ship.helm
+    private val kinematics: Kinematics = ai.ship.kinematics
 
     fun gatherSpeedLimits(dt: Float): List<EngineController.Limit> {
         // Calculate speed limits.
@@ -40,13 +40,13 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }
 
         val target: ShipAPI = ai.maneuverTarget ?: return null
-        return vMaxToObstacle(dt, target.helm, ai.attackRange * 0.9f)
+        return vMaxToObstacle(dt, target.kinematics, ai.attackRange * 0.9f)
     }
 
     private fun avoidCollisions(dt: Float): List<EngineController.Limit?> {
         val obstacles: List<ShipAPI> = Global.getCombatEngine().ships.filter {
             when {
-                it.root == helm.ship.root -> false
+                it.root == kinematics.ship.root -> false
                 it.collisionClass != CollisionClass.SHIP -> false
 
                 // Modules and drones count towards
@@ -58,16 +58,16 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 it.isFrigate -> false
 
                 // Large hulks.
-                it.owner == 100 && it.mass / helm.ship.mass > hulkSizeFactor -> true
+                it.owner == 100 && it.mass / kinematics.ship.mass > hulkSizeFactor -> true
 
                 // Allies
-                it.owner == helm.ship.owner -> true
+                it.owner == kinematics.ship.owner -> true
 
                 else -> false
             }
         }
 
-        val shipPriority = helm.ship.movementPriority
+        val shipPriority = kinematics.ship.movementPriority
 
         return obstacles.map { obstacle ->
             val shipHasPriority = shipPriority > obstacle.movementPriority
@@ -96,7 +96,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
             }
 
             val minDistance = (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius) * distanceFactor
-            vMaxToObstacle(dt, obstacle.helm, minDistance)
+            vMaxToObstacle(dt, obstacle.kinematics, minDistance)
         }
     }
 
@@ -110,7 +110,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         // Translate ship coordinates so that the ship appears to be
         // always near a map corner. That way we can use a circle
         // calculations to approximate a rectangle with rounded corners.
-        val l = helm.location
+        val l = kinematics.location
 
         val borderIntrusion = Vector2f(
             if (l.x > 0) {
@@ -135,7 +135,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
         // Allow chasing targets into the border zone.
         val tgtLoc = ai.maneuverTarget?.location
-        if (tgtLoc != null && !ai.ventModule.isBackingOff && (getShortestRotation(tgtLoc - helm.location, borderIntrusion)).length < 90f) {
+        if (tgtLoc != null && !ai.ventModule.isBackingOff && (getShortestRotation(tgtLoc - kinematics.location, borderIntrusion)).length < 90f) {
             return null
         }
 
@@ -144,17 +144,17 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         // The closer the ship is to map edge, the stronger
         // the heading transformation away from the border.
         val avoidForce = (d / (Preset.borderNoGoZone - Preset.borderHardNoGoZone)).coerceAtMost(1f)
-        return EngineController.Limit(borderIntrusion.facing, helm.maxSpeed * (1f - avoidForce), null)
+        return EngineController.Limit(borderIntrusion.facing, kinematics.maxSpeed * (1f - avoidForce), null)
     }
 
     /** Calculate maximum velocity that will not lead to collision with an obstacle. */
-    fun vMaxToObstacle(dt: Float, obstacle: Helm, minDistance: Float): EngineController.Limit? {
-        val toObstacle = obstacle.location - helm.location
+    fun vMaxToObstacle(dt: Float, obstacle: Kinematics, minDistance: Float): EngineController.Limit? {
+        val toObstacle = obstacle.location - kinematics.location
         val toObstacleFacing = toObstacle.facing
         val r = (-toObstacleFacing).rotationMatrix
 
         // If the ships maintain their current course, they will not collide.
-        val predictedMinDistance = distanceToOrigin(toObstacle, obstacle.velocity - helm.velocity)
+        val predictedMinDistance = distanceToOrigin(toObstacle, obstacle.velocity - kinematics.velocity)
         if (predictedMinDistance > minDistance * 1.5f) {
             return null
         }
@@ -162,7 +162,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val distance = toObstacle.rotatedX(r)
         val distanceLeft = distance - minDistance
 
-        val decelShip = helm.collisionDeceleration(toObstacleFacing)
+        val decelShip = kinematics.collisionDeceleration(toObstacleFacing)
         val vMax = BasicEngineController.vMax(dt, abs(distanceLeft), decelShip) * distanceLeft.sign
         val vObstacle = obstacle.velocity.rotatedX(r)
         val speedLimit = vMax + vObstacle

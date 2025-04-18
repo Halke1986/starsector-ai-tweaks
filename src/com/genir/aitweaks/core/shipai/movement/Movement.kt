@@ -7,7 +7,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.AttackCoordinator
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
-import com.genir.aitweaks.core.shipai.movement.Helm.Companion.helm
+import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Arc
@@ -20,15 +20,15 @@ import kotlin.math.min
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable {
-    private val helm: Helm = ai.ship.helm
-    private val engineController: EngineController = EngineController(ai, helm)
+    private val kinematics: Kinematics = ai.ship.kinematics
+    private val engineController: EngineController = EngineController(ai, kinematics)
     private val collisionAvoidance: CollisionAvoidance = CollisionAvoidance(ai)
 
     private var prevFrameIdx = 0
 
     var headingPoint: Vector2f = Vector2f()
     var expectedVelocity: Vector2f = Vector2f()
-    var expectedFacing: Direction = helm.facing
+    var expectedFacing: Direction = kinematics.facing
 
     // Fields used for communication with attack coordinator.
     override var proposedHeadingPoint: Vector2f? = null
@@ -39,13 +39,13 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
 
     fun advance(dt: Float) {
         if (prevFrameIdx != state.frameIndex) {
-            helm.clearCommands()
+            kinematics.clearCommands()
 
             setFacing(dt)
             setHeading(dt, ai.maneuverTarget)
         }
 
-        helm.executeCommands()
+        kinematics.executeCommands()
 
         prevFrameIdx = state.frameIndex
     }
@@ -68,7 +68,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
                 val lookAt = if (ai.assignment.arrivedAt) Vector2f()
                 else ai.assignment.navigateTo!!
 
-                (lookAt - helm.location).facing
+                (lookAt - kinematics.location).facing
             }
 
             // Face the attack target.
@@ -86,7 +86,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         }
 
         val shouldStop = newExpectedFacing == null
-        expectedFacing = newExpectedFacing ?: helm.facing
+        expectedFacing = newExpectedFacing ?: kinematics.facing
 
         engineController.facing(dt, expectedFacing, shouldStop)
     }
@@ -122,7 +122,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
 
             // Nothing to do, stop the ship.
             else -> {
-                Destination(helm.location, Vector2f())
+                Destination(kinematics.location, Vector2f())
             }
         }
 
@@ -139,7 +139,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
 
         val targetRoot = maneuverTarget.root
         val isAttackingStation = targetRoot.isStation && maneuverTarget.isModule && targetRoot != maneuverTarget
-        val directApproach = helm.location - maneuverTarget.location
+        val directApproach = kinematics.location - maneuverTarget.location
 
         // Post-processing flags.
         var approachDirectly = false
@@ -160,9 +160,9 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
             }
 
             // If the enemy is retreating, attempt to intercept and block its escape route.
-            Global.getCombatEngine().getFleetManager(helm.ship.owner xor 1).getTaskManager(false).isInFullRetreat -> {
+            Global.getCombatEngine().getFleetManager(kinematics.ship.owner xor 1).getTaskManager(false).isInFullRetreat -> {
                 preferMapCenter = false
-                when (helm.ship.owner) {
+                when (kinematics.ship.owner) {
                     0 -> Vector2f(0f, 1f)
                     else -> Vector2f(0f, -1f)
                 }
@@ -200,7 +200,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         attackLocation = attackLocation.resized(ai.attackRange) + maneuverTarget.location
 
         attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
-        return approachTarget(dt, maneuverTarget.helm, attackLocation, approachDirectly)
+        return approachTarget(dt, maneuverTarget.kinematics, attackLocation, approachDirectly)
     }
 
     /** Take into account other entities when planning ship attack location. */
@@ -223,10 +223,10 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     /** Strafe away from map border, prefer the map center. */
     private fun preferMapCenter(approachVector: Vector2f): Vector2f {
         val engine = Global.getCombatEngine()
-        val borderDistX = (helm.location.x * helm.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
-        val borderDistY = (helm.location.y * helm.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
+        val borderDistX = (kinematics.location.x * kinematics.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
+        val borderDistY = (kinematics.location.y * kinematics.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
         val borderWeight = max(borderDistX, borderDistY) * 2f
-        return approachVector.resized(1f) - helm.location.resized(borderWeight)
+        return approachVector.resized(1f) - kinematics.location.resized(borderWeight)
     }
 
     /** Adjust the ship's heading to avoid positioning with hulks obstructing its target. */
@@ -251,7 +251,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
 
         val arcs: List<Arc> = hulks.map { hulk ->
             val toHulk: Vector2f = hulk.location - maneuverTarget.location
-            val shipSize = angularSize(toHulk.lengthSquared, helm.ship.collisionRadius)
+            val shipSize = angularSize(toHulk.lengthSquared, kinematics.ship.collisionRadius)
             val arc: Float = angularSize(toHulk.lengthSquared, hulk.collisionRadius + shipSize / 2f)
 
             val facing: Direction = toHulk.facing
@@ -264,7 +264,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         val angle1 = obstacle.facing - (obstacle.angle / 2f)
         val angle2 = obstacle.facing + (obstacle.angle / 2f)
 
-        val toShipAngle = (helm.location - maneuverTarget.location).facing
+        val toShipAngle = (kinematics.location - maneuverTarget.location).facing
         val offset1 = (angle1 - toShipAngle).length
         val offset2 = (angle2 - toShipAngle).length
 
@@ -274,9 +274,9 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         return newHeadingPoint
     }
 
-    private fun approachTarget(dt: Float, maneuverTarget: Helm, attackLocation: Vector2f, approachDirectly: Boolean): Destination {
+    private fun approachTarget(dt: Float, maneuverTarget: Kinematics, attackLocation: Vector2f, approachDirectly: Boolean): Destination {
         // Do calculations in target frame of reference.
-        val toShip = helm.location - maneuverTarget.location
+        val toShip = kinematics.location - maneuverTarget.location
         val toAttackLocation = attackLocation - maneuverTarget.location
 
         // Ship is close enough to target to start orbiting it.
@@ -306,14 +306,14 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         val point2Dir = (pointsOfTangency.second + toShip).facing - toAttackLocation.facing
 
         val tangentialAttackVector = if (point1Dir.length < point2Dir.length) pointsOfTangency.first else pointsOfTangency.second
-        return Destination(helm.location + tangentialAttackVector, maneuverTarget.velocity)
+        return Destination(kinematics.location + tangentialAttackVector, maneuverTarget.velocity)
     }
 
     /** Maintain distance to maneuver target while approaching the expected attackLocation.
      * As long as the maneuver target is slower than the ship, this will result in the ship
      * orbiting the maneuver target until it reaches the attack location. */
-    private fun orbitTarget(dt: Float, maneuverTarget: Helm, attackLocation: Vector2f): Destination {
-        val toShip = helm.location - maneuverTarget.location
+    private fun orbitTarget(dt: Float, maneuverTarget: Kinematics, attackLocation: Vector2f): Destination {
+        val toShip = kinematics.location - maneuverTarget.location
         val toAttackLocation = attackLocation - maneuverTarget.location
 
         // Approach the orbit directly.
@@ -323,11 +323,11 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
         // The ship tries to maintain distance from maneuver target.
         // If the maneuver target is slower than the ship, use the
         // remaining ship velocity to move around the orbit.
-        val maxSpeed = max(helm.maxSpeed, helm.velocity.length) + helm.acceleration * dt
+        val maxSpeed = max(kinematics.maxSpeed, kinematics.velocity.length) + kinematics.acceleration * dt
         val t = solve(maneuverTarget.velocity, orbitVelocityVector, maxSpeed)?.largerNonNegative
 
         val approximateOrbitLength = (attackLocation - closestLocationOnOrbit).length
-        val orbitSpeed = BasicEngineController.vMax(dt, approximateOrbitLength, helm.acceleration)
+        val orbitSpeed = BasicEngineController.vMax(dt, approximateOrbitLength, kinematics.acceleration)
         val cappedOrbitSpeed = t?.coerceAtMost(orbitSpeed) ?: 0f
 
         return Destination(closestLocationOnOrbit, maneuverTarget.velocity + orbitVelocityVector * cappedOrbitSpeed)

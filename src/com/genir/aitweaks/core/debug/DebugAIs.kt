@@ -9,7 +9,7 @@ import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
-import com.genir.aitweaks.core.shipai.movement.Helm.Companion.helm
+import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.angularVelocity
 import com.genir.aitweaks.core.utils.mousePosition
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
@@ -22,7 +22,7 @@ var expectedFacing = 90f.direction
 const val df = -1f * 60f
 
 class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.helm)
+    private val controller = BasicEngineController(ship.kinematics)
 
     override fun advance(dt: Float) {
         val toTarget = target.location - ship.location
@@ -36,7 +36,7 @@ class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : Base
 }
 
 class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.helm)
+    private val controller = BasicEngineController(ship.kinematics)
 
     override fun advance(dt: Float) {
         expectedFacing += df * dt
@@ -50,7 +50,7 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
 }
 
 class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.helm)
+    private val controller = BasicEngineController(ship.kinematics)
     private val prevP: Vector2f = Vector2f()
 
     override fun advance(dt: Float) {
