@@ -208,6 +208,10 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                         0f
                     }
 
+                    ai.assignment.eliminate != null -> {
+                        1f
+                    }
+
                     ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> {
                         1f
                     }
