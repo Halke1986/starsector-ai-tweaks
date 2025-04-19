@@ -24,8 +24,9 @@ class AITweaksEveryFrameScript : EveryFrameScript {
         }
 
         efsAge += dt
-        if (Keyboard.isKeyDown(Keyboard.KEY_LBRACKET) && efsAge <= 1f) {
+        if (Keyboard.isKeyDown(Keyboard.KEY_LBRACKET) && efsAge >= 1f) {
             reloadEFS()
+            efsAge = 0f
         }
 
         if (Keyboard.isKeyDown(Keyboard.KEY_RBRACKET)) {
