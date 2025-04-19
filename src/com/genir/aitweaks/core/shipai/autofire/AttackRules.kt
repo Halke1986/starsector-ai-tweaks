@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.shipai.autofire
 import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.combat.WeaponAPI.AIHints.PD_ALSO
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.LARGE
 import com.genir.aitweaks.core.extensions.*
@@ -44,11 +45,14 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
 
     /** Do not waste PD ammo on ships, and non-PD ammo on fighters and missiles. */
     private fun conservePDAmmo(): HoldFire? = when {
-        weapon.isPD != hit.target.isShip -> fire
-        weapon.isAntiFighter && (hit.target as? ShipAPI)?.isFighter == true -> fire
         !weapon.usesAmmo() -> fire
-        !weapon.hasAmmoToSpare -> CONSERVE_AMMO
-        else -> fire
+        weapon.hasAmmoToSpare -> fire
+
+        weapon.isAntiFighter && hit.target.isFighter -> fire
+        weapon.isPD && hit.target.isPDTarget -> fire
+        (!weapon.isPD || weapon.hasAIHint(PD_ALSO)) && hit.target.isShip -> fire
+
+        else -> CONSERVE_AMMO
     }
 
     private fun avoidWrongDamageType(): HoldFire? = when {
