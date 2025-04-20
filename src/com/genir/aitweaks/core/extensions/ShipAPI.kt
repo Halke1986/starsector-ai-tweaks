@@ -27,7 +27,7 @@ val ShipAPI.isBig: Boolean
 val ShipAPI.isHullDamageable: Boolean
     get() = mutableStats.hullDamageTakenMult.modifiedValue > 0f
 
-private val ShipAPI.taskManager: CombatTaskManagerAPI
+val ShipAPI.taskManager: CombatTaskManagerAPI
     get() = Global.getCombatEngine().getFleetManager(owner).getTaskManager(isAlly)
 
 val ShipAPI.assignment: CombatFleetManagerAPI.AssignmentInfo?

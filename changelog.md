@@ -1,3 +1,5 @@
+- Custom AI: Full assault order increases ship aggression.
+
 Version 2.0.2
 
 - Custom AI: Fixed an issue where weapon logic delegated to vanilla AI overrode the ship target selection. The issue affected especially Invictus Lidar burst, causing weapons to hold fire.

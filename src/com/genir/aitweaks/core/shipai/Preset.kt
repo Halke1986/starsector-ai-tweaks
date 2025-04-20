@@ -32,6 +32,7 @@ class Preset {
         const val effectiveDpsThreshold = 0.80f
         const val targetThickness = 60f
         const val assaultShipApproachFactor = 0.875f
+        const val fullAssaultApproachFactor = 0.666f
 
         private val mapSize: Float
             get() {

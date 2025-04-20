@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.debug.expectedFacing
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset.Companion.assaultShipApproachFactor
+import com.genir.aitweaks.core.shipai.Preset.Companion.fullAssaultApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
 import com.genir.aitweaks.core.shipai.movement.Movement
 import com.genir.aitweaks.core.shipai.systems.BurnDriveToggle
@@ -470,7 +471,15 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             else -> Preset.noWeaponsAttackRange
         }
 
-        val approachFactor = if (isAssaultShip) assaultShipApproachFactor else 1f
+        var approachFactor = 1f
+
+        if (isAssaultShip) {
+            approachFactor *= assaultShipApproachFactor
+        }
+
+        if (ship.taskManager.isFullAssault) {
+            approachFactor *= fullAssaultApproachFactor
+        }
 
         attackRange = (effectiveTargetRadius(maneuverTarget) + range) * approachFactor
     }
