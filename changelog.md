@@ -1,4 +1,5 @@
 - Custom AI: Full assault order increases ship aggression.
+- Autofire AI: Fixed an issue where the Voltaic Discharge was not discharging. Reported by CrashToDesktop. 
 
 Version 2.0.2
 

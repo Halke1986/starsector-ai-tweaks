@@ -35,5 +35,5 @@ internal fun debug(dt: Float) {
 //        Debug.drawCircle(it.location, it.collisionRadius * 1.4f, CYAN)
     }
 
-    removeAsteroids()
+//    removeAsteroids()
 }

@@ -45,7 +45,7 @@ class HighEnergyFocus : ShipSystemAIScript {
         // Too small portion of the total DPS is affected by HEF.
         val dpsThreshold = 0.5f * weapons.filter { !it.isPD }.sumOf { it.effectiveDPS }
         val dpsHef = weapons.sumOf { (it.derivedStats.dps * dpsMultiplier(it)) }
-        if (dpsHef < dpsThreshold) {
+        if (dpsHef == 0f || dpsHef < dpsThreshold) {
             return false
         }
 

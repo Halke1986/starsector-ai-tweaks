@@ -5,6 +5,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.ExtendedShipAI
@@ -48,6 +49,8 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             Global.getCombatEngine().isPaused -> return
         }
 
+//        debug()
+
         // Advance intervals.
         updateTargetInterval.advance(dt)
         shouldFireInterval.advance(dt)
@@ -70,6 +73,14 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         if (updateTargetImmediately || updateTargetInterval || updateShouldFireImmediately || updateShouldFireInterval) {
             shouldHoldFire = calculateShouldFire()
         }
+    }
+
+    fun debug() {
+        if (weapon.ship.owner != 0) {
+            return
+        }
+
+        Debug.print[weapon] = "${weapon.Id}  $shouldHoldFire"
     }
 
     override fun shouldFire(): Boolean {

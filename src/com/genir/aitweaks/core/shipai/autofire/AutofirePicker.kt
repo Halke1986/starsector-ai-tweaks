@@ -17,6 +17,9 @@ class AutofirePicker {
             // Missile weapons pretending to be ballistics.
             weapon.spec.projectileSpec is MissileSpecAPI -> null
 
+            // Unusual no-aim weapons, like the Voltaic Discharge.
+            weapon.hasAIHint(WeaponAPI.AIHints.DO_NOT_AIM) -> null
+
             weapon.hasAITag(Tag.NO_MODDED_AI) -> null
 
             weapon.hasAITag(Tag.TRIGGER_HAPPY) -> RecklessAutofireAI(weapon)
