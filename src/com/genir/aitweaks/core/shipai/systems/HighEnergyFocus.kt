@@ -101,8 +101,8 @@ class HighEnergyFocus : ShipSystemAIScript {
             // Account for damage type.
             weapon.damageType == FRAGMENTATION -> 0.25f
             target.isFighter -> 0.25f
-            weapon.damageType == HIGH_EXPLOSIVE -> if (willHitShield(weapon, target, params) == null) 2f else 0.5f
-            weapon.damageType == KINETIC -> if (willHitShield(weapon, target, params) != null) 2f else 0.5f
+            weapon.damageType == HIGH_EXPLOSIVE -> if (willHitShield(weapon, target, params) == null) 2f else 0f
+            weapon.damageType == KINETIC -> if (willHitShield(weapon, target, params) != null) 2f else 0f
             else -> 1f
         }
     }

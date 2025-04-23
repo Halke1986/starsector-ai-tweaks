@@ -39,7 +39,6 @@ class ShipStats(private val ship: ShipAPI) {
             when {
                 weapon.isDisabled -> false
                 weapon.isPermanentlyDisabled -> false
-                weapon.isInLongReload -> false
                 else -> true
             }
         }
@@ -47,11 +46,6 @@ class ShipStats(private val ship: ShipAPI) {
 
     /** A ship can have multiple valid weapon groups. */
     private fun findWeaponGroups(): List<WeaponGroup> {
-        // If ship has front facing hardpoints, assume it's designed to not be a broadside ship.
-        if (significantWeapons.any { it.slot.isHardpoint && it.arcFacing.direction.isZero }) {
-            listOf(WeaponGroup(ship, significantWeapons.filter { it.isFrontFacing }))
-        }
-
         // Find dps for each possible firing arc.
         val attackAngles: Map<Direction, Float> = attackAngles(significantWeapons)
 
@@ -105,7 +99,23 @@ class ShipStats(private val ship: ShipAPI) {
         }
 
         return angles.toSet().associateWith { angle ->
-            weapons.filter { it.isAngleInArc(angle) }.sumOf { it.effectiveDPS }
+            weapons.filter { it.isAngleInArc(angle) }.sumOf { it.estimatedDPS }
         }
     }
+
+    /**
+     * Estimates DPS when selecting the active weapon group.
+     *
+     * Weapons in a long reload are treated as having 0 DPS so the ship can
+     * prioritize other groups. They still qualify as significant (unlike
+     * disabled weapons) because many can fire partial shots mid-reload and
+     * thus influence the calculated attack range.
+     */
+    private val WeaponAPI.estimatedDPS: Float
+        get() = when {
+            isInLongReload -> 0f
+
+            else -> effectiveDPS
+        }
+
 }
