@@ -1,5 +1,6 @@
 - Custom AI: Full assault order increases ship aggression.
 - Autofire AI: Fixed an issue where the Voltaic Discharge was not discharging. Reported by CrashToDesktop. 
+- Autofire AI: Voidblaster does not attack enemy shields, same as Mining Blaster.
 
 Version 2.0.2
 

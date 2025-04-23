@@ -11,7 +11,8 @@ enum class Tag {
     TRIGGER_HAPPY,      // Weapon will use a specialized AI, which ignores some of the hold-fire rules.
     NO_MODDED_AI,       // Weapon is not subject to AI Tweaks modded behavior.
     ANTI_FIGHTER,       // Same as vanilla ANTO_FTR AI hint.
-    NO_STAGGERED_FIRE   // Weapon will not use staggered firing mode.
+    NO_STAGGERED_FIRE,  // Weapon will not use staggered firing mode.
+    USE_LESS_VS_SHIELDS // Same as vanilla USE_LESS_VS_SHIELDS; weapon will attack enemy ships only when their shields are down.
 }
 
 private val weaponTags: MutableMap<String, Set<Tag>> = mutableMapOf()
