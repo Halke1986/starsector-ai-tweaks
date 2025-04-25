@@ -4,11 +4,11 @@ import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.PD_ALSO
-import com.fs.starfarer.api.combat.WeaponAPI.AIHints.USE_LESS_VS_SHIELDS
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.LARGE
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.*
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
+import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.shieldUptime
 import kotlin.math.min
 
@@ -57,8 +57,11 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
 
     private fun avoidWrongDamageType(): HoldFire? = when {
         !hit.target.isShip -> fire
+
         weapon.isStrictlyAntiShield -> avoidExposedHull()
-        weapon.hasAIHint(USE_LESS_VS_SHIELDS) || weapon.hasAITag(Tag.USE_LESS_VS_SHIELDS) || weapon.isFinisherBeam -> avoidShields()
+
+        weapon.isStrictlyAntiArmor -> avoidShields()
+
         else -> fire
     }
 
@@ -69,9 +72,13 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
 
             hit.type != SHIELD -> fire
 
-            weapon.usesAmmo() -> AVOID_SHIELDS
+            weapon.usesAmmo() -> when {
+                config.strictUseLessVSShields -> AVOID_SHIELDS
 
-            weapon.damageType == FRAGMENTATION -> AVOID_SHIELDS
+                weapon.hasAmmoToSpare -> fire
+
+                else -> AVOID_SHIELDS
+            }
 
             // Try to burst through almost depleted shields.
             weapon.isBurstBeam && weapon.firingCycle.damage > (hit.target as ShipAPI).fluxLeft * 2f -> fire

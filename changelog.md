@@ -2,6 +2,7 @@
 - Autofire AI: Fixed an issue where the Voltaic Discharge was not discharging. Reported by CrashToDesktop. 
 - Autofire AI: Voidblaster does not attack enemy shields, same as Mining Blaster.
 - Autofire AI: Added LunaLib setting to enable/disable PD beam sweep (also known as "constant laser lightshow"). Suggested by Alkkaid.
+- Autofire AI: Added LunaLib setting to enable/disable AI behavior where weapons tagged USE_LESS_VS_SHIELDS (such as the Mining Blaster and IR Autolance) will not fire at shields, ever. Suggested by DR, undead Changed Bean of f-mes.
 
 Version 2.0.2
 

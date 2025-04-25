@@ -89,11 +89,6 @@ Hello! Some mild incompatibilities with another mod, Random Assortment of Things
     "Leanira" cruiser ship system "deploys" a turret (ship) onto the battlefield. When the ship is controlled by an NPC, the ship system is never used. However, if this ship is piloted by the player, the autopilot will use the ship system. This behavior occurs with and without the Custom AI hullmod.
     "Hypatia" destroyer ship system causes it to enter "phase space", allowing it to travel very quickly, but prevents the usage of weapons or shields. The system acts as a toggle, with activation causing the ship to enter "phase space" and re-activation causing it to exit "phase space". When the ship is controlled by an NPC, after some period of time in battle, the ship activates the system, but never deactivates the system, causing to circle endlessly in "phase space". 
 
-SUGGESTED by Alkkaid on the forums:
-Man, conceptually this is really cool, so I guess I'll try it, though I'm wary of the balance impacts and even more than that the 'uncanny behavior' (immersion is important after all.)
-I assume AI is too complicated to do piecemeal and make more modular in the sense of being able to keep the 'it should just work this way already' changes like broadsides but have vanilla PD behavior instead of a constant laser lightshow? And also accuracy. Don't really want inhumanly accurate ships, lol.
-Is the awful, awful, indescribably awful behavior exhibited by particularly Hyperions when there are fighters on the field something in the scope of this mod? It's the most obnoxious thing and probably the worst example of bad AI behavior I've seen. Imagine a Hyperion kitted out for anti-ship, it's got a reaper and some kinetic weapons, it's got 360 degree shields with extended shields. What does it do? It spins around in place trying to shoot little pirate fighters with machine guns or block their attacks from landing on its fully shielded self rather than... attacking the enemy carrier that's about a foot away from it.
-
 fast time aim assist
 
 custom LPC not moving with custom ai

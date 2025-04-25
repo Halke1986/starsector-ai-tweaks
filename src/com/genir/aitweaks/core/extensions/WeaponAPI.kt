@@ -36,6 +36,17 @@ val WeaponAPI.isStrictlyAntiShield: Boolean
         else -> false
     }
 
+val WeaponAPI.isStrictlyAntiArmor: Boolean
+    get() = when {
+        hasAIHint(USE_LESS_VS_SHIELDS) -> true
+
+        hasAITag(Tag.USE_LESS_VS_SHIELDS) -> true
+
+        isFinisherBeam -> true
+
+        else -> false
+    }
+
 val WeaponAPI.isFinisherBeam
     get() = when {
         !spec.isBeam -> false
