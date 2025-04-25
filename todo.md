@@ -94,15 +94,18 @@ Man, conceptually this is really cool, so I guess I'll try it, though I'm wary o
 I assume AI is too complicated to do piecemeal and make more modular in the sense of being able to keep the 'it should just work this way already' changes like broadsides but have vanilla PD behavior instead of a constant laser lightshow? And also accuracy. Don't really want inhumanly accurate ships, lol.
 Is the awful, awful, indescribably awful behavior exhibited by particularly Hyperions when there are fighters on the field something in the scope of this mod? It's the most obnoxious thing and probably the worst example of bad AI behavior I've seen. Imagine a Hyperion kitted out for anti-ship, it's got a reaper and some kinetic weapons, it's got 360 degree shields with extended shields. What does it do? It spins around in place trying to shoot little pirate fighters with machine guns or block their attacks from landing on its fully shielded self rather than... attacking the enemy carrier that's about a foot away from it.
 
-
-Temporal shell anubis vibrates.
-    multiply velocity?
-
 fast time aim assist
 
 custom LPC not moving with custom ai
 
+SUGGESTED by ----? :
 ability to disable light show
 
+SUGGESTED by syndrome:
+Could you please add an option to unconditionally enable «Custom AI hullmod» for all compatible ships? For allies and enemies. I'd like to test this mod, but i don't want my ships to be smarter than the enemy's.
+
+Temporal shell anubis vibrates.
+
 ----------------------------------------------------------------
+
 
