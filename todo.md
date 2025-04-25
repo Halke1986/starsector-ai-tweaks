@@ -79,11 +79,6 @@ Next, I scuttled Atlases to check if I'm right, and bug's didn't occurred, auto-
 REPOTRED by Lprsti99:
 Having an issue with the shield assist, where if it's toggled on when a battle ends, it starts enabled in the next battles, but it's nonfunctional - doesn't raise the shield, and if I raise it manually it doesn't control it at all.  toggling it off and on doesn't solve this, the only fix I've found is to make sure it's toggled off at the end of *that* battle, in which case it's functional again next time.  Possibly a mod incompatibility - if so, my immediate suspect is Puretilt's QOL pack, due to the shield facing settings in there.  I mainly use the qol pack for automatically toggling the transponder in hyperspace anyway, but also possible that something in the 0.98 update caused it maybe? Keep forgetting to try disabling the qol mod and I can't try now unfortunately, irl stuff going on (I only just happened to think to make a comment).
 
-REPORTED by Norath on the forums:
-found this while testing some ship explotion stuff
-with the mod on the turrets turn away and target some ghost ? (there is nothing up there) when geting close to other ship
-without mod turrets stay on target and keep fireing
-
 REPORTED by Archelius on the forums:
 Hello! Some mild incompatibilities with another mod, Random Assortment of Things:
     "Leanira" cruiser ship system "deploys" a turret (ship) onto the battlefield. When the ship is controlled by an NPC, the ship system is never used. However, if this ship is piloted by the player, the autopilot will use the ship system. This behavior occurs with and without the Custom AI hullmod.
@@ -91,10 +86,8 @@ Hello! Some mild incompatibilities with another mod, Random Assortment of Things
 
 fast time aim assist
 
-custom LPC not moving with custom ai
-
 Temporal shell anubis vibrates.
 
+Custom LPC, issue with custom AI on Pankrator from Symmetrical Ships
+
 ----------------------------------------------------------------
-
-

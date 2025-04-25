@@ -42,13 +42,13 @@ fun closestHitRange(weapon: WeaponAPI, target: BallisticTarget, params: Ballisti
 
 /** Weapon aim location required to hit center point of a moving target. */
 fun intercept(weapon: WeaponAPI, target: BallisticTarget, params: BallisticParams): Vector2f {
-    if (weapon.isUnguidedMissile) return SimulateMissile.missileIntercept(weapon, target)
+    if (weapon.isUnguidedMissile) {
+        return SimulateMissile.missileIntercept(weapon, target)
+    }
 
     val (p, v) = targetCoords(weapon, target, params)
-    if (targetAboveWeapon(p, weapon, target)) return target.location
-
-    val range = solve(p, v, weapon.barrelOffset, 1f, 0f, 0f)?.smallerNonNegative ?: approachesInfinity
-    return p + v * range
+    val range = solve(p, v, weapon.barrelOffset, 1f, 0f, 0f)?.smallerNonNegative
+    return p + v * (range ?: approachesInfinity)
 }
 
 /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
