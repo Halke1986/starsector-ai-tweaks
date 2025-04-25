@@ -14,4 +14,5 @@ aitweaks_aim_bot_perfect,,Aim Assist Perfect Targeting,Boolean,false,,,,"Aim ass
 aitweaks_enable_devmode,,Dev Mode,Boolean,false,,,,"Enable AI Tweaks dev mode.",,,,,Debug
 aitweaks_highlight_custom_ai,,Highlight Custom AI,Boolean,false,,,,"Highlight ships piloted by AI Tweaks custom AI. Works only in devmode.",,,,,Debug
 aitweaks_remove_combat_map_grid,,Remove Combat Map Grid,Boolean,false,,,,"Remove the square grid in combat map.",,,,,Debug
-aitweaks_enable_simulator_custom_ai,,Enable Custom AI in Simulator,Boolean,true,,,,"Eligible enemy ships in the simulator are controlled by AI Tweaks custom AI.",,,,,Debug
+aitweaks_enable_simulator_custom_ai,,Enable Custom AI in Simulator,Boolean,false,,,,"Eligible enemy ships in the simulator are controlled by AI Tweaks custom AI.",,,,,Debug
+aitweaks_enable_all_custom_ai,,Enable Custom AI in All Ships,Boolean,false,,,,"All eligible ships are controlled by AI Tweaks custom AI. The AI is not finished yet, so don't expect good results.",,,,,Debug

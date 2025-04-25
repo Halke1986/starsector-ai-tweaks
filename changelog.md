@@ -3,6 +3,7 @@
 - Autofire AI: Voidblaster does not attack enemy shields, same as Mining Blaster.
 - Autofire AI: Added LunaLib setting to enable/disable PD beam sweep (also known as "constant laser lightshow"). Suggested by Alkkaid.
 - Autofire AI: Added LunaLib setting to enable/disable AI behavior where weapons tagged USE_LESS_VS_SHIELDS (such as the Mining Blaster and IR Autolance) will not fire at shields, ever. Suggested by DR, undead Changed Bean of f-mes.
+- Debug: Added LunaLib setting to enable Custom AI in all eligible ships on both sides, without the hullmod. Suggested by syndrome.
 
 Version 2.0.2
 

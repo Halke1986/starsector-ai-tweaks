@@ -93,9 +93,6 @@ fast time aim assist
 
 custom LPC not moving with custom ai
 
-SUGGESTED by syndrome:
-Could you please add an option to unconditionally enable «Custom AI hullmod» for all compatible ships? For allies and enemies. I'd like to test this mod, but i don't want my ships to be smarter than the enemy's.
-
 Temporal shell anubis vibrates.
 
 ----------------------------------------------------------------

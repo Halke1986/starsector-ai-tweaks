@@ -35,4 +35,5 @@ class Config {
     val highlightCustomAI: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_highlight_custom_ai")!!
     val removeCombatMapGrid: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_remove_combat_map_grid")!!
     val enableSimulatorCustomAI: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_simulator_custom_ai")!!
+    val enableAllCustomAI: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_all_custom_ai")!!
 }

@@ -100,14 +100,17 @@ object CustomAIManager {
         return when {
             !canHaveCustomAI(ship) -> false
 
+            // Debug option. All eligible ships are controlled by AI Tweaks custom AI.
+            config.enableAllCustomAI -> true
+
+            // Debug option. Eligible enemy ships in the simulator are controlled by AI Tweaks custom AI.
+            config.enableSimulatorCustomAI && Global.getCombatEngine().isSimulation && ship.owner == 1 -> true
+
             // Non-player ships can have custom AI by default, without the hullmod.
             ship.owner == 1 || ship.isAlly -> when {
                 ship.hullSpec.hullId.startsWith("guardian") -> true
                 ship.hullSpec.hullId.startsWith("sr_melvillei") -> true
                 ship.hullSpec.shipSystemId == "lidararray" -> true
-
-                // Simulator.
-                config.enableSimulatorCustomAI && Global.getCombatEngine().isSimulation -> true
 
                 else -> false
             }
