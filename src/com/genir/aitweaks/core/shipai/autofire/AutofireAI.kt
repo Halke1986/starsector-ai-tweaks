@@ -14,6 +14,7 @@ import com.genir.aitweaks.core.shipai.autofire.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.shipai.autofire.UpdateTarget.Companion.TARGET_SEARCH_MULT
+import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
@@ -327,6 +328,8 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
      * rather than turning it off and reactivating it after realignment. */
     private fun shouldSweepBeam(target: CombatEntityAPI): Boolean {
         when {
+            !config.enableBeamSweep -> return false
+
             !weapon.isPlainBeam -> return false
 
             !weapon.isInFiringCycle -> return false
