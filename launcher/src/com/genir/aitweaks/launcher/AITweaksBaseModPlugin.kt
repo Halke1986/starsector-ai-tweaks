@@ -12,14 +12,14 @@ import com.genir.aitweaks.launcher.loading.CoreLoaderManager.coreLoader
 import com.genir.aitweaks.launcher.loading.CoreLoaderManager.instantiate
 
 class AITweaksBaseModPlugin : BaseModPlugin() {
-    private var core: BaseModPlugin? = null
-
     override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin>? {
-        return getCorePlugin().pickWeaponAutofireAI(weapon)
+        val picker: AutofireAIPicker = coreLoader.loadClass("com.genir.aitweaks.core.shipai.autofire.AutofireAIPicker").instantiate()
+        return picker.pickWeaponAutofireAI(weapon)
     }
 
     override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
-        return getCorePlugin().pickShipAI(member, ship)
+        val picker: ShipAIPicker = coreLoader.loadClass("com.genir.aitweaks.core.shipai.ShipAIPicker").instantiate()
+        return picker.pickShipAI(member, ship)
     }
 
     override fun beforeGameSave() {
@@ -50,16 +50,5 @@ class AITweaksBaseModPlugin : BaseModPlugin() {
         if (!plugins.hasPlugin(CryosleeperEncounter::class.java)) {
             plugins.addPlugin(CryosleeperEncounter(), true)
         }
-    }
-
-    private fun getCorePlugin(): BaseModPlugin {
-        val c: Class<*> = coreLoader.loadClass("com.genir.aitweaks.core.BaseModPlugin")
-
-        if (core == null || core!!::class.java != c) {
-            // Store the core plugin instance, so that it may retain a state.
-            this.core = c.instantiate()
-        }
-
-        return core!!
     }
 }

@@ -37,7 +37,7 @@ class AITweaksEveryFrameScript : EveryFrameScript {
     private fun reloadEFS() {
         CoreLoaderManager.updateLoader()
 
-        val efsClass: Class<*> = coreLoader.loadClass("com.genir.aitweaks.core.EveryFrameScript")
+        val efsClass: Class<*> = coreLoader.loadClass("com.genir.aitweaks.core.debug.EveryFrameScript")
         val sector = Global.getSector()
         if (sector.hasTransientScript(efsClass)) {
             return

@@ -8,8 +8,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="LazyLib" level="project" />
     <orderEntry type="library" name="starsector-core" level="project" />
+    <orderEntry type="library" name="LazyLib" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library name="JUnit5.8.1">
         <CLASSES>
@@ -27,5 +27,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="LunaLib" level="project" />
+    <orderEntry type="module" module-name="launcher" />
   </component>
 </module>

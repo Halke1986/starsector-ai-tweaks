@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core
+package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
@@ -13,12 +13,30 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.genir.aitweaks.core.extensions.isAutomated
 import com.genir.aitweaks.core.extensions.isModule
-import com.genir.aitweaks.core.shipai.CustomShipAI
-import com.genir.aitweaks.core.shipai.ExtendedShipAI
 import com.genir.aitweaks.core.state.Config.Companion.config
 
-object CustomAIManager {
-    fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
+class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
+    companion object {
+        // pickShipAI checks other mods AI selection. It iterates over all mods, including AI Tweaks
+        // itself, leading to recursive call. This field is used to identify and break thr recursion.
+        private var isRecursiveCall: Boolean = false
+    }
+
+    override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
+        if (isRecursiveCall) {
+            return null
+        }
+
+        isRecursiveCall = true
+
+        try {
+            return pickShipAIInner(member, ship)
+        } finally {
+            isRecursiveCall = false
+        }
+    }
+
+    private fun pickShipAIInner(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
         when {
             // Do not override AI in title screen. NOTE: for player ship modules
             // in simulator Global.getCurrentState() returns CAMPAIGN, as opposed
@@ -74,9 +92,8 @@ object CustomAIManager {
         return PluginPick(ExtendedShipAI(ship, config), MOD_SPECIFIC)
     }
 
-    /** Returns true is custom AI can control the given ship.
-     * NOTE: this code needs to be synchronized with a copy in CustomShipAI hullmod. */
-    private fun canHaveCustomAI(ship: ShipAPI): Boolean {
+    /** Returns true is custom AI can control the given ship. */
+    override fun canHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
             ship.owner == 0 && Global.getSettings().modManager.isModEnabled("aitweaksunlock") -> true
 

@@ -6,8 +6,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - sometimes guided finisher missiles are ignored when venting, especially on phase ships
 
-- ships with assignment should have priority, at least for player fleet.
-
 - area targeting for devastator
 
 - do not track targets with angular velocity higher than weapon rotation
@@ -20,11 +18,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - take damage type into account when calculating history of calculated damage, to not ignore hellbores when venting
 
-- aim slow turrets
-- DEPRECATED: use front facing turrets with rotation speed lower than ship turn rate as hardpoints
-- unless flamed out
-- not for player
-
 - try to attack same enemy battle group during initial split
 
 - notify systems of overridden facing in extended AI
@@ -36,10 +29,6 @@ check Lidar on faster ships - destroyer : ass pinetree, frigate DEX Catapult
     - probably missileDangerDir
 
 - tahlan shipworks hel hound module has speed 0
-
-- why manticore targets fighters
-
-- weapons on invictus not shooting sometimes, when one is disabled?
 
 SUGGESTED by Hyperkayak:
 Preface: haven't updated to .98 yet.
@@ -89,5 +78,7 @@ fast time aim assist
 Temporal shell anubis vibrates.
 
 Custom LPC, issue with custom AI on Pankrator from Symmetrical Ships
+
+check finish burst target, AI seems to break burst with tach lance
 
 ----------------------------------------------------------------
