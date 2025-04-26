@@ -13,6 +13,7 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.genir.aitweaks.core.extensions.isAutomated
 import com.genir.aitweaks.core.extensions.isModule
+import com.genir.aitweaks.core.extensions.isPhase
 import com.genir.aitweaks.core.state.Config.Companion.config
 
 class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
@@ -97,7 +98,7 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
         return when {
             ship.owner == 0 && Global.getSettings().modManager.isModEnabled("aitweaksunlock") -> true
 
-            ship.hullSpec.isPhase -> false
+            ship.isPhase -> false
             ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
             ship.isStation -> false
             ship.isModule -> false

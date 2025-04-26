@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.extensions
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.PHASE
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
@@ -70,6 +71,9 @@ val ShipAPI.attackTarget: ShipAPI?
 
 val ShipAPI.isAutomated: Boolean
     get() = variant.hasHullMod(HullMods.AUTOMATED)
+
+val ShipAPI.isPhase: Boolean
+    get() = hullSpec.isPhase || hullSpec.hints.contains(PHASE)
 
 val ShipAPI.deploymentPoints: Float
     get() = max(0f, fleetMember?.unmodifiedDeploymentPointsCost ?: 0f)

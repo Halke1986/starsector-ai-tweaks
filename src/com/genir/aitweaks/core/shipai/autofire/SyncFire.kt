@@ -154,8 +154,11 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
     companion object {
         /** Ensure all weapons that are to fire in staggered mode share an up-to date state. */
         fun updateWeaponSync(ship: ShipAPI) {
-            if (!config.enabledStaggeredFire) {
-                return
+            when {
+                !config.enabledStaggeredFire -> return
+
+                // Phase ships should be able to fire all weapons immediately after exiting P-space.
+                ship.isPhase -> return
             }
 
             // Find weapons to sync.

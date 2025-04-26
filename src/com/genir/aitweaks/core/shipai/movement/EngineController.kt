@@ -14,7 +14,7 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color.*
+import java.awt.Color.BLUE
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

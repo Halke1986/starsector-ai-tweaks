@@ -5,6 +5,7 @@
 - Autofire AI: Added LunaLib setting to enable/disable AI behavior where weapons tagged USE_LESS_VS_SHIELDS (such as the Mining Blaster and IR Autolance) will not fire at shields, ever. Suggested by DR, undead Changed Bean of f-mes.
 - Debug: Added LunaLib setting to enable Custom AI in all eligible ships on both sides, without the hullmod. Suggested by syndrome.
 - Autofire AI: Fixed a bug that caused weapons positioned inside a target’s collision radius to aim away from that target. Reported by Norath.
+- Autofire AI: Staggered fire mode no longer applies to phase ships, allowing them to fire all weapons immediately after exiting P-space. Suggested by ymfah.
 
 Version 2.0.2
 

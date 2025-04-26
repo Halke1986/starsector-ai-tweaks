@@ -95,7 +95,9 @@ effective range of some PD weapons by up to 50%, and anti armor range by about 1
 #### Staggered firing mode ####
 
 Ships will use autofire weapons in staggered firing mode. In this mode, all weapons of the same type fire at a constant
-interval. Currently, this feature is available only for ships with Custom AI.
+interval.
+
+Staggered fire mode does not apply to phase ships, allowing them to fire all weapons immediately after exiting P-space.
 
 The feature can be disabled via LunaLib settings.
 
