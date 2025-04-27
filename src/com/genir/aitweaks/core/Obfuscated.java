@@ -141,6 +141,10 @@ public class Obfuscated {
         public Vector2f flockingAI_getMissileDangerDir() {
             return null;
         }
+
+        public Vector2f flockingAI_getCollisionDangerDir() {
+            return null;
+        }
     }
 
     public static class AttackAIModule {
@@ -213,8 +217,21 @@ public class Obfuscated {
         }
     }
 
-    public static class FrontShieldAI {
-        public FrontShieldAI(com.fs.starfarer.combat.entities.Ship ship, ShipwideAIFlags flags) {
+    public static class FrontShieldAI implements ShieldAI {
+        public FrontShieldAI(Ship ship, ShipwideAIFlags flags) {
+        }
+
+        @Override
+        public void shieldAI_advance(float dt, ThreatEvaluator threatEvalAI, Vector2f missileDangerDir, Vector2f collisionDangerDir, Ship target) {
+        }
+    }
+
+    public static class OmniShieldAI implements ShieldAI {
+        public OmniShieldAI(Ship ship, ShipwideAIFlags flags) {
+        }
+
+        @Override
+        public void shieldAI_advance(float dt, ThreatEvaluator threatEvalAI, Vector2f missileDangerDir, Vector2f collisionDangerDir, Ship target) {
         }
     }
 

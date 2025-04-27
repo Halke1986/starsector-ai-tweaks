@@ -1,3 +1,5 @@
+- Player Assist: Fixed an issue where the omni shield AI kept toggling the shield on and off when the player ship wasn’t in danger.
+
 Version 2.0.3
 
 - Custom AI: Full assault order increases ship aggression.

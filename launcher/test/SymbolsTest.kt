@@ -31,6 +31,7 @@ class SymbolsTest {
         assertEquals("com.fs.starfarer.combat.entities.ship.A.oOoO", s.beamWeapon.name)
         assertEquals("com.fs.starfarer.combat.entities.ship.A.J", s.projectileWeapon.name)
         assertEquals("com.fs.starfarer.combat.ai.Q", s.frontShieldAI.name)
+        assertEquals("com.fs.starfarer.combat.ai.J", s.omniShieldAI.name)
         assertEquals("com.fs.starfarer.combat.E.E", s.bounds.name)
         assertEquals("com.fs.starfarer.combat.E.E\$o", s.boundsSegment.name)
 
@@ -50,6 +51,7 @@ class SymbolsTest {
         assertEquals("class", s.flockingAI_setDesiredSpeed.name)
         assertEquals("Ô00000", s.flockingAI_advanceCollisionAnalysisModule.name)
         assertEquals("class", s.flockingAI_getMissileDangerDir.name)
+        assertEquals("Ø00000", s.flockingAI_getCollisionDangerDir.name)
         assertEquals("Ô00000", s.combatMap_getPluginContainers.name)
         assertEquals("Ô00000", s.missionDefinitionPluginContainer_getEveryFrameCombatPlugin.name)
         assertEquals("super", s.loadingUtils_loadSpec.name)

@@ -43,6 +43,7 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("$core\$ProjectileWeapon", symbols.projectileWeapon.classPath),
             Transformer.newTransform("$core\$LoadingUtils", symbols.loadingUtils.classPath),
             Transformer.newTransform("$core\$FrontShieldAI", symbols.frontShieldAI.classPath),
+            Transformer.newTransform("$core\$OmniShieldAI", symbols.omniShieldAI.classPath),
             Transformer.newTransform("$core\$Bounds", symbols.bounds.classPath),
             Transformer.newTransform("$core\$BoundsSegment", symbols.boundsSegment.classPath),
 
@@ -63,6 +64,7 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("flockingAI_setDesiredSpeed", symbols.flockingAI_setDesiredSpeed.name),
             Transformer.newTransform("flockingAI_advanceCollisionAnalysisModule", symbols.flockingAI_advanceCollisionAnalysisModule.name),
             Transformer.newTransform("flockingAI_getMissileDangerDir", symbols.flockingAI_getMissileDangerDir.name),
+            Transformer.newTransform("flockingAI_getCollisionDangerDir", symbols.flockingAI_getCollisionDangerDir.name),
             Transformer.newTransform("combatMap_getPluginContainers", symbols.combatMap_getPluginContainers.name),
             Transformer.newTransform("missionDefinitionPluginContainer_getEveryFrameCombatPlugin", symbols.missionDefinitionPluginContainer_getEveryFrameCombatPlugin.name),
             Transformer.newTransform("loadingUtils_loadSpec", symbols.loadingUtils_loadSpec.name),

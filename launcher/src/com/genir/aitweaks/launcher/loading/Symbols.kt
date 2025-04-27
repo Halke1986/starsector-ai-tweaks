@@ -59,7 +59,8 @@ class Symbols {
     val missionDefinitionPluginContainer: Class<*> = missionDefinition.classes.first()
     val beamWeapon: Class<*> = findWeaponTypes()[0]
     val projectileWeapon: Class<*> = findWeaponTypes()[2]
-    val frontShieldAI: Class<*> = findFrontShieldAI()
+    val frontShieldAI: Class<*> = findShieldAI()[0]
+    val omniShieldAI: Class<*> = findShieldAI()[1]
     val bounds: Class<*> = ship.getMethod("getVisualBounds").returnType
     val boundsSegment: Class<*> = bounds.getField("segments").genericType.typeArgument(0)
 
@@ -80,6 +81,7 @@ class Symbols {
     val flockingAI_setDesiredSpeed: Method = flockingAI.methods.first { it.name == flockingAISetterNames(4) && it.hasParameters(Float::class.java) }
     val flockingAI_advanceCollisionAnalysisModule: Method = flockingAI.methods.first { it.name == flockingAISetterNames(3) && it.hasParameters(Float::class.java) }
     val flockingAI_getMissileDangerDir: Method = flockingAI.methods.first { it.name == Bytecode.getMethodsInOrder(flockingAI).first { it.desc == "()Lorg/lwjgl/util/vector/Vector2f;" }.name && it.returnType == Vector2f::class.java && it.hasParameters() }
+    val flockingAI_getCollisionDangerDir: Method = flockingAI.methods.first { it.name == Bytecode.getMethodsInOrder(flockingAI).filter { it.desc == "()Lorg/lwjgl/util/vector/Vector2f;" }[1].name && it.returnType == Vector2f::class.java && it.hasParameters() }
     val combatMap_getPluginContainers: Method = combatMap.methods.first { it.hasParameters() && it.returnType == List::class.java }
     val missionDefinitionPluginContainer_getEveryFrameCombatPlugin: Method = missionDefinitionPluginContainer.methods.first { it.returnType == EveryFrameCombatPlugin::class.java }
     val loadingUtils_loadSpec: Method = loadingUtils.methods.first { it.returnType == JSONObject::class.java && it.hasParameters(String::class.java, Set::class.java) }
@@ -185,7 +187,7 @@ class Symbols {
         return weaponTypes.map { classLoader.loadClass(it.replace("/", ".")) }
     }
 
-    private fun findFrontShieldAI(): Class<*> {
+    private fun findShieldAI(): List<Class<*>> {
         var omniShieldAI: Class<*>? = null
         var frontShieldAI: Class<*>? = null
 
@@ -224,7 +226,7 @@ class Symbols {
             }
         })
 
-        return frontShieldAI!!
+        return listOf(frontShieldAI!!, omniShieldAI!!)
     }
 
     private fun ClassReader.accept(classVisitor: ClassVisitor) {

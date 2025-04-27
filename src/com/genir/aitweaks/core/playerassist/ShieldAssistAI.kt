@@ -21,7 +21,7 @@ import java.lang.reflect.Field
 
 class ShieldAssistAI(private val manager: ShieldAssistManager) : BaseShipAIPlugin() {
     private var prevPlayerShip: ShipAPI? = null
-    private var shieldAI: OmniShieldControlAI? = null
+    private var shieldControlAI: OmniShieldControlAI? = null
     var forceShieldOff = false
 
     override fun advance(dt: Float) {
@@ -44,17 +44,21 @@ class ShieldAssistAI(private val manager: ShieldAssistManager) : BaseShipAIPlugi
         if (ship != prevPlayerShip) {
             prevPlayerShip = ship
             val flags = ShipwideAIFlags()
-            shieldAI = OmniShieldControlAI(ship as Ship, flags)
+            shieldControlAI = OmniShieldControlAI(ship as Ship, flags)
 
-            // Replace the default omni shield AI with front shield AI.
-            if (shield.type == FRONT) {
-                val frontShieldAI = Obfuscated.FrontShieldAI(ship, flags)
+            val shieldAI: Obfuscated.ShieldAI = when (shield.type) {
+                // Replace the default omni shield AI with front shield AI.
+                FRONT -> Obfuscated.FrontShieldAI(ship as Obfuscated.Ship, flags)
 
-                val shieldAIField: Field = OmniShieldControlAI::class.java.getDeclaredField("shieldAI")
-                shieldAIField.setAccessible(true)
-
-                shieldAIField.set(shieldAI, frontShieldAI)
+                // Replace the default omni shield AI. Default AI is misconfigured
+                // and keeps toggling the shield on and off when the ship isn’t in danger.
+                else -> Obfuscated.OmniShieldAI(ship as Obfuscated.Ship, flags)
             }
+
+            val shieldAIField: Field = OmniShieldControlAI::class.java.getDeclaredField("shieldAI")
+            shieldAIField.setAccessible(true)
+
+            shieldAIField.set(shieldControlAI, shieldAI)
         }
 
         // Clear player manual command.
@@ -74,8 +78,10 @@ class ShieldAssistAI(private val manager: ShieldAssistManager) : BaseShipAIPlugi
         }
 
         // Control the shield.
-        shieldAI!!.advance(dt)
-        ship.mouseTarget?.let { ship.setShieldTargetOverride(it.x, it.y) }
+        shieldControlAI!!.advance(dt)
+        ship.mouseTarget?.let {
+            ship.setShieldTargetOverride(it.x, it.y)
+        }
 
         // Shield AI overrides the player ship mouse position.
         // The position needs to be restored.

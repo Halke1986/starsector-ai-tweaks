@@ -55,6 +55,6 @@ check finish burst target, AI seems to break burst with tach lance
 DO_NOT_BACK_OFF flag
 HAS_INCOMING_DAMAGE flag, when adding custom threat evaluation
 
-auto omni shields follow mouse when off
+ships that use the custom AI hullmod do not target and hunt down enemy fighters if they are the last enemy remaining
 
 ----------------------------------------------------------------
