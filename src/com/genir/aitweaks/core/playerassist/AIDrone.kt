@@ -6,9 +6,9 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.timeMult
 
-fun makeAIDrone(ai: ShipAIPlugin): ShipAPI {
+fun makeAIDrone(ai: ShipAIPlugin, variantName: String): ShipAPI {
     val spec = Global.getSettings().getHullSpec("dem_drone")
-    val v = Global.getSettings().createEmptyVariant("dem_drone", spec)
+    val v = Global.getSettings().createEmptyVariant(variantName, spec)
     val aiDrone = Global.getCombatEngine().createFXDrone(v)
 
     aiDrone.owner = 0

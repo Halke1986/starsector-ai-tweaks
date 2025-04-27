@@ -42,7 +42,7 @@ class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
         var aiDrone = aiDrone
         if (aiDrone == null) {
             ai = ShieldAssistAI(this)
-            aiDrone = makeAIDrone(ai!!)
+            aiDrone = makeAIDrone(ai!!, "aitweaks_shield_assist_drone")
 
             Global.getCombatEngine().addEntity(aiDrone)
             this.aiDrone = aiDrone

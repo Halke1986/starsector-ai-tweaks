@@ -43,7 +43,7 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
         // Make a drone to hold player ship aim assist AI.
         var aiDrone = aiDrone
         if (aiDrone == null) {
-            aiDrone = makeAIDrone(AimAssistAI(this))
+            aiDrone = makeAIDrone(AimAssistAI(this), "aitweaks_aim_assist_drone")
             Global.getCombatEngine().addEntity(aiDrone)
             this.aiDrone = aiDrone
         }
