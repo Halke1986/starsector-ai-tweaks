@@ -29,7 +29,8 @@ class State : BaseEveryFrameCombatPlugin() {
         config = Config()
     }
 
-    var frameIndex: Int = 0
+    var frameCount: Int = 0
+    var unpausedFrameCount: Int = 0
     val debugPlugin: DebugPlugin? = if (config.devMode) DebugPlugin() else null
 
     val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
@@ -51,7 +52,7 @@ class State : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         debugPlugin?.advance(dt, events)
 
-        if (frameIndex == 0) {
+        if (frameCount == 0) {
             removeGrid()
         }
 
@@ -61,7 +62,10 @@ class State : BaseEveryFrameCombatPlugin() {
             plugins.forEach { it.advance(dt, events) }
         }
 
-        frameIndex++
+        frameCount++
+        if (!Global.getCombatEngine().isPaused) {
+            unpausedFrameCount++
+        }
     }
 
     override fun renderInUICoords(viewport: ViewportAPI?) {

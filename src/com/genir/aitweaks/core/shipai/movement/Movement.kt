@@ -38,7 +38,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 90f else -90f)
 
     fun advance(dt: Float) {
-        if (prevFrameIdx != state.frameIndex) {
+        if (prevFrameIdx != state.frameCount) {
             engineController.clearCommands()
 
             setFacing(dt)
@@ -47,7 +47,7 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
 
         engineController.executeCommands()
 
-        prevFrameIdx = state.frameIndex
+        prevFrameIdx = state.frameCount
     }
 
     private fun setFacing(dt: Float) {

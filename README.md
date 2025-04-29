@@ -300,7 +300,8 @@ detrimental to the ship's performance in combat."
 
 ### 3. Search and Destroy hullmod ###
 
-"The ship defaults to Search and Destroy order. It will not be automatically assigned to Assault, Eliminate or other tasks.
-Player can manually assign the ship to any of these tasks."
+"The ship defaults to Search and Destroy order. The ship will not be automatically assigned to Assault, Eliminate or 
+any other tasks. Player can manually assign the ship to any tasks.
+The hullmod is suppressed during initial deployment, to allow for easy objective capping.""
 
 ![search and destroy](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/search_and_destroy.png)
