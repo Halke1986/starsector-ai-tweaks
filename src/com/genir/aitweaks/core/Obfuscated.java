@@ -247,4 +247,13 @@ public class Obfuscated {
     public static class Bounds {
         public List<BoundsSegment> origSegments = new ArrayList<>();
     }
+
+    public static class DeployedFleetMember {
+    }
+
+    public static class CombatTaskManager {
+        public boolean hasDirectOrders(DeployedFleetMember member) {
+            return false;
+        }
+    }
 }

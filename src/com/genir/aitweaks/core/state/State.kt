@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.FleetCohesionAI
+import com.genir.aitweaks.core.SearchAndDestroyManager
 import com.genir.aitweaks.core.debug.DebugPlugin
 import com.genir.aitweaks.core.debug.removeGrid
 import com.genir.aitweaks.core.playerassist.AimAssistManager
@@ -17,7 +18,10 @@ import com.genir.aitweaks.core.state.Config.Companion.config
 class State : BaseEveryFrameCombatPlugin() {
     companion object {
         val state: State
-            get() = Global.getCombatEngine().customData["aitweaks_combat_state"] as State
+            get() = stateSafe!!
+
+        val stateSafe: State?
+            get() = Global.getCombatEngine()?.customData?.get("aitweaks_combat_state") as? State
     }
 
     init {
@@ -30,12 +34,14 @@ class State : BaseEveryFrameCombatPlugin() {
 
     val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
     private val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
+    private val searchAndDestroy: SearchAndDestroyManager = SearchAndDestroyManager()
 
     private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
         fleetSegmentation[0],
         fleetSegmentation[1],
         fleetCohesion[0],
         fleetCohesion[1],
+        searchAndDestroy,
         Speedup(),
         AimAssistManager(),
         ShieldAssistManager(),

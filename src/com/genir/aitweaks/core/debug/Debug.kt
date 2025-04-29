@@ -4,7 +4,7 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
-import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.state.State.Companion.stateSafe
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
@@ -24,7 +24,7 @@ object Debug {
         get() = Print
 
     private val debugPlugin: DebugPlugin?
-        get() = state.debugPlugin
+        get() = stateSafe?.debugPlugin
 
     fun drawCircle(pos: Vector2f, r: Float, color: Color = Color.CYAN) {
         debugPlugin?.renderer?.circles?.add(Renderer.Circle(pos, r, color))

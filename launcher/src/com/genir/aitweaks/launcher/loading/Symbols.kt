@@ -4,9 +4,11 @@ import com.fs.starfarer.api.combat.EveryFrameCombatPlugin
 import com.fs.starfarer.campaign.ui.fleet.FleetMemberView
 import com.fs.starfarer.combat.CombatEngine
 import com.fs.starfarer.combat.ai.BasicShipAI
+import com.fs.starfarer.combat.ai.BattleGroupAI
 import com.fs.starfarer.combat.ai.OmniShieldControlAI
 import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
+import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.fs.starfarer.loading.LoadingUtils
 import com.fs.starfarer.title.TitleScreenState
 import com.genir.aitweaks.launcher.loading.Bytecode.classPath
@@ -34,6 +36,8 @@ class Symbols {
     val titleScreenState: Class<*> = TitleScreenState::class.java
     val loadingUtils: Class<*> = LoadingUtils::class.java
     val omniShieldControlAI: Class<*> = OmniShieldControlAI::class.java
+    val battleGroupAI: Class<*> = BattleGroupAI::class.java
+    val combatTaskManager: Class<*> = CombatTaskManager::class.java
 
     // Classes and interfaces.
     val flockingAI: Class<*> = basicShipAI.getMethod("getFlockingAI").returnType
@@ -63,6 +67,7 @@ class Symbols {
     val omniShieldAI: Class<*> = findShieldAI()[1]
     val bounds: Class<*> = ship.getMethod("getVisualBounds").returnType
     val boundsSegment: Class<*> = bounds.getField("segments").genericType.typeArgument(0)
+    val deployedFleetMember: Class<*> = battleGroupAI.getMethod("getGroupLeader").returnType
 
     // Methods and fields.
     val autofireManager_advance: Method = autofireManager.methods.first { it.name != "<init>" }

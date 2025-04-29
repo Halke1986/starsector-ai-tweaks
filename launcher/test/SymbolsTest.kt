@@ -34,6 +34,7 @@ class SymbolsTest {
         assertEquals("com.fs.starfarer.combat.ai.J", s.omniShieldAI.name)
         assertEquals("com.fs.starfarer.combat.E.E", s.bounds.name)
         assertEquals("com.fs.starfarer.combat.E.E\$o", s.boundsSegment.name)
+        assertEquals("com.fs.starfarer.combat.CombatFleetManager\$O0", s.deployedFleetMember.name)
 
         assertEquals("super", s.autofireManager_advance.name)
         assertEquals("Ò00000", s.shipCommandWrapper_getCommand.name)

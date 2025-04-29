@@ -18,3 +18,6 @@ Custom AI treats orders as high-priority commands, executing them in an RTS-like
 Tested mostly with steady, artillery-based ship builds, like Eradicators, Conquests, Manticores, etc. May not work the best with Safety Override ships.
 
 You can report any feats of stupidity accomplished by the AI on Discord or the forums.",,,,,,graphics/hullmods/custom_ship_ai.png
+Search and Destroy,aitweaks_search_and_destroy,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.SearchAndDestroy,,,,"The ship defaults to Search and Destroy order. It will not be automatically assigned to Assault, Eliminate or other tasks.
+
+Player can manually assign the ship to any of these tasks.",,,,,,graphics/warroom/taskicons/icon_search_and_destroy.png

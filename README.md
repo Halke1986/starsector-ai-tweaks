@@ -152,7 +152,7 @@ The improved AI applies only to normal beams, not burst or ammo based beams.
 
 A simple modification preventing autofire AI from firing ammo-based kinetic weapons, as well as the Light Needler, Heavy
 Needler and Storm Needler on shieldless targets. This change greatly improves needlers anti shield capability by
-preventing them from wasting bursts on exposed hulls. All ships are subject to the change, no hull mod is required.
+preventing them from wasting bursts on exposed hulls. All ships are subject to the change, no hullmod is required.
 
 The feature can be disabled via LunaLib settings.
 
@@ -260,9 +260,9 @@ AI Tweaks allows to configure the personality of automated ships. The configurat
 is global, affecting all automated ship in the player's fleet. If no specific personality is configured, the automated
 ships will default to aggressive behavior, instead of the vanilla reckless.
 
-### 2. Finisher Beam Protocol hull mod ###
+### 2. Finisher Beam Protocol hullmod ###
 
-A hull mod that changes how ship AI uses several beam weapons:
+A hullmod that changes how ship AI uses several beam weapons:
 
 ![finisher beam protocol](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/finisher_beam_protocol.png)
 
@@ -274,7 +274,7 @@ for weapons in autofire mode and does not affect point defense beams."
 
 Details
 
-The hull mod prevents selected beam weapons from firing at shields by adding USE_LESS_VS_SHIELDS tag. Additionally, the
+The hullmod prevents selected beam weapons from firing at shields by adding USE_LESS_VS_SHIELDS tag. Additionally, the
 weapons are prevented from shooting at fighters.
 
 For a weapon to be subject to Finisher Beam Protocol, it needs to have `FINISHER_BEAM` aiTweaksTag in
@@ -288,7 +288,7 @@ its `/data/weapons/weaponId.ait` file. And, of course, it needs to be a beam wea
 }
 ```
 
-### 3. System Shunt hull mod ###
+### 3. System Shunt hullmod ###
 
 System Shunt prevents AI from using the ship system:
 
@@ -297,3 +297,10 @@ System Shunt prevents AI from using the ship system:
 "A set of officer instructions and software modifications that prevent the use of the ship's system unless directly
 ordered by the fleet's first-in-command. Note: This protocol may be activated if the system's usage is deemed
 detrimental to the ship's performance in combat."
+
+### 3. Search and Destroy hullmod ###
+
+"The ship defaults to Search and Destroy order. It will not be automatically assigned to Assault, Eliminate or other tasks.
+Player can manually assign the ship to any of these tasks."
+
+![search and destroy](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/search_and_destroy.png)

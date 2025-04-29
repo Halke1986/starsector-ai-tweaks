@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.AssignmentTargetAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.CombatAssignmentType
+import com.fs.starfarer.api.combat.CombatAssignmentType.SEARCH_AND_DESTROY
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
@@ -103,8 +104,17 @@ class FleetCohesionAI(private val side: Int) : BaseEveryFrameCombatPlugin() {
 
     private fun manageAssignments(ship: ShipAPI) {
         // Ship has foreign assignment.
-        if (ship.assignment != null) {
-            return
+        val currentAssignmentType: CombatAssignmentType? = ship.assignment?.type
+        if (currentAssignmentType != null) {
+            when {
+                ship.variant.hasHullMod("aitweaks_search_and_destroy") && currentAssignmentType != SEARCH_AND_DESTROY -> {
+                    return
+                }
+
+                !ship.variant.hasHullMod("aitweaks_search_and_destroy") -> {
+                    return
+                }
+            }
         }
 
         val target = ship.attackTarget ?: return

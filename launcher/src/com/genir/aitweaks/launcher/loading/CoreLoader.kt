@@ -46,6 +46,8 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("$core\$OmniShieldAI", symbols.omniShieldAI.classPath),
             Transformer.newTransform("$core\$Bounds", symbols.bounds.classPath),
             Transformer.newTransform("$core\$BoundsSegment", symbols.boundsSegment.classPath),
+            Transformer.newTransform("$core\$DeployedFleetMember", symbols.deployedFleetMember.classPath),
+            Transformer.newTransform("$core\$CombatTaskManager", symbols.combatTaskManager.classPath),
 
             // Fields and methods.
             Transformer.newTransform("autofireManager_advance", symbols.autofireManager_advance.name),
