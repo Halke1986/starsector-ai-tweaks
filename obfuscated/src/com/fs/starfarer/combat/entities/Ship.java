@@ -36,10 +36,6 @@ public class Ship implements ShipAPI {
     }
 
     // UNOBFUSCATED
-    public void setAI(AI var1) {
-    }
-
-    // UNOBFUSCATED
     public List<CommandWrapper> getCommands() {
         return null;
     }
@@ -62,6 +58,11 @@ public class Ship implements ShipAPI {
     @Override
     public boolean isDrone() {
         return false;
+    }
+
+    @Override
+    public void setDrone(boolean isDrone) {
+
     }
 
     @Override
@@ -92,6 +93,11 @@ public class Ship implements ShipAPI {
     @Override
     public HullSize getHullSize() {
         return null;
+    }
+
+    @Override
+    public void setHullSize(HullSize hullSize) {
+
     }
 
     @Override
@@ -127,6 +133,11 @@ public class Ship implements ShipAPI {
     @Override
     public boolean isHulk() {
         return false;
+    }
+
+    @Override
+    public void setHulk(boolean isHulk) {
+
     }
 
     @Override
@@ -201,6 +212,11 @@ public class Ship implements ShipAPI {
     }
 
     @Override
+    public void setWing(FighterWingAPI wing) {
+
+    }
+
+    @Override
     public List<ShipAPI> getDeployedDrones() {
         return null;
     }
@@ -226,13 +242,13 @@ public class Ship implements ShipAPI {
     }
 
     @Override
-    public void setCRAtDeployment(float cr) {
-
+    public float getCRAtDeployment() {
+        return 0;
     }
 
     @Override
-    public float getCRAtDeployment() {
-        return 0;
+    public void setCRAtDeployment(float cr) {
+
     }
 
     @Override
@@ -296,6 +312,11 @@ public class Ship implements ShipAPI {
     }
 
     @Override
+    public void setCollisionRadius(float radius) {
+
+    }
+
+    @Override
     public CollisionClass getCollisionClass() {
         return null;
     }
@@ -336,18 +357,27 @@ public class Ship implements ShipAPI {
     }
 
     @Override
+    public void setHitpoints(float value) {
+
+    }
+
+    @Override
     public float getMaxHitpoints() {
         return 0;
     }
 
     @Override
-    public void setCollisionRadius(float radius) {
+    public void setMaxHitpoints(float maxArmor) {
 
     }
 
     @Override
     public AI getAI() {
         return null;
+    }
+
+    // UNOBFUSCATED
+    public void setAI(AI var1) {
     }
 
     @Override
@@ -368,11 +398,6 @@ public class Ship implements ShipAPI {
     @Override
     public Map<String, java.lang.Object> getCustomData() {
         return null;
-    }
-
-    @Override
-    public void setHitpoints(float value) {
-
     }
 
     @Override
@@ -397,11 +422,6 @@ public class Ship implements ShipAPI {
 
     @Override
     public void setControlsLocked(boolean controlsLocked) {
-
-    }
-
-    @Override
-    public void setShipSystemDisabled(boolean systemDisabled) {
 
     }
 
@@ -441,13 +461,13 @@ public class Ship implements ShipAPI {
     }
 
     @Override
-    public void setShipAI(ShipAIPlugin ai) {
-
+    public ShipAIPlugin getShipAI() {
+        return null;
     }
 
     @Override
-    public ShipAIPlugin getShipAI() {
-        return null;
+    public void setShipAI(ShipAIPlugin ai) {
+
     }
 
     @Override
@@ -556,6 +576,11 @@ public class Ship implements ShipAPI {
     }
 
     @Override
+    public void setLowestHullLevelReached(float lowestHullLevelReached) {
+
+    }
+
+    @Override
     public ShipwideAIFlags getAIFlags() {
         return null;
     }
@@ -568,6 +593,11 @@ public class Ship implements ShipAPI {
     @Override
     public boolean isHoldFire() {
         return false;
+    }
+
+    @Override
+    public void setHoldFire(boolean holdFire) {
+
     }
 
     @Override
@@ -586,22 +616,22 @@ public class Ship implements ShipAPI {
     }
 
     @Override
+    public void setPhased(boolean phased) {
+
+    }
+
+    @Override
     public boolean isAlly() {
         return false;
     }
 
     @Override
+    public void setAlly(boolean ally) {
+
+    }
+
+    @Override
     public void setWeaponGlow(float glow, Color color, EnumSet<WeaponAPI.WeaponType> types) {
-
-    }
-
-    @Override
-    public void setVentCoreColor(Color color) {
-
-    }
-
-    @Override
-    public void setVentFringeColor(Color color) {
 
     }
 
@@ -611,8 +641,18 @@ public class Ship implements ShipAPI {
     }
 
     @Override
+    public void setVentCoreColor(Color color) {
+
+    }
+
+    @Override
     public Color getVentFringeColor() {
         return null;
+    }
+
+    @Override
+    public void setVentFringeColor(Color color) {
+
     }
 
     @Override
@@ -636,11 +676,6 @@ public class Ship implements ShipAPI {
     }
 
     @Override
-    public void setAlly(boolean ally) {
-
-    }
-
-    @Override
     public void applyCriticalMalfunction(java.lang.Object module, boolean permanent) {
 
     }
@@ -653,6 +688,11 @@ public class Ship implements ShipAPI {
     @Override
     public String getName() {
         return null;
+    }
+
+    @Override
+    public void setName(String name) {
+
     }
 
     @Override
@@ -721,22 +761,7 @@ public class Ship implements ShipAPI {
     }
 
     @Override
-    public void setPhased(boolean phased) {
-
-    }
-
-    @Override
-    public void setExtraAlphaMult(float transparency) {
-
-    }
-
-    @Override
     public void setApplyExtraAlphaToEngines(boolean applyExtraAlphaToEngines) {
-
-    }
-
-    @Override
-    public void setOverloadColor(Color color) {
 
     }
 
@@ -748,6 +773,11 @@ public class Ship implements ShipAPI {
     @Override
     public Color getOverloadColor() {
         return null;
+    }
+
+    @Override
+    public void setOverloadColor(Color color) {
+
     }
 
     @Override
@@ -791,6 +821,11 @@ public class Ship implements ShipAPI {
     }
 
     @Override
+    public void setCaptain(PersonAPI captain) {
+
+    }
+
+    @Override
     public WeaponSlotAPI getStationSlot() {
         return null;
     }
@@ -828,11 +863,6 @@ public class Ship implements ShipAPI {
     @Override
     public boolean isTargetable() {
         return false;
-    }
-
-    @Override
-    public void setStation(boolean isStation) {
-
     }
 
     @Override
@@ -961,17 +991,7 @@ public class Ship implements ShipAPI {
     }
 
     @Override
-    public void setHullSize(HullSize hullSize) {
-
-    }
-
-    @Override
     public void ensureClonedStationSlotSpec() {
-
-    }
-
-    @Override
-    public void setMaxHitpoints(float maxArmor) {
 
     }
 
@@ -983,6 +1003,11 @@ public class Ship implements ShipAPI {
     @Override
     public boolean isStation() {
         return false;
+    }
+
+    @Override
+    public void setStation(boolean isStation) {
+
     }
 
     @Override
@@ -1141,6 +1166,11 @@ public class Ship implements ShipAPI {
     }
 
     @Override
+    public void setFleetMember(FleetMemberAPI member) {
+
+    }
+
+    @Override
     public Vector2f getShieldTarget() {
         return null;
     }
@@ -1201,21 +1231,6 @@ public class Ship implements ShipAPI {
     }
 
     @Override
-    public void setName(String name) {
-
-    }
-
-    @Override
-    public void setHulk(boolean isHulk) {
-
-    }
-
-    @Override
-    public void setCaptain(PersonAPI captain) {
-
-    }
-
-    @Override
     public float getShipExplosionRadius() {
         return 0;
     }
@@ -1231,13 +1246,18 @@ public class Ship implements ShipAPI {
     }
 
     @Override
-    public void setAlphaMult(float alphaMult) {
+    public void setExtraAlphaMult(float transparency) {
 
     }
 
     @Override
     public float getAlphaMult() {
         return 0;
+    }
+
+    @Override
+    public void setAlphaMult(float alphaMult) {
+
     }
 
     @Override
@@ -1266,11 +1286,6 @@ public class Ship implements ShipAPI {
     }
 
     @Override
-    public void setHoldFire(boolean holdFire) {
-
-    }
-
-    @Override
     public void cloneVariant() {
 
     }
@@ -1281,13 +1296,13 @@ public class Ship implements ShipAPI {
     }
 
     @Override
-    public void setFluxVentTextureSheet(String textureId) {
-
+    public String getFluxVentTextureSheet() {
+        return null;
     }
 
     @Override
-    public String getFluxVentTextureSheet() {
-        return null;
+    public void setFluxVentTextureSheet(String textureId) {
+
     }
 
     @Override
@@ -1322,11 +1337,6 @@ public class Ship implements ShipAPI {
 
     @Override
     public void setForceCarrierTarget(ShipAPI forceCarrierTarget) {
-
-    }
-
-    @Override
-    public void setWing(FighterWingAPI wing) {
 
     }
 
@@ -1376,17 +1386,12 @@ public class Ship implements ShipAPI {
     }
 
     @Override
-    public void setExtraAlphaMult2(float transparency) {
-
-    }
-
-    @Override
     public float getExtraAlphaMult2() {
         return 0;
     }
 
     @Override
-    public void setDrone(boolean isDrone) {
+    public void setExtraAlphaMult2(float transparency) {
 
     }
 
@@ -1443,6 +1448,11 @@ public class Ship implements ShipAPI {
     @Override
     public boolean isShipSystemDisabled() {
         return false;
+    }
+
+    @Override
+    public void setShipSystemDisabled(boolean systemDisabled) {
+
     }
 
     @Override
@@ -1626,13 +1636,13 @@ public class Ship implements ShipAPI {
     }
 
     @Override
-    public void setDoNotRenderVentingAnimation(boolean doNotRenderVentingAnimation) {
-
+    public boolean isDoNotRenderVentingAnimation() {
+        return false;
     }
 
     @Override
-    public boolean isDoNotRenderVentingAnimation() {
-        return false;
+    public void setDoNotRenderVentingAnimation(boolean doNotRenderVentingAnimation) {
+
     }
 
     @Override
@@ -1695,15 +1705,8 @@ public class Ship implements ShipAPI {
 
     }
 
-    @Override
-    public void setLowestHullLevelReached(float lowestHullLevelReached) {
-
-    }
-
-    @Override
-    public void setFleetMember(FleetMemberAPI member) {
-
-    }
+    // OBFUSCATED
+    public enum Command {}
 
     public static class ShipAIWrapper implements ShipAIPlugin {
         // UNOBFUSCATED
@@ -1751,9 +1754,6 @@ public class Ship implements ShipAPI {
             ShipAIPlugin.super.setTargetOverride(target);
         }
     }
-
-    // OBFUSCATED
-    public enum Command {}
 
     // OBFUSCATED
     public static class CommandWrapper {

@@ -119,6 +119,11 @@ public class CombatEngine implements CombatEngineAPI {
     }
 
     @Override
+    public void setPaused(boolean paused) {
+
+    }
+
+    @Override
     public void endCombat(float delay) {
 
     }
@@ -305,11 +310,6 @@ public class CombatEngine implements CombatEngineAPI {
 
     @Override
     public void maintainStatusForPlayerShip(Object key, String spriteName, String title, String data, boolean isDebuff) {
-
-    }
-
-    @Override
-    public void setPaused(boolean paused) {
 
     }
 
@@ -544,13 +544,13 @@ public class CombatEngine implements CombatEngineAPI {
     }
 
     @Override
-    public void setCombatNotOverFor(float seconds) {
-
+    public float getCombatNotOverFor() {
+        return 0;
     }
 
     @Override
-    public float getCombatNotOverFor() {
-        return 0;
+    public void setCombatNotOverFor(float seconds) {
+
     }
 
     @Override
@@ -594,6 +594,11 @@ public class CombatEngine implements CombatEngineAPI {
     }
 
     @Override
+    public void setShipPlayerLastTransferredCommandTo(ShipAPI ship) {
+
+    }
+
+    @Override
     public ShipAPI createFXDrone(ShipVariantAPI variant) {
         return null;
     }
@@ -634,13 +639,13 @@ public class CombatEngine implements CombatEngineAPI {
     }
 
     @Override
-    public void setBackgroundGlowColor(Color backgroundGlowColor) {
-
+    public Color getBackgroundGlowColor() {
+        return null;
     }
 
     @Override
-    public Color getBackgroundGlowColor() {
-        return null;
+    public void setBackgroundGlowColor(Color backgroundGlowColor) {
+
     }
 
     @Override
@@ -650,11 +655,6 @@ public class CombatEngine implements CombatEngineAPI {
 
     @Override
     public void setRenderStarfield(boolean renderStarfield) {
-
-    }
-
-    @Override
-    public void setShipPlayerLastTransferredCommandTo(ShipAPI ship) {
 
     }
 
