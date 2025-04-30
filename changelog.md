@@ -1,5 +1,6 @@
 - Player Assist: Fixed an issue where the omni shield AI kept toggling the shield on and off when the player ship wasn't in danger.
-- Added Search and Destroy hull mod. It makes the ship default to Search and Destroy order.
+- Added Search and Destroy hull mod. It makes ships default to Search and Destroy order.
+- Custom AI: Fixed a bug where ships ignored certain enemies when deciding if to vent. The bug was most apparent when fighting Shrouded Eyes.
 
 Version 2.0.3
 

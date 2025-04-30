@@ -258,10 +258,13 @@ class VentModule(private val ai: CustomShipAI) {
             }
         }
 
-        return enemies.flatMap { it.allGroupedWeapons }.filter { weapon ->
+        return enemies.flatMap { it.allWeapons }.filter { weapon ->
             when {
                 weapon.isDisabled -> false
                 weapon.isPermanentlyDisabled -> false
+
+                // Non-weapons, such as decoratives.
+                weapon.derivedStats.dps == 0f -> false
 
                 // Assume the ship can recognize an empty
                 // missile launcher, same as the player can.
