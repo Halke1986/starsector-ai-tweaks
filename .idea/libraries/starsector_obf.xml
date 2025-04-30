@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="starsector-obf">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../../starsector-obf" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/../../starsector-obf" recursive="false" />
+  </library>
+</component>

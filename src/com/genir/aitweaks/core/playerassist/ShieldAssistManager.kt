@@ -5,7 +5,6 @@ import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.state.Config.Companion.config
 
 class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
@@ -20,7 +19,7 @@ class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
         // Load shield assist setting from memory.
-        val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
+        val memory: MemoryAPI = Global.getSector().memoryWithoutUpdate
         enableShieldAssist = memory.getBoolean(ENABLE_SHIELD_ASSIST_KEY)
 
         // Handle input. The input needs to be handled even when the game

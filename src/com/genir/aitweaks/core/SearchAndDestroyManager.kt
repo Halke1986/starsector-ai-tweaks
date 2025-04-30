@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.AssignmentTargetAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
 
@@ -71,8 +72,8 @@ class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
 
     private val ShipAPI.hasDirectOrders: Boolean
         get() {
-            val taskManager = taskManager as Obfuscated.CombatTaskManager
-            val fleetMember = deployedFleetMember as Obfuscated.DeployedFleetMember
+            val taskManager = taskManager as CombatTaskManager
+            val fleetMember = deployedFleetMember as CombatTaskManager.DeployedFleetMember
 
             return taskManager.hasDirectOrders(fleetMember)
         }

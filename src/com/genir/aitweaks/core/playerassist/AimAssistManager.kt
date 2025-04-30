@@ -5,7 +5,6 @@ import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.campaign.CampaignEngine
 import com.genir.aitweaks.core.playerassist.LeadingPipIntegration.overrideTargetingLeadIndicator
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.state.VanillaKeymap
@@ -23,7 +22,7 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
 
     override fun advance(timeDelta: Float, events: MutableList<InputEventAPI>?) {
         val engine = Global.getCombatEngine()
-        val memory: MemoryAPI = CampaignEngine.getInstance().memoryWithoutUpdate
+        val memory: MemoryAPI = Global.getSector().memoryWithoutUpdate
         enableAimAssist = memory.getBoolean(ENABLE_AIM_ASSIST_KEY)
 
         // Handle input.

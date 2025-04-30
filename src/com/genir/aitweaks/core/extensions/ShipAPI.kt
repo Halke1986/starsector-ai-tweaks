@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.PHASE
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
@@ -52,10 +51,7 @@ val ShipAPI.attackTarget: ShipAPI?
 
             // For vanilla AI, check the maneuver target directly.
             basicShipAI != null -> {
-                val ai = basicShipAI!! as Obfuscated.BasicShipAI
-                val maneuver: Obfuscated.Maneuver? = ai.currentManeuver
-
-                maneuver?.maneuver_getTarget()
+                basicShipAI!!.currentManeuver?.maneuver_getTarget()
             }
 
             // Fall back to using vanilla maneuver target flag.

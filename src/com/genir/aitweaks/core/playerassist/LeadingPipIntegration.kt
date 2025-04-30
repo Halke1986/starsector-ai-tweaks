@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.EveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.combat.CombatEngine
-import com.genir.aitweaks.core.Obfuscated
+import com.fs.starfarer.title.mission.MissionDefinition
 import com.genir.aitweaks.core.extensions.copy
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.extensions.times
@@ -26,10 +26,10 @@ object LeadingPipIntegration {
     }
 
     private fun findEveryFramePlugin(name: String): EveryFrameCombatPlugin? {
-        val combatEngine = Global.getCombatEngine() as Obfuscated.CombatEngine
+        val combatEngine = Global.getCombatEngine() as CombatEngine
         val pluginContainers = combatEngine.combatMap.combatMap_getPluginContainers()
 
-        val missionPlugins = pluginContainers.filterIsInstance<Obfuscated.MissionDefinitionPluginContainer>()
+        val missionPlugins = pluginContainers.filterIsInstance<MissionDefinition.PluginContainer>()
         val plugins = missionPlugins.map { it.missionDefinitionPluginContainer_getEveryFrameCombatPlugin() }
         return plugins.firstOrNull { it::class.java.name == name }
     }

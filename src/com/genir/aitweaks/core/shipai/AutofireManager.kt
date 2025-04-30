@@ -3,9 +3,9 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.util.IntervalUtil
+import com.fs.starfarer.combat.ai.ThreatEvaluator
 import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.isMissile
 import com.genir.aitweaks.core.extensions.isPD
 import com.genir.aitweaks.core.shipai.autofire.SyncFire
@@ -13,11 +13,11 @@ import com.genir.aitweaks.core.utils.defaultAIInterval
 import org.lwjgl.util.vector.Vector2f
 import java.lang.reflect.Field
 
-class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
+class AutofireManager(val ship: ShipAPI) : com.fs.starfarer.combat.ai.attack.AutofireManager {
     private val updateInterval: IntervalUtil = defaultAIInterval()
     private var autofireCount = 0
 
-    override fun autofireManager_advance(dt: Float, threatEvalAI: Obfuscated.ThreatEvaluator?, missileDangerDir: Vector2f?) {
+    override fun autofireManager_advance(dt: Float, threatEvalAI: ThreatEvaluator?, missileDangerDir: Vector2f?) {
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
             autofireCount = ensureAutofire()
@@ -57,7 +57,7 @@ class AutofireManager(val ship: ShipAPI) : Obfuscated.AutofireManager {
 
     companion object {
         /** Replace vanilla autofire manager with AI Tweaks adapter. */
-        fun inject(ship: ShipAPI, attackModule: Obfuscated.AttackAIModule) {
+        fun inject(ship: ShipAPI, attackModule: AttackAIModule) {
             // Find the obfuscated AttackAIModule.autofireManager field.
             val fields: Array<Field> = AttackAIModule::class.java.declaredFields
             val field = fields.first { it.type.isInterface && it.type.methods.size == 1 }

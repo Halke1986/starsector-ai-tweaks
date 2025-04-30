@@ -1,7 +1,7 @@
 package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.Obfuscated
+import com.fs.starfarer.loading.LoadingUtils
 import org.json.JSONArray
 
 enum class Tag {
@@ -29,7 +29,7 @@ val WeaponAPI.AITags: Set<Tag>
 
         val newTags = try {
             val path = "data/weapons/${id}.ait"
-            val json = Obfuscated.LoadingUtils.loadingUtils_loadSpec(path, null)
+            val json = LoadingUtils.loadingUtils_loadSpec(path, null)
 
             val jsonTags: JSONArray? = json.optJSONArray("aiTag")
             if (jsonTags == null) setOf()

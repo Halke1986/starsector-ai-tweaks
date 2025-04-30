@@ -1,7 +1,6 @@
 package com.genir.aitweaks.launcher.loading
 
 import com.fs.starfarer.api.Global
-import com.genir.aitweaks.launcher.loading.Bytecode.classPath
 import java.io.File
 import java.net.URL
 import java.net.URLClassLoader
@@ -12,46 +11,36 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
 
     private val obfuscator by lazy {
         val symbols: Symbols by lazy { Symbols() }
-        val core = "com/genir/aitweaks/core/Obfuscated"
 
         Transformer(listOf(
             // Classes.
-            Transformer.newTransform("$core\$Ship", symbols.ship.classPath),
-            Transformer.newTransform("$core\$BasicShipAI", symbols.basicShipAI.classPath),
-            Transformer.newTransform("$core\$AttackAIModule", symbols.attackAIModule.classPath),
-            Transformer.newTransform("$core\$CombatEngine", symbols.combatEngine.classPath),
-            Transformer.newTransform("$core\$FlockingAI", symbols.flockingAI.classPath),
-            Transformer.newTransform("$core\$ApproachManeuver", symbols.approachManeuver.classPath),
-            Transformer.newTransform("$core\$AutofireManager", symbols.autofireManager.classPath),
-            Transformer.newTransform("$core\$Maneuver", symbols.maneuver.classPath),
-            Transformer.newTransform("$core\$ShipCommandWrapper", symbols.shipCommandWrapper.classPath),
-            Transformer.newTransform("$core\$ShipCommand", symbols.shipCommand.classPath),
-            Transformer.newTransform("$core\$CombatEntity", symbols.combatEntity.classPath),
-            Transformer.newTransform("$core\$Weapon", symbols.weapon.classPath),
-            Transformer.newTransform("$core\$AimTracker", symbols.aimTracker.classPath),
-            Transformer.newTransform("$core\$PlayerAction", symbols.playerAction.classPath),
-            Transformer.newTransform("$core\$Keymap", symbols.keymap.classPath),
-            Transformer.newTransform("$core\$FighterPullbackModule", symbols.fighterPullbackModule.classPath),
-            Transformer.newTransform("$core\$SystemAI", symbols.systemAI.classPath),
-            Transformer.newTransform("$core\$ShieldAI", symbols.shieldAI.classPath),
-            Transformer.newTransform("$core\$VentModule", symbols.ventModule.classPath),
-            Transformer.newTransform("$core\$ThreatEvaluator", symbols.threatEvaluator.classPath),
-            Transformer.newTransform("$core\$ThreatResponseManeuver", symbols.threatResponseManeuver.classPath),
-            Transformer.newTransform("$core\$CombatMap", symbols.combatMap.classPath),
-            Transformer.newTransform("$core\$MissionDefinitionPluginContainer", symbols.missionDefinitionPluginContainer.classPath),
-            Transformer.newTransform("$core\$BeamWeapon", symbols.beamWeapon.classPath),
-            Transformer.newTransform("$core\$ProjectileWeapon", symbols.projectileWeapon.classPath),
-            Transformer.newTransform("$core\$LoadingUtils", symbols.loadingUtils.classPath),
-            Transformer.newTransform("$core\$FrontShieldAI", symbols.frontShieldAI.classPath),
-            Transformer.newTransform("$core\$OmniShieldAI", symbols.omniShieldAI.classPath),
-            Transformer.newTransform("$core\$Bounds", symbols.bounds.classPath),
-            Transformer.newTransform("$core\$BoundsSegment", symbols.boundsSegment.classPath),
-            Transformer.newTransform("$core\$DeployedFleetMember", symbols.deployedFleetMember.classPath),
-            Transformer.newTransform("$core\$CombatTaskManager", symbols.combatTaskManager.classPath),
+            Transformer.newTransform("com.fs.starfarer.combat.ai.movement.FlockingAI", symbols.flockingAI.name),
+            Transformer.newTransform("com.fs.starfarer.combat.ai.movement.maneuvers.ApproachManeuver", symbols.approachManeuver.name),
+            Transformer.newTransform("com.fs.starfarer.combat.ai.attack.AutofireManager", symbols.autofireManager.name),
+            Transformer.newTransform("com.fs.starfarer.combat.ai.movement.maneuvers.Maneuver", symbols.maneuver.name),
+            Transformer.newTransform("com.fs.starfarer.combat.entities.Ship\$CommandWrapper", symbols.shipCommandWrapper.name),
+            Transformer.newTransform("com.fs.starfarer.combat.entities.Ship\$Command", symbols.shipCommand.name),
+            Transformer.newTransform("com.fs.starfarer.combat.collision.CombatEntity", symbols.combatEntity.name),
+            Transformer.newTransform("com.fs.starfarer.combat.systems.Weapon", symbols.weapon.name),
+            Transformer.newTransform("com.fs.starfarer.combat.entities.ship.trackers.AimTracker", symbols.aimTracker.name),
+            Transformer.newTransform("com.fs.starfarer.title.input.Keymap\$PlayerAction", symbols.playerAction.name),
+            Transformer.newTransform("com.fs.starfarer.title.input.Keymap", symbols.keymap.name),
+            Transformer.newTransform("com.fs.starfarer.combat.ai.FighterPullbackModule", symbols.fighterPullbackModule.name),
+            Transformer.newTransform("com.fs.starfarer.combat.ai.system.SystemAI", symbols.systemAI.name),
+            Transformer.newTransform("com.fs.starfarer.combat.ai.ShieldAI", symbols.shieldAI.name),
+            Transformer.newTransform("com.fs.starfarer.combat.ai.ThreatEvaluator", symbols.threatEvaluator.name),
+            Transformer.newTransform("com.fs.starfarer.combat.ai.ThreatEvaluator\$ThreatResponseManeuver", symbols.threatResponseManeuver.name),
+            Transformer.newTransform("com.fs.starfarer.combat.map.CombatMap", symbols.combatMap.name),
+            Transformer.newTransform("com.fs.starfarer.title.mission.MissionDefinition\$PluginContainer", symbols.missionDefinitionPluginContainer.name),
+            Transformer.newTransform("com.fs.starfarer.combat.ai.FrontShieldAI", symbols.frontShieldAI.name),
+            Transformer.newTransform("com.fs.starfarer.combat.ai.OmniShieldAI", symbols.omniShieldAI.name),
+            Transformer.newTransform("com.fs.starfarer.combat.collision.Bounds", symbols.bounds.name),
+            Transformer.newTransform("com.fs.starfarer.combat.collision.Bounds\$Segment", symbols.boundsSegment.name),
+            Transformer.newTransform("com.fs.starfarer.combat.tasks.CombatTaskManager\$DeployedFleetMember", symbols.deployedFleetMember.name),
 
             // Fields and methods.
             Transformer.newTransform("autofireManager_advance", symbols.autofireManager_advance.name),
-            Transformer.newTransform("shipCommandWrapper_getCommand", symbols.shipCommandWrapper_getCommand.name),
+            Transformer.newTransform("shipCommandWrapper_command", symbols.shipCommandWrapper_command.name),
             Transformer.newTransform("maneuver_getTarget", symbols.maneuver_getTarget.name),
             Transformer.newTransform("aimTracker_setTargetOverride", symbols.aimTracker_setTargetOverride.name),
             Transformer.newTransform("keymap_isKeyDown", symbols.keymap_isKeyDown.name),

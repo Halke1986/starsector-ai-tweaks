@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.lengthSquared
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.extensions.plus
@@ -20,7 +19,7 @@ object Bounds {
      * The vector position and direction are in target frame of reference!. */
     fun collision(position: Vector2f, velocity: Vector2f, target: CombatEntityAPI): Float? {
         // Check if there's a possibility of collision.
-        val bounds = target.exactBounds as? Obfuscated.Bounds ?: return null
+        val bounds = target.exactBounds as? com.fs.starfarer.combat.collision.Bounds ?: return null
 
         // Rotate vector coordinates from target frame of
         // reference to target bounds frame of reference.
@@ -56,7 +55,7 @@ object Bounds {
     /** Point on ship bounds closest to 'position'.
      * 'position' and result are in global frame of reference. */
     fun closestPoint(position: Vector2f, target: CombatEntityAPI): Vector2f {
-        val bounds = target.exactBounds as? Obfuscated.Bounds ?: return target.location
+        val bounds = target.exactBounds as? com.fs.starfarer.combat.collision.Bounds ?: return target.location
 
         val r = (-target.facing.direction).rotationMatrix
         val o = (position - target.location).rotated(r)
@@ -77,7 +76,7 @@ object Bounds {
      * 'position' is in global frame of reference. */
     fun isPointWithin(position: Vector2f, target: CombatEntityAPI): Boolean {
         // Check if there's a possibility of a collision.
-        val bounds = target.exactBounds as? Obfuscated.Bounds ?: return false
+        val bounds = target.exactBounds as? com.fs.starfarer.combat.collision.Bounds ?: return false
 
         val r = (-target.facing.direction).rotationMatrix
         val p = (position - target.location).rotated(r)
@@ -102,10 +101,10 @@ object Bounds {
     fun radius(entity: CombatEntityAPI): Float {
         // Use obfuscated Bounds implementation, because it allows
         // to access Segments list without copying it.
-        val bounds = entity.exactBounds as? Obfuscated.Bounds ?: return entity.collisionRadius
+        val bounds = entity.exactBounds as? com.fs.starfarer.combat.collision.Bounds ?: return entity.collisionRadius
 
         var radius = 0f
-        bounds.origSegments.forEach { segment: Obfuscated.BoundsSegment ->
+        bounds.origSegments.forEach { segment ->
             radius = max(radius, segment.x1 * segment.x1 + segment.y1 + segment.y1)
             radius = max(radius, segment.x2 * segment.x2 + segment.y2 + segment.y2)
         }

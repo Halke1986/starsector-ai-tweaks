@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.core.Obfuscated
+import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset
@@ -144,9 +144,9 @@ fun averageFacing(facings: Collection<Direction>): Direction {
 
 /** Remove ship commands issued by AI or the player. Needs to be executed before Ship.advance() to take effect.*/
 fun clearVanillaCommands(ship: ShipAPI, vararg commands: VanillaShipCommand) {
-    val commandWrappers: MutableIterator<Obfuscated.ShipCommandWrapper> = (ship as Obfuscated.Ship).commands.iterator()
+    val commandWrappers: MutableIterator<Ship.CommandWrapper> = (ship as Ship).commands.iterator()
     while (commandWrappers.hasNext()) {
-        val command: Obfuscated.ShipCommand = commandWrappers.next().shipCommandWrapper_getCommand
+        val command: Ship.Command = commandWrappers.next().shipCommandWrapper_command
 
         if (commands.any { command == it.obfuscated }) {
             commandWrappers.remove()
@@ -164,7 +164,7 @@ enum class VanillaShipCommand {
     DECELERATE,
     TOGGLE_SHIELD;
 
-    val obfuscated = Obfuscated.ShipCommand.valueOf(name)
+    val obfuscated = Ship.Command.valueOf(name)
 }
 
 fun isCloseToEnemy(ship: ShipAPI, enemy: ShipAPI): Boolean {

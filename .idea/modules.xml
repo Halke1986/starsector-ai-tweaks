@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/launcher/launcher.iml" filepath="$PROJECT_DIR$/launcher/launcher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/obfuscated/obfuscated.iml" filepath="$PROJECT_DIR$/obfuscated/obfuscated.iml" />
       <module fileurl="file://$PROJECT_DIR$/starsector-ai-tweaks.iml" filepath="$PROJECT_DIR$/starsector-ai-tweaks.iml" />
     </modules>
   </component>

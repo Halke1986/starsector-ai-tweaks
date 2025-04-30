@@ -30,7 +30,7 @@ class MakeAITweaksRemovable {
         fun onGameLoad() = afterGameSave()
 
         private fun processBeforeSave(entity: HasHullMod) {
-            val memory = CampaignEngine.getInstance().memoryWithoutUpdate
+            val memory = Global.getSector().memoryWithoutUpdate
             hullmods.forEach { hullmod ->
                 if (entity.hullMods().contains(hullmod.name)) {
                     entity.hullMods().remove(hullmod.name)
@@ -42,7 +42,7 @@ class MakeAITweaksRemovable {
         }
 
         private fun processAfterSave(entity: HasHullMod) {
-            val memory = CampaignEngine.getInstance().memoryWithoutUpdate
+            val memory = Global.getSector().memoryWithoutUpdate
             hullmods.forEach { hullmod ->
                 val key = makeMemoryKey(hullmod.key, entity.key())
                 if (memory.contains(key)) {
@@ -52,7 +52,7 @@ class MakeAITweaksRemovable {
         }
 
         private fun clearMemoryKeys() {
-            val memory = CampaignEngine.getInstance().memoryWithoutUpdate
+            val memory = Global.getSector().memoryWithoutUpdate
             memory.keys.filter { hullmods.any { hullmod -> it.startsWith(hullmod.key) } }.forEach {
                 memory.unset(it)
             }

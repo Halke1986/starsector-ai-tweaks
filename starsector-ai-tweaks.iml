@@ -28,5 +28,6 @@
     </orderEntry>
     <orderEntry type="library" name="LunaLib" level="project" />
     <orderEntry type="module" module-name="launcher" />
+    <orderEntry type="module" module-name="obfuscated" />
   </component>
 </module>

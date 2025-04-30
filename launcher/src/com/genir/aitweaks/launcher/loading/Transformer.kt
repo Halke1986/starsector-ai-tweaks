@@ -98,7 +98,10 @@ class Transformer(transforms: List<Transform>) {
         private val STATIC_ARRAY_LIST_TYPE = mutableListOf(true, false).javaClass as Class<out MutableList<*>?>
 
         fun newTransform(from: String, to: String): Transform {
-            return Transform(from, to)
+            return Transform(
+                from.replace('.', '/'),
+                to.replace('.', '/'),
+            )
         }
 
         private fun readUnsignedShort(buf: ByteArray, offset: Int): Int {

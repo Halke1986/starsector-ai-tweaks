@@ -5,8 +5,12 @@ import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.combat.ai.BasicShipAI
+import com.fs.starfarer.combat.ai.FighterPullbackModule
+import com.fs.starfarer.combat.ai.ShieldAI
+import com.fs.starfarer.combat.ai.ThreatEvaluator
+import com.fs.starfarer.combat.ai.attack.AttackAIModule
+import com.fs.starfarer.combat.ai.movement.FlockingAI
 import com.fs.starfarer.combat.entities.Ship
-import com.genir.aitweaks.core.Obfuscated
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.types.Direction
 import org.lwjgl.util.vector.Vector2f
@@ -18,15 +22,13 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     val missileDangerDir: Vector2f?
         get() = flockingAI.flockingAI_getMissileDangerDir()
 
-    private val obfBasicShipAI = basicShipAI as Obfuscated.BasicShipAI
-
     // Vanilla AI elements.
-    private val flockingAI: Obfuscated.FlockingAI = obfBasicShipAI.flockingAI
-    private val threatEvaluator: Obfuscated.ThreatEvaluator = obfBasicShipAI.threatEvaluator
-    private val shieldAI: Obfuscated.ShieldAI? = obfBasicShipAI.shieldAI
-    private val systemAI = if (overrideVanillaSystem) null else obfBasicShipAI.getPrivateField("systemAI") as? Obfuscated.SystemAI
-    private val fighterPullbackModule = basicShipAI.getPrivateField("fighterPullbackModule") as? Obfuscated.FighterPullbackModule
-    private val attackModule: Obfuscated.AttackAIModule = obfBasicShipAI.attackAI
+    private val flockingAI: FlockingAI = basicShipAI.flockingAI
+    private val threatEvaluator: ThreatEvaluator = basicShipAI.threatEvaluator
+    private val shieldAI: ShieldAI? = basicShipAI.shieldAI
+    private val systemAI = if (overrideVanillaSystem) null else basicShipAI.getPrivateField("systemAI") as? com.fs.starfarer.combat.ai.system.SystemAI
+    private val fighterPullbackModule = basicShipAI.getPrivateField("fighterPullbackModule") as? FighterPullbackModule
+    private val attackModule: AttackAIModule = basicShipAI.attackAI
     private val avoidMissiles = basicShipAI::class.java.getDeclaredMethod("avoidMissiles").also { it.setAccessible(true) }
 
     init {
@@ -47,7 +49,7 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     /** Advance AI subsystems carried over from the vanilla BasicShipAI. To work
      * correctly, the subsystems should be called in same order as in BasicShipAI. */
     fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Direction) {
-        val target = attackTarget as? Obfuscated.Ship
+        val target = attackTarget as? Ship
 
         flags.advance(dt)
         threatEvaluator.threatEvaluator_advance(dt)

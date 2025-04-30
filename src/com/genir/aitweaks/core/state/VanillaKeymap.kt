@@ -1,6 +1,6 @@
 package com.genir.aitweaks.core.state
 
-import com.genir.aitweaks.core.Obfuscated
+import com.fs.starfarer.title.input.Keymap
 
 object VanillaKeymap {
     enum class PlayerAction(var prev: Boolean = KEY_UP, var current: Boolean = KEY_UP) {
@@ -14,13 +14,13 @@ object VanillaKeymap {
         SHIP_ACCELERATE_BACKWARDS,
         SHIP_SHIELDS;
 
-        val obfuscated = Obfuscated.PlayerAction.valueOf(name)
+        val obfuscated = Keymap.PlayerAction.valueOf(name)
     }
 
     fun advance() {
-        PlayerAction.values().forEach { action ->
+        PlayerAction.entries.forEach { action ->
             action.prev = action.current
-            action.current = Obfuscated.Keymap.keymap_isKeyDown(action.obfuscated)
+            action.current = Keymap.keymap_isKeyDown(action.obfuscated)
         }
     }
 

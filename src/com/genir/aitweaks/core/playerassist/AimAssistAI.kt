@@ -6,7 +6,9 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.WeaponGroupType
-import com.genir.aitweaks.core.Obfuscated
+import com.fs.starfarer.combat.entities.Ship
+import com.fs.starfarer.combat.entities.ship.trackers.AimTracker
+import com.fs.starfarer.combat.systems.Weapon
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.BaseShipAIPlugin
@@ -82,7 +84,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
             VanillaShipCommand.ACCELERATE,
             VanillaShipCommand.ACCELERATE_BACKWARDS,
         )
-        val blockedCommands = (ship as Obfuscated.Ship).blockedCommands
+        val blockedCommands = (ship as Ship).blockedCommands
         if (commands.any { blockedCommands.contains(it.obfuscated) }) {
             return
         }
@@ -113,7 +115,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
     private fun controlShipFacing(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
         // Do not attempt to override the ship movement if any of the movement commands is blocked.
         val commands = arrayOf(VanillaShipCommand.TURN_LEFT, VanillaShipCommand.TURN_RIGHT)
-        val blockedCommands = (ship as Obfuscated.Ship).blockedCommands
+        val blockedCommands = (ship as Ship).blockedCommands
         if (commands.any { blockedCommands.contains(it.obfuscated) }) {
             return
         }
@@ -181,7 +183,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val intercept: Vector2f = intercept(weapon, ballisticTarget, params)
 
         // Override vanilla-computed weapon facing.
-        val aimTracker: Obfuscated.AimTracker = (weapon as Obfuscated.Weapon).aimTracker
+        val aimTracker: AimTracker = (weapon as Weapon).aimTracker
         aimTracker.aimTracker_setTargetOverride(intercept + weapon.location)
     }
 

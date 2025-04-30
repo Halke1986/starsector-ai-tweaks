@@ -30,5 +30,6 @@
     </orderEntry>
     <orderEntry type="library" name="LunaLib" level="project" />
     <orderEntry type="library" name="asm-9.1" level="project" />
+    <orderEntry type="library" name="starsector-obf" level="project" />
   </component>
 </module>

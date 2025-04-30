@@ -37,7 +37,7 @@ class SymbolsTest {
         assertEquals("com.fs.starfarer.combat.CombatFleetManager\$O0", s.deployedFleetMember.name)
 
         assertEquals("super", s.autofireManager_advance.name)
-        assertEquals("Ò00000", s.shipCommandWrapper_getCommand.name)
+        assertEquals("Ò00000", s.shipCommandWrapper_command.name)
         assertEquals("o00000", s.maneuver_getTarget.name)
         assertEquals("Ò00000", s.aimTracker_setTargetOverride.name)
         assertEquals("void", s.keymap_isKeyDown.name)

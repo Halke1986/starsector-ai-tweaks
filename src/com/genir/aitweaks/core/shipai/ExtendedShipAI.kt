@@ -3,9 +3,12 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.util.IntervalUtil
+import com.fs.starfarer.combat.ai.BasicShipAI
+import com.fs.starfarer.combat.ai.movement.maneuvers.ApproachManeuver
 import com.fs.starfarer.combat.ai.movement.maneuvers.EscortTargetManeuverV3
+import com.fs.starfarer.combat.ai.movement.maneuvers.Maneuver
 import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
-import com.genir.aitweaks.core.Obfuscated
+import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
@@ -19,7 +22,7 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */
-class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.BasicShipAI(ship as Obfuscated.Ship, config) {
+class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : BasicShipAI(ship as Ship, config) {
     private val engineController: BasicEngineController = BasicEngineController(ship.kinematics)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
@@ -74,10 +77,10 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : Obfuscated.Basic
         }
 
         // Override the ship facing during attack-related and escort maneuvers.
-        val currentManeuver: Obfuscated.Maneuver? = super.getCurrentManeuver()
+        val currentManeuver: Maneuver? = super.getCurrentManeuver()
         when (currentManeuver) {
             is StrafeTargetManeuverV2 -> Unit
-            is Obfuscated.ApproachManeuver -> Unit
+            is ApproachManeuver -> Unit
             is EscortTargetManeuverV3 -> Unit
 
             else -> return

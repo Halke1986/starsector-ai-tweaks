@@ -8,7 +8,6 @@ import com.fs.starfarer.combat.ai.BattleGroupAI
 import com.fs.starfarer.combat.ai.OmniShieldControlAI
 import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
-import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.fs.starfarer.loading.LoadingUtils
 import com.fs.starfarer.title.TitleScreenState
 import com.genir.aitweaks.launcher.loading.Bytecode.classPath
@@ -28,16 +27,15 @@ class Symbols {
     val classLoader: ClassLoader = this::class.java.classLoader
 
     // Classes with un-obfuscated names.
-    val ship: Class<*> = Ship::class.java
-    val basicShipAI: Class<*> = BasicShipAI::class.java
-    val attackAIModule: Class<*> = AttackAIModule::class.java
-    val fleetMemberView: Class<*> = FleetMemberView::class.java
-    val combatEngine: Class<*> = CombatEngine::class.java
-    val titleScreenState: Class<*> = TitleScreenState::class.java
-    val loadingUtils: Class<*> = LoadingUtils::class.java
-    val omniShieldControlAI: Class<*> = OmniShieldControlAI::class.java
-    val battleGroupAI: Class<*> = BattleGroupAI::class.java
-    val combatTaskManager: Class<*> = CombatTaskManager::class.java
+    private val ship: Class<*> = Ship::class.java
+    private val basicShipAI: Class<*> = BasicShipAI::class.java
+    private val attackAIModule: Class<*> = AttackAIModule::class.java
+    private val fleetMemberView: Class<*> = FleetMemberView::class.java
+    private val combatEngine: Class<*> = CombatEngine::class.java
+    private val titleScreenState: Class<*> = TitleScreenState::class.java
+    private val loadingUtils: Class<*> = LoadingUtils::class.java
+    private val omniShieldControlAI: Class<*> = OmniShieldControlAI::class.java
+    private val battleGroupAI: Class<*> = BattleGroupAI::class.java
 
     // Classes and interfaces.
     val flockingAI: Class<*> = basicShipAI.getMethod("getFlockingAI").returnType
@@ -71,7 +69,7 @@ class Symbols {
 
     // Methods and fields.
     val autofireManager_advance: Method = autofireManager.methods.first { it.name != "<init>" }
-    val shipCommandWrapper_getCommand: Field = shipCommandWrapper.fields.first { it.type.isEnum }
+    val shipCommandWrapper_command: Field = shipCommandWrapper.fields.first { it.type.isEnum }
     val maneuver_getTarget: Method = maneuver.methods.first { it.returnType == combatEntity }
     val aimTracker_setTargetOverride: Method = aimTracker.methods.first { it.returnType == Void.TYPE && it.hasParameters(Vector2f::class.java) }
     val keymap_isKeyDown: Method = findKeymapIsKeyDown()
