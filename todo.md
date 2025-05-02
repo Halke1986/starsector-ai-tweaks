@@ -42,13 +42,7 @@ I'm slightly-less-but-still-substantially sick and tired of ppl going "bro just 
 
 ----------------------------------------------------------------
 
-REPOTRED by Lprsti99:
-Having an issue with the shield assist, where if it's toggled on when a battle ends, it starts enabled in the next battles, but it's nonfunctional - doesn't raise the shield, and if I raise it manually it doesn't control it at all.  toggling it off and on doesn't solve this, the only fix I've found is to make sure it's toggled off at the end of *that* battle, in which case it's functional again next time.  Possibly a mod incompatibility - if so, my immediate suspect is Puretilt's QOL pack, due to the shield facing settings in there.  I mainly use the qol pack for automatically toggling the transponder in hyperspace anyway, but also possible that something in the 0.98 update caused it maybe? Keep forgetting to try disabling the qol mod and I can't try now unfortunately, irl stuff going on (I only just happened to think to make a comment).
-fast time aim assist
-
 Temporal shell anubis vibrates.
-
-Custom LPC, issue with custom AI on Pankrator from Symmetrical Ships
 
 check finish burst target, AI seems to break burst with tach lance
 
@@ -56,5 +50,10 @@ DO_NOT_BACK_OFF flag
 HAS_INCOMING_DAMAGE flag, when adding custom threat evaluation
 
 ships that use the custom AI hullmod do not target and hunt down enemy fighters if they are the last enemy remaining
+
+REPORTED by Ultrarattecoon
+rift beams (med pd) start firing at threats long before they are in range, looks dumb
+
+redo integration with leading pip
 
 ----------------------------------------------------------------

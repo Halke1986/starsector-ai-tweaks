@@ -12,9 +12,10 @@ class MakeAITweaksRemovable {
         private data class Hullmod(val name: String, val key: String)
 
         private val hullmods: List<Hullmod> = listOf(
-            Hullmod("aitweaks_finisher_beam_protocol", "\$aitweaks_finisher_beam_protocol"),
             Hullmod("aitweaks_system_shunt", "\$aitweaks_system_shunt"),
             Hullmod("aitweaks_custom_ship_ai", "\$aitweaks_custom_ship_ai"),
+            Hullmod("aitweaks_search_and_destroy", "\$aitweaks_search_and_destroy"),
+            Hullmod("aitweaks_finisher_beam_protocol", "\$aitweaks_finisher_beam_protocol"),
         )
 
         fun beforeGameSave() {

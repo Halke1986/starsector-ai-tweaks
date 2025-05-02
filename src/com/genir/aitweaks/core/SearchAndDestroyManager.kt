@@ -9,10 +9,13 @@ import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
 
+/** Make ships defaults to Search and Destroy order. Ships will not be automatically
+ * assigned to Assault, Eliminate or any other tasks. Player can manually assign ships
+ * to any tasks. */
 class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
     private val initialAssignments: MutableMap<ShipAPI, AssignmentTargetAPI> = mutableMapOf()
 
-    private var firstFrameWithShips = Int.MAX_VALUE
+    private var firstFrameWithShips = -1
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         val engine = Global.getCombatEngine()
@@ -38,8 +41,13 @@ class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        // Remember non-direct orders given during initial deployment.
-        if (firstFrameWithShips >= state.unpausedFrameCount && allShips.isNotEmpty()) {
+        if (firstFrameWithShips == -1 && allShips.isNotEmpty()) {
+            firstFrameWithShips = state.unpausedFrameCount
+        }
+
+        // The hullmod is suppressed during initial deployment,
+        // to allow for easy objective capping.
+        if (firstFrameWithShips == state.unpausedFrameCount) {
             shipsToOrder.forEach { ship ->
                 val assignment = ship.assignment
 
@@ -47,26 +55,22 @@ class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
                     initialAssignments[ship] = assignment.target
                 }
             }
-
-            firstFrameWithShips = state.unpausedFrameCount
-            return
         }
 
         shipsToOrder.forEach { ship ->
             if (ship.hasDirectOrders) {
+                initialAssignments.remove(ship)
                 return@forEach
             }
 
             val assignment = ship.assignment
-            if (assignment != null) {
-                if (assignment.target == initialAssignments[ship]) {
-                    return@forEach
-                } else {
-                    initialAssignments.remove(ship)
-                }
+            if (assignment != null && assignment.target == initialAssignments[ship]) {
+                return@forEach
             }
 
-            ship.taskManager.orderSearchAndDestroy(ship.deployedFleetMember, false)
+            if (firstFrameWithShips != state.unpausedFrameCount) {
+                ship.taskManager.orderSearchAndDestroy(ship.deployedFleetMember, false)
+            }
         }
     }
 
