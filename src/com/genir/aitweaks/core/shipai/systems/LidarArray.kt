@@ -2,7 +2,7 @@ package com.genir.aitweaks.core.shipai.systems
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
-import com.fs.starfarer.api.combat.ShipwideAIFlags
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
@@ -40,7 +40,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
             if (lidarWeapons.isEmpty() || system.isActive) return
 
             // Override maneuver distance to always stay at lidar weapons range.
-            ai.vanilla.flags.setFlag(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET, 1.0f, minLidarWeaponRange())
+            ai.flags.setFlag(AIFlags.MANEUVER_RANGE_FROM_TARGET, 1.0f, minLidarWeaponRange())
 
             // Check if ship has other flux drains except lidar weapons.
             zeroFluxBoostMode = lidarWeapons.size == ai.stats.significantWeapons.size && ship.shield == null

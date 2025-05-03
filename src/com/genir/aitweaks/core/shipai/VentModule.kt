@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
@@ -177,9 +178,9 @@ class VentModule(private val ai: CustomShipAI) {
         }
 
         if (isBackingOff) {
-            ai.aiFlags.setFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
+            ai.flags.setFlag(AIFlags.BACKING_OFF)
         } else {
-            ai.aiFlags.unsetFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
+            ai.flags.unsetFlag(AIFlags.BACKING_OFF)
         }
     }
 

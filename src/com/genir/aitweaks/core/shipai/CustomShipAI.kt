@@ -5,8 +5,7 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.RETREAT
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags.MANEUVER_TARGET
-import com.fs.starfarer.api.combat.ShipwideAIFlags.FLAG_DURATION
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.debug.expectedFacing
@@ -34,6 +33,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     val ventModule: VentModule = VentModule(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
     val vanilla: VanillaModule = VanillaModule(ship, systemAI?.overrideVanillaSystemAI() == true)
+    val flags: ShipwideAIFlags = vanilla.basicShipAI.aiFlags
 
     // Helper classes.
     private val updateInterval: IntervalUtil = defaultAIInterval()
@@ -95,10 +95,14 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         systemAI?.advance(dt)
         movement.advance(dt)
 
-        vanilla.flags.setFlag(MANEUVER_TARGET, FLAG_DURATION, maneuverTarget)
+        flags.setFlag(AIFlags.MANEUVER_TARGET, ShipwideAIFlags.FLAG_DURATION, maneuverTarget)
     }
 
-    override fun getAIFlags(): ShipwideAIFlags = vanilla.flags
+    // NOTE: For some reason IDE has difficulties finding usage
+    // of this symbol. Use the flags: ShipwideAIFlags field directly.
+    override fun getAIFlags(): ShipwideAIFlags {
+        return flags
+    }
 
     private fun debug() {
         if (Config.config.highlightCustomAI) {
@@ -458,7 +462,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     /** Range from which ship should attack its target. */
     fun updateAttackRange() {
         // Range overridden by ai flag.
-        vanilla.flags.get<Float>(ShipwideAIFlags.AIFlags.MANEUVER_RANGE_FROM_TARGET)?.let {
+        flags.get<Float>(AIFlags.MANEUVER_RANGE_FROM_TARGET)?.let {
             attackRange = it
             return
         }

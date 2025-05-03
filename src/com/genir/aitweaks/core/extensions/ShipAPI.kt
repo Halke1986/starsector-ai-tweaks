@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.extensions
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.PHASE
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.combat.ai.BasicShipAI
 import com.fs.starfarer.combat.entities.Ship
@@ -55,7 +56,7 @@ val ShipAPI.attackTarget: ShipAPI?
             }
 
             // Fall back to using vanilla maneuver target flag.
-            else -> aiFlags?.getCustom(ShipwideAIFlags.AIFlags.MANEUVER_TARGET)
+            else -> aiFlags?.getCustom(AIFlags.MANEUVER_TARGET)
         }
 
         if (entity !is ShipAPI || !entity.isValidTarget) {

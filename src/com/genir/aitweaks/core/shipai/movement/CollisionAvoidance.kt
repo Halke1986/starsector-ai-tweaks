@@ -3,7 +3,7 @@ package com.genir.aitweaks.core.shipai.movement
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipwideAIFlags
+import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
@@ -79,7 +79,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 }
 
                 // Allow tighter formations for backing off ships.
-                ai.ventModule.isBackingOff || obstacle.aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
+                ai.ventModule.isBackingOff || obstacle.aiFlags.hasFlag(AIFlags.BACKING_OFF) -> {
                     0.9f
                 }
 
@@ -200,7 +200,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                         -1f
                     }
 
-                    aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
+                    aiFlags.hasFlag(AIFlags.BACKING_OFF) -> {
                         2f
                     }
 

@@ -18,7 +18,7 @@ import org.lwjgl.util.vector.Vector2f
 /** AI modules carried over from vanilla ship AI. */
 class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     val basicShipAI = Global.getSettings().createDefaultShipAI(ship, ShipAIConfig()) as BasicShipAI
-    val flags: ShipwideAIFlags = basicShipAI.aiFlags
+    private val flags: ShipwideAIFlags = basicShipAI.aiFlags
     val missileDangerDir: Vector2f?
         get() = flockingAI.flockingAI_getMissileDangerDir()
 
