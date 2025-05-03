@@ -226,38 +226,65 @@ class EngineController(val ai: CustomShipAI, kinematics: Kinematics) : BasicEngi
 
     /** Calculate direction the ship should "slide" along the boundary to avoid an obstacle. */
     private fun slideDirection(bound: Bound): Float {
-        val direction = (ai.movement.headingPoint - kinematics.location).rotated(bound.r)
-        val defaultDirection = direction.y.sign
+        // Default slide direction takes the ship closer to its intended destination.
+        val destination = (ai.movement.headingPoint - kinematics.location).rotated(bound.r)
+        val defaultDirection = destination.y.sign
 
+        // Do not yield to enemy or hulks.
         val obstacle = bound.obstacle ?: return defaultDirection
-        val obstacleExpectedVelocity = obstacle.ship.customShipAI?.movement?.expectedVelocity
-        val obstacleVelocity = (obstacleExpectedVelocity ?: obstacle.velocity).rotated(bound.r)
-        val toObstacle = (obstacle.location - kinematics.location).rotated(bound.r)
+        if (kinematics.ship.owner != obstacle.ship.owner) {
+            return defaultDirection
+        }
+
+        // Obstacle movement parameters.
+        val toObstacle = (obstacle.location - kinematics.location)
+        val obstacleCustomHeading = obstacle.ship.customShipAI?.movement?.headingPoint
+        val obstacleDirection = when {
+            obstacleCustomHeading != null -> {
+                obstacleCustomHeading - obstacle.location
+            }
+
+            else -> {
+                obstacle.velocity * 1000f
+            }
+        }
 
         // Check if ship intends to cross obstacle velocity vector.
         val (k, t) = intersection(
-            LinearMotion(Vector2f(), direction),
-            LinearMotion(toObstacle, obstacleVelocity),
-        ) ?: return direction.y.sign
+            LinearMotion(Vector2f(), destination),
+            LinearMotion(toObstacle.rotated(bound.r), obstacleDirection.rotated(bound.r)),
+        ) ?: return destination.y.sign
+
+        // If the ship has a lower movement priority than the obstacle,
+        // it must proactively yield right-of-way—even if their paths
+        // only intersect further ahead.
+        val hasLowerPriority = kinematics.ship.movementPriority < obstacle.ship.movementPriority
+        if (hasLowerPriority && k > 0f && t > 0f) {
+            return -defaultDirection
+        }
 
         // Ship does not intend to cross the obstacle velocity vector.
-        if (k < 0f || k > 1f || t < 0f) {
+        if (k < 0f || k > 0.99f || t < 0f || t > 0.99f) {
             return defaultDirection
         }
 
         // If two ships' paths intersect, one should yield the right of way.
         val shouldYield = when {
-            kinematics.ship.owner != obstacle.ship.owner -> false
+            kinematics.ship.movementPriority != obstacle.ship.movementPriority -> {
+                kinematics.ship.movementPriority < obstacle.ship.movementPriority
+            }
 
-            kinematics.ship.movementPriority < obstacle.ship.movementPriority -> true
+            kinematics.acceleration != obstacle.acceleration -> {
+                kinematics.acceleration > obstacle.acceleration
+            }
 
-            kinematics.acceleration > obstacle.acceleration -> true
+            kinematics.ship.mass != obstacle.ship.mass -> {
+                kinematics.ship.mass < obstacle.ship.mass
+            }
 
-            kinematics.ship.mass < obstacle.ship.mass -> true
-
-            kinematics.ship.hashCode() < obstacle.ship.hashCode() -> true
-
-            else -> false
+            else -> {
+                kinematics.ship.hashCode() < obstacle.ship.hashCode()
+            }
         }
 
         if (shouldYield) {

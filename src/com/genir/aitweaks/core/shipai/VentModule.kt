@@ -176,8 +176,11 @@ class VentModule(private val ai: CustomShipAI) {
             else -> isBackingOff
         }
 
-        if (isBackingOff) ai.aiFlags.setFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
-        else ai.aiFlags.unsetFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
+        if (isBackingOff) {
+            ai.aiFlags.setFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
+        } else {
+            ai.aiFlags.unsetFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
+        }
     }
 
     private fun shouldInitVent(): Boolean {
