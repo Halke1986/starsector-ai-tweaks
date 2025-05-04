@@ -24,14 +24,6 @@ import kotlin.math.sign
 class EngineController(val ai: CustomShipAI, kinematics: Kinematics) : BasicEngineController(kinematics) {
     data class Destination(val location: Vector2f, val velocity: Vector2f)
 
-    /** Limit allows to restrict velocity to not exceed
-     * max speed in a direction along a given heading. */
-    data class Limit(
-        val direction: Direction,
-        val speedLimit: Float,
-        val obstacle: Kinematics?,
-    )
-
     private data class Bound(
         val r: RotationMatrix,
         val speedLimit: Float,
@@ -40,11 +32,11 @@ class EngineController(val ai: CustomShipAI, kinematics: Kinematics) : BasicEngi
         val pMax: Float,
     )
 
-    fun heading(dt: Float, destination: Destination, limits: List<Limit> = listOf()): Vector2f {
+    fun heading(dt: Float, destination: Destination, limits: List<CollisionAvoidance.Limit> = listOf()): Vector2f {
         return heading(dt, destination.location, destination.velocity) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
     }
 
-    private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<Limit>): LimitedVelocity? {
+    private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<CollisionAvoidance.Limit>): LimitedVelocity? {
         val rotationToShip = toShipFacing.rotationMatrix
         val expectedVelocity = (expectedVelocityRaw.rotatedReverse(rotationToShip) / dt)
 
@@ -189,7 +181,7 @@ class EngineController(val ai: CustomShipAI, kinematics: Kinematics) : BasicEngi
         return lowestDeltaV
     }
 
-    private fun buildBounds(limits: List<Limit>): List<Bound> {
+    private fun buildBounds(limits: List<CollisionAvoidance.Limit>): List<Bound> {
         val rawBounds: List<Bound> = limits.map { limit ->
             val r = (-limit.direction).rotationMatrix
             Bound(r, limit.speedLimit, limit.obstacle, 0f, 0f)

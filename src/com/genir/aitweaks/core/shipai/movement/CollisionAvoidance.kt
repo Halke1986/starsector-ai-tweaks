@@ -9,18 +9,52 @@ import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
+import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
+import com.genir.aitweaks.core.utils.PI
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.getShortestRotation
+import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sign
 
 @Suppress("MemberVisibilityCanBePrivate")
 class CollisionAvoidance(val ai: CustomShipAI) {
     private val kinematics: Kinematics = ai.ship.kinematics
 
-    fun gatherSpeedLimits(dt: Float): List<EngineController.Limit> {
+    /** Limit allows to restrict velocity to not exceed
+     * max speed in a direction along a given heading. */
+    data class Limit(
+        val direction: Direction,
+        val speedLimit: Float,
+        val obstacle: Kinematics?,
+    ) {
+        /**
+         * Clamp expectedSpeed to maximum speed in which ship can travel
+         * along the expectedHeading and not break the Limit.
+         *
+         * From right triangle, the equation for max speed is:
+         * maxSpeed = speedLimit / cos( abs(limitFacing - velocityFacing) )
+         *
+         * To avoid using trigonometric functions, f(x) = 1/cos(x) is approximated as
+         * g(t) = 1/t(x) + t(x)/5 where t(x) = PI/2 - x
+         */
+        fun clampSpeed(expectedHeading: Direction, expectedSpeed: Float): Float {
+            val angleFromLimit = (expectedHeading - direction).length
+            if (angleFromLimit >= 90f) {
+                return expectedSpeed
+            }
+
+            val t = PI / 2f - angleFromLimit * DEGREES_TO_RADIANS
+            val e = speedLimit * (1f / t + t / 5f)
+            return min(max(0f, e), expectedSpeed)
+        }
+    }
+
+    fun gatherSpeedLimits(dt: Float): List<Limit> {
         // Calculate speed limits.
         val targetLimit = avoidManeuverTarget(dt)
         val collisionLimits = avoidCollisions(dt)
@@ -29,7 +63,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         return (listOf(targetLimit, borderLimit) + collisionLimits).filterNotNull()
     }
 
-    private fun avoidManeuverTarget(dt: Float): EngineController.Limit? {
+    private fun avoidManeuverTarget(dt: Float): Limit? {
         // Ship can approach the target when on an assignment on when backing off.
         when {
             ai.ventModule.isBackingOff -> return null
@@ -43,7 +77,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         return vMaxToObstacle(dt, target.kinematics, ai.attackRange * 0.9f)
     }
 
-    private fun avoidCollisions(dt: Float): List<EngineController.Limit?> {
+    private fun avoidCollisions(dt: Float): List<Limit?> {
         val obstacles: List<ShipAPI> = Global.getCombatEngine().ships.filter {
             when {
                 it.root == kinematics.ship.root -> false
@@ -100,7 +134,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }
     }
 
-    private fun avoidBorder(): EngineController.Limit? {
+    private fun avoidBorder(): Limit? {
         ai.isAvoidingBorder = false
 
         val mapH = Global.getCombatEngine().mapHeight / 2f
@@ -144,11 +178,11 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         // The closer the ship is to map edge, the stronger
         // the heading transformation away from the border.
         val avoidForce = (d / (Preset.borderNoGoZone - Preset.borderHardNoGoZone)).coerceAtMost(1f)
-        return EngineController.Limit(borderIntrusion.facing, kinematics.maxSpeed * (1f - avoidForce), null)
+        return Limit(borderIntrusion.facing, kinematics.maxSpeed * (1f - avoidForce), null)
     }
 
     /** Calculate maximum velocity that will not lead to collision with an obstacle. */
-    fun vMaxToObstacle(dt: Float, obstacle: Kinematics, minDistance: Float): EngineController.Limit? {
+    fun vMaxToObstacle(dt: Float, obstacle: Kinematics, minDistance: Float): Limit? {
         val toObstacle = obstacle.location - kinematics.location
         val toObstacleFacing = toObstacle.facing
         val r = (-toObstacleFacing).rotationMatrix
@@ -167,7 +201,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val vObstacle = obstacle.velocity.rotatedX(r)
         val speedLimit = vMax + vObstacle
 
-        return EngineController.Limit(toObstacleFacing, speedLimit, obstacle)
+        return Limit(toObstacleFacing, speedLimit, obstacle)
     }
 
     companion object {

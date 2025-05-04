@@ -42,8 +42,6 @@ I'm slightly-less-but-still-substantially sick and tired of ppl going "bro just 
 
 ----------------------------------------------------------------
 
-Temporal shell anubis vibrates.
-
 check finish burst target, AI seems to break burst with tach lance
 
 DO_NOT_BACK_OFF flag
