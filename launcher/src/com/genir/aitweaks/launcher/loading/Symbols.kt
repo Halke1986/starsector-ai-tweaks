@@ -66,6 +66,8 @@ class Symbols {
     val bounds: Class<*> = ship.getMethod("getVisualBounds").returnType
     val boundsSegment: Class<*> = bounds.getField("segments").genericType.typeArgument(0)
     val deployedFleetMember: Class<*> = battleGroupAI.getMethod("getGroupLeader").returnType
+    val beamChargeTracker: Class<*> = beamWeapon.getMethod("getChargeTracker").returnType
+    val beamWeaponState: Class<*> = beamChargeTracker.methods.first { it.returnType.isEnum && it.returnType.enclosingClass == null }.returnType
 
     // Methods and fields.
     val autofireManager_advance: Method = autofireManager.methods.first { it.name != "<init>" }
@@ -88,6 +90,7 @@ class Symbols {
     val combatMap_getPluginContainers: Method = combatMap.methods.first { it.hasParameters() && it.returnType == List::class.java }
     val missionDefinitionPluginContainer_getEveryFrameCombatPlugin: Method = missionDefinitionPluginContainer.methods.first { it.returnType == EveryFrameCombatPlugin::class.java }
     val loadingUtils_loadSpec: Method = loadingUtils.methods.first { it.returnType == JSONObject::class.java && it.hasParameters(String::class.java, Set::class.java) }
+    val beamChargeTracker_getState: Method = beamChargeTracker.methods.first { it.returnType.isEnum && it.returnType.enclosingClass == null }
 
     private fun Type.typeArgument(idx: Int): Class<*> {
         return (this as ParameterizedType).actualTypeArguments[idx] as Class<*>

@@ -287,8 +287,13 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             return
         }
 
-        val continueBurst = finishBurstWeaponGroup?.weapons?.any { it.isInFiringSequence && it.target == finishBurstTarget }
-        if (continueBurst != true) finishBurstTarget = null
+        val continueBurst = finishBurstWeaponGroup?.weapons?.any {
+            it.isInFiringSequence && it.target == finishBurstTarget
+        }
+
+        if (continueBurst != true) {
+            finishBurstTarget = null
+        }
     }
 
     /** Exploration phase is implemented only for the opening phase of the battle,

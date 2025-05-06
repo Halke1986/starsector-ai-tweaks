@@ -18,6 +18,7 @@ import com.genir.aitweaks.core.shipai.movement.BasicEngineController
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.state.VanillaKeymap
+import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
@@ -101,10 +102,10 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val right = Vector2f(0f, -1e4f).rotated(r)
 
         var direction = Vector2f()
-        if (VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_ACCELERATE)) direction += front
-        if (VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_ACCELERATE_BACKWARDS)) direction += back
-        if (VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_TURN_LEFT) || VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_STRAFE_LEFT_NOTURN)) direction += left
-        if (VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_TURN_RIGHT) || VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_STRAFE_RIGHT_NOTURN)) direction += right
+        if (VanillaKeymap.isKeyDown(PlayerAction.SHIP_ACCELERATE)) direction += front
+        if (VanillaKeymap.isKeyDown(PlayerAction.SHIP_ACCELERATE_BACKWARDS)) direction += back
+        if (VanillaKeymap.isKeyDown(PlayerAction.SHIP_TURN_LEFT) || VanillaKeymap.isKeyDown(PlayerAction.SHIP_STRAFE_LEFT_NOTURN)) direction += left
+        if (VanillaKeymap.isKeyDown(PlayerAction.SHIP_TURN_RIGHT) || VanillaKeymap.isKeyDown(PlayerAction.SHIP_STRAFE_RIGHT_NOTURN)) direction += right
 
         if (direction.isNonZero) {
             val heading = ship.location + direction
@@ -191,7 +192,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
         val group: WeaponGroupAPI = weapon.group ?: return
 
         val shouldFire: Boolean = when {
-            !VanillaKeymap.isKeyDown(VanillaKeymap.PlayerAction.SHIP_FIRE) -> false
+            !VanillaKeymap.isKeyDown(PlayerAction.SHIP_FIRE) -> false
 
             // Fire active alternating group weapon. Same behavior as vanilla.
             group.type == WeaponGroupType.ALTERNATING && weapon == group.activeWeapon -> true

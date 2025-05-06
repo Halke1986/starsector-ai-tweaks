@@ -1,3 +1,5 @@
+- Custom AI: Several minor improvement to ship movement.
+
 Version 2.1.0
  
 - Player Assist: Fixed an issue where the omni shield AI kept toggling the shield on and off when the player ship wasn't in danger.

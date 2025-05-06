@@ -32,11 +32,14 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("com.fs.starfarer.combat.ai.ThreatEvaluator\$ThreatResponseManeuver", symbols.threatResponseManeuver.name),
             Transformer.newTransform("com.fs.starfarer.combat.map.CombatMap", symbols.combatMap.name),
             Transformer.newTransform("com.fs.starfarer.title.mission.MissionDefinition\$PluginContainer", symbols.missionDefinitionPluginContainer.name),
+            Transformer.newTransform("com.fs.starfarer.combat.entities.ship.weapons.BeamWeapon", symbols.beamWeapon.name),
             Transformer.newTransform("com.fs.starfarer.combat.ai.FrontShieldAI", symbols.frontShieldAI.name),
             Transformer.newTransform("com.fs.starfarer.combat.ai.OmniShieldAI", symbols.omniShieldAI.name),
             Transformer.newTransform("com.fs.starfarer.combat.collision.Bounds", symbols.bounds.name),
             Transformer.newTransform("com.fs.starfarer.combat.collision.Bounds\$Segment", symbols.boundsSegment.name),
             Transformer.newTransform("com.fs.starfarer.combat.tasks.CombatTaskManager\$DeployedFleetMember", symbols.deployedFleetMember.name),
+            Transformer.newTransform("com.fs.starfarer.combat.entities.ship.trackers.BeamChargeTracker", symbols.beamChargeTracker.name),
+            Transformer.newTransform("com.fs.starfarer.combat.entities.ship.trackers.BeamWeaponState", symbols.beamWeaponState.name),
 
             // Fields and methods.
             Transformer.newTransform("autofireManager_advance", symbols.autofireManager_advance.name),
@@ -59,6 +62,7 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("combatMap_getPluginContainers", symbols.combatMap_getPluginContainers.name),
             Transformer.newTransform("missionDefinitionPluginContainer_getEveryFrameCombatPlugin", symbols.missionDefinitionPluginContainer_getEveryFrameCombatPlugin.name),
             Transformer.newTransform("loadingUtils_loadSpec", symbols.loadingUtils_loadSpec.name),
+            Transformer.newTransform("beamChargeTracker_getState", symbols.beamChargeTracker_getState.name),
         ))
     }
 

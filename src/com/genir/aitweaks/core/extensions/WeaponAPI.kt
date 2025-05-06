@@ -11,6 +11,7 @@ import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
+import com.fs.starfarer.combat.entities.ship.weapons.BeamWeapon
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
@@ -148,10 +149,22 @@ val WeaponAPI.isInWarmup: Boolean
  * BURST */
 val WeaponAPI.IsInBurst: Boolean
     get() = when {
-        !isBurstWeapon -> false
-        isBurstBeam -> chargeLevel > 0 && cooldownRemaining == 0f
-        isBeam -> false
-        else -> chargeLevel == 1f
+        !isBurstWeapon -> {
+            false
+        }
+
+        isBurstBeam -> {
+            val state = (this as BeamWeapon).chargeTracker.beamChargeTracker_getState()
+            state.name != "IDLE"
+        }
+
+        isBeam -> {
+            false
+        }
+
+        else -> {
+            chargeLevel == 1f
+        }
     }
 
 /** Weapon is assumed to be in a firing sequence if it will

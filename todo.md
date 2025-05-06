@@ -42,8 +42,6 @@ I'm slightly-less-but-still-substantially sick and tired of ppl going "bro just 
 
 ----------------------------------------------------------------
 
-check finish burst target, AI seems to break burst with tach lance
-
 DO_NOT_BACK_OFF flag
 HAS_INCOMING_DAMAGE flag, when adding custom threat evaluation
 
