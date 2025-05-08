@@ -34,6 +34,8 @@ class State : BaseEveryFrameCombatPlugin() {
     val debugPlugin: DebugPlugin? = if (config.devMode) DebugPlugin() else null
 
     val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
+    val maneuverCoordinator: ManeuverCoordinator = ManeuverCoordinator()
+
     private val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
     private val searchAndDestroy: SearchAndDestroyManager = SearchAndDestroyManager()
 
@@ -43,10 +45,10 @@ class State : BaseEveryFrameCombatPlugin() {
         fleetCohesion[0],
         fleetCohesion[1],
         searchAndDestroy,
+        maneuverCoordinator,
         Speedup(),
         AimAssistManager(),
         ShieldAssistManager(),
-        ManeuverCoordinator(),
     )
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
