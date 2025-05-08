@@ -1,19 +1,20 @@
-package com.genir.aitweaks.core.shipai
+package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.types.Direction
 import org.lwjgl.util.vector.Vector2f
 
 /**
- * Attack Coordinator assigns attack positions to all ships attacking the
+ * ManeuverCoordinator assigns attack positions to all ships attacking the
  * same target, so that the ships don't try to crowd in the same spot.
  */
-class AttackCoordinator : BaseEveryFrameCombatPlugin() {
+class ManeuverCoordinator : BaseEveryFrameCombatPlugin() {
     interface Coordinatable {
         var proposedHeadingPoint: Vector2f?
         var reviewedHeadingPoint: Vector2f? // will be null is ship requires no coordination

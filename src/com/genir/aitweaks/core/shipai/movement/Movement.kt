@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.AttackCoordinator
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
@@ -19,7 +18,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable {
+class Movement(override val ai: CustomShipAI) : ManeuverCoordinator.Coordinatable {
     private val kinematics: Kinematics = ai.ship.kinematics
     private val engineController: EngineController = EngineController(ai, kinematics)
     private val collisionAvoidance: CollisionAvoidance = CollisionAvoidance(ai)

@@ -11,8 +11,8 @@ import com.genir.aitweaks.core.debug.DebugPlugin
 import com.genir.aitweaks.core.debug.removeGrid
 import com.genir.aitweaks.core.playerassist.AimAssistManager
 import com.genir.aitweaks.core.playerassist.ShieldAssistManager
-import com.genir.aitweaks.core.shipai.AttackCoordinator
 import com.genir.aitweaks.core.shipai.FleetSegmentation
+import com.genir.aitweaks.core.shipai.movement.ManeuverCoordinator
 import com.genir.aitweaks.core.state.Config.Companion.config
 
 class State : BaseEveryFrameCombatPlugin() {
@@ -46,7 +46,7 @@ class State : BaseEveryFrameCombatPlugin() {
         Speedup(),
         AimAssistManager(),
         ShieldAssistManager(),
-        AttackCoordinator(),
+        ManeuverCoordinator(),
     )
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {

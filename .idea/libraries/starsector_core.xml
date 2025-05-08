@@ -1,13 +1,25 @@
 <component name="libraryTable">
   <library name="starsector-core">
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/../../starsector-core" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/jorbis-0.0.15.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/lwjgl_util.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/janino.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/commons-compiler.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/jogg-0.0.7.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/txw2-3.0.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/xstream-1.4.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/json.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/commons-compiler-jdk.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/webp-imageio-0.1.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/jaxb-api-2.4.0-b180830.0359.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/jinput.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/lwjgl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/starfarer.api.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/log4j-1.2.9.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="file://$PROJECT_DIR$/../../starsector-core" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/jaxb-api-2.4.0-b180830.0359-sources.jar!/" />
     </SOURCES>
-    <jarDirectory url="file://$PROJECT_DIR$/../../starsector-core" recursive="false" />
-    <jarDirectory url="file://$PROJECT_DIR$/../../starsector-core" recursive="false" type="SOURCES" />
   </library>
 </component>
