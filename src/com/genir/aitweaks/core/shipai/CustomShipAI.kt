@@ -94,8 +94,6 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         ventModule.advance(dt)
         systemAI?.advance(dt)
         movement.advance(dt)
-
-        flags.setFlag(AIFlags.MANEUVER_TARGET, ShipwideAIFlags.FLAG_DURATION, maneuverTarget)
     }
 
     // NOTE: For some reason IDE has difficulties finding usage
@@ -147,28 +145,35 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     }
 
     private fun updateManeuverTarget() {
-        val segmentationTarget: ShipAPI? by lazy { findClosestSegmentationTarget() }
+        val segmentationTarget: ShipAPI? by lazy {
+            findClosestSegmentationTarget()
+        }
 
-        when {
+        maneuverTarget = when {
             // Don't change target when movement system is on.
             maneuverTarget?.isValidTarget == true && systemAI?.holdTargets() == true -> {
-                Unit
+                maneuverTarget
+            }
+
+            // Maneuver target is not needed when navigating.
+            focusOnNavigating() -> {
+                null
             }
 
             // Eliminate assignment target.
             assignment.eliminate != null -> {
-                maneuverTarget = assignment.eliminate
+                assignment.eliminate
             }
 
             // Try fleet segmentation targets first.
             segmentationTarget != null -> {
                 knownSegmentationTargets.add(segmentationTarget!!)
-                maneuverTarget = segmentationTarget
+                segmentationTarget
             }
 
             // No target found in the exploration phase of the battle. Don't force finding one.
             isExploring -> {
-                Unit
+                null
             }
 
             // Fall back to the closest target.
@@ -185,9 +190,11 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
                     }
                 }
 
-                maneuverTarget = closestEntity(targets, ship.location)
+                closestEntity(targets, ship.location)
             }
         }
+
+        flags.setFlag(AIFlags.MANEUVER_TARGET, ShipwideAIFlags.FLAG_DURATION, maneuverTarget)
     }
 
     /** Find a new maneuver target using enemy fleet segmentation. */
@@ -216,9 +223,23 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
      * from the maneuver target provided by the ShipAI. */
     private fun updateAttackTarget() {
         // Don't change target when movement system is on.
-        if (attackTarget?.isValidTarget == true && systemAI?.holdTargets() == true) return
+        if (attackTarget?.isValidTarget == true && systemAI?.holdTargets() == true) {
+            return
+        }
 
-        val (newWeaponGroup, newTarget) = findNewAttackTarget()
+        val (newWeaponGroup, newTarget) = when {
+            // Target is not needed when navigating.
+            // Leaving target null fixes a rare issue when AI‐controlled player ship is ordered to hide
+            // in a safe spot while the player watches the battle in follow‐ship mode. If the hidden ship
+            // then R‐selects a target and that target is destroyed, the UI would flicker.
+            focusOnNavigating() -> {
+                Pair(stats.weaponGroups[0], null)
+            }
+
+            else -> {
+                findNewAttackTarget()
+            }
+        }
 
         // Keep track of previous target until weapon bursts subside.
         if (newTarget != attackTarget && attackTarget?.isValidTarget == true) {
@@ -465,7 +486,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     }
 
     /** Range from which ship should attack its target. */
-    fun updateAttackRange() {
+    private fun updateAttackRange() {
         // Range overridden by ai flag.
         flags.get<Float>(AIFlags.MANEUVER_RANGE_FROM_TARGET)?.let {
             attackRange = it
@@ -520,5 +541,11 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         val position = ship.location - target.location
         val velocity = position.resized(-1f)
         return Bounds.collision(position, velocity, target) ?: 0f
+    }
+
+    /** If the ship is beyond threat range and on a navigation assignment,
+     * prioritize navigation over combat. */
+    fun focusOnNavigating(): Boolean {
+        return threatVector.isZero && assignment.navigateTo != null
     }
 }
