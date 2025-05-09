@@ -1,5 +1,6 @@
 - Custom AI: Several minor improvement to ship movement.
 - Autofire AI: Projectile PD weapons now utilize their full range more effectively when intercepting missiles.
+- Custom AI: AI now targets strikecraft once all enemy ships have been destroyed. Suggested by Ruin.
 
 Version 2.1.0
  

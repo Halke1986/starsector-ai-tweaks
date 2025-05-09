@@ -45,11 +45,9 @@ I'm slightly-less-but-still-substantially sick and tired of ppl going "bro just 
 DO_NOT_BACK_OFF flag
 HAS_INCOMING_DAMAGE flag, when adding custom threat evaluation
 
-ships that use the custom AI hullmod do not target and hunt down enemy fighters if they are the last enemy remaining
-
-REPORTED by Ultrarattecoon
-rift beams (med pd) start firing at threats long before they are in range, looks dumb
-
 redo integration with leading pip
 
 ----------------------------------------------------------------
+
+REPORTED by Ultrarattecoon
+rift beams (med pd) start firing at threats long before they are in range, looks dumb

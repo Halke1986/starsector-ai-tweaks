@@ -178,19 +178,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
             // Fall back to the closest target.
             else -> {
-                val targets = Global.getCombatEngine().ships.filter {
-                    when {
-                        it.owner == ship.owner -> false
-
-                        !it.isValidTarget -> false
-
-                        it.isFighter -> false
-
-                        else -> true
-                    }
-                }
-
-                closestEntity(targets, ship.location)
+                findClosestTarget()
             }
         }
 
@@ -211,6 +199,29 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         // Follow the closest primary target.
         val primaryTargets = segmentation.primaryTargets(ship.isFast).filter { isTargetVisible(it) }
         return closestEntity(primaryTargets, ship.location)
+    }
+
+    private fun findClosestTarget(): ShipAPI? {
+        val targets = Global.getCombatEngine().ships.filter {
+            when {
+                it.owner == ship.owner -> false
+
+                !it.isValidTarget -> false
+
+                else -> true
+            }
+        }
+
+        // Find the closest ship.
+        closestEntity<ShipAPI>(targets.filter { !it.isFighter }, ship.location)?.let { ship ->
+            return ship
+        }
+
+        // Fallback to finding a fighter.
+        return closestEntity(targets, ship.location)
+
+
+//        return closestEntity(targets.filter { it.isFighter }, ship.location)
     }
 
     /** Consider once seen ships as visible, even if they're in fog again. This allows
@@ -276,6 +287,10 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         threats = Grid.ships(ship.location, stats.threatSearchRange).filter { isThreat(it) }.toSet()
     }
 
+    private fun isThreat(target: ShipAPI): Boolean {
+        return target.owner != ship.owner && target.isAlive && !target.isFighter
+    }
+
     /** The threat vector should be updated every frame, as it is used
      * in movement calculations. Values involved in these calculations
      * should change smoothly to avoid erratic velocity changes. */
@@ -339,11 +354,23 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     }
 
     private fun findNewAttackTarget(): Pair<WeaponGroup, ShipAPI?> {
-        val allies = Global.getCombatEngine().ships.filter { it != ship && it.owner == ship.owner && !it.isFighter && !it.isFrigate }
+        val allies = Global.getCombatEngine().ships.filter {
+            it != ship && it.owner == ship.owner && !it.isFighter && !it.isFrigate
+        }
+
         val targetedEnemies = allies.mapNotNull { it.attackTarget }.filter { it.isBig }.toSet()
 
+        val opportunities = when {
+            maneuverTarget?.isFighter == true -> {
+                Grid.ships(ship.location, stats.threatSearchRange).filter { it.owner != ship.owner && it.isValidTarget }.toSet()
+            }
+
+            else -> {
+                threats.filter { it.isValidTarget }
+            }
+        }
+
         // Find best attack opportunity for each weapon group.
-        val opportunities = threats.filter { it.isValidTarget }
         val weaponGroupTargets: Map<WeaponGroup, Map.Entry<ShipAPI, Float>> = stats.weaponGroups.associateWith { weaponGroup ->
             val obstacles = getObstacles(weaponGroup)
             val groupOpportunities = opportunities.asSequence().filter { currentEffectiveRange(it) < weaponGroup.maxRange }
@@ -361,21 +388,21 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
 
         // No good attack target found. Try alternatives.
         val altTarget: ShipAPI? = when {
-            maneuverTarget != null -> maneuverTarget
+            maneuverTarget != null -> {
+                maneuverTarget
+            }
 
             // Try to find a target near move location.
             assignment.navigateTo != null -> {
                 Grid.ships(assignment.navigateTo!!, 200f).filter { isThreat(it) }.firstOrNull()
             }
 
-            else -> null
+            else -> {
+                null
+            }
         }
 
         return Pair(stats.weaponGroups[0], altTarget)
-    }
-
-    private fun isThreat(target: ShipAPI): Boolean {
-        return target.owner != ship.owner && target.isAlive && target.isShip && !target.isFighter
     }
 
     private inner class Obstacle(val arc: Arc, val dist: Float) {
@@ -493,12 +520,18 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             return
         }
 
-        val range = when {
+        val defaultRange = when {
             // Default all-weapons attack range.
             attackingGroup.dps > 0f -> attackingGroup.minRange
 
             // Range for ships with no weapons.
             else -> Preset.noWeaponsAttackRange
+        }
+
+        // Close in on fighter targets to improve hit probability.
+        if (maneuverTarget?.isFighter == true) {
+            attackRange = defaultRange / 2
+            return
         }
 
         var approachFactor = 1f
@@ -511,7 +544,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             approachFactor *= fullAssaultApproachFactor
         }
 
-        attackRange = (effectiveTargetRadius(maneuverTarget) + range) * approachFactor
+        attackRange = (effectiveTargetRadius(maneuverTarget) + defaultRange) * approachFactor
     }
 
     /** Distance between ship location and target effective radius. */
