@@ -153,6 +153,8 @@ class VentModule(private val ai: CustomShipAI) {
         val underFire = damageTracker.damage / ship.maxFlux > 0.2f
 
         isBackingOff = when {
+            ai.flags.has(Flags.Flag.DO_NOT_BACK_OFF) -> false
+
             // Enemy is routing, keep the pressure.
             Global.getCombatEngine().isEnemyInFullRetreat -> false
 
@@ -178,9 +180,9 @@ class VentModule(private val ai: CustomShipAI) {
         }
 
         if (isBackingOff) {
-            ai.flags.setFlag(AIFlags.BACKING_OFF)
+            ai.flags.set(Flags.Flag.BACKING_OFF)
         } else {
-            ai.flags.unsetFlag(AIFlags.BACKING_OFF)
+            ai.flags.unset(Flags.Flag.BACKING_OFF)
         }
     }
 

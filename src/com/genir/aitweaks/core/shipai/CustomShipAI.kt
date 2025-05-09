@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.RETREAT
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.debug.expectedFacing
@@ -33,7 +32,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     val ventModule: VentModule = VentModule(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
     val vanilla: VanillaModule = VanillaModule(ship, systemAI?.overrideVanillaSystemAI() == true)
-    val flags: ShipwideAIFlags = vanilla.basicShipAI.aiFlags
+    val flags: Flags = Flags(vanilla.basicShipAI.aiFlags)
 
     // Helper classes.
     private val updateInterval: IntervalUtil = defaultAIInterval()
@@ -96,10 +95,8 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
         movement.advance(dt)
     }
 
-    // NOTE: For some reason IDE has difficulties finding usage
-    // of this symbol. Use the flags: ShipwideAIFlags field directly.
     override fun getAIFlags(): ShipwideAIFlags {
-        return flags
+        return vanilla.basicShipAI.aiFlags
     }
 
     private fun debug() {
@@ -182,7 +179,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             }
         }
 
-        flags.setFlag(AIFlags.MANEUVER_TARGET, ShipwideAIFlags.FLAG_DURATION, maneuverTarget)
+        flags.set(Flags.Flag.MANEUVER_TARGET, maneuverTarget)
     }
 
     /** Find a new maneuver target using enemy fleet segmentation. */
@@ -515,7 +512,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
     /** Range from which ship should attack its target. */
     private fun updateAttackRange() {
         // Range overridden by ai flag.
-        flags.get<Float>(AIFlags.MANEUVER_RANGE_FROM_TARGET)?.let {
+        flags.get<Float>(Flags.Flag.MANEUVER_RANGE_FROM_TARGET)?.let {
             attackRange = it
             return
         }
