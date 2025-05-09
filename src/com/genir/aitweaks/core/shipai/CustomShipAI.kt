@@ -231,7 +231,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
             // Target is not needed when navigating.
             // Leaving target null fixes a rare issue when AI‐controlled player ship is ordered to hide
             // in a safe spot while the player watches the battle in follow‐ship mode. If the hidden ship
-            // then R‐selects a target and that target is destroyed, the UI would flicker.
+            // then R‐selects a target and that target is destroyed, the game UI would flicker.
             focusOnNavigating() -> {
                 Pair(stats.weaponGroups[0], null)
             }

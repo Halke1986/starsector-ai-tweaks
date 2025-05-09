@@ -16,7 +16,7 @@ class ShipStats(private val ship: ShipAPI) {
 
     private fun calculateThreatSearchRange(): Float {
         val rangeEnvelope = 1.5f
-        val totalMaxRange = significantWeapons.maxOfOrNull { it.rangeFromShipCenter(0f.direction) } ?: 0f
+        val totalMaxRange = significantWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.direction, it.totalRange) } ?: 0f
 
         return max(Preset.threatSearchRange, totalMaxRange * rangeEnvelope)
     }

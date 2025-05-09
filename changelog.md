@@ -1,4 +1,5 @@
 - Custom AI: Several minor improvement to ship movement.
+- Autofire AI: Projectile PD weapons now utilize their full range more effectively when intercepting missiles.
 
 Version 2.1.0
  

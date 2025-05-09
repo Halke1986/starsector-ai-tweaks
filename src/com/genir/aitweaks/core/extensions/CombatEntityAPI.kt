@@ -5,10 +5,6 @@ import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.utils.Bounds
 import org.lwjgl.util.vector.Vector2f
 
-/** Is the entity a true ship, not a missile or fighter. */
-val CombatEntityAPI.isShip: Boolean
-    get() = (this is ShipAPI) && !isFighter
-
 val CombatEntityAPI.isValidTarget: Boolean
     get() = when {
         isExpired -> false
@@ -28,14 +24,21 @@ val CombatEntityAPI.isValidTarget: Boolean
         else -> false
     }
 
+/** Is the entity a true ship, not a missile or fighter. */
+val CombatEntityAPI.isShip: Boolean
+    get() = (this is ShipAPI) && !isFighter
+
 val CombatEntityAPI.isFighter: Boolean
     get() = (this is ShipAPI) && isFighter
 
 val CombatEntityAPI.isSupportFighter: Boolean
     get() = (this is ShipAPI) && wing?.spec?.isSupport == true
 
+val CombatEntityAPI.isMissile: Boolean
+    get() = this is MissileAPI
+
 val CombatEntityAPI.isPDTarget: Boolean
-    get() = this is MissileAPI || isFighter
+    get() = isMissile || isFighter
 
 val CombatEntityAPI.timeAdjustedVelocity: Vector2f
     get() = (this as? ShipAPI)?.timeAdjustedVelocity ?: velocity

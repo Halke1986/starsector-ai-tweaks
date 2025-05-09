@@ -288,7 +288,7 @@ class VentModule(private val ai: CustomShipAI) {
 
         // Check if the ship is out of weapons range.
         val adjustedMovementTime = if (weapon.ship.engineController.isFlamedOut) 0f else ventTime * shipSpeedFactor
-        if (dist - adjustedMovementTime * weapon.ship.maxSpeed > weapon.Range) {
+        if (dist - adjustedMovementTime * weapon.ship.maxSpeed > weapon.totalRange) {
             return false
         }
 

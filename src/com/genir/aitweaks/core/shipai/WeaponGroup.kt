@@ -41,7 +41,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
     private fun weaponRanges(): Map<WeaponAPI, Float> {
         return weapons.associateWith { weapon ->
             val rangeMod = if (weapon.hasAITag(Tag.APPROACH_CLOSER)) 0.8f else 1f
-            weapon.rangeFromShipCenter(defaultFacing) * rangeMod
+            weapon.slot.rangeFromShipCenter(defaultFacing, weapon.noFadeRange) * rangeMod
         }
     }
 
