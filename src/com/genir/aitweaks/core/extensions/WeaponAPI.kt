@@ -17,7 +17,6 @@ import com.genir.aitweaks.core.shipai.autofire.Tag
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.state.Config.Companion.config
-import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
@@ -110,16 +109,11 @@ val WeaponAPI.Arc: Arc
 val WeaponAPI.absoluteArc: Arc
     get() = Arc.rotated(ship.facing)
 
-val WeaponAPI.totalRange: Float
-    get() = Range + projectileFadeRange * 0.33f
+val WeaponAPI.noFadeRange: Float
+    get() = range + barrelOffset
 
-/** Weapon range from the center of the ship, along the attack facing.
- * attackFacing is in ship frame of reference*/
-fun WeaponAPI.rangeFromShipCenter(attackFacing: Direction): Float {
-    val p = -slot.location
-    val v = attackFacing.unitVector
-    return solve(p, v, Range)?.smallerNonNegative ?: 0f
-}
+val WeaponAPI.totalRange: Float
+    get() = noFadeRange + projectileFadeRange * 0.33f
 
 val WeaponAPI.autofirePlugin: AutofireAIPlugin?
     get() = ship.getWeaponGroupFor(this)?.getAutofirePlugin(this)

@@ -221,7 +221,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
         val ballisticParams = currentParams()
-        var expectedHit = analyzeHit(weapon, target, ballisticParams)
+        var expectedHit: Hit? = analyzeHit(weapon, target, ballisticParams)
 
         // Mock an expected hit for beams that should keep firing when in transition between targets.
         if (expectedHit == null && shouldSweepBeam(target)) {
@@ -233,14 +233,8 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             return NO_HIT_EXPECTED
         }
 
-        when {
-            (expectedHit.type == SHIELD || weapon.conserveAmmo) && expectedHit.range > weapon.Range -> {
-                return OUT_OF_RANGE
-            }
-
-            expectedHit.type != SHIELD && expectedHit.range > weapon.totalRange -> {
-                return OUT_OF_RANGE
-            }
+        if (!isHitInRange(expectedHit)) {
+            return OUT_OF_RANGE
         }
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
@@ -362,6 +356,29 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         // Favor beam rotation, just because it looks cool.
         val flightTimeMultiplier = 1.3f
         return rotationTime < realignmentTime * flightTimeMultiplier
+    }
+
+    private fun isHitInRange(hit: Hit): Boolean {
+        return when {
+            weapon.conserveAmmo -> {
+                hit.range <= weapon.noFadeRange
+            }
+
+            // Do not attack shields from beyond weapon range,
+            // as this deals only soft flux damage.
+            hit.type == SHIELD -> {
+                hit.range <= weapon.noFadeRange
+            }
+
+            // Start PD fire when missile enters the very fringe of weapon range.
+            hit.target.isMissile && weapon.isPD -> {
+                hit.range <= weapon.noFadeRange + weapon.projectileFadeRange
+            }
+
+            else -> {
+                hit.range <= weapon.totalRange
+            }
+        }
     }
 
     /**

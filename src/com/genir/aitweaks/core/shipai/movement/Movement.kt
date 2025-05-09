@@ -62,7 +62,7 @@ class Movement(val ai: CustomShipAI) {
             }
 
             // Face movement target location.
-            ai.threatVector.isZero && ai.assignment.navigateTo != null -> {
+            ai.focusOnNavigating() -> {
                 // If already at the assignment location, face the center of the map.
                 val lookAt = if (ai.assignment.arrivedAt) Vector2f()
                 else ai.assignment.navigateTo!!

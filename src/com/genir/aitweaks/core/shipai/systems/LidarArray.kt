@@ -2,7 +2,6 @@ package com.genir.aitweaks.core.shipai.systems
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
-import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
@@ -10,6 +9,7 @@ import com.fs.starfarer.api.impl.combat.LidarArrayStats
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.shipai.Flags
 import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
 import com.genir.aitweaks.core.shipai.autofire.canTrack
 import com.genir.aitweaks.core.shipai.autofire.defaultBallisticParams
@@ -40,7 +40,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
             if (lidarWeapons.isEmpty() || system.isActive) return
 
             // Override maneuver distance to always stay at lidar weapons range.
-            ai.flags.setFlag(AIFlags.MANEUVER_RANGE_FROM_TARGET, 1.0f, minLidarWeaponRange())
+            ai.flags.set(Flags.Flag.MANEUVER_RANGE_FROM_TARGET, minLidarWeaponRange())
 
             // Check if ship has other flux drains except lidar weapons.
             zeroFluxBoostMode = lidarWeapons.size == ai.stats.significantWeapons.size && ship.shield == null
@@ -111,7 +111,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun minLidarWeaponRange(): Float {
-        return applyLidarRangeBonus { lidarWeapons.minOf { it.rangeFromShipCenter(0f.direction) } } * weaponRangeFraction
+        return applyLidarRangeBonus { lidarWeapons.minOf { it.slot.rangeFromShipCenter(0f.direction, it.noFadeRange) } } * weaponRangeFraction
     }
 
     private fun burstFluxRequired(): Float {

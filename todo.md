@@ -40,15 +40,8 @@ What it does: Ship with this hullmod (and/or the strikecraft wings themselves, i
 Context: I'm sick and tired of carriers (even reckless ones) sending their swarms of bees to buzz around some expendable friggie that's off to the side capturing a POI and not even in any danger while there are valid enemy targets in strike range. Unless it's all bombers. Bombers seem to work okay-ish.
 I'm slightly-less-but-still-substantially sick and tired of ppl going "bro just order strikes on every single enemy bro".
 
-----------------------------------------------------------------
 
-DO_NOT_BACK_OFF flag
 HAS_INCOMING_DAMAGE flag, when adding custom threat evaluation
-
-ships that use the custom AI hullmod do not target and hunt down enemy fighters if they are the last enemy remaining
-
-REPORTED by Ultrarattecoon
-rift beams (med pd) start firing at threats long before they are in range, looks dumb
 
 redo integration with leading pip
 
