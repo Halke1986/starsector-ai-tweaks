@@ -1,6 +1,7 @@
 - Custom AI: Several minor improvement to ship movement.
 - Autofire AI: Projectile PD weapons now utilize their full range more effectively when intercepting missiles.
 - Custom AI: AI now targets strikecraft once all enemy ships have been destroyed. Suggested by Ruin.
+- Autofire AI: Rift Beam no longer fires at targets well beyond its effective range. Reported by Ultrarattecoon and CrashToDesktop.
 
 Version 2.1.0
  
