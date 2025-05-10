@@ -29,10 +29,6 @@ class Movement(val ai: CustomShipAI) {
     var expectedVelocity: Vector2f = Vector2f()
     var expectedFacing: Direction = kinematics.facing
 
-    // Fields used for communication with attack coordinator.
-//    override var proposedHeadingPoint: Vector2f? = null
-//    override var reviewedHeadingPoint: Vector2f? = null
-
     // Make strafe rotation direction random, but consistent for the given ship.
     private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 90f else -90f)
 
@@ -63,6 +59,14 @@ class Movement(val ai: CustomShipAI) {
 
             // Face movement target location.
             ai.focusOnNavigating() -> {
+//                // Face only the movement target location.
+//                val toWaypoint = ai.assignment.navigateTo!! - kinematics.location
+//                if (toWaypoint.length > kinematics.ship.collisionRadius) {
+//                    toWaypoint.facing
+//                } else {
+//                    null
+//                }
+
                 // If already at the assignment location, face the center of the map.
                 val lookAt = if (ai.assignment.arrivedAt) Vector2f()
                 else ai.assignment.navigateTo!!

@@ -13,6 +13,7 @@ import com.genir.aitweaks.core.playerassist.AimAssistManager
 import com.genir.aitweaks.core.playerassist.ShieldAssistManager
 import com.genir.aitweaks.core.shipai.FleetSegmentation
 import com.genir.aitweaks.core.shipai.movement.ManeuverCoordinator
+import com.genir.aitweaks.core.shipai.movement.NavigateCoordinator
 import com.genir.aitweaks.core.state.Config.Companion.config
 
 class State : BaseEveryFrameCombatPlugin() {
@@ -35,6 +36,7 @@ class State : BaseEveryFrameCombatPlugin() {
 
     val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
     val maneuverCoordinator: ManeuverCoordinator = ManeuverCoordinator()
+    val navigateCoordinator: NavigateCoordinator = NavigateCoordinator()
 
     private val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
     private val searchAndDestroy: SearchAndDestroyManager = SearchAndDestroyManager()
@@ -46,6 +48,7 @@ class State : BaseEveryFrameCombatPlugin() {
         fleetCohesion[1],
         searchAndDestroy,
         maneuverCoordinator,
+        navigateCoordinator,
         Speedup(),
         AimAssistManager(),
         ShieldAssistManager(),
