@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.shipai.movement
+package com.genir.aitweaks.core.shipai.coordinators
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
@@ -11,10 +11,10 @@ import com.genir.aitweaks.core.utils.types.Direction
 import org.lwjgl.util.vector.Vector2f
 
 /**
- * ManeuverCoordinator assigns attack positions to all ships attacking the
+ * AttackCoordinator assigns attack positions to all ships attacking the
  * same target, so that the ships don't try to crowd in the same spot.
  */
-class ManeuverCoordinator : BaseEveryFrameCombatPlugin() {
+class AttackCoordinator : BaseEveryFrameCombatPlugin() {
     private val requests: MutableMap<CustomShipAI, Unit> = mutableMapOf()
     private val responses: MutableMap<CustomShipAI, Response> = mutableMapOf()
 

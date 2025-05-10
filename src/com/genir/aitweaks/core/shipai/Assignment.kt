@@ -10,7 +10,7 @@ import com.genir.aitweaks.core.extensions.assignment
 import com.genir.aitweaks.core.extensions.length
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.shipai.Assignment.Type.*
-import com.genir.aitweaks.core.shipai.movement.NavigateCoordinator
+import com.genir.aitweaks.core.shipai.coordinators.NavigationCoordinator
 import com.genir.aitweaks.core.state.State
 import org.lwjgl.util.vector.Vector2f
 
@@ -78,7 +78,7 @@ class Assignment(private val ai: CustomShipAI) {
     /** Navigate to the assignment location and stay close to it. */
     private fun navigate(assignment: CombatFleetManagerAPI.AssignmentInfo) {
         val navigationTarget: AssignmentTargetAPI = assignment.target ?: return
-        val navigationCoordinator: NavigateCoordinator = State.state.navigateCoordinator
+        val navigationCoordinator: NavigationCoordinator = State.state.navigateCoordinator
         val (coordinatedWaypoint, _) = navigationCoordinator.coordinateNavigation(ai, navigationTarget)
 
         navigateTo = coordinatedWaypoint

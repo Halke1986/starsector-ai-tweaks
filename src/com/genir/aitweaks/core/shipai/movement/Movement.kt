@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.shipai.coordinators.AttackCoordinator
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.State.Companion.state
@@ -210,7 +211,7 @@ class Movement(val ai: CustomShipAI) {
     /** Take into account other entities when planning ship attack location. */
     fun coordinateAttackLocation(maneuverTarget: ShipAPI, attackLocation: Vector2f): Vector2f {
         // Coordinate the attack with allied ships.
-        val coordinator: ManeuverCoordinator = state.maneuverCoordinator
+        val coordinator: AttackCoordinator = state.maneuverCoordinator
         val (coordinatedAttackLocation, taskForceSize) = coordinator.coordinateAttack(ai, maneuverTarget, attackLocation)
         var adjustedAttackLocation = coordinatedAttackLocation
 

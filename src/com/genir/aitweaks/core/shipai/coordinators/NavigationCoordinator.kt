@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.shipai.movement
+package com.genir.aitweaks.core.shipai.coordinators
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.AssignmentTargetAPI
@@ -9,7 +9,7 @@ import com.genir.aitweaks.core.extensions.totalCollisionRadius
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import org.lwjgl.util.vector.Vector2f
 
-class NavigateCoordinator : BaseEveryFrameCombatPlugin() {
+class NavigationCoordinator : BaseEveryFrameCombatPlugin() {
     private val requests: MutableMap<CustomShipAI, Unit> = mutableMapOf()
     private val responses: MutableMap<CustomShipAI, Response> = mutableMapOf()
 

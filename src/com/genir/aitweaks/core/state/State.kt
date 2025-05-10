@@ -12,8 +12,8 @@ import com.genir.aitweaks.core.debug.removeGrid
 import com.genir.aitweaks.core.playerassist.AimAssistManager
 import com.genir.aitweaks.core.playerassist.ShieldAssistManager
 import com.genir.aitweaks.core.shipai.FleetSegmentation
-import com.genir.aitweaks.core.shipai.movement.ManeuverCoordinator
-import com.genir.aitweaks.core.shipai.movement.NavigateCoordinator
+import com.genir.aitweaks.core.shipai.coordinators.AttackCoordinator
+import com.genir.aitweaks.core.shipai.coordinators.NavigationCoordinator
 import com.genir.aitweaks.core.state.Config.Companion.config
 
 class State : BaseEveryFrameCombatPlugin() {
@@ -35,8 +35,8 @@ class State : BaseEveryFrameCombatPlugin() {
     val debugPlugin: DebugPlugin? = if (config.devMode) DebugPlugin() else null
 
     val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
-    val maneuverCoordinator: ManeuverCoordinator = ManeuverCoordinator()
-    val navigateCoordinator: NavigateCoordinator = NavigateCoordinator()
+    val maneuverCoordinator: AttackCoordinator = AttackCoordinator()
+    val navigateCoordinator: NavigationCoordinator = NavigationCoordinator()
 
     private val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
     private val searchAndDestroy: SearchAndDestroyManager = SearchAndDestroyManager()
