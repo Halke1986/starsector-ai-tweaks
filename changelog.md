@@ -1,3 +1,5 @@
+Version v2.1.1
+
 - Custom AI: Several minor improvement to ship movement.
 - Custom AI now targets strikecraft once all enemy ships have been destroyed. Suggested by Ruin.
 - Custom AI respects the DO_NOT_BACK_OFF flag. Suggested by Lukas04. 
