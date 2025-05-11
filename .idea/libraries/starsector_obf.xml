@@ -1,10 +1,11 @@
 <component name="libraryTable">
   <library name="starsector-obf">
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/../../starsector-obf" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/fs.common_obf.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/fs.sound_obf.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../starsector-core/starfarer_obf.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
-    <jarDirectory url="file://$PROJECT_DIR$/../../starsector-obf" recursive="false" />
   </library>
 </component>
