@@ -4,8 +4,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.AttackCoordinator
 import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.shipai.coordinators.AttackCoordinator
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.State.Companion.state
@@ -19,7 +19,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable {
+class Movement(val ai: CustomShipAI) {
     private val kinematics: Kinematics = ai.ship.kinematics
     private val engineController: EngineController = EngineController(ai, kinematics)
     private val collisionAvoidance: CollisionAvoidance = CollisionAvoidance(ai)
@@ -29,10 +29,6 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     var headingPoint: Vector2f = Vector2f()
     var expectedVelocity: Vector2f = Vector2f()
     var expectedFacing: Direction = kinematics.facing
-
-    // Fields used for communication with attack coordinator.
-    override var proposedHeadingPoint: Vector2f? = null
-    override var reviewedHeadingPoint: Vector2f? = null
 
     // Make strafe rotation direction random, but consistent for the given ship.
     private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 90f else -90f)
@@ -207,13 +203,14 @@ class Movement(override val ai: CustomShipAI) : AttackCoordinator.Coordinatable 
     /** Take into account other entities when planning ship attack location. */
     fun coordinateAttackLocation(maneuverTarget: ShipAPI, attackLocation: Vector2f): Vector2f {
         // Coordinate the attack with allied ships.
-        proposedHeadingPoint = attackLocation
-        var adjustedAttackLocation = reviewedHeadingPoint ?: attackLocation
+        val coordinator: AttackCoordinator = state.maneuverCoordinator
+        val (coordinatedAttackLocation, taskForceSize) = coordinator.coordinateAttack(ai, maneuverTarget, attackLocation)
+        var adjustedAttackLocation = coordinatedAttackLocation
 
         // Coordinate the attack to avoid hulks. Assault ships don't try
         // to avoid hulks, as this interferes with coordinating burn drives.
         // The exception is when the assault ship operates alone.
-        val isAlone = reviewedHeadingPoint == null
+        val isAlone = taskForceSize == 1
         if (!ai.isAssaultShip || isAlone) {
             adjustedAttackLocation = avoidHulks(maneuverTarget, adjustedAttackLocation) ?: adjustedAttackLocation
         }

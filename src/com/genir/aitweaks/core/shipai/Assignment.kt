@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.AssignmentTargetAPI
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI
 import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
@@ -37,30 +38,30 @@ class Assignment(private val ai: CustomShipAI) {
         // Handle the assignment, if any.
         ship.assignment?.let { assignment ->
             when (assignment.type) {
-                DEFEND -> navigate(assignment)
-                RALLY_TASK_FORCE -> navigate(assignment)
-                RALLY_CARRIER -> navigate(assignment)
-                RALLY_CIVILIAN -> navigate(assignment)
-                RALLY_STRIKE_FORCE -> navigate(assignment)
-                HARASS -> navigate(assignment)
-                LIGHT_ESCORT -> navigate(assignment)
-                MEDIUM_ESCORT -> navigate(assignment)
-                HEAVY_ESCORT -> navigate(assignment)
-                CONTROL -> navigate(assignment)
+                DEFEND,
+                RALLY_TASK_FORCE,
+                RALLY_CARRIER,
+                RALLY_CIVILIAN,
+                RALLY_STRIKE_FORCE,
+                HARASS,
+                LIGHT_ESCORT,
+                MEDIUM_ESCORT,
+                HEAVY_ESCORT,
+                CONTROL,
                 ENGAGE -> navigate(assignment)
 
-                CAPTURE -> takeControl(assignment)
+                CAPTURE,
                 ASSAULT -> takeControl(assignment)
 
-                INTERCEPT -> eliminate(assignment)
+                INTERCEPT,
                 STRIKE -> eliminate(assignment) // Combat carriers should treat fighter strike assignment as eliminate.
 
                 // Ignored and unimplemented assignments.
-                RALLY_FIGHTERS -> Unit
-                RECON -> Unit
-                AVOID -> Unit
-                RETREAT -> Unit
-                REPAIR_AND_REFIT -> Unit
+                RALLY_FIGHTERS,
+                RECON,
+                AVOID,
+                RETREAT,
+                REPAIR_AND_REFIT,
                 SEARCH_AND_DESTROY -> Unit
 
                 else -> Unit
@@ -74,8 +75,13 @@ class Assignment(private val ai: CustomShipAI) {
 
     /** Navigate to the assignment location and stay close to it. */
     private fun navigate(assignment: CombatFleetManagerAPI.AssignmentInfo) {
-        navigateTo = assignment.target?.location
-        arrivedAt = navigateTo != null && (navigateTo!! - ship.location).length < Preset.arrivedAtLocationRadius
+        val navigationTarget: AssignmentTargetAPI = assignment.target ?: return
+//        val navigationCoordinator: NavigationCoordinator = State.state.navigateCoordinator
+//        val (coordinatedWaypoint, _) = navigationCoordinator.coordinateNavigation(ai, navigationTarget)
+        val coordinatedWaypoint = navigationTarget.location
+
+        navigateTo = coordinatedWaypoint
+        arrivedAt = (coordinatedWaypoint - ship.location).length < Preset.arrivedAtLocationRadius
         type = NAVIGATE_TO
     }
 

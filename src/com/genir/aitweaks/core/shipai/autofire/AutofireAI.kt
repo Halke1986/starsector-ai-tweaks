@@ -372,7 +372,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
             // Start PD fire when missile enters the very fringe of weapon range.
             hit.target.isMissile && weapon.isPD -> {
-                hit.range <= weapon.noFadeRange + weapon.projectileFadeRange
+                hit.range <= weapon.noFadeRange + weapon.projectileFadeRange * 0.75f
             }
 
             else -> {
