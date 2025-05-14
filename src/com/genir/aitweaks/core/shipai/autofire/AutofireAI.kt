@@ -214,10 +214,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             return reason
         }
 
-        stabilizeOnTarget()?.let { reason ->
-            return reason
-        }
-
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
         val ballisticParams = currentParams()
@@ -235,6 +231,10 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
 
         if (!isHitInRange(expectedHit)) {
             return OUT_OF_RANGE
+        }
+
+        stabilizeOnTarget()?.let { reason ->
+            return reason
         }
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.

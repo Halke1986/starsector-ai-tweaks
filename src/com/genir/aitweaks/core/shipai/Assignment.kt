@@ -7,9 +7,12 @@ import com.fs.starfarer.api.combat.CombatFleetManagerAPI
 import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.assignment
+import com.genir.aitweaks.core.extensions.isNearMapCenterline
 import com.genir.aitweaks.core.extensions.length
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.shipai.Assignment.Type.*
+import com.genir.aitweaks.core.shipai.coordinators.NavigationCoordinator
+import com.genir.aitweaks.core.state.State.Companion.state
 import org.lwjgl.util.vector.Vector2f
 
 class Assignment(private val ai: CustomShipAI) {
@@ -76,9 +79,15 @@ class Assignment(private val ai: CustomShipAI) {
     /** Navigate to the assignment location and stay close to it. */
     private fun navigate(assignment: CombatFleetManagerAPI.AssignmentInfo) {
         val navigationTarget: AssignmentTargetAPI = assignment.target ?: return
-//        val navigationCoordinator: NavigationCoordinator = State.state.navigateCoordinator
-//        val (coordinatedWaypoint, _) = navigationCoordinator.coordinateNavigation(ai, navigationTarget)
-        val coordinatedWaypoint = navigationTarget.location
+
+        // When the assignment is near the map centerline, the ships should form line abreast.
+        val coordinatedWaypoint = if (navigationTarget.isNearMapCenterline) {
+            val navigationCoordinator: NavigationCoordinator = state.navigateCoordinator
+            val (waypoint, _) = navigationCoordinator.coordinateNavigation(ai, navigationTarget)
+            waypoint
+        } else {
+            navigationTarget.location
+        }
 
         navigateTo = coordinatedWaypoint
         arrivedAt = (coordinatedWaypoint - ship.location).length < Preset.arrivedAtLocationRadius

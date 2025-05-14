@@ -1,3 +1,5 @@
+- Custom AI: A group of ships assigned to the same Rally Task Force objective will form a line abreast, provided the objective is placed near the centerline of the map.
+
 Version v2.1.1
 
 - Custom AI: Several minor improvement to ship movement.

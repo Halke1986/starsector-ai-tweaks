@@ -58,11 +58,28 @@ class Movement(val ai: CustomShipAI) {
                 systemOverride
             }
 
-            // Face movement target location.
             ai.focusOnNavigating() -> {
-                // If already at the assignment location, face the center of the map.
-                val lookAt = if (ai.assignment.arrivedAt) Vector2f()
-                else ai.assignment.navigateTo!!
+                val navigateTo: Vector2f = ai.assignment.navigateTo!!
+
+                val lookAt = when {
+                    // Face movement target location.
+                    !ai.assignment.arrivedAt -> {
+                        navigateTo
+                    }
+
+                    // When forming line abreast, face the enemy side of the map.
+                    kinematics.ship.assignment!!.target.isNearMapCenterline -> {
+                        Vector2f(
+                            navigateTo.x,
+                            kinematics.location.y + if (kinematics.ship.owner == 0) 1e3f else -1e3f
+                        )
+                    }
+
+                    // If already at the assignment location, face the center of the map.
+                    else -> {
+                        Vector2f()
+                    }
+                }
 
                 (lookAt - kinematics.location).facing
             }
