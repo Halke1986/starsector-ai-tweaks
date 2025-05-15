@@ -140,16 +140,17 @@ fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire?
             }
         }
 
+        // Obstacle is behind the expected target. This case may happen
+        // during PD fire, when a high likelihood of a miss is assumed.
+        expected.range < actual.range -> {
+            fire
+        }
+
         // Weapon will hit inert or enemy ship.
         else -> when {
 
             // Beams transiting to a new target are allowed to hit inert targets.
             expected.type == ROTATE_BEAM -> {
-                fire
-            }
-
-            // PD beam fire is allowed to hit inert targets.
-            weapon.isPD && weapon.isPlainBeam && expected.target.isPDTarget -> {
                 fire
             }
 

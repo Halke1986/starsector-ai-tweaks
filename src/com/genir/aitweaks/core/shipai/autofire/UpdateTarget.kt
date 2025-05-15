@@ -31,11 +31,9 @@ class UpdateTarget(
         Global.getCurrentState() == GameState.TITLE && config.enableTitleScreenFire -> selectAsteroid()
 
         // Obligatory PD
-        weapon.hasAIHint(PD_ONLY) && weapon.isAntiFighter -> selectTarget(::selectFighter, ::selectMissile)
         weapon.hasAIHint(PD_ONLY) -> selectTarget(::selectMissile, ::selectFighter)
 
         // PD
-        weapon.hasAIHint(PD) && weapon.isAntiFighter -> selectTarget(::selectFighter, ::selectMissile, ::selectShip)
         weapon.hasAIHint(PD) -> selectTarget(::selectMissile, ::selectFighter, ::selectShip)
 
         // Main weapons
