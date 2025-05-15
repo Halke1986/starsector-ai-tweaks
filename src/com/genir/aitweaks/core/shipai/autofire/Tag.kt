@@ -1,7 +1,7 @@
 package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.fs.starfarer.loading.LoadingUtils
+import com.genir.starfarer.loading.LoadingUtils
 import org.json.JSONArray
 
 enum class Tag {

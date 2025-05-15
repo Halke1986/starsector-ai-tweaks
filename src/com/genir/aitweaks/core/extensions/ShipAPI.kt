@@ -5,11 +5,11 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.PHASE
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
-import com.fs.starfarer.combat.ai.BasicShipAI
-import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.starfarer.combat.ai.BasicShipAI
+import com.genir.starfarer.combat.entities.Ship
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 

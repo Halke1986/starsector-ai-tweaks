@@ -3,12 +3,6 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.util.IntervalUtil
-import com.fs.starfarer.combat.ai.BasicShipAI
-import com.fs.starfarer.combat.ai.movement.maneuvers.ApproachManeuver
-import com.fs.starfarer.combat.ai.movement.maneuvers.EscortTargetManeuverV3
-import com.fs.starfarer.combat.ai.movement.maneuvers.Maneuver
-import com.fs.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
-import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
@@ -19,6 +13,12 @@ import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.starfarer.combat.ai.BasicShipAI
+import com.genir.starfarer.combat.ai.movement.maneuvers.ApproachManeuver
+import com.genir.starfarer.combat.ai.movement.maneuvers.EscortTargetManeuverV3
+import com.genir.starfarer.combat.ai.movement.maneuvers.Maneuver
+import com.genir.starfarer.combat.ai.movement.maneuvers.StrafeTargetManeuverV2
+import com.genir.starfarer.combat.entities.Ship
 import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */

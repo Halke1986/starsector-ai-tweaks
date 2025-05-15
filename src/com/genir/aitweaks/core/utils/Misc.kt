@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.IntervalUtil
-import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset
@@ -15,6 +14,7 @@ import com.genir.aitweaks.core.shipai.autofire.Hit
 import com.genir.aitweaks.core.shipai.autofire.analyzeAllyHit
 import com.genir.aitweaks.core.shipai.autofire.analyzeHit
 import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.starfarer.combat.entities.Ship
 import org.json.JSONObject
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max

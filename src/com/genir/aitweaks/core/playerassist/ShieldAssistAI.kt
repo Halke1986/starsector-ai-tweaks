@@ -7,11 +7,6 @@ import com.fs.starfarer.api.combat.ShieldAPI.ShieldType.OMNI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.fs.starfarer.combat.ai.FrontShieldAI
-import com.fs.starfarer.combat.ai.OmniShieldAI
-import com.fs.starfarer.combat.ai.OmniShieldControlAI
-import com.fs.starfarer.combat.ai.ShieldAI
-import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.extensions.command
 import com.genir.aitweaks.core.extensions.isUnderManualControl
 import com.genir.aitweaks.core.shipai.BaseShipAIPlugin
@@ -19,6 +14,11 @@ import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.mousePosition
+import com.genir.starfarer.combat.ai.FrontShieldAI
+import com.genir.starfarer.combat.ai.OmniShieldAI
+import com.genir.starfarer.combat.ai.OmniShieldControlAI
+import com.genir.starfarer.combat.ai.ShieldAI
+import com.genir.starfarer.combat.entities.Ship
 import java.lang.reflect.Field
 
 class ShieldAssistAI(private val manager: ShieldAssistManager) : BaseShipAIPlugin() {

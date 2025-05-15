@@ -6,9 +6,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.WeaponGroupType
-import com.fs.starfarer.combat.entities.Ship
-import com.fs.starfarer.combat.entities.ship.trackers.AimTracker
-import com.fs.starfarer.combat.systems.Weapon
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.BaseShipAIPlugin
@@ -22,6 +19,9 @@ import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
+import com.genir.starfarer.combat.entities.Ship
+import com.genir.starfarer.combat.entities.ship.trackers.AimTracker
+import com.genir.starfarer.combat.systems.Weapon
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 

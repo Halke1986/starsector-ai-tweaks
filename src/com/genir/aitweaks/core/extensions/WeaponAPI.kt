@@ -11,7 +11,6 @@ import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
-import com.fs.starfarer.combat.entities.ship.weapons.BeamWeapon
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
@@ -20,6 +19,7 @@ import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.starfarer.combat.entities.ship.weapons.BeamWeapon
 import kotlin.math.floor
 
 val WeaponAPI.isAntiFighter: Boolean

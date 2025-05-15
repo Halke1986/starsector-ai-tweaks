@@ -8,12 +8,12 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.SEARCH_AND_DESTROY
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
-import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.closestEntity
 import com.genir.aitweaks.core.utils.isCloseToEnemy
+import com.genir.starfarer.combat.tasks.CombatTaskManager
 import org.lwjgl.util.vector.Vector2f
 
 /** FleetCohesionAI attempts to keep vanilla-AI controlled ships as a cohesive unit.

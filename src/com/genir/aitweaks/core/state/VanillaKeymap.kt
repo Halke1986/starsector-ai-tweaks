@@ -1,6 +1,6 @@
 package com.genir.aitweaks.core.state
 
-import com.fs.starfarer.title.input.Keymap
+import com.genir.starfarer.title.input.Keymap
 
 object VanillaKeymap {
     enum class PlayerAction(var prev: Boolean = KEY_UP, var current: Boolean = KEY_UP) {

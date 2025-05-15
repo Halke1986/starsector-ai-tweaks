@@ -10,11 +10,11 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
 import com.fs.starfarer.api.fleet.FleetMemberAPI
-import com.fs.starfarer.combat.ai.BasicShipAI
 import com.genir.aitweaks.core.extensions.isAutomated
 import com.genir.aitweaks.core.extensions.isModule
 import com.genir.aitweaks.core.extensions.isPhase
 import com.genir.aitweaks.core.state.Config.Companion.config
+import com.genir.starfarer.combat.ai.BasicShipAI
 
 class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
     companion object {

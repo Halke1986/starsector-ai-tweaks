@@ -2,9 +2,9 @@ package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.EveryFrameScript
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.campaign.CampaignState
-import com.fs.starfarer.ui.newui.CampaignEntityPickerDialog
 import com.genir.aitweaks.core.utils.log
+import com.genir.starfarer.campaign.CampaignState
+import com.genir.starfarer.ui.newui.CampaignEntityPickerDialog
 import java.lang.reflect.Method
 
 class EveryFrameScript : EveryFrameScript {

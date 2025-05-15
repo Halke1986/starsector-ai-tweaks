@@ -5,9 +5,9 @@ import com.fs.starfarer.api.combat.AssignmentTargetAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.combat.tasks.CombatTaskManager
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.starfarer.combat.tasks.CombatTaskManager
 
 /** Make ships defaults to Search and Destroy order. Ships will not be automatically
  * assigned to Assault, Eliminate or any other tasks. Player can manually assign ships

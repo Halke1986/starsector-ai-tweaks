@@ -4,12 +4,12 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.fs.starfarer.combat.CombatEngine
-import com.fs.starfarer.title.mission.MissionDefinition
 import com.genir.aitweaks.core.extensions.copy
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.extensions.times
 import com.genir.aitweaks.core.utils.PI
+import com.genir.starfarer.combat.CombatEngine
+import com.genir.starfarer.title.mission.MissionDefinition
 import kotlin.math.cos
 
 /** Leading PIP mod guides players to manually lead the target even when

@@ -4,15 +4,15 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.fs.starfarer.combat.ai.BasicShipAI
-import com.fs.starfarer.combat.ai.FighterPullbackModule
-import com.fs.starfarer.combat.ai.ShieldAI
-import com.fs.starfarer.combat.ai.ThreatEvaluator
-import com.fs.starfarer.combat.ai.attack.AttackAIModule
-import com.fs.starfarer.combat.ai.movement.FlockingAI
-import com.fs.starfarer.combat.entities.Ship
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.starfarer.combat.ai.BasicShipAI
+import com.genir.starfarer.combat.ai.FighterPullbackModule
+import com.genir.starfarer.combat.ai.ShieldAI
+import com.genir.starfarer.combat.ai.ThreatEvaluator
+import com.genir.starfarer.combat.ai.attack.AttackAIModule
+import com.genir.starfarer.combat.ai.movement.FlockingAI
+import com.genir.starfarer.combat.entities.Ship
 import org.lwjgl.util.vector.Vector2f
 
 /** AI modules carried over from vanilla ship AI. */
@@ -26,7 +26,7 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     private val flockingAI: FlockingAI = basicShipAI.flockingAI
     private val threatEvaluator: ThreatEvaluator = basicShipAI.threatEvaluator
     private val shieldAI: ShieldAI? = basicShipAI.shieldAI
-    private val systemAI = if (overrideVanillaSystem) null else basicShipAI.getPrivateField("systemAI") as? com.fs.starfarer.combat.ai.system.SystemAI
+    private val systemAI = if (overrideVanillaSystem) null else basicShipAI.getPrivateField("systemAI") as? com.genir.starfarer.combat.ai.system.SystemAI
     private val fighterPullbackModule = basicShipAI.getPrivateField("fighterPullbackModule") as? FighterPullbackModule
     private val attackModule: AttackAIModule = basicShipAI.attackAI
     private val avoidMissiles = basicShipAI::class.java.getDeclaredMethod("avoidMissiles").also { it.setAccessible(true) }

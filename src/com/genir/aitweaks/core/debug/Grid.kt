@@ -1,9 +1,9 @@
 package com.genir.aitweaks.core.debug
 
-import com.fs.graphics.Sprite
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatUIAPI
 import com.genir.aitweaks.core.state.Config.Companion.config
+import com.genir.graphics.Sprite
 import java.lang.reflect.Field
 
 fun removeGrid() {
