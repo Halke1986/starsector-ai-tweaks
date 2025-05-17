@@ -87,13 +87,10 @@ val ShipAPI.fluxLeft: Float
     get() = fluxTracker.maxFlux - fluxTracker.currFlux
 
 val ShipAPI.customShipAI: CustomShipAI?
-    get() = unwrapAI as? CustomShipAI
+    get() = ai as? CustomShipAI
 
 val ShipAPI.basicShipAI: BasicShipAI?
-    get() = (ai as? BasicShipAI) ?: (unwrapAI as? BasicShipAI)
-
-private val ShipAPI.unwrapAI: ShipAIPlugin?
-    get() = (ai as? Ship.ShipAIWrapper)?.ai
+    get() = ai as? BasicShipAI
 
 val ShipAPI.isUnderManualControl: Boolean
     get() = this == Global.getCombatEngine().playerShip && Global.getCombatEngine().isUIAutopilotOn

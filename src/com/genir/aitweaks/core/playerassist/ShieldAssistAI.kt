@@ -9,7 +9,7 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.command
 import com.genir.aitweaks.core.extensions.isUnderManualControl
-import com.genir.aitweaks.core.shipai.BaseShipAIPlugin
+import com.genir.aitweaks.core.shipai.BaseShipAI
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
@@ -21,7 +21,7 @@ import com.genir.starfarer.combat.ai.ShieldAI
 import com.genir.starfarer.combat.entities.Ship
 import java.lang.reflect.Field
 
-class ShieldAssistAI(private val manager: ShieldAssistManager) : BaseShipAIPlugin() {
+class ShieldAssistAI(private val manager: ShieldAssistManager) : BaseShipAI() {
     private var prevPlayerShip: ShipAPI? = null
     private var shieldControlAI: OmniShieldControlAI? = null
     var forceShieldOff = false

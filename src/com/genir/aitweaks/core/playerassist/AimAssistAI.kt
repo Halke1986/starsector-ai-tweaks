@@ -8,7 +8,7 @@ import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.WeaponGroupType
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.BaseShipAIPlugin
+import com.genir.aitweaks.core.shipai.BaseShipAI
 import com.genir.aitweaks.core.shipai.WeaponGroup
 import com.genir.aitweaks.core.shipai.autofire.*
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
@@ -25,7 +25,7 @@ import com.genir.starfarer.combat.systems.Weapon
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
-class AimAssistAI(private val manager: AimAssistManager) : BaseShipAIPlugin() {
+class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     private var prevPlayerShip: ShipAPI? = null
     private var engineController: BasicEngineController? = null
 

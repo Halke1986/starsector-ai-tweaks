@@ -25,7 +25,7 @@ import java.awt.Color
 import kotlin.math.max
 
 @Suppress("MemberVisibilityCanBePrivate")
-class CustomShipAI(val ship: ShipAPI) : BaseShipAIPlugin() {
+class CustomShipAI(val ship: ShipAPI) : BaseShipAI() {
     // Subsystems.
     val movement: Movement = Movement(this)
     val assignment: Assignment = Assignment(this)
