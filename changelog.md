@@ -1,4 +1,5 @@
 - Custom AI: A group of ships assigned to the same Rally Task Force objective will form a line abreast, provided the objective is placed near the centerline of the map.
+- Custom AI: Fixed a bug where a ship captain's personality in the campaign layer could be changed to aggressive after a battle. Reported by Lelboihi.
 - Autofire AI: Fixed a bug where PD weapons sometimes did not fire at missiles and strikecraft when there was a hulk behind the target.
 
 Version v2.1.1

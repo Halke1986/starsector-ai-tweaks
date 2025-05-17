@@ -34,43 +34,45 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     init {
         // Ensure AI Tweaks is in control of autofire management.
         AutofireManager.inject(ship, attackModule)
-
-        // Lock the personality to aggressive, ensuring AI elements
-        // delegated to vanilla do not behave reckless.
-        when {
-            ship.AIPersonality == "aggressive" -> Unit
-
-            ship.captain != null -> ship.captain.setPersonality("aggressive")
-
-            else -> (ship as Ship).setFallbackPersonalityId("aggressive")
-        }
     }
 
     /** Advance AI subsystems carried over from the vanilla BasicShipAI. To work
      * correctly, the subsystems should be called in same order as in BasicShipAI. */
     fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Direction) {
-        val target = attackTarget as? Ship
+        // Lock the personality to aggressive, ensuring AI elements
+        // delegated to vanilla do not behave reckless.
+        val personalityOverride = ShipPersonalityOverride()
+        personalityOverride.set("aggressive")
 
-        flags.advance(dt)
-        threatEvaluator.threatEvaluator_advance(dt)
-        avoidMissiles.invoke(basicShipAI)
-        fighterPullbackModule?.fighterPullbackModule_advance(dt, target)
+        run {
+            val target = attackTarget as? Ship
 
-        // Vanilla ship systems read maneuvers planned by ship AI through the flockingAI.
-        flockingAI.flockingAI_setDesiredHeading(if (expectedVelocity.isZero) Float.MAX_VALUE else expectedVelocity.facing.degrees)
-        flockingAI.flockingAI_setDesiredSpeed(expectedVelocity.length)
-        flockingAI.flockingAI_setDesiredFacing(expectedFacing.degrees)
+            flags.advance(dt)
+            threatEvaluator.threatEvaluator_advance(dt)
+            avoidMissiles.invoke(basicShipAI)
+            fighterPullbackModule?.fighterPullbackModule_advance(dt, target)
 
-        flockingAI.flockingAI_advanceCollisionAnalysisModule(dt)
+            // Vanilla ship systems read maneuvers planned by ship AI through the flockingAI.
+            flockingAI.flockingAI_setDesiredHeading(if (expectedVelocity.isZero) Float.MAX_VALUE else expectedVelocity.facing.degrees)
+            flockingAI.flockingAI_setDesiredSpeed(expectedVelocity.length)
+            flockingAI.flockingAI_setDesiredFacing(expectedFacing.degrees)
 
-        val missileDangerDir: Vector2f? = flockingAI.flockingAI_getMissileDangerDir()
-        val collisionDangerDir: Vector2f? = null // TODO maybe implement?
+            flockingAI.flockingAI_advanceCollisionAnalysisModule(dt)
 
-        attackModule.attackAIModule_advance(dt, threatEvaluator, missileDangerDir)
-        ship.shipTarget = attackTarget // Vanilla AttackModule changes ship target. Switch it back to the proper one.
+            val missileDangerDir: Vector2f? = flockingAI.flockingAI_getMissileDangerDir()
+            val collisionDangerDir: Vector2f? = null // TODO maybe implement?
 
-        shieldAI?.shieldAI_advance(dt, threatEvaluator, missileDangerDir, collisionDangerDir, target)
-        systemAI?.systemAI_advance(dt, missileDangerDir, collisionDangerDir, target)
+            attackModule.attackAIModule_advance(dt, threatEvaluator, missileDangerDir)
+            ship.shipTarget = attackTarget // Vanilla AttackModule changes ship target. Switch it back to the proper one.
+
+            shieldAI?.shieldAI_advance(dt, threatEvaluator, missileDangerDir, collisionDangerDir, target)
+            systemAI?.systemAI_advance(dt, missileDangerDir, collisionDangerDir, target)
+        }
+
+        // Revert to the original captain personality.
+        // If this is omitted, the personality change will
+        // persist in the campaign layer after the battle.
+        personalityOverride.cleanup()
     }
 
     /** Advance the entire BasicShipAI, effectively giving control over the ship to vanilla AI. */
@@ -83,5 +85,35 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
         ship.ai = basicShipAI
         basicShipAI.advance(dt)
         ship.ai = thisCustomAI
+    }
+
+    private inner class ShipPersonalityOverride {
+        private var personalityCache: String? = null
+
+        fun set(personality: String) {
+            when {
+                // Ship personality is already as expected.
+                ship.AIPersonality == personality -> {
+                    return
+                }
+
+                ship.captain != null -> {
+                    personalityCache = ship.captain.personalityAPI?.id
+                    ship.captain.setPersonality(personality)
+                }
+
+                else -> {
+                    (ship as Ship).setFallbackPersonalityId("aggressive")
+                }
+            }
+        }
+
+        fun cleanup() {
+            if (personalityCache != null && ship.captain != null) {
+                ship.captain.setPersonality(personalityCache)
+            }
+
+            personalityCache = null
+        }
     }
 }
