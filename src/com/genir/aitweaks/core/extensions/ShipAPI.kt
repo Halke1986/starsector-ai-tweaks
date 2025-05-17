@@ -34,9 +34,6 @@ val ShipAPI.taskManager: CombatTaskManagerAPI
 val ShipAPI.assignment: CombatFleetManagerAPI.AssignmentInfo?
     get() = taskManager.getAssignmentFor(this)
 
-val ShipAPI.assignmentTarget: AssignmentTargetAPI?
-    get() = assignment?.target
-
 val ShipAPI.deployedFleetMember: DeployedFleetMemberAPI?
     get() = Global.getCombatEngine().getFleetManager(owner).getDeployedFleetMember(this)
 
