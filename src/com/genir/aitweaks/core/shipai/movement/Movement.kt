@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.Assignment
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.coordinators.AttackCoordinator
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
@@ -68,7 +69,7 @@ class Movement(val ai: CustomShipAI) {
                     }
 
                     // When forming line abreast, face the enemy side of the map.
-                    kinematics.ship.assignment!!.target.isNearMapCenterline -> {
+                    ai.assignment.type == Assignment.Type.NAVIGATE_IN_FORMATION -> {
                         Vector2f(
                             navigateTo.x,
                             kinematics.location.y + if (kinematics.ship.owner == 0) 1e3f else -1e3f

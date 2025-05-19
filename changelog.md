@@ -1,3 +1,5 @@
+- Fixed a NullPointerException in Custom AI navigation logic. Reported by WariousGaming and eneaver. 
+
 Version v2.1.2
 
 - Custom AI: A group of ships assigned to the same Rally Task Force objective will form a line abreast, provided the objective is placed near the centerline of the map.
