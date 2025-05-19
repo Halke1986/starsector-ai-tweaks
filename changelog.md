@@ -1,3 +1,5 @@
+Version v2.1.3
+
 - Fixed a NullPointerException in Custom AI navigation logic. Reported by WariousGaming and eneaver. 
 
 Version v2.1.2
