@@ -5,9 +5,12 @@ import com.fs.starfarer.api.campaign.CampaignPlugin.PickPriority.MOD_GENERAL
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
+import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 
 class AutofireAIPicker : com.genir.aitweaks.launcher.AutofireAIPicker {
-    override fun pickWeaponAutofireAI(weapon: WeaponAPI): PluginPick<AutofireAIPlugin>? {
+    override fun pickWeaponAutofireAI(weaponAPI: WeaponAPI): PluginPick<AutofireAIPlugin>? {
+        val weapon = weaponAPI.handle
+
         return when {
             // Vanilla Eval AI creates fake weapons internally.
             // They can be recognized by null specs. Perhaps

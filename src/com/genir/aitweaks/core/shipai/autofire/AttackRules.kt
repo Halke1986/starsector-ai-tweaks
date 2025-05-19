@@ -2,10 +2,10 @@ package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.PD_ALSO
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.LARGE
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.*
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.state.Config.Companion.config
@@ -29,7 +29,7 @@ enum class HoldFire {
     SAVE_FLUX
 }
 
-class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private val params: BallisticParams) {
+class AttackRules(private val weapon: WeaponHandle, private val hit: Hit, private val params: BallisticParams) {
     val shouldHoldFire = avoidPhased() ?: conservePDAmmo() ?: avoidWrongDamageType()
 
     private fun avoidPhased(): HoldFire? = when {
@@ -110,7 +110,7 @@ class AttackRules(private val weapon: WeaponAPI, private val hit: Hit, private v
 /** Avoiding friendly fire works under the assumption that the provided
  * actual hit is the first non-fighter, non-phased ship or phased friendly
  * ship along the line of fire. */
-fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire? {
+fun avoidFriendlyFire(weapon: WeaponHandle, expected: Hit, actual: Hit?): HoldFire? {
     return when {
         // There are no obstacles in the line of fire.
         actual == null -> {
@@ -171,7 +171,7 @@ fun avoidFriendlyFire(weapon: WeaponAPI, expected: Hit, actual: Hit?): HoldFire?
 }
 
 /** Allow friendly fire with in some cases of PD defense. */
-fun allowPDFriendlyFire(weapon: WeaponAPI, expected: Hit): Boolean = when {
+fun allowPDFriendlyFire(weapon: WeaponHandle, expected: Hit): Boolean = when {
     // Determine if weapon is performing PD defense.
     !weapon.isPD -> false
     !expected.target.isPDTarget -> false

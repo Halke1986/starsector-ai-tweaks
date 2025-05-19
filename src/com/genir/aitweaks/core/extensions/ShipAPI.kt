@@ -5,6 +5,8 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.PHASE
 import com.fs.starfarer.api.combat.ShipwideAIFlags.AIFlags
 import com.fs.starfarer.api.impl.campaign.ids.HullMods
+import com.genir.aitweaks.core.handles.WeaponHandle
+import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
@@ -95,8 +97,8 @@ val ShipAPI.basicShipAI: BasicShipAI?
 val ShipAPI.isUnderManualControl: Boolean
     get() = this == Global.getCombatEngine().playerShip && Global.getCombatEngine().isUIAutopilotOn
 
-val ShipAPI.allGroupedWeapons: List<WeaponAPI>
-    get() = weaponGroupsCopy.flatMap { it.weaponsCopy }
+val ShipAPI.allGroupedWeapons: List<WeaponHandle>
+    get() = weaponGroupsCopy.flatMap { it.weaponsCopy.map { weaponAPI -> weaponAPI.handle } }
 
 fun ShipAPI.shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Direction): Direction {
     val targetFacing = (target - location).facing

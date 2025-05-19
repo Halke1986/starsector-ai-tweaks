@@ -1,8 +1,9 @@
 package com.genir.aitweaks.core.shipai.autofire
 
-import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.core.handles.WeaponHandle
 
-class ReloadTracker(private val weapon: WeaponAPI) {
+
+class ReloadTracker(private val weapon: WeaponHandle) {
     private var isInAmmoRegen = false
     var isInLongReload = false
 

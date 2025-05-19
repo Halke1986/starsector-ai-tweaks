@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.SimulateMissile
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
@@ -77,7 +78,7 @@ var trail: Sequence<SimulateMissile.Frame>? = null
 
 fun debugMissilePath(dt: Float) {
     val ship = Global.getCombatEngine().playerShip ?: return
-    val weapon = ship.allWeapons.firstOrNull() ?: return
+    val weapon = ship.allWeapons.firstOrNull()?.handle ?: return
 
     if (trail != null) {
         var prev = trail!!.firstOrNull()!!.location
@@ -91,7 +92,6 @@ fun debugMissilePath(dt: Float) {
 
     trail = SimulateMissile.missilePath(weapon)
 }
-
 
 fun removeAsteroids() {
     val engine = Global.getCombatEngine()

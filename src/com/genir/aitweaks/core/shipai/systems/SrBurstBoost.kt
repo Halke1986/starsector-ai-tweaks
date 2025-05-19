@@ -4,8 +4,8 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ShipSystemAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.solve
@@ -19,7 +19,7 @@ import org.lwjgl.util.vector.Vector2f
 
 class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
     private var burstVectors: List<BurstVector> = listOf()
-    private var hardpoints: List<WeaponAPI> = listOf()
+    private var hardpoints: List<WeaponHandle> = listOf()
 
     private var burstPlan: BurstPlan? = null
     private var useSystem: Boolean = false

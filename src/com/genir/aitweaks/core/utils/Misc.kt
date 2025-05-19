@@ -4,10 +4,10 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.Hit
@@ -93,7 +93,7 @@ fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Directio
     return (to - pivot).facing - (from - pivot).facing
 }
 
-fun firstShipAlongLineOfFire(weapon: WeaponAPI, target: CombatEntityAPI, params: BallisticParams): Hit? {
+fun firstShipAlongLineOfFire(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit? {
     val obstacles = Grid.ships(weapon.location, weapon.totalRange).filter { ship ->
         when {
             ship.isFighter -> false

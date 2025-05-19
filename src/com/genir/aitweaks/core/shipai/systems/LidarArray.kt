@@ -2,12 +2,12 @@ package com.genir.aitweaks.core.shipai.systems
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.BALLISTIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType.ENERGY
 import com.fs.starfarer.api.impl.combat.LidarArrayStats
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Flags
 import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
@@ -20,7 +20,7 @@ import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 
 class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     private val updateInterval: IntervalUtil = defaultAIInterval()
-    private var lidarWeapons: List<WeaponAPI> = listOf()
+    private var lidarWeapons: List<WeaponHandle> = listOf()
     private var zeroFluxBoostMode: Boolean = false
 
     companion object Preset {
@@ -98,7 +98,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
         return lidarWeapons.firstOrNull { isWeaponBlocked(it, target) } == null
     }
 
-    private fun isWeaponBlocked(weapon: WeaponAPI, target: ShipAPI): Boolean {
+    private fun isWeaponBlocked(weapon: WeaponHandle, target: ShipAPI): Boolean {
         val hit = firstShipAlongLineOfFire(weapon, target, defaultBallisticParams)?.target
         return when {
             hit == null -> false
@@ -136,10 +136,10 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
         return result
     }
 
-    private fun getLidarWeapons(): List<WeaponAPI> {
+    private fun getLidarWeapons(): List<WeaponHandle> {
         return ai.stats.significantWeapons.filter { it.isLidarWeapon }
     }
 
-    private val WeaponAPI.isLidarWeapon: Boolean
+    private val WeaponHandle.isLidarWeapon: Boolean
         get() = slot.isHardpoint && !isBeam && (type == ENERGY || type == BALLISTIC)
 }

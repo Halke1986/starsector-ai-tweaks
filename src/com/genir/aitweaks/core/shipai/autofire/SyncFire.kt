@@ -2,14 +2,14 @@ package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.state.Config.Companion.config
 import kotlin.math.min
 import kotlin.math.round
 
 /** SyncFire is used to synchronise weapons that are to fire in staggered mode. */
-class SyncFire(private val weapon: WeaponAPI, var state: State?) {
+class SyncFire(private val weapon: WeaponHandle, var state: State?) {
     data class State(var weapons: Int, var lastAttack: Float)
 
     private var idleFrames: Int = 0
@@ -35,7 +35,7 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
         }
 
         // Re-synchronized after a period of modified rate of fire.
-        val rof = weapon.RoFMultiplier
+        val rof = weapon.rofMultiplier
         if (rof < prevROF) {
             isInSync = false
         }
@@ -132,7 +132,7 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
 
     /** Weapon is considered 'out of order' if it's unable
      * to follow fire command while in idle state. */
-    private val WeaponAPI.isOutOfOrder: Boolean
+    private val WeaponHandle.isOutOfOrder: Boolean
         get() {
             return when {
                 isDisabled -> true
@@ -162,7 +162,7 @@ class SyncFire(private val weapon: WeaponAPI, var state: State?) {
             }
 
             // Find weapons to sync.
-            val weapons: Sequence<WeaponAPI> = ship.allGroupedWeapons.asSequence()
+            val weapons: Sequence<WeaponHandle> = ship.allGroupedWeapons.asSequence()
             val syncWeapons: Sequence<AutofireAI> = weapons.filter {
                 when {
                     it.isBeam -> false

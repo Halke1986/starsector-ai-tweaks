@@ -1,11 +1,10 @@
 package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.isValidTarget
 import com.genir.aitweaks.core.extensions.length
 import com.genir.aitweaks.core.extensions.minus
-import com.genir.aitweaks.core.extensions.totalRange
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.HULL
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
@@ -13,7 +12,7 @@ import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 /** Specialized AutofireAI implementation for weapons that are most
  * effective when very trigger-happy. The AI will fire even if it
  * anticipates a miss or is out of range. */
-class RecklessAutofireAI(weapon: WeaponAPI) : AutofireAI(weapon) {
+class RecklessAutofireAI(weapon: WeaponHandle) : AutofireAI(weapon) {
     override fun calculateShouldFire(): HoldFire? {
         val target: CombatEntityAPI = target ?: return HoldFire.NO_TARGET
         if (!target.isValidTarget) return HoldFire.NO_TARGET
