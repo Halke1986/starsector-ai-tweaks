@@ -16,7 +16,13 @@ import com.genir.starfarer.combat.entities.ship.weapons.BeamWeapon
 import com.genir.starfarer.combat.systems.Weapon
 import kotlin.math.floor
 
-class WeaponHandle(weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
+/**
+ * WeaponHandle provides access to:
+ * - WeaponAPI methods, with some overridden to include AI Tweaks–specific behavior
+ * - additional methods extending the WeaponAPI interface
+ * - unobfuscated methods from the underlying Weapon engine object
+ */
+class WeaponHandle(private val weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
     val isAntiFighter: Boolean
         get() = hasAITag(Tag.ANTI_FIGHTER) || hasAIHint(WeaponAPI.AIHints.ANTI_FTR)
 
@@ -87,22 +93,22 @@ class WeaponHandle(weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
 
     /** Is angle in weapon arc in SHIP COORDINATES. */
     fun isAngleInArc(angle: Direction): Boolean {
-        return Arc.contains(angle, tolerance = 0.01f)
+        return arc.contains(angle, tolerance = 0.01f)
     }
 
     val isFrontFacing: Boolean
         get() = isAngleInArc(0f.direction)
 
-    val Arc: Arc
+    val arc: Arc
         get() {
             val isMissileHardpoint = type == WeaponAPI.WeaponType.MISSILE && slot.isHardpoint
-            val angle = if (isMissileHardpoint) 0f else arc
+            val angle = if (isMissileHardpoint) 0f else weaponAPI.arc
             return Arc(angle, arcFacing.direction)
         }
 
     /** weapon arc in absolute coordinates, instead of ship coordinates */
     val absoluteArc: Arc
-        get() = Arc.rotated(ship.facing)
+        get() = arc.rotated(ship.facing)
 
     val noFadeRange: Float
         get() = range + barrelOffset
@@ -136,8 +142,8 @@ class WeaponHandle(weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
     /** Replacement for vanilla isInBurst. As opposed to isInBurst,
      * IsInBurst returns true for active burst beams.
      * BURST */
-    val IsInBurst: Boolean
-        get() = when {
+    override fun isInBurst(): Boolean {
+        return when {
             !isBurstWeapon -> {
                 false
             }
@@ -155,12 +161,13 @@ class WeaponHandle(weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
                 chargeLevel == 1f
             }
         }
+    }
 
     /** Weapon is assumed to be in a firing sequence if it will
      * emit projectile or beam even after trigger is let go.
      * WARMUP + BURST */
     val isInFiringSequence: Boolean
-        get() = isInWarmup || IsInBurst
+        get() = isInWarmup || isInBurst
 
     /** Similar to WeaponAPI.isFiring, except returns true for the entire firing cycle.
      * WeaponAPI.isFiring returns false between individual burst attacks.

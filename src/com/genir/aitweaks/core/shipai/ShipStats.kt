@@ -3,7 +3,10 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.extensions.allGroupedWeapons
+import com.genir.aitweaks.core.extensions.rangeFromShipCenter
+import com.genir.aitweaks.core.extensions.sumOf
+import com.genir.aitweaks.core.extensions.totalCollisionRadius
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
@@ -82,7 +85,7 @@ class ShipStats(private val ship: ShipAPI) {
     private fun attackAngles(weapons: List<WeaponHandle>): Map<Direction, Float> {
         val angles: List<Direction> = weapons.flatMap { weapon ->
             val facing: Direction = weapon.arcFacing.direction
-            val arc = weapon.arc
+            val arc = weapon.arc.angle
 
             when {
                 // Assume hardpoints have no arc at all.
