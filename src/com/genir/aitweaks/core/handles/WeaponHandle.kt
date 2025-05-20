@@ -229,9 +229,12 @@ class WeaponHandle(val weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
             return baseDamage
         }
 
-    /** The true projectile speed, which may differ from the value returned by vanilla WeaponAPI.projectileSpeed. */
-    val trueProjectileSpeed: Float
-        get() = (spec.projectileSpec as? ProjectileSpecAPI)?.getMoveSpeed(ship.mutableStats, this) ?: projectileSpeed
+    /** The true projectile speed, which may differ from the
+     * value returned by vanilla WeaponAPI.projectileSpeed. */
+    override fun getProjectileSpeed(): Float {
+        val projectileSpec = (spec.projectileSpec as? ProjectileSpecAPI)
+        return projectileSpec?.getMoveSpeed(ship.mutableStats, this) ?: weaponAPI.projectileSpeed
+    }
 
     /** Can the weapon shoot over allied ships. */
     val noFF: Boolean

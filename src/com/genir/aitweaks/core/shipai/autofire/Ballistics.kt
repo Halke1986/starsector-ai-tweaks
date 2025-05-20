@@ -113,7 +113,7 @@ private fun targetCoords(weapon: WeaponHandle, target: BallisticTarget, params: 
     val pAbs = (target.location - weapon.location)
 
     val p = pAbs + vAbs * (params.delay)
-    val v = vAbs / (weapon.trueProjectileSpeed * params.accuracy)
+    val v = vAbs / (weapon.projectileSpeed * params.accuracy)
 
     return Pair(p, v)
 }
@@ -125,7 +125,7 @@ private fun projectileCoords(weapon: WeaponHandle, target: BallisticTarget, para
     val vProj = weapon.currAngle.direction.unitVector
 
     val p = pAbs + vAbs * params.delay + vProj * weapon.barrelOffset
-    val v = vProj + vAbs / (weapon.trueProjectileSpeed * params.accuracy)
+    val v = vProj + vAbs / (weapon.projectileSpeed * params.accuracy)
 
     return Pair(p, v)
 }
