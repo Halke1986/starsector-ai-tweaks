@@ -24,10 +24,10 @@ class Assignment(private val ai: CustomShipAI) {
     var type: Type = NONE
 
     enum class Type {
-        NAVIGATE_TO,
-        TAKE_CONTROL,
-        ELIMINATE,
+        NAVIGATE,
+        NAVIGATE_IN_FORMATION,
         EXPLORE, // non-vanilla assignment
+        ELIMINATE,
         NONE,
     }
 
@@ -38,26 +38,30 @@ class Assignment(private val ai: CustomShipAI) {
         eliminate = null
         type = NONE
 
+        val assignment: CombatFleetManagerAPI.AssignmentInfo? = ship.assignment
+        val target: AssignmentTargetAPI? = assignment?.target
+
         // Handle the assignment, if any.
-        ship.assignment?.let { assignment ->
+        if (assignment != null && target != null) {
             when (assignment.type) {
                 DEFEND,
-                RALLY_TASK_FORCE,
-                RALLY_CARRIER,
-                RALLY_CIVILIAN,
-                RALLY_STRIKE_FORCE,
                 HARASS,
                 LIGHT_ESCORT,
                 MEDIUM_ESCORT,
                 HEAVY_ESCORT,
                 CONTROL,
-                ENGAGE -> navigate(assignment)
+                ENGAGE -> navigate(target, formation = false)
+
+                RALLY_TASK_FORCE,
+                RALLY_CARRIER,
+                RALLY_CIVILIAN,
+                RALLY_STRIKE_FORCE -> navigate(target, formation = true)
 
                 CAPTURE,
-                ASSAULT -> takeControl(assignment)
+                ASSAULT -> takeControl(target)
 
                 INTERCEPT,
-                STRIKE -> eliminate(assignment) // Combat carriers should treat fighter strike assignment as eliminate.
+                STRIKE -> eliminate(target) // Combat carriers should treat fighter strike assignment as eliminate.
 
                 // Ignored and unimplemented assignments.
                 RALLY_FIGHTERS,
@@ -77,33 +81,38 @@ class Assignment(private val ai: CustomShipAI) {
     }
 
     /** Navigate to the assignment location and stay close to it. */
-    private fun navigate(assignment: CombatFleetManagerAPI.AssignmentInfo) {
-        val navigationTarget: AssignmentTargetAPI = assignment.target ?: return
-
+    private fun navigate(target: AssignmentTargetAPI, formation: Boolean) {
         // When the assignment is near the map centerline, the ships should form line abreast.
-        val coordinatedWaypoint = if (navigationTarget.isNearMapCenterline) {
+        type = if (formation && target.isNearMapCenterline) {
+            NAVIGATE_IN_FORMATION
+        } else {
+            NAVIGATE
+        }
+
+        val coordinatedWaypoint = if (type == NAVIGATE_IN_FORMATION) {
             val navigationCoordinator: NavigationCoordinator = state.navigateCoordinator
-            val (waypoint, _) = navigationCoordinator.coordinateNavigation(ai, navigationTarget)
+            val (waypoint, _) = navigationCoordinator.coordinateNavigation(ai, target)
             waypoint
         } else {
-            navigationTarget.location
+            target.location
         }
 
         navigateTo = coordinatedWaypoint
         arrivedAt = (coordinatedWaypoint - ship.location).length < Preset.arrivedAtLocationRadius
-        type = NAVIGATE_TO
     }
 
     /** Take control of battle objective by unconditionally moving on top of it. */
-    private fun takeControl(assignment: CombatFleetManagerAPI.AssignmentInfo) {
-        navigateTo = assignment.target?.location
+    private fun takeControl(target: AssignmentTargetAPI) {
+        navigateTo = target.location
         arrivedAt = false
-        type = TAKE_CONTROL
+        type = NAVIGATE
     }
 
-    private fun eliminate(assignment: CombatFleetManagerAPI.AssignmentInfo) {
-        eliminate = (assignment.target as? DeployedFleetMemberAPI)?.ship
-        type = ELIMINATE
+    private fun eliminate(target: AssignmentTargetAPI) {
+        if (target is DeployedFleetMemberAPI) {
+            eliminate = target.ship
+            type = ELIMINATE
+        }
     }
 
     /** Move in the direction of enemy spawn location. */
