@@ -22,7 +22,7 @@ import kotlin.math.floor
  * - additional methods extending the WeaponAPI interface
  * - unobfuscated methods from the underlying Weapon engine object
  */
-class WeaponHandle(private val weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
+class WeaponHandle(val weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
     val isAntiFighter: Boolean
         get() = hasAITag(Tag.ANTI_FIGHTER) || hasAIHint(WeaponAPI.AIHints.ANTI_FTR)
 

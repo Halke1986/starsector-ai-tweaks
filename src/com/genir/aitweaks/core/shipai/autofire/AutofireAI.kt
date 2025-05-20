@@ -2,10 +2,7 @@ package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.AutofireAIPlugin
-import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.MissileAPI
-import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
@@ -27,7 +24,7 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
 
-open class AutofireAI(private val weapon: WeaponHandle) : AutofireAIPlugin {
+open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
     var syncFire: SyncFire = SyncFire(weapon, null)
     val reloadTracker: ReloadTracker = ReloadTracker(weapon)
@@ -110,8 +107,8 @@ open class AutofireAI(private val weapon: WeaponHandle) : AutofireAIPlugin {
         return aimPoint?.let { it + weapon.location }
     }
 
-    override fun getWeapon(): WeaponHandle {
-        return weapon
+    override fun getWeapon(): WeaponAPI {
+        return weapon.weaponAPI
     }
 
     override fun getTargetShip(): ShipAPI? {
