@@ -362,18 +362,18 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     private fun isHitInRange(hit: Hit): Boolean {
         return when {
             weapon.conserveAmmo -> {
-                hit.range <= weapon.noFadeRange
+                hit.range <= weapon.range
             }
 
             // Do not attack shields from beyond weapon range,
             // as this deals only soft flux damage.
             hit.type == SHIELD -> {
-                hit.range <= weapon.noFadeRange
+                hit.range <= weapon.range
             }
 
             // Start PD fire when missile enters the very fringe of weapon range.
             hit.target.isMissile && weapon.isPD -> {
-                hit.range <= weapon.noFadeRange + weapon.projectileFadeRange * 0.75f
+                hit.range <= weapon.range + weapon.projectileFadeRange * 0.75f
             }
 
             else -> {

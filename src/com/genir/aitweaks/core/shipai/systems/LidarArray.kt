@@ -111,7 +111,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun minLidarWeaponRange(): Float {
-        return applyLidarRangeBonus { lidarWeapons.minOf { it.slot.rangeFromShipCenter(0f.direction, it.noFadeRange) } } * weaponRangeFraction
+        return applyLidarRangeBonus { lidarWeapons.minOf { it.slot.rangeFromShipCenter(0f.direction, it.range) } } * weaponRangeFraction
     }
 
     private fun burstFluxRequired(): Float {

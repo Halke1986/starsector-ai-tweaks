@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core.handles
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileSpawnType.*
@@ -107,15 +108,25 @@ class WeaponHandle(val weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
             return Arc(angle, arcFacing.direction)
         }
 
-    /** weapon arc in absolute coordinates, instead of ship coordinates */
+    /** Weapon arc in absolute coordinates, instead of ship coordinates */
     val absoluteArc: Arc
         get() = arc.rotated(ship.facing)
 
-    val noFadeRange: Float
-        get() = range + barrelOffset
+    /** Actual weapon range depends on frame duration. */
+    override fun getRange(): Float {
+        val idealRange: Float = weaponAPI.range
+        val idealDt: Float = Global.getCombatEngine().timeMult.modifiedValue / 60
+
+        // Projectile always travels for integer number of frames.
+        val distPerFrame: Float = projectileSpeed * idealDt
+        val frames: Int = (idealRange / distPerFrame).toInt()
+        val projectileRange: Float = distPerFrame * frames
+
+        return projectileSpawnOffset + projectileRange
+    }
 
     val totalRange: Float
-        get() = noFadeRange + projectileFadeRange * 0.33f
+        get() = range + projectileFadeRange * 0.33f
 
     val autofirePlugin: AutofireAIPlugin?
         get() = ship.getWeaponGroupFor(this)?.getAutofirePlugin(this)
@@ -150,7 +161,7 @@ class WeaponHandle(val weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
             }
 
             isBurstBeam -> {
-                val state = (this as BeamWeapon).chargeTracker.beamChargeTracker_getState()
+                val state = (weaponAPI as BeamWeapon).chargeTracker.beamChargeTracker_getState()
                 state.name != "IDLE"
             }
 
@@ -180,7 +191,7 @@ class WeaponHandle(val weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
         get() = !isInFiringCycle
 
     val group: WeaponGroupAPI?
-        get() = this.ship.getWeaponGroupFor(this)
+        get() = this.ship.getWeaponGroupFor(weaponAPI)
 
     val target: CombatEntityAPI?
         get() = autofirePlugin?.let { it.targetShip ?: it.targetMissile } ?: ship.shipTarget
@@ -257,7 +268,7 @@ class WeaponHandle(val weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
      * value returned by vanilla WeaponAPI.projectileSpeed. */
     override fun getProjectileSpeed(): Float {
         val projectileSpec = (spec.projectileSpec as? ProjectileSpecAPI)
-        return projectileSpec?.getMoveSpeed(ship.mutableStats, this) ?: weaponAPI.projectileSpeed
+        return projectileSpec?.getMoveSpeed(ship.mutableStats, weaponAPI) ?: weaponAPI.projectileSpeed
     }
 
     /** Can the weapon shoot over allied ships. */
