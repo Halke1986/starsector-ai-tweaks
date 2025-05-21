@@ -1,6 +1,6 @@
 package com.genir.aitweaks.core.shipai.autofire
 
-import com.fs.starfarer.api.combat.WeaponAPI
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.starfarer.loading.LoadingUtils
 import org.json.JSONArray
 
@@ -18,11 +18,11 @@ enum class Tag {
 private val weaponTags: MutableMap<String, Set<Tag>> = mutableMapOf()
 
 /** Check if the weapon has an AI tag appended to /data/weapons/weaponId.ait file. */
-fun WeaponAPI.hasAITag(tag: Tag): Boolean {
+fun WeaponHandle.hasAITag(tag: Tag): Boolean {
     return tag in AITags
 }
 
-val WeaponAPI.AITags: Set<Tag>
+val WeaponHandle.AITags: Set<Tag>
     get() {
         val id: String = spec?.weaponId ?: return setOf()
         weaponTags[id]?.let { return it }

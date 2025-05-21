@@ -7,6 +7,7 @@ import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.ExtendedShipAI
 import com.genir.aitweaks.core.shipai.Preset
@@ -23,7 +24,7 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
 
-open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
+open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
     var syncFire: SyncFire = SyncFire(weapon, null)
     val reloadTracker: ReloadTracker = ReloadTracker(weapon)
@@ -81,7 +82,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
             return
         }
 
-        Debug.print[weapon] = "${weapon.Id}  $shouldHoldFire"
+        Debug.print[weapon] = "${weapon.id}  $shouldHoldFire"
     }
 
     override fun shouldFire(): Boolean {
@@ -107,7 +108,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     override fun getWeapon(): WeaponAPI {
-        return weapon
+        return weapon.weaponAPI
     }
 
     override fun getTargetShip(): ShipAPI? {
@@ -462,7 +463,7 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
     }
 
     /** Tracks intercept angular velocity and angular distance in weapon slot frame of reference. */
-    private class InterceptTracker(private val weapon: WeaponAPI) {
+    private class InterceptTracker(private val weapon: WeaponHandle) {
         private var prevAngleToIntercept: Direction? = null
         var interceptVelocity = 0f
 
@@ -484,6 +485,6 @@ open class AutofireAI(private val weapon: WeaponAPI) : AutofireAIPlugin {
         }
     }
 
-    private val WeaponAPI.isSlowTurret: Boolean
+    private val WeaponHandle.isSlowTurret: Boolean
         get() = turnRateWhileFiring < ship.baseTurnRate
 }

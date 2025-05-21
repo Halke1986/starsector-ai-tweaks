@@ -1,9 +1,14 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.DamageType
+import com.fs.starfarer.api.combat.MutableStat
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipHullSpecAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
+import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.sqrt
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
@@ -26,7 +31,7 @@ class DamageEstimator(private val ship: ShipAPI) {
         )
     }
 
-    private fun findDangerousWeapons(duration: Float): List<WeaponAPI> {
+    private fun findDangerousWeapons(duration: Float): List<WeaponHandle> {
         val enemies: MutableList<ShipAPI> = mutableListOf()
         val obstacles: MutableList<ShipAPI> = mutableListOf()
 
@@ -51,7 +56,7 @@ class DamageEstimator(private val ship: ShipAPI) {
             }
         }
 
-        return enemies.flatMap { it.allWeapons }.filter { weapon ->
+        return enemies.flatMap { it.allWeapons.map { weaponAPI -> weaponAPI.handle } }.filter { weapon ->
             when {
                 weapon.isDisabled -> false
                 weapon.isPermanentlyDisabled -> false
@@ -70,7 +75,7 @@ class DamageEstimator(private val ship: ShipAPI) {
         }
     }
 
-    private fun canWeaponHitShip(duration: Float, weapon: WeaponAPI, obstacles: List<ShipAPI>): Boolean {
+    private fun canWeaponHitShip(duration: Float, weapon: WeaponHandle, obstacles: List<ShipAPI>): Boolean {
         val toShip = ship.location - weapon.location
         val distSqr = toShip.lengthSquared
         val dist = sqrt(distSqr) - ship.shieldRadiusEvenIfNoShield / 2
@@ -124,7 +129,7 @@ class DamageEstimator(private val ship: ShipAPI) {
         }
     }
 
-    private fun potentialDamage(duration: Float, weapon: WeaponAPI): Float {
+    private fun potentialDamage(duration: Float, weapon: WeaponHandle): Float {
         val adjustedVentTime = duration - weapon.cooldownRemaining
         val rawDamage = max(weapon.derivedStats.dps * adjustedVentTime, weapon.derivedStats.burstDamage)
 
@@ -141,10 +146,10 @@ class DamageEstimator(private val ship: ShipAPI) {
         return rawDamage * damageMultiplier
     }
 
-    private val WeaponAPI.isFinisherMissile: Boolean
+    private val WeaponHandle.isFinisherMissile: Boolean
         get() = isMissile && damageType == DamageType.HIGH_EXPLOSIVE
 
-    private val WeaponAPI.maxProjectileSpeed: Float
+    private val WeaponHandle.maxProjectileSpeed: Float
         get() {
             val missileSpec: MissileSpecAPI = spec.projectileSpec as? MissileSpecAPI ?: return projectileSpeed
             val engineSpec: ShipHullSpecAPI.EngineSpecAPI = missileSpec.hullSpec.engineSpec

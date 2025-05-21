@@ -2,9 +2,13 @@ package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.CombatAsteroidAPI
+import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.MissileAPI
+import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.types.Arc
@@ -13,7 +17,7 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
 class UpdateTarget(
-    private val weapon: WeaponAPI,
+    private val weapon: WeaponHandle,
     private val current: CombatEntityAPI?,
     private val attackTarget: ShipAPI?,
     private val params: BallisticParams,

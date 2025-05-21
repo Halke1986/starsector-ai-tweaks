@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.DamageType.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.willHitShield
 import org.lazywizard.lazylib.combat.AIUtils
@@ -35,7 +36,7 @@ class HighEnergyFocus : ShipSystemAIScript {
     /** High Energy Focus is triggered when weapons with at least half
      * of the total energy weapon DPS (adjusted for damage type) are firing. */
     private fun shouldTriggerHEF(ship: ShipAPI): Boolean {
-        val weapons: List<WeaponAPI> = energyWeapons(ship)
+        val weapons: List<WeaponHandle> = energyWeapons(ship)
 
         // All weapons are in cooldown.
         if (weapons.all { it.cooldownRemaining > 0f }) {
@@ -58,7 +59,7 @@ class HighEnergyFocus : ShipSystemAIScript {
         return true
     }
 
-    private fun energyWeapons(ship: ShipAPI): List<WeaponAPI> {
+    private fun energyWeapons(ship: ShipAPI): List<WeaponHandle> {
         return ship.allGroupedWeapons.filter { weapon ->
             when {
                 weapon.isDisabled -> false
@@ -68,7 +69,7 @@ class HighEnergyFocus : ShipSystemAIScript {
         }
     }
 
-    private fun largestWeaponSize(weapons: List<WeaponAPI>): WeaponAPI.WeaponSize {
+    private fun largestWeaponSize(weapons: List<WeaponHandle>): WeaponAPI.WeaponSize {
         val sizes = weapons.map { it.size }
         return when {
             sizes.contains(LARGE) -> LARGE
@@ -77,7 +78,7 @@ class HighEnergyFocus : ShipSystemAIScript {
         }
     }
 
-    private fun dpsMultiplier(weapon: WeaponAPI): Float {
+    private fun dpsMultiplier(weapon: WeaponHandle): Float {
         val target: ShipAPI = (weapon.target as? ShipAPI) ?: return 0f
         val params = defaultBallisticParams
 

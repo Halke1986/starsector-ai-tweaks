@@ -4,9 +4,9 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.MutableStat
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.EngineSpecAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.getShortestRotation
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
@@ -22,7 +22,7 @@ class SimulateMissile {
 
         /** Iteratively calculate the intercept point for dumb-fire missile weapon.
          * Note: the operation is computationally expensive. */
-        fun missileIntercept(weapon: WeaponAPI, target: BallisticTarget): Vector2f {
+        fun missileIntercept(weapon: WeaponHandle, target: BallisticTarget): Vector2f {
             // Missile path is always computed using global time rate;
             // make sure not to use ship-specific time rate.
             val dt: Float = Global.getCombatEngine().elapsedInLastFrame
@@ -38,14 +38,14 @@ class SimulateMissile {
             return facing.unitVector * (target.location - weapon.location).length
         }
 
-        fun missilePath(weapon: WeaponAPI): Sequence<Frame> {
+        fun missilePath(weapon: WeaponHandle): Sequence<Frame> {
             val dt: Float = Global.getCombatEngine().elapsedInLastFrame
             return missilePath(dt, weapon, weapon.currAngle.direction.unitVector, MissileStats(weapon))
         }
 
         /** Calculate the angular distance between missile path and
          * target location at the point where the two are the closest. */
-        private fun angularDistanceToPath(dt: Float, weapon: WeaponAPI, target: BallisticTarget, path: Sequence<Frame>): Direction {
+        private fun angularDistanceToPath(dt: Float, weapon: WeaponHandle, target: BallisticTarget, path: Sequence<Frame>): Direction {
             val p0: Vector2f = target.location
             val v: Vector2f = target.velocity * dt
 
@@ -67,7 +67,7 @@ class SimulateMissile {
 
         /** Predict the entire path of a missile, given weapon facing,
          * starting from the weapon barrel location. */
-        private fun missilePath(dt: Float, weapon: WeaponAPI, facingVector: Vector2f, missileStats: MissileStats): Sequence<Frame> {
+        private fun missilePath(dt: Float, weapon: WeaponHandle, facingVector: Vector2f, missileStats: MissileStats): Sequence<Frame> {
             val p0: Vector2f = weapon.location + weapon.barrelOffset(facingVector)
             val vMax: Float = missileStats.maxSpeed * dt
             val v0: Vector2f = (weapon.ship.velocity + facingVector * missileStats.launchSpeed) * dt
@@ -86,7 +86,7 @@ class SimulateMissile {
 
         /** Calculate the barrel offset for the weapon, given weapon facing.
          * For multi-barreled weapons, average offset is returned. */
-        private fun WeaponAPI.barrelOffset(facingVector: Vector2f): Vector2f {
+        private fun WeaponHandle.barrelOffset(facingVector: Vector2f): Vector2f {
             val offsets: List<Vector2f> = when {
                 slot.isHardpoint -> spec.hardpointFireOffsets
                 slot.isTurret -> spec.turretFireOffsets
@@ -100,7 +100,7 @@ class SimulateMissile {
         }
 
         /** Missile stats after applying ship bonuses. */
-        private class MissileStats(weapon: WeaponAPI) {
+        private class MissileStats(weapon: WeaponHandle) {
             val maxSpeed: Float
             val acceleration: Float
             val deceleration: Float

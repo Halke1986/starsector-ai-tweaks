@@ -8,6 +8,8 @@ import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.WeaponGroupType
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
+import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.BaseShipAI
 import com.genir.aitweaks.core.shipai.WeaponGroup
 import com.genir.aitweaks.core.shipai.autofire.*
@@ -30,7 +32,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     private var engineController: BasicEngineController? = null
 
     private var currentTarget: CombatEntityAPI? = null
-    private var currentAlternatingWeapon: WeaponAPI? = null
+    private var currentAlternatingWeapon: WeaponHandle? = null
 
     override fun advance(dt: Float) {
         val ship = Global.getCombatEngine().playerShip
@@ -132,11 +134,11 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
 
         // Select weapons to aim.
         val selectedGroup = ship.selectedGroupAPI
-        val activeWeapon = selectedGroup?.activeWeapon
-        val weapons: List<WeaponAPI> = when {
+        val activeWeapon = selectedGroup?.activeWeapon?.handle
+        val weapons: List<WeaponHandle> = when {
             holdCurrent -> listOf(currentAlternatingWeapon!!)
             selectedGroup == null -> listOf()
-            selectedGroup.type == WeaponGroupType.LINKED -> selectedGroup.weaponsCopy.filter { it.shouldAim }
+            selectedGroup.type == WeaponGroupType.LINKED -> selectedGroup.weapons.filter { it.shouldAim }
             selectedGroup.type == WeaponGroupType.ALTERNATING && activeWeapon?.shouldAim == true -> {
                 currentAlternatingWeapon = activeWeapon
                 listOf(activeWeapon)
@@ -161,8 +163,8 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
 
     private fun aimWeapons(ship: ShipAPI, target: CombatEntityAPI) {
         val ballisticTarget = BallisticTarget(targetLocation(target), target.velocity, target.collisionRadius)
-        val selectedWeapons: Set<WeaponAPI> = ship.selectedWeapons
-        val aimableWeapons: Set<WeaponAPI> = ship.nonAutofireWeapons + selectedWeapons
+        val selectedWeapons: Set<WeaponHandle> = ship.selectedWeapons
+        val aimableWeapons: Set<WeaponHandle> = ship.nonAutofireWeapons + selectedWeapons
         val params = defaultBallisticParams
 
         aimableWeapons.forEach { weapon ->
@@ -180,15 +182,15 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         }
     }
 
-    private fun aimWeapon(weapon: WeaponAPI, ballisticTarget: BallisticTarget, params: BallisticParams) {
+    private fun aimWeapon(weapon: WeaponHandle, ballisticTarget: BallisticTarget, params: BallisticParams) {
         val intercept: Vector2f = intercept(weapon, ballisticTarget, params)
 
         // Override vanilla-computed weapon facing.
-        val aimTracker: AimTracker = (weapon as Weapon).aimTracker
+        val aimTracker: AimTracker = weapon.aimTracker
         aimTracker.aimTracker_setTargetOverride(intercept + weapon.location)
     }
 
-    private fun fireWeapon(weapon: WeaponAPI, ballisticTarget: BallisticTarget, params: BallisticParams) {
+    private fun fireWeapon(weapon: WeaponHandle, ballisticTarget: BallisticTarget, params: BallisticParams) {
         val group: WeaponGroupAPI = weapon.group ?: return
 
         val shouldFire: Boolean = when {
@@ -293,12 +295,12 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         }
     }
 
-    private val WeaponAPI.shouldAim: Boolean
+    private val WeaponHandle.shouldAim: Boolean
         get() = type != WeaponAPI.WeaponType.MISSILE || isUnguidedMissile
 
-    private val ShipAPI.nonAutofireWeapons: Set<WeaponAPI>
-        get() = weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weaponsCopy }.filter { it.shouldAim }.toSet()
+    private val ShipAPI.nonAutofireWeapons: Set<WeaponHandle>
+        get() = weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weapons }.filter { it.shouldAim }.toSet()
 
-    private val ShipAPI.selectedWeapons: Set<WeaponAPI>
-        get() = selectedGroupAPI?.weaponsCopy?.filter { it.shouldAim }?.toSet() ?: setOf()
+    private val ShipAPI.selectedWeapons: Set<WeaponHandle>
+        get() = selectedGroupAPI?.weapons?.filter { it.shouldAim }?.toSet() ?: setOf()
 }

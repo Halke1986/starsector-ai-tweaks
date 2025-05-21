@@ -2,7 +2,11 @@ package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.extensions.lengthSquared
+import com.genir.aitweaks.core.extensions.minus
+import com.genir.aitweaks.core.extensions.plus
+import com.genir.aitweaks.core.extensions.times
+import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.state.State.Companion.stateSafe
 import com.genir.aitweaks.core.utils.types.Arc
@@ -101,7 +105,7 @@ object Debug {
         if (debugPlugin?.renderer == null) return
 
         val ais = ship.weaponGroupsCopy.flatMap { it.aiPlugins }.filter { it is AutofireAI && it.target != null }
-        ais.forEach { drawLine(it.weapon.location, it.target!!, if (it.weapon.isPD) Color.YELLOW else Color.RED) }
+        ais.forEach { drawLine(it.weapon.location, it.target!!, if (it.weapon.handle.isPD) Color.YELLOW else Color.RED) }
     }
 
     private data class Edge(val src: Int, val dest: Int, val weight: Float)

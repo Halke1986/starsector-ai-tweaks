@@ -3,13 +3,17 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
-import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.extensions.allGroupedWeapons
+import com.genir.aitweaks.core.extensions.rangeFromShipCenter
+import com.genir.aitweaks.core.extensions.sumOf
+import com.genir.aitweaks.core.extensions.totalCollisionRadius
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import kotlin.math.max
 
 class ShipStats(private val ship: ShipAPI) {
-    val significantWeapons: List<WeaponAPI> = findSignificantWeapons()
+    val significantWeapons: List<WeaponHandle> = findSignificantWeapons()
     val threatSearchRange: Float = calculateThreatSearchRange()
     val totalCollisionRadius: Float = ship.totalCollisionRadius
     val weaponGroups: List<WeaponGroup> = findWeaponGroups()
@@ -22,7 +26,7 @@ class ShipStats(private val ship: ShipAPI) {
     }
 
     /** Weapons that can be used by the ship to conduct attacks, as opposed to PD, decoratives, etc. */
-    private fun findSignificantWeapons(): List<WeaponAPI> {
+    private fun findSignificantWeapons(): List<WeaponHandle> {
         val weapons = ship.allGroupedWeapons.filter { weapon ->
             when {
                 weapon.type == WeaponAPI.WeaponType.MISSILE -> false
@@ -78,10 +82,10 @@ class ShipStats(private val ship: ShipAPI) {
     /** Find firing arc angles closest to ship front for each weapon,
      * or 0f for front facing weapons. Associate the angles with total
      * DPS for the provided weapon list.*/
-    private fun attackAngles(weapons: List<WeaponAPI>): Map<Direction, Float> {
+    private fun attackAngles(weapons: List<WeaponHandle>): Map<Direction, Float> {
         val angles: List<Direction> = weapons.flatMap { weapon ->
             val facing: Direction = weapon.arcFacing.direction
-            val arc = weapon.arc
+            val arc = weapon.arc.angle
 
             when {
                 // Assume hardpoints have no arc at all.
@@ -111,7 +115,7 @@ class ShipStats(private val ship: ShipAPI) {
      * disabled weapons) because many can fire partial shots mid-reload and
      * thus influence the calculated attack range.
      */
-    private val WeaponAPI.estimatedDPS: Float
+    private val WeaponHandle.estimatedDPS: Float
         get() = when {
             isInLongReload -> 0f
 

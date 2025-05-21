@@ -2,8 +2,8 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.*
 import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.angularSize
@@ -14,10 +14,10 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 
 /** A group of weapons that should be able to fire along a single attack vector. */
-class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
+class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
     val defaultFacing: Direction = defaultAttackFacing()
     val dps: Float = weapons.sumOf { it.effectiveDPS }
-    private val rangeMap: Map<WeaponAPI, Float> = weaponRanges()
+    private val rangeMap: Map<WeaponHandle, Float> = weaponRanges()
     val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)
     val minRange: Float = weapons.minOfOrNull { it.rangeInGroup } ?: 0f
     val maxRange: Float = weapons.maxOfOrNull { it.rangeInGroup } ?: 0f
@@ -38,7 +38,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
 
     private data class DPSArc(val arc: Arc, val dps: Float)
 
-    private fun weaponRanges(): Map<WeaponAPI, Float> {
+    private fun weaponRanges(): Map<WeaponHandle, Float> {
         return weapons.associateWith { weapon ->
             val rangeMod = if (weapon.hasAITag(Tag.APPROACH_CLOSER)) 0.8f else 1f
             weapon.slot.rangeFromShipCenter(defaultFacing, weapon.noFadeRange) * rangeMod
@@ -61,7 +61,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         return 0f
     }
 
-    private val WeaponAPI.rangeInGroup: Float
+    private val WeaponHandle.rangeInGroup: Float
         get() = rangeMap[this]!!
 
     private fun defaultAttackFacing(): Direction {
@@ -144,7 +144,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
         val targetSize: Float = angularSize(range * range, targetRadius).coerceAtLeast(1f)
 
         val dpsArcs: List<DPSArc> = weapons.map { weapon ->
-            val weaponArc = weapon.Arc.extendedBy(targetSize)
+            val weaponArc = weapon.arc.extendedBy(targetSize)
             val shipArc = weaponArcInShipFrameOfReference(weapon.slot.location, weaponArc, range)
             DPSArc(shipArc, effectivePeakDPS(weapon))
         }
@@ -206,7 +206,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponAPI>) {
      * sustained DPS. This is because it's easier and more beneficial to land
      * high-damage shots even for short durations. Also, prioritize aiming beam
      * weapons, as they don’t require leading, making their targeting more stable. */
-    private fun effectivePeakDPS(weapon: WeaponAPI): Float {
+    private fun effectivePeakDPS(weapon: WeaponHandle): Float {
         return weapon.peakDPS * if (weapon.isBeam) 2f else 1f
     }
 }

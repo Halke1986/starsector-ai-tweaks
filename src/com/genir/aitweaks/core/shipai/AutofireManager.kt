@@ -3,8 +3,7 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.core.extensions.isMissile
-import com.genir.aitweaks.core.extensions.isPD
+import com.genir.aitweaks.core.extensions.weapons
 import com.genir.aitweaks.core.shipai.autofire.SyncFire
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.starfarer.combat.ai.ThreatEvaluator
@@ -33,7 +32,7 @@ class AutofireManager(val ship: ShipAPI) : com.genir.starfarer.combat.ai.attack.
 
     private fun ensureAutofire(): Int {
         return ship.weaponGroupsCopy.count { group ->
-            val weapons = group.weaponsCopy
+            val weapons = group.weapons
 
             val shouldAutofire = when {
                 weapons.any { it.isPD } -> true
