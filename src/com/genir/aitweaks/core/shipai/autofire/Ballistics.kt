@@ -36,8 +36,10 @@ fun closestHitRange(weapon: WeaponHandle, target: BallisticTarget, params: Balli
     val pv = targetCoords(weapon, target, params)
     if (targetAboveWeapon(pv.first, weapon, target)) return 0f
 
-    val rangeFromBarrel = solve(pv, weapon.barrelOffset, 1f, target.radius, cos180)?.smallerNonNegative
-    return weapon.barrelOffset + (rangeFromBarrel ?: approachesInfinity)
+    val projectileOffset = weapon.projectileSpawnOffset
+    val rangeFromBarrel = solve(pv, projectileOffset, 1f, target.radius, cos180)?.smallerNonNegative
+
+    return projectileOffset + (rangeFromBarrel ?: approachesInfinity)
 }
 
 /** Weapon aim location required to hit center point of a moving target. */
@@ -47,7 +49,7 @@ fun intercept(weapon: WeaponHandle, target: BallisticTarget, params: BallisticPa
     }
 
     val (p, v) = targetCoords(weapon, target, params)
-    val range = solve(p, v, weapon.barrelOffset, 1f, 0f, 0f)?.smallerNonNegative
+    val range = solve(p, v, weapon.projectileSpawnOffset, 1f, 0f, 0f)?.smallerNonNegative
     return p + v * (range ?: approachesInfinity)
 }
 
@@ -124,7 +126,7 @@ private fun projectileCoords(weapon: WeaponHandle, target: BallisticTarget, para
     val pAbs = (weapon.location - target.location)
     val vProj = weapon.currAngle.direction.unitVector
 
-    val p = pAbs + vAbs * params.delay + vProj * weapon.barrelOffset
+    val p = pAbs + vAbs * params.delay + vProj * weapon.projectileSpawnOffset
     val v = vProj + vAbs / (weapon.projectileSpeed * params.accuracy)
 
     return Pair(p, v)
@@ -133,6 +135,6 @@ private fun projectileCoords(weapon: WeaponHandle, target: BallisticTarget, para
 /** True if target collision radius is above weapon barrel radius.  */
 private fun targetAboveWeapon(locationRelative: Vector2f, weapon: WeaponHandle, target: BallisticTarget): Boolean {
     val d2 = locationRelative.lengthSquared
-    val r = weapon.barrelOffset + target.radius
+    val r = weapon.projectileSpawnOffset + target.radius
     return d2 < r * r
 }

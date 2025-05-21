@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.handles
 
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.loading.MissileSpecAPI
+import com.fs.starfarer.api.loading.ProjectileSpawnType.*
 import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
@@ -184,16 +185,39 @@ class WeaponHandle(val weaponAPI: WeaponAPI) : Weapon by (weaponAPI as Weapon) {
     val target: CombatEntityAPI?
         get() = autofirePlugin?.let { it.targetShip ?: it.targetMissile } ?: ship.shipTarget
 
-    val barrelOffset: Float
+    private val barrelOffset: Float
         get() {
-            // Beams do have a defined barrel offset, but
-            // the beam itself starts at the weapon center.
-            if (isBeam) return 0f
-
-            val offsets = if (slot.isHardpoint) spec.hardpointFireOffsets
-            else spec.turretFireOffsets
+            val offsets = if (slot.isHardpoint) {
+                spec.hardpointFireOffsets
+            } else {
+                spec.turretFireOffsets
+            }
 
             return offsets[0]?.x ?: 0f
+        }
+
+    /** Distance along the firing angle from the weapon's
+     * location where the projectile is spawned. */
+    val projectileSpawnOffset: Float
+        get() {
+            val spec: ProjectileSpecAPI = (spec.projectileSpec as? ProjectileSpecAPI) ?: return 0f
+
+            return when (spec.spawnType) {
+                // moving ray
+                BEAM,
+                BALLISTIC_AS_BEAM -> {
+                    // Why the projectile offset is governed by its width instead of length?
+                    // Who knows, possibly a Starsector engine bug.
+                    barrelOffset + spec.width / 2
+                }
+
+                PLASMA,
+                BALLISTIC -> {
+                    barrelOffset
+                }
+
+                else -> 0f
+            }
         }
 
     val effectiveDPS: Float
