@@ -6,7 +6,9 @@ import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.DamageType.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
-import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.extensions.allGroupedWeapons
+import com.genir.aitweaks.core.extensions.isValidTarget
+import com.genir.aitweaks.core.extensions.sumOf
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.willHitShield

@@ -2,7 +2,9 @@ package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.extensions.allGroupedWeapons
+import com.genir.aitweaks.core.extensions.isPhase
+import com.genir.aitweaks.core.extensions.isUnderManualControl
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.state.Config.Companion.config
 import kotlin.math.min
