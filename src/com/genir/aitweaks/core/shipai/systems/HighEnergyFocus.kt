@@ -3,7 +3,8 @@ package com.genir.aitweaks.core.shipai.systems
 import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.combat.DamageType.*
+import com.fs.starfarer.api.combat.DamageType.HIGH_EXPLOSIVE
+import com.fs.starfarer.api.combat.DamageType.KINETIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.genir.aitweaks.core.extensions.allGroupedWeapons
@@ -46,14 +47,17 @@ class HighEnergyFocus : ShipSystemAIScript {
         }
 
         // Too small portion of the total DPS is affected by HEF.
-        val dpsThreshold = 0.5f * weapons.filter { !it.isPD }.sumOf { it.effectiveDPS }
-        val dpsHef = weapons.sumOf { (it.derivedStats.dps * dpsMultiplier(it)) }
+        val largestWeapon = largestWeaponSize(weapons)
+        val dpsThreshold = 0.5f * weapons.filter { !it.isPD }.sumOf { dpsBase(it, largestWeapon) }
+        val dpsHef = weapons.sumOf {
+            (dpsBase(it, largestWeapon) * dpsMultiplier(it))
+        }
+
         if (dpsHef == 0f || dpsHef < dpsThreshold) {
             return false
         }
 
         // Last charge is reserved for the largest weapons.
-        val largestWeapon = largestWeaponSize(weapons)
         if (ship.system.ammo == 1) {
             return weapons.filter { it.size == largestWeapon }.any { dpsMultiplier(it) > 0 }
         }
@@ -102,11 +106,20 @@ class HighEnergyFocus : ShipSystemAIScript {
             weapon.isPD -> 0.25f
 
             // Account for damage type.
-            weapon.damageType == FRAGMENTATION -> 0.25f
             target.isFighter -> 0.25f
             weapon.damageType == HIGH_EXPLOSIVE -> if (willHitShield(weapon, target, params) == null) 2f else 0f
             weapon.damageType == KINETIC -> if (willHitShield(weapon, target, params) != null) 2f else 0f
             else -> 1f
         }
+    }
+
+    private fun dpsBase(weapon: WeaponHandle, largestWeapon: WeaponAPI.WeaponSize): Float {
+        val sizeBonus = if (weapon.size == largestWeapon) {
+            2f
+        } else {
+            1f
+        }
+
+        return weapon.peakDPS(weapon.ship.system.chargeActiveDur) * sizeBonus
     }
 }

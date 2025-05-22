@@ -207,6 +207,6 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
      * high-damage shots even for short durations. Also, prioritize aiming beam
      * weapons, as they don’t require leading, making their targeting more stable. */
     private fun effectivePeakDPS(weapon: WeaponHandle): Float {
-        return weapon.peakDPS * if (weapon.isBeam) 2f else 1f
+        return weapon.peakDPS(duration = 2f) * if (weapon.isBeam) 2f else 1f
     }
 }

@@ -240,35 +240,33 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
     val effectiveDPS: Float
         get() = derivedStats.dps * if (damageType == DamageType.FRAGMENTATION) 0.25f else 1f
 
-    /** A rough estimation of maximum DPS in a two-second period. */
-    val peakDPS: Float
-        get() {
-            val cycle = firingCycle
-            val t = 2f
+    /** A rough estimation of maximum DPS in a given time period. */
+    fun peakDPS(duration: Float): Float {
+        val cycle = firingCycle
 
-            val burstsNumber = when {
-                // Non-burst weapons or burst weapons with short cycle.
-                !isBurstWeapon || cycle.duration <= t -> {
-                    floor(t / cycle.duration).coerceAtLeast(1f)
-                }
-
-                else -> {
-                    (t / cycle.burstDuration).coerceAtMost(1f)
-                }
+        val burstsNumber = when {
+            // Non-burst weapons or burst weapons with short cycle.
+            !isBurstWeapon || cycle.duration <= duration -> {
+                floor(duration / cycle.duration).coerceAtLeast(1f)
             }
 
-            var baseDamage = burstsNumber * cycle.damage
-
-            if (usesAmmo()) {
-                baseDamage /= 2
+            else -> {
+                (duration / cycle.burstDuration).coerceAtMost(1f)
             }
-
-            if (damageType == DamageType.FRAGMENTATION) {
-                baseDamage /= 4
-            }
-
-            return baseDamage
         }
+
+        var baseDamage = burstsNumber * cycle.damage
+
+        if (usesAmmo()) {
+            baseDamage /= 2
+        }
+
+        if (damageType == DamageType.FRAGMENTATION) {
+            baseDamage /= 4
+        }
+
+        return baseDamage
+    }
 
     /** The true projectile speed, which may differ from the
      * value returned by vanilla WeaponAPI.projectileSpeed. */
@@ -318,6 +316,16 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
             WeaponAPI.WeaponType.MISSILE -> ship.mutableStats.missileRoFMult.modifiedValue
             else -> 1f
         }
+
+    override fun equals(other: Any?): Boolean {
+        val otherWeapon = (other as? WeaponAPI) ?: (other as? WeaponHandle)?.weapon
+
+        return weapon.equals(otherWeapon)
+    }
+
+    override fun hashCode(): Int {
+        return weapon.hashCode()
+    }
 
     companion object {
         val WeaponAPI.handle: WeaponHandle
