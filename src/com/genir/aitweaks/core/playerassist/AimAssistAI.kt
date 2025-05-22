@@ -23,7 +23,6 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.starfarer.combat.entities.Ship
 import com.genir.starfarer.combat.entities.ship.trackers.AimTracker
-import com.genir.starfarer.combat.systems.Weapon
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 

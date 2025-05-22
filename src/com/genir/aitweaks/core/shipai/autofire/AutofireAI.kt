@@ -108,7 +108,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     }
 
     override fun getWeapon(): WeaponAPI {
-        return weapon.weaponAPI
+        return weapon.api
     }
 
     override fun getTargetShip(): ShipAPI? {
