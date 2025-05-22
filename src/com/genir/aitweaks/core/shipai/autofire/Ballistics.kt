@@ -45,6 +45,11 @@ fun closestHitRange(weapon: WeaponHandle, target: BallisticTarget, params: Balli
     return projectileOffset + projectileFlightDistance
 }
 
+fun closestHit(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Vector2f {
+    val (p, v) = targetCoords(weapon, target, params)
+    return -(p + v * closestHitRange(weapon, target, params)).resized(target.radius)
+}
+
 /** Weapon aim location required to hit center point of a moving target. */
 fun intercept(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Vector2f {
     if (weapon.isUnguidedMissile) {
@@ -116,9 +121,8 @@ fun willHitShield(weapon: WeaponHandle, target: ShipAPI, params: BallisticParams
         ?: return null
 
     val hitPoint = p + v * projectileFlightDistance
-    val hit = Arc(shield.activeArc, shield.facing.direction).contains(hitPoint)
 
-    return if (hit) {
+    return if (shield.isHit(hitPoint)) {
         weapon.projectileSpawnOffset + projectileFlightDistance
     } else {
         null

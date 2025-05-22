@@ -122,6 +122,8 @@ class UpdateTarget(
             // unless the ship is incapable of following the target.
             weapon.slot.isHardpoint && !weapon.ship.engineController.isFlamedOut -> return priorityTarget
 
+            weapon.isStrictlyAntiArmor && willIdealShotHitShields(weapon, priorityTarget, defaultBallisticParams) -> Unit
+
             // Turreted weapons select ship target if it can be tracked.
             canTrack(weapon, BallisticTarget.collisionRadius(priorityTarget), params) -> return priorityTarget
         }
@@ -136,8 +138,10 @@ class UpdateTarget(
             return current
         }
 
-        val opportunities = Grid.entities(c, weapon.location, targetSearchRange)
-        val evaluated = opportunities.filter { entityFilter(it) && isTargetAcceptable(it, targetSearchRange) }.map {
+        val entities = Grid.entities(c, weapon.location, targetSearchRange)
+        val opportunities = entities.filter { entityFilter(it) && isTargetAcceptable(it, targetSearchRange) }
+
+        val evaluated = opportunities.map {
             val target = BallisticTarget.collisionRadius(it)
             val dist = intercept(weapon, target, params).length
             val range = weapon.totalRange
@@ -168,9 +172,12 @@ class UpdateTarget(
 
         return when {
             !target.isValidTarget -> false
+
             target.owner == weapon.ship.owner -> false
 
             !canTrack(weapon, ballisticTarget, params, searchRange) -> false
+
+            target.isShip && weapon.isStrictlyAntiArmor && willIdealShotHitShields(weapon, target, defaultBallisticParams) -> false
 
             // Do not track targets occluded by obstacles.
             else -> {

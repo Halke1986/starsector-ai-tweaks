@@ -50,3 +50,15 @@ fun CombatEntityAPI.isHostile(otherEntity: CombatEntityAPI): Boolean {
 
 val CombatEntityAPI.boundsRadius: Float
     get() = Bounds.radius(this)
+
+val CombatEntityAPI.hasShield: Boolean
+    get() = when {
+        !isShip -> false
+
+        // Workaround for hulks retaining outdated ShieldAPI.
+        (this as ShipAPI).isHulk -> false
+
+        shield == null -> false
+
+        else -> true
+    }

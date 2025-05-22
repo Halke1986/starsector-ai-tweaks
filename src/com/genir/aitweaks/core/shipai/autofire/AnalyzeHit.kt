@@ -3,6 +3,8 @@ package com.genir.aitweaks.core.shipai.autofire
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.facing
+import com.genir.aitweaks.core.extensions.hasShield
+import com.genir.aitweaks.core.extensions.isHit
 import com.genir.aitweaks.core.extensions.isShip
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.Hit.Type.*
@@ -24,7 +26,7 @@ fun analyzeHit(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticP
     if (!target.isShip) return willHitCircumference(weapon, BallisticTarget.collisionRadius(target), params)?.let { Hit(target, it, HULL) }
 
     // Check shield hit.
-    if (hasShield(target)) willHitShield(weapon, target as ShipAPI, params)?.let { return Hit(target, it, SHIELD) }
+    if (target.hasShield) willHitShield(weapon, target as ShipAPI, params)?.let { return Hit(target, it, SHIELD) }
 
     // Check bounds hit.
     return willHitBounds(weapon, target as ShipAPI, params)?.let { Hit(target, it, HULL) }
@@ -36,6 +38,15 @@ fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipAPI,
         !canHitAlly(weapon, target, ally, params) -> null
         else -> Hit(ally, closestHitRange(weapon, BallisticTarget.shieldRadius(ally), params), ALLY)
     }
+}
+
+fun willIdealShotHitShields(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Boolean {
+    if (!target.hasShield) {
+        return false
+    }
+
+    val hitPoint = closestHit(weapon, BallisticTarget.shieldRadius(target as ShipAPI), params)
+    return target.shield.isHit(hitPoint)
 }
 
 /** Calculates if an inaccurate projectile may collide with allay ship */
@@ -68,6 +79,3 @@ private fun weaponBurstInterval(weapon: WeaponHandle): Pair<Float, Float> {
     val cycle = weapon.firingCycle
     return Pair(cycle.warmupDuration, cycle.warmupDuration + cycle.burstDuration)
 }
-
-/** Workaround for hulks retaining outdated ShieldAPI. */
-private fun hasShield(target: CombatEntityAPI): Boolean = target.isShip && !(target as ShipAPI).isHulk
