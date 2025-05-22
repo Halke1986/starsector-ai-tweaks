@@ -118,12 +118,14 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
 
     /** Actual weapon range depends on frame duration. */
     override fun getRange(): Float {
-        val idealRange: Float = weapon.range
-        val idealDt: Float = Global.getCombatEngine().timeMult.modifiedValue / 60
+        if (type != WeaponAPI.WeaponType.BALLISTIC) {
+            return weapon.range
+        }
 
         // Projectile always travels for integer number of frames.
+        val idealDt: Float = Global.getCombatEngine().timeMult.modifiedValue / 60
         val distPerFrame: Float = projectileSpeed * idealDt
-        val frames: Int = (idealRange / distPerFrame).toInt()
+        val frames: Int = (weapon.range / distPerFrame).toInt()
         val projectileRange: Float = distPerFrame * frames
 
         return projectileSpawnOffset + projectileRange
