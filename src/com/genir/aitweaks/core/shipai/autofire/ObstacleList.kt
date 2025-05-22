@@ -29,7 +29,7 @@ class ObstacleList(private val weapon: WeaponHandle, radius: Float, private val 
         }
 
         val obstacles: Sequence<Obstacle> = ships.map { ship ->
-            val target = BallisticTarget(ship.location, ship.velocity, ship.boundsRadius * 0.8f)
+            val target = BallisticTarget(ship.location, ship.velocity, ship.boundsRadius * 0.8f, ship)
 
             return@map Obstacle(
                 arc = interceptArc(weapon, target, params),

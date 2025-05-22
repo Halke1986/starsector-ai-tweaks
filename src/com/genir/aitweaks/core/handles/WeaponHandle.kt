@@ -318,7 +318,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
         }
 
     override fun equals(other: Any?): Boolean {
-        val otherWeapon = (other as? WeaponAPI) ?: (other as? WeaponHandle)?.weapon
+        val otherWeapon: Any? = (other as? WeaponHandle)?.weapon ?: other
 
         return weapon.equals(otherWeapon)
     }

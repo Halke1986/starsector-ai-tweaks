@@ -77,6 +77,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
             targetLocationOverride ?: target.location,
             target.timeAdjustedVelocity,
             Bounds.radius(target) * 0.7f,
+            target,
         )
 
         val toTarget = (target.location - ship.location)

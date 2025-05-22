@@ -82,8 +82,8 @@ fun interceptArc(weapon: WeaponHandle, target: BallisticTarget, params: Ballisti
     val points = pointsOfTangency(p, target.radius)
         ?: return Arc(360f, 0f.direction)
 
-    val target1 = BallisticTarget(weapon.location + points.first, target.velocity, 0f)
-    val target2 = BallisticTarget(weapon.location + points.second, target.velocity, 0f)
+    val target1 = BallisticTarget(weapon.location + points.first, target.velocity, 0f, target.entity)
+    val target2 = BallisticTarget(weapon.location + points.second, target.velocity, 0f, target.entity)
 
     // Attack delay was accounted for when calculating points of tangency.
     val noDelayParams = BallisticParams(params.accuracy, 0f)

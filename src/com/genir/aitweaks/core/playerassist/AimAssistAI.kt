@@ -161,7 +161,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     }
 
     private fun aimWeapons(ship: ShipAPI, target: CombatEntityAPI) {
-        val ballisticTarget = BallisticTarget(targetLocation(target), target.velocity, target.collisionRadius)
+        val ballisticTarget = BallisticTarget(targetLocation(target), target.velocity, target.collisionRadius, target)
         val selectedWeapons: Set<WeaponHandle> = ship.selectedWeapons
         val aimableWeapons: Set<WeaponHandle> = ship.nonAutofireWeapons + selectedWeapons
         val params = defaultBallisticParams
@@ -196,7 +196,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
             !VanillaKeymap.isKeyDown(PlayerAction.SHIP_FIRE) -> false
 
             // Fire active alternating group weapon. Same behavior as vanilla.
-            group.type == WeaponGroupType.ALTERNATING && weapon == group.activeWeapon -> true
+            group.type == WeaponGroupType.ALTERNATING && weapon.equals(group.activeWeapon) -> true
 
             // Fire linked weapons if it's possible to hit the target.
             group.type == WeaponGroupType.LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.currAngle.direction) -> true
