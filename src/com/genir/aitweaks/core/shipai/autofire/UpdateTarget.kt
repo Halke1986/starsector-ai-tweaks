@@ -11,7 +11,6 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Grid
-import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
@@ -23,13 +22,16 @@ class UpdateTarget(
     private val params: BallisticParams,
 ) {
     companion object {
-        private const val ALSO_TARGET_FIGHTERS = true
         const val TARGET_SEARCH_MULT = 1.5f
     }
 
     // Search within twice weapon.totalRange to account for projectile flight time,
     // allowing attacks to start before the target enters maximum range.
     private val targetSearchRange = weapon.totalRange * TARGET_SEARCH_MULT
+
+    private val obstacleList by lazy {
+        ObstacleList(weapon, targetSearchRange, params)
+    }
 
     fun target(): CombatEntityAPI? = when {
         Global.getCurrentState() == GameState.TITLE && config.enableTitleScreenFire -> selectAsteroid()
@@ -104,7 +106,7 @@ class UpdateTarget(
     }
 
     private fun selectShipOrFighter(): CombatEntityAPI? {
-        return selectShip(ALSO_TARGET_FIGHTERS)
+        return selectShip(alsoFighter = true)
     }
 
     private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
@@ -180,45 +182,9 @@ class UpdateTarget(
             target.isShip && weapon.isStrictlyAntiArmor && willIdealShotHitShields(weapon, target, defaultBallisticParams) -> false
 
             // Do not track targets occluded by obstacles.
-            else -> {
-                val intercept = intercept(weapon, ballisticTarget, params)
+            obstacleList.isOccluded(target) -> false
 
-                obstacleList.none { obstacle ->
-                    when {
-                        obstacle.origin == target -> false
-                        !obstacle.arc.contains(intercept.facing) -> false
-                        obstacle.dist > intercept.length -> false
-
-                        else -> true
-                    }
-                }
-            }
+            else -> true
         }
-    }
-
-    private data class Obstacle(val arc: Arc, val dist: Float, val origin: CombatEntityAPI)
-
-    private val obstacleList: List<Obstacle> by lazy {
-        val obstacles = Grid.ships(weapon.location, targetSearchRange).filter {
-            when {
-                // Same ship.
-                it.root == weapon.ship.root -> false
-
-                it.isFighter -> false
-
-                // Weapon fires over allies.
-                weapon.noFF && it.owner == weapon.ship.owner -> false
-
-                else -> true
-            }
-        }
-
-        obstacles.map { obstacle ->
-            val target = BallisticTarget(obstacle.location, obstacle.velocity, obstacle.boundsRadius * 0.8f)
-            val dist = intercept(weapon, target, params).length
-            val arc = interceptArc(weapon, target, params)
-
-            Obstacle(arc, dist, obstacle)
-        }.toList()
     }
 }
