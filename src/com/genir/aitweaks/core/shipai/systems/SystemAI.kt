@@ -12,7 +12,7 @@ abstract class SystemAI(val ai: CustomShipAI) {
 
     abstract fun advance(dt: Float)
 
-    open fun holdTargets(): Boolean = system.isOn
+    open fun holdTargets(): Boolean = false
 
     /** Should custom system AI replace vanilla system AI. */
     open fun overrideVanillaSystemAI(): Boolean = true

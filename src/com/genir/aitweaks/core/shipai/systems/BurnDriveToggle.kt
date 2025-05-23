@@ -55,10 +55,6 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
         else null
     }
 
-    override fun holdTargets(): Boolean {
-        return false
-    }
-
     private fun updateMaxBurnDist() {
         val effectiveBurnDuration = system.chargeActiveDur + (system.chargeUpDur + system.chargeDownDur) / 2f
         maxBurnDist = (ship.baseMaxSpeed + burnDriveFlatBonus) * effectiveBurnDuration

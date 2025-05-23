@@ -1,3 +1,5 @@
+- Custom AI: Fixed a bug where ships with an active Temporal Shell system behaved far more aggressively than intended.
+
 Version v2.1.3
 
 - Fixed a NullPointerException in Custom AI navigation logic. Reported by WariousGaming and eneaver. 
