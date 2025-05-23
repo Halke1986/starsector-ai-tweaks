@@ -155,3 +155,5 @@ val ShipAPI.AIPersonality: String
 val ShipAPI.Id: String
     get() = hullSpec?.hullId ?: "-"
 
+val ShipAPI.isFlamedOut: Boolean
+    get() = engineController.isFlamedOut

@@ -82,109 +82,145 @@ class UpdateTarget(
         return outOfRangeTarget
     }
 
+    private fun selectShip(): CombatEntityAPI? {
+        return selectShip { !it.isFighter }
+    }
+
+    private fun selectFighter(): CombatEntityAPI? {
+        return selectShip { it.isFighter }
+    }
+
+    private fun selectNonSupportFighter(): CombatEntityAPI? {
+        return selectShip { it.isFighter && !it.isSupportFighter }
+    }
+
+    private fun selectShipOrFighter(): CombatEntityAPI? {
+        return selectShip { true }
+    }
+
+    private fun selectShip(externalFilter: ((ShipAPI) -> Boolean)): ShipAPI? {
+        val isShipAcceptable = fun(target: CombatEntityAPI): Boolean {
+            return when {
+                target !is ShipAPI -> false
+
+                !target.isValidTarget -> false
+
+                target.owner == weapon.ship.owner -> false
+
+                !externalFilter(target) -> false
+
+                // Hardpoint weapons select ship target even when it's outside their firing arc,
+                // unless the ship is incapable of following the target.
+                weapon.slot.isHardpoint && !weapon.ship.isFlamedOut && attackTarget != null -> {
+                    target == attackTarget
+                }
+
+                target.isShip && weapon.isStrictlyAntiArmor && willIdealShotHitShields(weapon, target, params) -> false
+
+                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, targetSearchRange) -> false
+
+                obstacleList.isOccluded(target) -> false
+
+                else -> true
+            }
+        }
+
+        val ships: Sequence<ShipAPI> = Grid.ships(weapon.location, targetSearchRange)
+
+        return selectEntity(ships, isShipAcceptable) as? ShipAPI
+    }
+
+    private fun selectMissile(): MissileAPI? {
+        val isMissileAcceptable = fun(target: CombatEntityAPI): Boolean {
+            return when {
+                target !is MissileAPI -> false
+
+                !target.isValidTarget -> false
+
+                target.owner == weapon.ship.owner -> false
+
+                target.isFlare && weapon.ignoresFlares -> false
+
+                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, targetSearchRange) -> false
+
+                obstacleList.isOccluded(target) -> false
+
+                else -> true
+            }
+        }
+
+        val missiles: Sequence<MissileAPI> = Grid.missiles(weapon.location, targetSearchRange)
+
+        return selectEntity(missiles, isMissileAcceptable) as? MissileAPI
+    }
+
     /** Target asteroid selection. Selects asteroid only when the weapon and asteroid
      * are both in viewport. Otherwise, it looks weird on the title screen. */
-    private fun selectAsteroid(): CombatEntityAPI? {
-        val inViewport = { location: Vector2f -> Global.getCombatEngine().viewport.isNearViewport(location, 0f) }
+    private fun selectAsteroid(): CombatAsteroidAPI? {
+        fun inViewport(location: Vector2f): Boolean {
+            return Global.getCombatEngine().viewport.isNearViewport(location, 0f)
+        }
+
         if (!inViewport(weapon.location)) {
             return null
         }
 
-        return selectEntity(CombatAsteroidAPI::class.java) { inViewport(it.location) }
-    }
+        val isAsteroidAcceptable = fun(target: CombatEntityAPI): Boolean {
+            return when {
+                target !is CombatAsteroidAPI -> false
 
-    private fun selectMissile(): CombatEntityAPI? {
-        return selectEntity(MissileAPI::class.java) { it is MissileAPI && (!it.isFlare || !weapon.ignoresFlares) }
-    }
+                !target.isValidTarget -> false
 
-    private fun selectFighter(): CombatEntityAPI? {
-        return selectEntity(ShipAPI::class.java) { it.isFighter }
-    }
+                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, targetSearchRange) -> false
 
-    private fun selectNonSupportFighter(): CombatEntityAPI? {
-        return selectEntity(ShipAPI::class.java) { it.isFighter && !it.isSupportFighter }
-    }
+                !inViewport(target.location) -> false
 
-    private fun selectShipOrFighter(): CombatEntityAPI? {
-        return selectShip(alsoFighter = true)
-    }
+                obstacleList.isOccluded(target) -> false
 
-    private fun selectShip(alsoFighter: Boolean = false): CombatEntityAPI? {
-        // Try to follow the ship attack target.
-        val priorityTarget: ShipAPI? = attackTarget
-        when {
-            priorityTarget == null -> Unit
-
-            !priorityTarget.isValidTarget -> Unit
-
-            // Don't attack allies.
-            priorityTarget.owner == weapon.ship.owner -> Unit
-
-            // Hardpoint weapons select ship target even when it's outside their firing arc,
-            // unless the ship is incapable of following the target.
-            weapon.slot.isHardpoint && !weapon.ship.engineController.isFlamedOut -> return priorityTarget
-
-            weapon.isStrictlyAntiArmor && willIdealShotHitShields(weapon, priorityTarget, defaultBallisticParams) -> Unit
-
-            // Turreted weapons select ship target if it can be tracked.
-            canTrack(weapon, BallisticTarget.collisionRadius(priorityTarget), params) -> return priorityTarget
-        }
-
-        // Select alternative target.
-        return selectEntity(ShipAPI::class.java) { !it.isFighter || alsoFighter }
-    }
-
-    private fun selectEntity(c: Class<*>, entityFilter: (CombatEntityAPI) -> Boolean): CombatEntityAPI? {
-        // Try tracking the current target.
-        if (current != null && c.isInstance(current) && entityFilter(current) && isTargetAcceptable(current, weapon.totalRange)) {
-            return current
-        }
-
-        val entities = Grid.entities(c, weapon.location, targetSearchRange)
-        val opportunities = entities.filter { entityFilter(it) && isTargetAcceptable(it, targetSearchRange) }
-
-        val evaluated = opportunities.map {
-            val target = BallisticTarget.collisionRadius(it)
-            val dist = intercept(weapon, target, params).length
-            val range = weapon.totalRange
-
-            return@map if (dist <= range) {
-                // Evaluate the target based on angle and distance.
-                val angle = ((target.location - weapon.location).facing - weapon.currAngle.direction).radians
-                val angleWeight = 0.75f
-
-                val evalAngle = abs(angle) * angleWeight
-                val evalDist = dist / range
-
-                Pair(it, evalAngle + evalDist)
-            } else {
-                // If the target is out of range, evaluate it based only on range, ignoring the angle.
-                val outOfRangePenalty = 1e3f
-
-                val evalDist = (dist - range) / range
-                Pair(it, evalDist + outOfRangePenalty)
+                else -> true
             }
+        }
+
+        val asteroids: Sequence<CombatAsteroidAPI> = Grid.asteroids(weapon.location, targetSearchRange)
+
+        return selectEntity(asteroids, isAsteroidAcceptable) as? CombatAsteroidAPI
+    }
+
+    private fun selectEntity(entities: Sequence<CombatEntityAPI>, filter: ((CombatEntityAPI) -> Boolean)): CombatEntityAPI? {
+        val opportunities: Sequence<CombatEntityAPI> = entities.filter { target ->
+            filter(target)
+        }
+
+        val evaluated: Sequence<Pair<CombatEntityAPI, Float>> = opportunities.map { opportunity ->
+            evaluateEntity(opportunity)
         }
 
         return evaluated.minWithOrNull(compareBy { it.second })?.first
     }
 
-    private fun isTargetAcceptable(target: CombatEntityAPI, searchRange: Float): Boolean {
+    private fun evaluateEntity(target: CombatEntityAPI): Pair<CombatEntityAPI, Float> {
         val ballisticTarget = BallisticTarget.collisionRadius(target)
+        val dist = intercept(weapon, ballisticTarget, params).length
+        val range = weapon.totalRange
 
-        return when {
-            !target.isValidTarget -> false
+        return if (dist <= range) {
+            // Evaluate the target based on angle and distance.
+            val angle = ((target.location - weapon.location).facing - weapon.currAngle.direction).radians
+            val angleWeight = 0.75f
 
-            target.owner == weapon.ship.owner -> false
+            val evalAngle = abs(angle) * angleWeight
+            val evalDist = dist / range
 
-            !canTrack(weapon, ballisticTarget, params, searchRange) -> false
+            val currentTargetBonus = if (target == current) -1e3f else 0f
+            val priorityTargetBonus = if (target == attackTarget) -1e4f else 0f
 
-            target.isShip && weapon.isStrictlyAntiArmor && willIdealShotHitShields(weapon, target, defaultBallisticParams) -> false
+            Pair(target, evalAngle + evalDist + currentTargetBonus + priorityTargetBonus)
+        } else {
+            // If the target is out of range, evaluate it based only on range, ignoring the angle.
+            val outOfRangePenalty = 1e3f
 
-            // Do not track targets occluded by obstacles.
-            obstacleList.isOccluded(target) -> false
-
-            else -> true
+            val evalDist = (dist - range) / range
+            Pair(target, evalDist + outOfRangePenalty)
         }
     }
 }
