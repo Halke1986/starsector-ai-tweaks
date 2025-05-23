@@ -23,13 +23,20 @@ data class Hit(val target: CombatEntityAPI, val range: Float, val type: Type) {
 /** Analyzes the potential collision between projectile and target. Null if no collision. */
 fun analyzeHit(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit? {
     // Simple circumference collision is enough for missiles and fighters.
-    if (!target.isShip) return willHitCircumference(weapon, BallisticTarget.collisionRadius(target), params)?.let { Hit(target, it, HULL) }
+    if (!target.isShip) {
+        val hitRange: Float? = willHitCircumference(weapon, BallisticTarget.collisionRadius(target), params)
+        return hitRange?.let { Hit(target, hitRange, HULL) }
+    }
 
     // Check shield hit.
-    if (target.hasShield) willHitShield(weapon, target as ShipAPI, params)?.let { return Hit(target, it, SHIELD) }
+    if (target.hasShield) {
+        val hitRange: Float? = willHitShield(weapon, target as ShipAPI, params)
+        hitRange?.let { return Hit(target, hitRange, SHIELD) }
+    }
 
     // Check bounds hit.
-    return willHitBounds(weapon, target as ShipAPI, params)?.let { Hit(target, it, HULL) }
+    val hitRange: Float? = willHitBounds(weapon, target as ShipAPI, params)
+    return hitRange?.let { Hit(target, hitRange, HULL) }
 }
 
 fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Hit? {

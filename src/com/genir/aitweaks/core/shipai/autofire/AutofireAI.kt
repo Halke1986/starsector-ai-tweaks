@@ -51,8 +51,6 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
             Global.getCombatEngine().isPaused -> return
         }
 
-//        debug()
-
         // Advance intervals.
         updateTargetInterval.advance(dt)
         shouldFireInterval.advance(dt)
@@ -75,6 +73,8 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         if (updateTargetImmediately || updateTargetInterval || updateShouldFireImmediately || updateShouldFireInterval) {
             shouldHoldFire = calculateShouldFire()
         }
+
+//        debug()
     }
 
     fun debug() {
@@ -421,15 +421,17 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     }
 
     private fun aimTurret(dt: Float, intercept: Vector2f): Vector2f {
-        // Beam weapons in turrets can be aimed directly at the target location.
+        // Combat engine updated beam weapon aim location before firing them.
+        // Therefore, beam weapons in turrets can be aimed directly at the
+        // target location.
         if (weapon.isBeam) {
             return intercept
         }
 
-        // Combat engine fires weapons before setting their aim location. This means
-        // the aim location returned by this method will take effect the next frame.
-        // Therefore, the weapon angle needs to be adjusted for slot angular velocity
-        // towards target.
+        // As opposed to beam weapons, combat engine fires projectile weapons before
+        // updating their aim location. This means the aim location returned by this
+        // method will take effect the next frame. Therefore, the weapon angle needs
+        // to be adjusted for slot angular velocity towards target.
         val r = RotationMatrix(interceptTracker.interceptVelocity * dt)
         return intercept.rotated(r)
     }

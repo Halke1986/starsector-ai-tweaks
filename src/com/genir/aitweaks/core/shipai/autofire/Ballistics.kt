@@ -1,5 +1,8 @@
 package com.genir.aitweaks.core.shipai.autofire
 
+import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.AutofireAIPlugin
+import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
@@ -7,6 +10,7 @@ import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.pointsOfTangency
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Arc
+import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 
@@ -155,7 +159,7 @@ private fun targetCoords(weapon: WeaponHandle, target: BallisticTarget, params: 
 private fun projectileCoords(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Vector2f> {
     val vAbs = (weapon.ship.velocity - target.velocity)
     val pAbs = (weapon.location - target.location)
-    val vProj = weapon.currAngle.direction.unitVector
+    val vProj = weapon.angleWhenFiring.unitVector
 
     val p = pAbs + vAbs * params.delay + vProj * weapon.projectileSpawnOffset
     val v = vProj + vAbs / (weapon.projectileSpeed * params.accuracy)
@@ -169,3 +173,34 @@ private fun targetAboveWeapon(locationRelative: Vector2f, weapon: WeaponHandle, 
     val r = weapon.projectileSpawnOffset + target.radius
     return d2 < r * r
 }
+
+/** Ballistic calculations are performed before the game engine updates weapon states.
+ * For beam weapons, which fire after completing rotation, this means the ballistic
+ * calculations use outdated facing values.
+ * To prevent errors caused by this timing mismatch, the WeaponHandle.angleWhenFiring
+ * method computes the expected weapon facing at the moment of firing. */
+private val WeaponHandle.angleWhenFiring: Direction
+    get() {
+        val currAngle = currAngle.direction
+
+        // Non-beam weapons fire *before* rotation.
+        if (!isBeam)
+            return currAngle
+
+        val ai: AutofireAIPlugin = autofirePlugin
+            ?: return currAngle
+
+        val target: CombatEntityAPI = (ai.targetShip ?: ai.targetMissile)
+            ?: return currAngle
+
+        // Assume beam weapon will aim directly at the target.
+        val expectedAngle = (target.location - location).facing
+        val offset = currAngle - expectedAngle
+        val turnRate = turnRate * Global.getCombatEngine().elapsedInLastFrame
+
+        return if (offset.length < turnRate) {
+            expectedAngle
+        } else {
+            currAngle
+        }
+    }
