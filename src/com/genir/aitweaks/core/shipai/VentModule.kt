@@ -272,7 +272,7 @@ class VentModule(private val ai: CustomShipAI) {
     }
 
     private fun waitForBursts(): Boolean {
-        val burstWeapons = ship.allGroupedWeapons.filter { it.isBurstWeapon && !it.spec.isInterruptibleBurst }
+        val burstWeapons = ship.allGroupedWeapons.filter { it.isNonInterruptibleBurstWeapon }
         val longestBursts: Float = burstWeapons.filter { it.isInBurst }.maxOfOrNull { it.burstFireTimeRemaining } ?: 0f
 
         // Vent when all the bursts have ended.

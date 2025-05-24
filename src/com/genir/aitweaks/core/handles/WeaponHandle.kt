@@ -140,12 +140,22 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
     val customAI: AutofireAI?
         get() = autofirePlugin as? AutofireAI
 
-    val isBurstWeapon: Boolean
+    private val isBurstWeapon: Boolean
         get() = when {
             // Projectile weapons with bursts of more than one projectile.
             spec is ProjectileWeaponSpecAPI -> (spec as ProjectileWeaponSpecAPI).burstSize > 1
 
             else -> isBurstBeam
+        }
+
+    val isNonInterruptibleBurstWeapon: Boolean
+        get() = when {
+            weapon.spec.isInterruptibleBurst -> false
+
+            // Exclude "continuous" burst beams like the IR Autolance.
+            isBeam && spec.burstDuration > 0f && cooldown > 0f -> false
+
+            else -> isBurstWeapon
         }
 
     /** Warmup is the first phase of weapon firing sequence, preceding the first shot.
@@ -162,7 +172,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
      * BURST */
     override fun isInBurst(): Boolean {
         return when {
-            !isBurstWeapon -> {
+            isNonInterruptibleBurstWeapon -> {
                 false
             }
 
