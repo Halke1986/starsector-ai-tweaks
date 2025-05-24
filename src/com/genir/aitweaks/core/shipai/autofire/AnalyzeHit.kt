@@ -47,13 +47,14 @@ fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipAPI,
     }
 }
 
-fun willIdealShotHitShields(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Boolean {
-    if (!target.hasShield) {
-        return false
-    }
+fun estimateIdealHit(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit {
+    val ballisticTarget = BallisticTarget.shieldRadius(target as ShipAPI)
+    val (hitPoint, range) = closestHitInTargetFrameOfReference(weapon, ballisticTarget, params)
 
-    val hitPoint = closestHit(weapon, BallisticTarget.shieldRadius(target as ShipAPI), params)
-    return target.shield.isHit(hitPoint)
+    val shieldHit = target.hasShield && target.shield.isHit(hitPoint)
+    val hitType = if (shieldHit) SHIELD else HULL
+
+    return Hit(target, range, hitType)
 }
 
 /** Calculates if an inaccurate projectile may collide with allay ship */

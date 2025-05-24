@@ -49,9 +49,11 @@ fun closestHitRange(weapon: WeaponHandle, target: BallisticTarget, params: Balli
     return projectileOffset + projectileFlightDistance
 }
 
-fun closestHit(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Vector2f {
+fun closestHitInTargetFrameOfReference(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Float> {
     val (p, v) = targetCoords(weapon, target, params)
-    return -(p + v * closestHitRange(weapon, target, params)).resized(target.radius)
+    val range = closestHitRange(weapon, target, params)
+    val hitPoint = -(p + v * range).resized(target.radius)
+    return Pair(hitPoint, range)
 }
 
 /** Weapon aim location required to hit center point of a moving target. */
