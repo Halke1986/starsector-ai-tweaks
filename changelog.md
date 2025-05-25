@@ -1,8 +1,11 @@
 - Custom AI: Fixed a bug where ships with an active Temporal Shell system behaved far more aggressively than intended.
+- Autofire AI: Fixed a bug where Voidblaster was firing at targets beyond its effective range.
+- Autofire AI: Fixed a bug that prevented beam weapons from firing at very small PD targets in some situations.
+- Autofire AI: Improved target selection logic for obligatory anti-armor weapons like the Voidblaster. They are now better at identifying opportunities to bypass enemy ship shields.
 
 Version v2.1.3
 
-- Fixed a NullPointerException in Custom AI navigation logic. Reported by WariousGaming and eneaver. 
+- Fixed a NullPointerException in Custom AI navigation logic. Reported by WariousGaming and eneaver.
 
 Version v2.1.2
 
@@ -14,12 +17,12 @@ Version v2.1.1
 
 - Custom AI: Several minor improvement to ship movement.
 - Custom AI now targets strikecraft once all enemy ships have been destroyed. Suggested by Ruin.
-- Custom AI respects the DO_NOT_BACK_OFF flag. Suggested by Lukas04. 
+- Custom AI respects the DO_NOT_BACK_OFF flag. Suggested by Lukas04.
 - Autofire AI: Projectile PD weapons now utilize their full range more effectively when intercepting missiles.
 - Autofire AI: Rift Beam no longer fires at targets well beyond its effective range. Reported by Ultrarattecoon and CrashToDesktop.
 
 Version 2.1.0
- 
+
 - Player Assist: Fixed an issue where the omni shield AI kept toggling the shield on and off when the player ship wasn't in danger.
 - Added Search and Destroy hullmod. It makes ships default to Search and Destroy order.
 - Custom AI: Fixed a bug where ships ignored certain enemies when deciding if to vent. The bug was most apparent when fighting Shrouded Eyes.
@@ -27,7 +30,7 @@ Version 2.1.0
 Version 2.0.3
 
 - Custom AI: Full assault order increases ship aggression.
-- Autofire AI: Fixed an issue where the Voltaic Discharge was not discharging. Reported by CrashToDesktop. 
+- Autofire AI: Fixed an issue where the Voltaic Discharge was not discharging. Reported by CrashToDesktop.
 - Autofire AI: Voidblaster does not attack enemy shields, same as Mining Blaster.
 - Autofire AI: Added LunaLib setting to enable/disable PD beam sweep (also known as "constant laser lightshow"). Suggested by Alkkaid.
 - Autofire AI: Added LunaLib setting to enable/disable AI behavior where weapons tagged USE_LESS_VS_SHIELDS (such as the Mining Blaster and IR Autolance) will not fire at shields, ever. Suggested by DR, undead Changed Bean of f-mes.
@@ -50,7 +53,7 @@ Version 2.0.1
 Version 2.0.0
 
 - Compatibility update with Starsector 0.98a-RC5.
-- Autofire AI: Fixed a bug where weapons would attack a target other than the ship’s designated attack target, even when the intended target was already within firing range. 
+- Autofire AI: Fixed a bug where weapons would attack a target other than the ship’s designated attack target, even when the intended target was already within firing range.
 
 Version 1.12.8
 
@@ -63,7 +66,7 @@ Version 1.12.7
 
 Version 1.12.6
 
-- It is now possible to disable staggered fire mode for selected weapon types via the /data/weapons/*.ait configuration file. Suggested by Ioulaum. 
+- It is now possible to disable staggered fire mode for selected weapon types via the /data/weapons/*.ait configuration file. Suggested by Ioulaum.
 - Ships are less likely to select unusual attack angles, especially when equipped with front shields. This fixes the issue of Gryphons flying backwards. Reported by 颯爽的夏亞.
 - Autofire AI: Fixed an edge case where weapons would not fire on some shielded modular ships, e.g. 幽灵部队. Reported by 无烟.
 
@@ -78,7 +81,7 @@ Version 1.12.4
 - Fixed a null pointer exception in ship maneuver logic. Reported by TimeDiver0.
 
 Version 1.12.3
- 
+
 - Shield Assist now works with front shields.
 - Aim Assist now has a Perfect Targeting mode, where it disregards the mouse input and aims precisely at the target center. Perfect Targeting can be enabled in LunaLib settings.
 - Fixed a special case in ship facing calculation when using unusual weapon groups, such as both back-facing weapon slots on a Harbinger.
@@ -120,7 +123,7 @@ Version 1.11.5
 - Custom AI: AI now estimates weapon attack range for broadside builds with additional precision. Back slot will not be left out of action, even on the weirdest broadside ships.
 - AI Tweaks-specific weapon tags are now added via a custom /data/weapons/weaponId.ait file. This improves mod interoperability and eliminates the need to override definitions in weapon_data.csv.
 - Fixed a bug that prevented High Energy Focus from triggering on ships with a lot of energy PD weapons. Reported by Marq.
-- Autofire AI now correctly handles out-of-range targets. It accounts for projectile and target velocity, aiming and initiating attacks in advance, before the target enters maximum firing range. This increases the window of opportunity to deal damage, strongly benefiting projectile PD weapons, among others. 
+- Autofire AI now correctly handles out-of-range targets. It accounts for projectile and target velocity, aiming and initiating attacks in advance, before the target enters maximum firing range. This increases the window of opportunity to deal damage, strongly benefiting projectile PD weapons, among others.
 
 Version 1.11.4
 
@@ -145,7 +148,7 @@ Version 1.11.2
 - Number of minor fixes and improvements.
 
 Version 1.11.1
- 
+
 - Custom AI: Many improvements to vent AI. Now it doesn't like to vent in front of Hammer Barrage.
 - Custom AI: Issuing a retreat order to a ship no longer removes its Custom AI, replacing it with vanilla AI.
 
@@ -207,7 +210,7 @@ Version 1.10.4
 - Frigate hardpoint aiming now works correctly with Advanced Gunnery Control.
 - Frigates will rotate to properly aim all front-facing projectile and beam weapons, not just hardpoints.
 - Frigate hardpoint aiming can be disabled with "Enable Custom Ship AI" LunaLib setting.
-- Rift Beam has a specialized, trigger-happy AI that will fire even when the weapon is switching targets. Suggested by dry_dock. 
+- Rift Beam has a specialized, trigger-happy AI that will fire even when the weapon is switching targets. Suggested by dry_dock.
 
 Version 1.10.3
 
@@ -257,7 +260,7 @@ Version 1.9.2
 
 Version 1.9.1
 
-- Fixed crash caused by aim assist trying to operate weapons on destroyed player ship. Reported by @Abyssal Phoenix 
+- Fixed crash caused by aim assist trying to operate weapons on destroyed player ship. Reported by @Abyssal Phoenix
 
 Version 1.9.0
 
@@ -290,17 +293,17 @@ Version 1.7.3
 - Custom ship AI avoids ship collisions.
 - Custom ship AI avoids blocking line of fire.
 - Removed a lot of class loader jank used in earlier version of custom ship AI.
-- Custom ship AI is enabled for Guardians in bar bounty. 
+- Custom ship AI is enabled for Guardians in bar bounty.
 - Added improved build for Guardians in bar bounty.
 - Removed option to draw weapon debug lines.
 - Added AI Tweaks devmode setting to LunaLib. Devmode shouldn't be used outside development, as it reduces stability.
-- Added debug option to highlight ships controlled by AI Tweaks custom AI. 
+- Added debug option to highlight ships controlled by AI Tweaks custom AI.
 - Added the possibility to replace the entire logic jar file without reloading the game. This will speed up development, but should have no impact on gameplay. Enabled only in devmode.
 - Added custom variant for low tech star fortress: station3_Bulwark. The variant is not currently used.
 
 Version 1.7.2
 
-- Fixed compatibility with Starsector 0.96. All features should work correctly. mod_info.json gameVersion needs to be downgraded manually. 
+- Fixed compatibility with Starsector 0.96. All features should work correctly. mod_info.json gameVersion needs to be downgraded manually.
 
 Version 1.7.1
 
@@ -332,7 +335,7 @@ Version 1.6.0
 Version 1.5.3
 
 - Fixed another null pointer exception in Lidar Array AI.
-- Previous fix to Proximity Mine was insufficient. Now Proximity Mine is on autofire blacklist and is controlled by vanilla AI. 
+- Previous fix to Proximity Mine was insufficient. Now Proximity Mine is on autofire blacklist and is controlled by vanilla AI.
 
 Version 1.5.2
 
@@ -343,7 +346,7 @@ Version 1.5.2
 
 Version 1.5.1
 
-- Fixed null pointer exception in Lidar Array AI. 
+- Fixed null pointer exception in Lidar Array AI.
 - Improved Lidar Array AI; now the entire ship rotates to properly lead target with hardpoint weapons.
 
 Version 1.5.0
@@ -358,12 +361,12 @@ Version 1.4.7
 
 Version 1.4.6
 
-- Fixed bug that prevented weapons from shooting over armor modules from the Knights of Ludd mod. 
+- Fixed bug that prevented weapons from shooting over armor modules from the Knights of Ludd mod.
 
 Version 1.4.5
 
 - AI Tweaks can be removed from the game without breaking saves.
-- Changed the way weapon behavior is configured, to not interfere with game localisation. 
+- Changed the way weapon behavior is configured, to not interfere with game localisation.
 
 Version 1.4.4
 
@@ -373,7 +376,7 @@ Version 1.4.3
 
 - Changed the default keybind for automatic omni shield toggle to "]" to avoid conflicts with vanilla functionality.
 - Added setting to enable/disable title screen fire.
-- Added alpha version of custom Lidar Array AI. The AI should make Invictus much more focused on killing enemies instead of wobbling around. Can be enabled by uncommenting lines in AITweaks/data/config/shipsystems/lidararray.system. 
+- Added alpha version of custom Lidar Array AI. The AI should make Invictus much more focused on killing enemies instead of wobbling around. Can be enabled by uncommenting lines in AITweaks/data/config/shipsystems/lidararray.system.
 
 Version 1.4.2
 
@@ -382,12 +385,12 @@ Version 1.4.2
 Version 1.4.1
 
 - Improved the personality picker for automated ships in player's fleet. Now it works reliably in all cases.
-- Personality setting for automated ships now applies also to automated ships without AI cores assigned. In vanilla, they are always reckless. 
+- Personality setting for automated ships now applies also to automated ships without AI cores assigned. In vanilla, they are always reckless.
 
 Version 1.4.0
 
 - Added the ability to change personality of AI core captains in player fleet. The personality can be changed via LunaLib settings.
-- Default personality of AI cores in player fleet is now aggressive instead of reckless (aka fearless). 
+- Default personality of AI cores in player fleet is now aggressive instead of reckless (aka fearless).
 - Fixed a bug that caused weapons to try to shoot through indestructible parts of space stations.
 
 Version 1.3.0

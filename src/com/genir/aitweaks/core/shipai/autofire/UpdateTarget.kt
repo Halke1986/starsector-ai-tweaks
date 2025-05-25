@@ -4,6 +4,7 @@ import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatAsteroidAPI
 import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.DamageType.FRAGMENTATION
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
@@ -33,25 +34,43 @@ class UpdateTarget(
         ObstacleList(weapon, targetSearchRange, params)
     }
 
-    fun target(): CombatEntityAPI? = when {
-        Global.getCurrentState() == GameState.TITLE && config.enableTitleScreenFire -> selectAsteroid()
+    fun target(): CombatEntityAPI? {
+        val selectShip = fun(): CombatEntityAPI? {
+            return selectShip { !it.isFighter }
+        }
 
-        // Obligatory PD
-        weapon.hasAIHint(PD_ONLY) -> selectTarget(::selectMissile, ::selectFighter)
+        val selectShipOrFighter = fun(): CombatEntityAPI? {
+            return selectShip { true }
+        }
 
-        // PD
-        weapon.hasAIHint(PD) -> selectTarget(::selectMissile, ::selectFighter, this::selectShip)
+        val selectFighter = fun(): CombatEntityAPI? {
+            return selectShip { it.isFighter }
+        }
 
-        // Main weapons
-        weapon.isAntiFighter -> selectTarget(::selectShipOrFighter)
-        weapon.hasAIHint(STRIKE) || weapon.isFinisherBeam -> selectTarget(this::selectShip)
-        weapon.ship.hullSpec.hullId.startsWith("guardian") -> selectTarget(this::selectShip)
+        val selectNonSupportFighter = fun(): CombatEntityAPI? {
+            return selectShip { it.isFighter && !it.isSupportFighter }
+        }
 
-        // Default main weapon.
-        else -> selectTarget(this::selectShip, ::selectNonSupportFighter)
+        return when {
+            Global.getCurrentState() == GameState.TITLE && config.enableTitleScreenFire -> selectAsteroid()
+
+            // Obligatory PD
+            weapon.hasAIHint(PD_ONLY) -> combineSelectors(::selectMissile, selectFighter)
+
+            // PD
+            weapon.hasAIHint(PD) -> combineSelectors(::selectMissile, selectFighter, selectShip)
+
+            // Main weapons
+            weapon.isAntiFighter -> selectShipOrFighter()
+            weapon.hasAIHint(STRIKE) || weapon.isFinisherBeam -> selectShip()
+            weapon.ship.hullSpec.hullId.startsWith("guardian") -> selectShip()
+
+            // Default main weapon.
+            else -> combineSelectors(selectShip, selectNonSupportFighter)
+        }
     }
 
-    private fun selectTarget(vararg selectors: () -> CombatEntityAPI?): CombatEntityAPI? {
+    private fun combineSelectors(vararg selectors: () -> CombatEntityAPI?): CombatEntityAPI? {
         var outOfRangeTarget: CombatEntityAPI? = null
 
         selectors.forEach { selector ->
@@ -82,36 +101,38 @@ class UpdateTarget(
         return outOfRangeTarget
     }
 
-    private fun selectShip(): CombatEntityAPI? {
-        return selectShipWithPriority { !it.isFighter }
-    }
-
-    private fun selectShipOrFighter(): CombatEntityAPI? {
-        return selectShipWithPriority { true }
-    }
-
-    private fun selectFighter(): CombatEntityAPI? {
-        return selectShip { it.isFighter }
-    }
-
-    private fun selectNonSupportFighter(): CombatEntityAPI? {
-        return selectShip { it.isFighter && !it.isSupportFighter }
-    }
-
-    private fun selectShipWithPriority(shipTypeFilter: ((ShipAPI) -> Boolean)): ShipAPI? {
-        if (!weapon.isStrictlyAntiArmor || weapon.slot.isHardpoint) {
-            return selectShip(shipTypeFilter)
+    private fun selectShip(shipTypeFilter: ((ShipAPI) -> Boolean)): ShipAPI? {
+        // No need to prioritize no-shield targets for non-anti-armor or hardpoint weapons.
+        if (!weapon.isStrictlyAntiArmor || weapon.damageType == FRAGMENTATION || weapon.slot.isHardpoint) {
+            return selectShipInner(shipTypeFilter)
         }
 
-        val selected = selectTarget(
-            { selectShip { ship -> shipTypeFilter(ship) && !disqualifyLowPriorityTargets(ship) } },
-            { selectShip(shipTypeFilter) },
+        val willAttackBypassShields = fun(target: ShipAPI): Boolean {
+            val idealHit by lazy {
+                estimateIdealHit(weapon, target, params)
+            }
+
+            return when {
+                !shipTypeFilter(target) -> false
+
+                !target.isShip -> false
+
+                idealHit.type == Hit.Type.SHIELD -> false
+
+                else -> true
+            }
+        }
+
+        // Prioritize targets which can be hit on bare hull.
+        val selected = combineSelectors(
+            { selectShipInner(willAttackBypassShields) },
+            { selectShipInner(shipTypeFilter) },
         )
 
         return selected as? ShipAPI
     }
 
-    private fun selectShip(shipTypeFilter: ((ShipAPI) -> Boolean)): ShipAPI? {
+    private fun selectShipInner(shipTypeFilter: ((ShipAPI) -> Boolean)): ShipAPI? {
         val isTargetAcceptable = fun(target: CombatEntityAPI?, range: Float): Boolean {
             return when {
                 target !is ShipAPI -> false
@@ -130,6 +151,8 @@ class UpdateTarget(
 
                 !canTrack(weapon, BallisticTarget.collisionRadius(target), params, range) -> false
 
+                // Allow tracking main attack target even if it's occluded.
+                // This helps the ship to stay focused on finishing a single target.
                 target != attackTarget && obstacleList.isOccluded(target) -> false
 
                 else -> true
@@ -138,25 +161,7 @@ class UpdateTarget(
 
         val ships: Sequence<ShipAPI> = Grid.ships(weapon.location, targetSearchRange)
 
-        return selectEntity(ships, isTargetAcceptable) as? ShipAPI
-    }
-
-    private fun disqualifyLowPriorityTargets(target: ShipAPI): Boolean {
-        val idealHit by lazy {
-            estimateIdealHit(weapon, target, params)
-        }
-
-        return when {
-            !weapon.isStrictlyAntiArmor -> false
-
-            !target.isShip -> false
-
-            idealHit.range > weapon.totalRange -> true
-
-            idealHit.type == Hit.Type.SHIELD -> true
-
-            else -> false
-        }
+        return selectTarget(ships, isTargetAcceptable) as? ShipAPI
     }
 
     private fun selectMissile(): MissileAPI? {
@@ -180,7 +185,7 @@ class UpdateTarget(
 
         val missiles: Sequence<MissileAPI> = Grid.missiles(weapon.location, targetSearchRange)
 
-        return selectEntity(missiles, isTargetAcceptable) as? MissileAPI
+        return selectTarget(missiles, isTargetAcceptable) as? MissileAPI
     }
 
     /** Target asteroid selection. Selects asteroid only when the weapon and asteroid
@@ -212,10 +217,10 @@ class UpdateTarget(
 
         val asteroids: Sequence<CombatAsteroidAPI> = Grid.asteroids(weapon.location, targetSearchRange)
 
-        return selectEntity(asteroids, isTargetAcceptable) as? CombatAsteroidAPI
+        return selectTarget(asteroids, isTargetAcceptable) as? CombatAsteroidAPI
     }
 
-    private fun selectEntity(
+    private fun selectTarget(
         entities: Sequence<CombatEntityAPI>,
         isTargetAcceptable: ((CombatEntityAPI, Float) -> Boolean),
     ): CombatEntityAPI? {
@@ -234,13 +239,13 @@ class UpdateTarget(
         }
 
         val evaluated: Sequence<Pair<CombatEntityAPI, Float>> = opportunities.map { opportunity ->
-            evaluateEntity(opportunity)
+            evaluateTarget(opportunity)
         }
 
         return evaluated.minWithOrNull(compareBy { it.second })?.first
     }
 
-    private fun evaluateEntity(target: CombatEntityAPI): Pair<CombatEntityAPI, Float> {
+    private fun evaluateTarget(target: CombatEntityAPI): Pair<CombatEntityAPI, Float> {
         val ballisticTarget = BallisticTarget.collisionRadius(target)
         val dist = intercept(weapon, ballisticTarget, params).length
         val range = weapon.totalRange
