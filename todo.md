@@ -43,6 +43,12 @@ I'm slightly-less-but-still-substantially sick and tired of ppl going "bro just 
 
 HAS_INCOMING_DAMAGE flag, when adding custom threat evaluation
 
-redo integration with leading pip
+redo integration with leading pip (or maybe just remove it?)
+
+take a look at progressive staggered fire
+
+shield assist controlling phase ships, particularly RAT Gilgamesh
+
+approach into missile range
 
 ----------------------------------------------------------------

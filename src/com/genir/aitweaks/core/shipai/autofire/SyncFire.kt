@@ -75,7 +75,7 @@ class SyncFire(private val weapon: WeaponHandle, var state: State?) {
         // Weapons with firing cycle longer than 6 seconds
         // are not eligible for staggered firing mode.
         val combinedCycleDuration = weapon.firingCycle.duration
-        if (combinedCycleDuration > 6f) {
+        if (combinedCycleDuration > config.staggeredFireThreshold) {
             isInSync = false
             return true
         }
@@ -156,11 +156,9 @@ class SyncFire(private val weapon: WeaponHandle, var state: State?) {
     companion object {
         /** Ensure all weapons that are to fire in staggered mode share an up-to date state. */
         fun updateWeaponSync(ship: ShipAPI) {
-            when {
-                !config.enabledStaggeredFire -> return
-
-                // Phase ships should be able to fire all weapons immediately after exiting P-space.
-                ship.isPhase -> return
+            // Phase ships should be able to fire all weapons immediately after exiting P-space.
+            if (ship.isPhase) {
+                return
             }
 
             // Find weapons to sync.

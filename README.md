@@ -99,7 +99,7 @@ interval.
 
 Staggered fire mode does not apply to phase ships, allowing them to fire all weapons immediately after exiting P-space.
 
-The feature can be disabled via LunaLib settings.
+The feature can be configured via LunaLib settings.
 
 ![staggered_firing_mode](https://vimeo.com/1037950693)
 

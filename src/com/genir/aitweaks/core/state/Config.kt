@@ -18,7 +18,7 @@ class Config {
     val aiPersonality: String? = LunaSettings.getString("aitweaks", "aitweaks_ai_core_personality")
 
     // Autofire AI
-    val enabledStaggeredFire: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_staggered_fire")!!
+    val staggeredFireThreshold: Float = LunaSettings.getFloat("aitweaks", "aitweaks_staggered_fire_threshold")!!
     val enableNeedlerFix: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_needler_fix")!!
     val enableBeamSweep: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_beam_sweep")!!
     val strictUseLessVSShields: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_strict_use_less_vs_shields")!!
