@@ -20,20 +20,26 @@ import com.fs.starfarer.api.Global
  */
 
 internal fun debug(dt: Float) {
-    val ship = Global.getCombatEngine().playerShip ?: return
-    val ships = Global.getCombatEngine().ships
+    try {
+        val ship = Global.getCombatEngine().playerShip ?: return
+        val ships = Global.getCombatEngine().ships
 
 //    if (!Global.getCombatEngine().isPaused){
 //        log("***********************************************")
 //    }
 
-    ships.forEach {
+        ships.forEach {
+
+
 //        Debug.drawCircle(it.location, it.collisionRadius * 1.4f, Color.CYAN)
 //        Debug.drawCollisionRadius(it, Color.CYAN)
 //        Debug.drawAccelerationLines(it)
 
 //        Debug.drawCircle(it.location, it.collisionRadius * 1.4f, CYAN)
-    }
+        }
 
 //    removeAsteroids()
+    } catch (e: Exception) {
+        Debug.print["crash"] = e
+    }
 }

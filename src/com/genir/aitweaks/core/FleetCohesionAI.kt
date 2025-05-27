@@ -64,17 +64,13 @@ class FleetCohesionAI(private val side: Int) : BaseEveryFrameCombatPlugin() {
         // to not interfere with AdmiralAI.
         if (side == 1) return
 
-        val ships = engine.ships.filter {
+        val ships = engine.ships.filter { ship ->
             when {
-                it.owner != side -> false
-                !it.isAlive -> false
-                it.isExpired -> false
-                !it.isBig -> false
-                it.isAlly -> false
-                it.isStation -> false
-                it.isModule -> false
-                it.basicShipAI == null -> false
-                it.isUnderManualControl -> false
+                !ship.canReceiveOrders -> false
+                ship.owner != side -> false
+                !ship.isBig -> false
+                ship.isAlly -> false
+                ship.basicShipAI == null -> false
                 else -> true
             }
         }

@@ -7,7 +7,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.State.Companion.state
-import com.genir.starfarer.combat.tasks.CombatTaskManager
 
 /** Make ships defaults to Search and Destroy order. Ships will not be automatically
  * assigned to Assault, Eliminate or any other tasks. Player can manually assign ships
@@ -22,13 +21,9 @@ class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
 
         val allShips = engine.ships.filter { ship ->
             when {
+                !ship.canReceiveOrders -> false
                 ship.owner != 0 -> false
                 ship.isAlly -> false
-                !ship.isAlive -> false
-                ship.isExpired -> false
-                ship.isStation -> false
-                ship.isModule -> false
-                ship.isFighter -> false
                 else -> true
             }
         }
@@ -76,12 +71,4 @@ class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
             }
         }
     }
-
-    private val ShipAPI.hasDirectOrders: Boolean
-        get() {
-            val taskManager = taskManager as CombatTaskManager
-            val fleetMember = deployedFleetMember as CombatTaskManager.DeployedFleetMember
-
-            return taskManager.hasDirectOrders(fleetMember)
-        }
 }

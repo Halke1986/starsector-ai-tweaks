@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import com.genir.starfarer.combat.ai.BasicShipAI
 import com.genir.starfarer.combat.entities.Ship
+import com.genir.starfarer.combat.tasks.CombatTaskManager
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 
@@ -38,6 +39,26 @@ val ShipAPI.assignment: CombatFleetManagerAPI.AssignmentInfo?
 
 val ShipAPI.deployedFleetMember: DeployedFleetMemberAPI?
     get() = Global.getCombatEngine().getFleetManager(owner).getDeployedFleetMember(this)
+
+val ShipAPI.hasDirectOrders: Boolean
+    get() {
+        val taskManager = taskManager as? CombatTaskManager
+        val fleetMember = deployedFleetMember as? CombatTaskManager.DeployedFleetMember
+
+        return taskManager?.hasDirectOrders(fleetMember) == true
+    }
+
+val ShipAPI.canReceiveOrders: Boolean
+    get() = when {
+        !isAlive -> false
+        isExpired -> false
+        isStation -> false
+        isModule -> false
+        isFighter -> false
+        isUnderManualControl -> false
+        deployedFleetMember == null -> false
+        else -> true
+    }
 
 /** Get target which the ship is currently attacking. */
 val ShipAPI.attackTarget: ShipAPI?

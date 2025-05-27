@@ -4,6 +4,7 @@
 - Autofire AI: Improved target selection logic for obligatory anti-armor weapons like the Voidblaster. They are now better at identifying opportunities to bypass enemy ship shields.
 - Autofire AI: It's now possible to configure staggered fire cycle threshold via LunaLib settings. 
 - Fixed a bug where ships with the Search and Destroy hullmod could lose their initial assignment.
+- Fixed a NullPointerException caused by the Search and Destroy hullmod attempting to give orders to ships without an associated DeployedFleetMember object. Reported by tantananan.
 
 Version v2.1.3
 
