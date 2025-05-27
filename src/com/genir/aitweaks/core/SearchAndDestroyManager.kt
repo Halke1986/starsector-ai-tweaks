@@ -1,8 +1,8 @@
 package com.genir.aitweaks.core
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.AssignmentTargetAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
+import com.fs.starfarer.api.combat.CombatFleetManagerAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
@@ -13,7 +13,7 @@ import com.genir.starfarer.combat.tasks.CombatTaskManager
  * assigned to Assault, Eliminate or any other tasks. Player can manually assign ships
  * to any tasks. */
 class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
-    private val initialAssignments: MutableMap<ShipAPI, AssignmentTargetAPI> = mutableMapOf()
+    private val initialAssignments: MutableMap<ShipAPI, CombatFleetManagerAPI.AssignmentInfo> = mutableMapOf()
 
     private var firstFrameWithShips = -1
 
@@ -49,27 +49,30 @@ class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
         // to allow for easy objective capping.
         if (firstFrameWithShips == state.unpausedFrameCount) {
             shipsToOrder.forEach { ship ->
-                val assignment = ship.assignment
-
-                if (assignment != null && !ship.hasDirectOrders) {
-                    initialAssignments[ship] = assignment.target
+                if (ship.hasDirectOrders) {
+                    initialAssignments.remove(ship)
+                } else {
+                    ship.assignment?.let { assignment ->
+                        initialAssignments[ship] = assignment
+                    }
                 }
             }
         }
 
-        shipsToOrder.forEach { ship ->
-            if (ship.hasDirectOrders) {
-                initialAssignments.remove(ship)
-                return@forEach
-            }
+        if (firstFrameWithShips != state.unpausedFrameCount) {
+            shipsToOrder.forEach { ship ->
+                // Transform initial auto-assignments into direct orders,
+                // so that the task manager will not modify them.
+                val initialAssignment = initialAssignments[ship]
+                if (initialAssignment != null) {
+                    ship.taskManager.giveAssignment(ship.deployedFleetMember, initialAssignment, false)
 
-            val assignment = ship.assignment
-            if (assignment != null && assignment.target == initialAssignments[ship]) {
-                return@forEach
-            }
+                    initialAssignments.remove(ship)
+                }
 
-            if (firstFrameWithShips != state.unpausedFrameCount) {
-                ship.taskManager.orderSearchAndDestroy(ship.deployedFleetMember, false)
+                if (!ship.hasDirectOrders) {
+                    ship.taskManager.orderSearchAndDestroy(ship.deployedFleetMember, false)
+                }
             }
         }
     }

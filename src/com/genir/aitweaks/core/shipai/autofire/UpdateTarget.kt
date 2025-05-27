@@ -102,8 +102,18 @@ class UpdateTarget(
     }
 
     private fun selectShip(shipTypeFilter: ((ShipAPI) -> Boolean)): ShipAPI? {
-        // No need to prioritize no-shield targets for non-anti-armor or hardpoint weapons.
-        if (!weapon.isStrictlyAntiArmor || weapon.damageType == FRAGMENTATION || weapon.slot.isHardpoint) {
+        val prioritizeAntiArmor = when {
+            !weapon.isStrictlyAntiArmor -> false
+
+            weapon.damageType == FRAGMENTATION -> false
+
+            weapon.slot.isHardpoint -> false
+
+            else -> true
+        }
+
+        // No need to prioritize no-shield targets.
+        if (!prioritizeAntiArmor) {
             return selectShipInner(shipTypeFilter)
         }
 
@@ -123,7 +133,8 @@ class UpdateTarget(
             }
         }
 
-        // Prioritize targets which can be hit on bare hull.
+        // Prioritize targets that can be hit directly on the hull.
+        // If none are available, fall back to targets that can be hit on shields.
         val selected = combineSelectors(
             { selectShipInner(willAttackBypassShields) },
             { selectShipInner(shipTypeFilter) },
