@@ -3,8 +3,11 @@ package com.genir.aitweaks.core.playerassist
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
+import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.core.extensions.isPhase
+import com.genir.aitweaks.core.extensions.isUnderManualControl
 import com.genir.aitweaks.core.state.Config.Companion.config
 
 class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
@@ -54,6 +57,23 @@ class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
         if (!engine.customData.containsKey(RENDER_PLUGIN_KEY)) {
             engine.addLayeredRenderingPlugin(ShieldAssistIndicator(this))
             engine.customData[RENDER_PLUGIN_KEY] = true
+        }
+    }
+
+    fun shouldRunShieldAssist(): Boolean {
+        val ship: ShipAPI = Global.getCombatEngine().playerShip ?: return false
+        val shield: ShieldAPI = ship.shield ?: return false
+
+        // Decide if shield assist should run.
+        return when {
+            !ship.isAlive -> false
+            !ship.isUnderManualControl -> false
+
+            ship.isPhase -> false
+            shield.type != ShieldAPI.ShieldType.OMNI && shield.type != ShieldAPI.ShieldType.FRONT -> false
+            !enableShieldAssist -> false
+
+            else -> true
         }
     }
 }

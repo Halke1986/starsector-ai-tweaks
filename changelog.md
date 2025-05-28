@@ -5,6 +5,7 @@
 - Autofire AI: It's now possible to configure staggered fire cycle threshold via LunaLib settings. 
 - Fixed a bug where ships with the Search and Destroy hullmod could lose their initial assignment.
 - Fixed a NullPointerException caused by the Search and Destroy hullmod attempting to give orders to ships without an associated DeployedFleetMember object. Reported by tantananan.
+- Player Assist: Fixed a bug where Shield Assist attempted to control shields on certain phase ships, such as the RAT Gilgamesh. Reported by Æios the Catweeb.
 
 Version v2.1.3
 

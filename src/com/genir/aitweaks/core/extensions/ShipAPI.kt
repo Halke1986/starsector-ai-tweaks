@@ -93,7 +93,7 @@ val ShipAPI.isAutomated: Boolean
     get() = variant.hasHullMod(HullMods.AUTOMATED)
 
 val ShipAPI.isPhase: Boolean
-    get() = hullSpec.isPhase || hullSpec.hints.contains(PHASE)
+    get() = hullSpec.isPhase || hullSpec.hints.contains(PHASE) || shield?.type == ShieldAPI.ShieldType.PHASE
 
 val ShipAPI.deploymentPoints: Float
     get() = max(0f, fleetMember?.unmodifiedDeploymentPointsCost ?: 0f)

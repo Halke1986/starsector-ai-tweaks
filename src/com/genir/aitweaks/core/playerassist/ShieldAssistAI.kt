@@ -3,12 +3,10 @@ package com.genir.aitweaks.core.playerassist
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShieldAPI.ShieldType.FRONT
-import com.fs.starfarer.api.combat.ShieldAPI.ShieldType.OMNI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.command
-import com.genir.aitweaks.core.extensions.isUnderManualControl
 import com.genir.aitweaks.core.shipai.BaseShipAI
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.VanillaShipCommand
@@ -30,17 +28,12 @@ class ShieldAssistAI(private val manager: ShieldAssistManager) : BaseShipAI() {
         val prevForceShieldOff = forceShieldOff
         forceShieldOff = false
 
+        if (!manager.shouldRunShieldAssist()) {
+            return
+        }
+
         val ship: ShipAPI = Global.getCombatEngine().playerShip ?: return
         val shield: ShieldAPI = ship.shield ?: return
-
-        // Decide if shield assist should run.
-        when {
-            !ship.isAlive -> return
-            !ship.isUnderManualControl -> return
-
-            shield.type != OMNI && shield.type != FRONT -> return
-            !manager.enableShieldAssist -> return
-        }
 
         // Update shield controller if the player ship changed.
         if (ship != prevPlayerShip) {

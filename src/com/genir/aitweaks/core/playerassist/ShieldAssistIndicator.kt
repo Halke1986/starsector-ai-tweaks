@@ -3,8 +3,6 @@ package com.genir.aitweaks.core.playerassist
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseCombatLayeredRenderingPlugin
 import com.fs.starfarer.api.combat.CombatEngineLayers
-import com.fs.starfarer.api.combat.ShieldAPI.ShieldType.FRONT
-import com.fs.starfarer.api.combat.ShieldAPI.ShieldType.OMNI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.util.Misc
 import org.lazywizard.lazylib.opengl.DrawUtils
@@ -15,15 +13,12 @@ import kotlin.math.max
 
 class ShieldAssistIndicator(private val manager: ShieldAssistManager) : BaseCombatLayeredRenderingPlugin() {
     override fun render(layer: CombatEngineLayers?, viewport: ViewportAPI?) {
-        val engine = Global.getCombatEngine() ?: return
-        val ship = engine.playerShip ?: return
-        val shield = ship.shield ?: return
-
-        when {
-            shield.type != OMNI && shield.type != FRONT -> return
-            !engine.isUIAutopilotOn -> return
-            !manager.enableShieldAssist -> return
+        if (!manager.shouldRunShieldAssist()) {
+            return
         }
+
+        val shield = Global.getCombatEngine().playerShip?.shield ?: return
+        val arc = if (shield.activeArc > 2f) shield.activeArc + 10f else 0f
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
@@ -35,7 +30,6 @@ class ShieldAssistIndicator(private val manager: ShieldAssistManager) : BaseComb
 
         GL11.glLineWidth(2f / Global.getCombatEngine().viewport.viewMult)
 
-        val arc = if (shield.activeArc > 2f) shield.activeArc + 10f else 0f
         DrawUtils.drawArc(
             shield.location.x,
             shield.location.y,
