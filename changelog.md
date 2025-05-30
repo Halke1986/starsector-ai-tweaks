@@ -1,3 +1,5 @@
+- Autofire AI: Fixed another bug where Voidblaster was firing at targets beyond its effective range.
+
 Version v2.1.4
 
 - Custom AI: Fixed a bug where ships with an active Temporal Shell system behaved far more aggressively than intended.

@@ -2,8 +2,10 @@ package com.genir.aitweaks.core.handles
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.fs.starfarer.api.loading.MissileSpecAPI
-import com.fs.starfarer.api.loading.ProjectileSpawnType.*
+import com.fs.starfarer.api.loading.ProjectileSpawnType.BALLISTIC_AS_BEAM
+import com.fs.starfarer.api.loading.ProjectileSpawnType.BEAM
 import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
 import com.genir.aitweaks.core.handles.wrappers.WeaponWrapper
@@ -74,7 +76,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
         get() = spec.aiHints.contains(WeaponAPI.AIHints.PD) || spec.aiHints.contains(WeaponAPI.AIHints.PD_ONLY)
 
     val isMissile: Boolean
-        get() = type == WeaponAPI.WeaponType.MISSILE
+        get() = type == WeaponType.MISSILE
 
     val isUnguidedMissile: Boolean
         get() {
@@ -107,7 +109,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
 
     val arc: Arc
         get() {
-            val isMissileHardpoint = type == WeaponAPI.WeaponType.MISSILE && slot.isHardpoint
+            val isMissileHardpoint = type == WeaponType.MISSILE && slot.isHardpoint
             val angle = if (isMissileHardpoint) 0f else weapon.arc
             return Arc(angle, arcFacing.direction)
         }
@@ -118,14 +120,16 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
 
     /** Actual weapon range depends on frame duration. */
     override fun getRange(): Float {
-        if (type != WeaponAPI.WeaponType.BALLISTIC) {
+        if (spec.projectileSpec == null || type == WeaponType.MISSILE) {
             return weapon.range
         }
 
         // Projectile always travels for integer number of frames.
         val idealDt: Float = Global.getCombatEngine().timeMult.modifiedValue / 60
         val distPerFrame: Float = projectileSpeed * idealDt
-        val frames: Int = (weapon.range / distPerFrame).toInt()
+
+        val flightDistance = weapon.range - projectileLength
+        val frames: Int = (flightDistance / distPerFrame).toInt()
         val projectileRange: Float = distPerFrame * frames
 
         return projectileSpawnOffset + projectileRange
@@ -226,21 +230,19 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
     /** Distance along the firing angle from the weapon's
      * location where the projectile is spawned. */
     val projectileSpawnOffset: Float
-        get() {
-            val spec: ProjectileSpecAPI = (spec.projectileSpec as? ProjectileSpecAPI) ?: return 0f
+        get() = barrelOffset + projectileLength
 
-            return when (spec.spawnType) {
-                // moving ray
+    private val projectileLength: Float
+        get() {
+            val spec: ProjectileSpecAPI? = spec.projectileSpec as? ProjectileSpecAPI
+
+            return when (spec?.spawnType) {
+                // MovingRay projectile class
                 BEAM,
                 BALLISTIC_AS_BEAM -> {
-                    // Why the projectile offset is governed by its width instead of length?
+                    // Why the projectile length is governed by its width instead of length?
                     // Who knows, possibly a Starsector engine bug.
-                    barrelOffset + spec.width / 2
-                }
-
-                PLASMA,
-                BALLISTIC -> {
-                    barrelOffset
+                    spec.width / 2
                 }
 
                 else -> 0f
@@ -321,9 +323,9 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
 
     val rofMultiplier: Float
         get() = when (type) {
-            WeaponAPI.WeaponType.BALLISTIC -> ship.mutableStats.ballisticRoFMult.modifiedValue
-            WeaponAPI.WeaponType.ENERGY -> ship.mutableStats.energyRoFMult.modifiedValue
-            WeaponAPI.WeaponType.MISSILE -> ship.mutableStats.missileRoFMult.modifiedValue
+            WeaponType.BALLISTIC -> ship.mutableStats.ballisticRoFMult.modifiedValue
+            WeaponType.ENERGY -> ship.mutableStats.energyRoFMult.modifiedValue
+            WeaponType.MISSILE -> ship.mutableStats.missileRoFMult.modifiedValue
             else -> 1f
         }
 
