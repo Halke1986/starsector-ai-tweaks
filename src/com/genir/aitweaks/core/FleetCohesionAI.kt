@@ -71,6 +71,7 @@ class FleetCohesionAI(private val side: Int) : BaseEveryFrameCombatPlugin() {
                 !ship.isBig -> false
                 ship.isAlly -> false
                 ship.basicShipAI == null -> false
+                ship.isSkirmisher -> false
                 else -> true
             }
         }

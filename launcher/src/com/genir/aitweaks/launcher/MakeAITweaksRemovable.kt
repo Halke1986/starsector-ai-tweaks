@@ -12,6 +12,7 @@ class MakeAITweaksRemovable {
         private data class Hullmod(val name: String, val key: String)
 
         private val hullmods: List<Hullmod> = listOf(
+            Hullmod("aitweaks_skirmisher", "\$aitweaks_skirmisher"),
             Hullmod("aitweaks_system_shunt", "\$aitweaks_system_shunt"),
             Hullmod("aitweaks_custom_ship_ai", "\$aitweaks_custom_ship_ai"),
             Hullmod("aitweaks_search_and_destroy", "\$aitweaks_search_and_destroy"),
@@ -39,7 +40,6 @@ class MakeAITweaksRemovable {
                     memory.set(key, null)
                 }
             }
-
         }
 
         private fun processAfterSave(entity: HasHullMod) {
@@ -112,4 +112,3 @@ class MakeAITweaksRemovable {
         }
     }
 }
-

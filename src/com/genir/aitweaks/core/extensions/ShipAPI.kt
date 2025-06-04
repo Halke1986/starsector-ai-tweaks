@@ -178,3 +178,6 @@ val ShipAPI.Id: String
 
 val ShipAPI.isFlamedOut: Boolean
     get() = engineController.isFlamedOut
+
+val ShipAPI.isSkirmisher: Boolean
+    get() = root.isFrigate || variant.hasHullMod("aitweaks_skirmisher")

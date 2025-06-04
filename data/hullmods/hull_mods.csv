@@ -1,15 +1,15 @@
-name,id,tier,rarity,tech/manufacturer,tags,uiTags,base value,unlocked,hidden,hiddenEverywhere,cost_frigate,cost_dest,cost_cruiser,cost_capital,,script,,,,desc,,,,short,sModDesc,sprite
-Finisher Beam Protocol,aitweaks_finisher_beam_protocol,0,,AI Tweaks,weapons,Weapons,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.FinisherBeamProtocol,,,,"A set of software modifications and officer training routines designed to modify the firing behavior of certain beam weapons.
+name,id,tier,rarity,tech/manufacturer,tags,uiTags,base value,unlocked,hidden,hiddenEverywhere,cost_frigate,cost_dest,cost_cruiser,cost_capital,,script,,,,,desc,,,,short,sModDesc,sprite
+Finisher Beam Protocol,aitweaks_finisher_beam_protocol,0,,AI Tweaks,weapons,Weapons,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.FinisherBeamProtocol,,,,,"A set of software modifications and officer training routines designed to modify the firing behavior of certain beam weapons.
 
 Under the Protocol, the modified weapons are inhibited from firing at shields. This allows to reliably hit exposed hull surfaces the moment the shields drop and to conserve flux capacity.
 
 Affected weapons are burst beams like %s and %s, as well as High Explosive beams like %s.
 
 The Protocol is active only for weapons in %s mode and does not affect point defense beams.",,,,,,graphics/hullmods/finisher_beam_protocol.png
-System Shunt,aitweaks_system_shunt,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.SystemShunt,,,,"A set of officer instructions and software modifications that prevent the use of the ship's system unless directly ordered by the fleet's first-in-command.
+System Shunt,aitweaks_system_shunt,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.SystemShunt,,,,,"A set of officer instructions and software modifications that prevent the use of the ship's system unless directly ordered by the fleet's first-in-command.
 
 Note: This protocol may be activated if the system's usage is deemed detrimental to the ship's performance in combat.",,,,,,graphics/hullmods/system_shunt.png
-Custom AI,aitweaks_custom_ship_ai,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.CustomShipAI,,,,"A %s replacement for the vanilla ship AI, written mostly from scratch. While functional, some elements and behaviors are still under development.
+Custom AI,aitweaks_custom_ship_ai,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.CustomShipAI,,,,,"A %s replacement for the vanilla ship AI, written mostly from scratch. While functional, some elements and behaviors are still under development.
 
 Plays like a mix between aggressive and reckless personality. Ships avoid being overly brave to the point of suicide and do not suffer from random bouts of cowardice. They may still occasionally overextend during combat.
 
@@ -18,6 +18,11 @@ Custom AI treats orders as high-priority commands, executing them in an RTS-like
 Tested mostly with steady, artillery-based ship builds, like Eradicators, Conquests, Manticores, etc. May not work the best with Safety Override ships.
 
 You can report any feats of stupidity accomplished by the AI on Discord or the forums.",,,,,,graphics/hullmods/custom_ship_ai.png
-Search and Destroy,aitweaks_search_and_destroy,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.SearchAndDestroy,,,,"The ship defaults to Search and Destroy order. The ship will not be automatically assigned to Assault, Eliminate or any other tasks. Player can manually assign the ship to any tasks.
+Search and Destroy,aitweaks_search_and_destroy,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.SearchAndDestroy,,,,,"The ship defaults to Search and Destroy order. The ship will not be automatically assigned to Assault, Eliminate or any other tasks. Player can manually assign the ship to any tasks.
 
 The hullmod is suppressed during initial deployment, to allow for easy objective capping.",,,,,,graphics/warroom/taskicons/icon_search_and_destroy.png
+Role: Skirmisher,aitweaks_skirmisher,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.Skirmisher,,,,,"This ship will operate on the outskirts of the battlefield, engaging targets of opportunity. While it may still join the main battle line, it will not prioritize doing so.
+
+On ships without Custom AI, this hullmod disables the Fleet Cohesion AI, allowing them to revert to vanilla behavior of chasing enemy frigates to the edge of the map.
+
+This hullmod cannot be installed on %s as they are inherently considered skirmishers.",,,,,,graphics/icons/campaign/hostile_activity3.png

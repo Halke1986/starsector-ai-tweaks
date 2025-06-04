@@ -9,7 +9,7 @@ import com.genir.aitweaks.launcher.loading.CoreLoaderManager.instantiate
 class CustomShipAI : BaseHullMod() {
     private val shipAIPicker: ShipAIPicker = coreLoader.loadClass("com.genir.aitweaks.core.shipai.ShipAIPicker").instantiate()
 
-    /** Returns true is custom AI can control the given ship. */
+    /** Returns true if custom AI can control the given ship. */
     override fun showInRefitScreenModPickerFor(ship: ShipAPI): Boolean {
         return shipAIPicker.canHaveCustomAI(ship)
     }

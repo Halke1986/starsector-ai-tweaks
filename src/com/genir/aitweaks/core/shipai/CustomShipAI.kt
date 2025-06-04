@@ -146,6 +146,10 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAI() {
             findClosestSegmentationTarget()
         }
 
+        val closestVisibleTarget: ShipAPI? by lazy {
+            findClosestTarget(onlyVisible = true)
+        }
+
         maneuverTarget = when {
             // Don't change target when movement system is on.
             maneuverTarget?.isValidTarget == true && systemAI?.holdTargets() == true -> {
@@ -162,6 +166,10 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAI() {
                 assignment.eliminate
             }
 
+            ship.isSkirmisher && closestVisibleTarget != null -> {
+                closestVisibleTarget
+            }
+
             // Try fleet segmentation targets first.
             segmentationTarget != null -> {
                 knownSegmentationTargets.add(segmentationTarget!!)
@@ -175,7 +183,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAI() {
 
             // Fall back to the closest target.
             else -> {
-                findClosestTarget()
+                findClosestTarget(onlyVisible = false)
             }
         }
 
@@ -198,27 +206,27 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAI() {
         return closestEntity(primaryTargets, ship.location)
     }
 
-    private fun findClosestTarget(): ShipAPI? {
+    private fun findClosestTarget(onlyVisible: Boolean): ShipAPI? {
         val targets = Global.getCombatEngine().ships.filter {
             when {
                 it.owner == ship.owner -> false
 
                 !it.isValidTarget -> false
 
+                onlyVisible && !isTargetVisible(it) -> false
+
                 else -> true
             }
         }
 
         // Find the closest ship.
-        closestEntity<ShipAPI>(targets.filter { !it.isFighter }, ship.location)?.let { ship ->
-            return ship
+        val target: ShipAPI? = closestEntity<ShipAPI>(targets.filter { !it.isFighter }, ship.location)
+        if (target != null) {
+            return target
         }
 
         // Fallback to finding a fighter.
         return closestEntity(targets, ship.location)
-
-
-//        return closestEntity(targets.filter { it.isFighter }, ship.location)
     }
 
     /** Consider once seen ships as visible, even if they're in fog again. This allows
@@ -466,7 +474,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAI() {
         }
 
         // Assign higher priority to large targets for slow ships.
-        if ((ship.root.isCruiser || ship.root.isCapital) && !ship.isFast) when {
+        if ((ship.root.isCruiser || ship.root.isCapital) && !ship.isFast && !ship.isSkirmisher) when {
             target.root.isFrigate -> evaluation += -1f
             target.root.isCruiser -> evaluation += 0.5f
             target.root.isCapital -> evaluation += 1f
