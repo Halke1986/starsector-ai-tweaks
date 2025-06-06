@@ -16,6 +16,7 @@ import com.genir.aitweaks.core.shipai.Preset as AIPreset
 class VentModule(private val ai: CustomShipAI) {
     private val ship: ShipAPI = ai.ship
     private val damageTracker: DamageTracker = DamageTracker(ship)
+    private val fluxTracker: FluxTracker = FluxTracker(ship, ventTrackingPeriod)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     var isBackingOff: Boolean = false
@@ -30,6 +31,10 @@ class VentModule(private val ai: CustomShipAI) {
         const val ventTimeFactor = 0.8f
         const val idleVentThreshold = 0.30f
         const val opportunisticVentThreshold = 0.5f
+        const val backoffUpperThreshold = 0.75f
+        const val backoffLowerThreshold = 0.1f
+
+        const val ventTrackingPeriod = 4.3f
 
         const val farAway = 1e8f
     }
@@ -37,6 +42,7 @@ class VentModule(private val ai: CustomShipAI) {
     fun advance(dt: Float) {
         debug()
         damageTracker.advance()
+        fluxTracker.advance()
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
@@ -142,7 +148,6 @@ class VentModule(private val ai: CustomShipAI) {
 
     /** Decide if ships needs to back off due to high flux level */
     private fun updateBackoffStatus() {
-        val fluxLevel = ship.fluxTracker.fluxLevel
         val underFire = damageTracker.damage / ship.maxFlux > 0.2f
 
         isBackingOff = when {
@@ -157,7 +162,10 @@ class VentModule(private val ai: CustomShipAI) {
             ship.shield == null && ship.allWeapons.map { it.handle }.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft } -> true
 
             // High flux.
-            ship.shield != null && fluxLevel > AIPreset.backoffUpperThreshold -> true
+            ship.shield != null && ship.hardFluxLevel > backoffUpperThreshold -> true
+
+            // Flux is predicted to rapidly reach dangerous levels.
+            ship.shield != null && ship.fluxLevel + fluxTracker.delta() > AIPreset.holdFireThreshold -> true
 
             // Shields down and received damage.
             underFire && ship.shield != null && ship.shield.isOff -> true
@@ -166,7 +174,7 @@ class VentModule(private val ai: CustomShipAI) {
             underFire && ship.fluxTracker.isVenting -> true
 
             // Stop backing off.
-            fluxLevel <= AIPreset.backoffLowerThreshold -> false
+            ship.fluxLevel <= backoffLowerThreshold -> false
 
             // Continue current backoff status.
             else -> isBackingOff
@@ -185,7 +193,7 @@ class VentModule(private val ai: CustomShipAI) {
             ship.fluxTracker.isOverloadedOrVenting -> false
 
             // No need to vent.
-            ship.FluxLevel < AIPreset.backoffLowerThreshold -> false
+            ship.FluxLevel < backoffLowerThreshold -> false
 
             shouldFinishTarget -> false
 

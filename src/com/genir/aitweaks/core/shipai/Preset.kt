@@ -9,8 +9,6 @@ class Preset {
             get() = mapSize / 8f
 
         // Flux management
-        const val backoffUpperThreshold = 0.75f
-        const val backoffLowerThreshold = 0.1f
         const val holdFireThreshold = 0.93f
         const val damageHistoryDuration = 4f
 

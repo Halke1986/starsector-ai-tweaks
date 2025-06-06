@@ -8,7 +8,6 @@ import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
-import com.genir.aitweaks.core.shipai.Preset.Companion.backoffUpperThreshold
 import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.solve
@@ -34,7 +33,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
         const val stopBeforeCollision = 0.2f // seconds
         const val ignoreMassFraction = 0.4f
         const val minBurnDistFraction = 0.33f
-        const val maxFluxLevel = backoffUpperThreshold * 0.7f
+        const val maxFluxLevel = 0.5f
     }
 
     override fun advance(dt: Float) {
