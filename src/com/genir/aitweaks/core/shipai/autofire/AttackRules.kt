@@ -73,6 +73,11 @@ class AttackRules(private val weapon: WeaponHandle, private val hit: Hit, privat
             hit.type != SHIELD -> fire
 
             weapon.usesAmmo() -> when {
+                // Voidblaster on Assault Units in incursion mode
+                // (and other weapons in similar circumstances)
+                // should be allowed to use spare ammo on shields in all cases.
+                weapon.ammoRegenMultiplier > 3f && weapon.hasAmmoToSpare -> fire
+
                 config.strictUseLessVSShields -> AVOID_SHIELDS
 
                 weapon.hasAmmoToSpare -> fire

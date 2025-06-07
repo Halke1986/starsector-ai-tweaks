@@ -329,6 +329,14 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
             else -> 1f
         }
 
+    val ammoRegenMultiplier: Float
+        get() = when (type) {
+            WeaponType.BALLISTIC -> ship.mutableStats.ballisticAmmoRegenMult.modifiedValue
+            WeaponType.ENERGY -> ship.mutableStats.energyAmmoRegenMult.modifiedValue
+            WeaponType.MISSILE -> ship.mutableStats.missileAmmoRegenMult.modifiedValue
+            else -> 1f
+        }
+
     override fun equals(other: Any?): Boolean {
         val otherWeapon: Any? = (other as? WeaponHandle)?.weapon ?: other
 
