@@ -1,3 +1,5 @@
+Version v2.1.5
+
 - Autofire AI: Fixed another bug where Voidblaster was firing at targets beyond its effective range.
 - Added Skirmisher hullmod. A ship with the hullmod will operate on the outskirts of the battlefield, engaging targets of opportunity.
 - Custom AI: Improved logic for disengaging due to high flux levels — ships now typically disengage sooner.
