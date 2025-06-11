@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.shipai
+package com.genir.aitweaks.core.shipai.threat
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.DamageType
@@ -14,8 +14,11 @@ import com.genir.aitweaks.core.utils.sqrt
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import kotlin.math.max
 
-class DamageEstimator(private val ship: ShipAPI) {
-    data class Damage(val finisherMissileDanger: Boolean, val damage: Float)
+class WeaponThreat(private val ship: ShipAPI) {
+    data class Damage(
+        val finisherMissileDanger: Boolean,
+        val damage: Float,
+    )
 
     fun potentialDamage(duration: Float): Damage {
         val dangerousWeapons = findDangerousWeapons(duration)

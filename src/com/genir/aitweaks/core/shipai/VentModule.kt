@@ -8,6 +8,8 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
+import com.genir.aitweaks.core.shipai.threat.MissileThreat
+import com.genir.aitweaks.core.shipai.threat.WeaponThreat
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
@@ -16,12 +18,15 @@ import com.genir.aitweaks.core.shipai.Preset as AIPreset
 class VentModule(private val ai: CustomShipAI) {
     private val ship: ShipAPI = ai.ship
     private val damageTracker: DamageTracker = DamageTracker(ship)
+    private val weaponThreat: WeaponThreat = WeaponThreat(ship)
+    private val missileThreat: MissileThreat = MissileThreat(ship)
     private val fluxTracker: FluxTracker = FluxTracker(ship, ventTrackingPeriod)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     var isBackingOff: Boolean = false
     var shouldFinishTarget: Boolean = false
-    private var ventTime: Float = ship.fluxTracker.timeToVent
+
+    //    private var ventTime: Float = ship.fluxTracker.timeToVent
     private var shouldInitVent: Boolean = false
     private var ventTrigger: Boolean = false
     private var isSafe: Boolean = false
@@ -46,7 +51,7 @@ class VentModule(private val ai: CustomShipAI) {
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
-            ventTime = ship.fluxTracker.timeToVent
+//            ventTime = ship.fluxTracker.timeToVent
             shouldFinishTarget = shouldFinishTarget()
             updateBackoffStatus()
             shouldInitVent = shouldInitVent()
@@ -84,6 +89,8 @@ class VentModule(private val ai: CustomShipAI) {
         if (ship.owner != 0) {
             return
         }
+
+//        missileThreat.potentialDamage(ship.fluxTracker.timeToVent)
 
 //        if (shouldFinishTarget && ship.fluxLevel > AIPreset.backoffUpperThreshold) {
 //            Debug.drawCircle(ship.location, ship.collisionRadius / 2, BLUE)
@@ -215,25 +222,22 @@ class VentModule(private val ai: CustomShipAI) {
 
     /** Decide if it's safe to vent. */
     private fun isSafe(): Boolean {
-        // Trust vanilla missile danger assessment.
-        if (ai.vanilla.missileDangerDir != null) {
-            return false
-        }
-
-        val estimator = DamageEstimator(ship)
-        val (finisherMissileDanger, potentialDamage) = estimator.potentialDamage(ventTime * ventTimeFactor)
+        val duration = ship.fluxTracker.timeToVent * ventTimeFactor
+        val (finisherMissileDanger, potentialDamage) = weaponThreat.potentialDamage(duration)
         val effectiveHP: Float = ship.hitpoints * ship.hullLevel.let { it * it * it * it }
 
         return when {
             // Don't get hit by a finisher missile.
             finisherMissileDanger -> false
 
+            missileThreat.potentialDamage(duration) > effectiveHP * 0.1f -> false
+
             // Received negligible damage.
-            damageTracker.damage / effectiveHP < 0.03f -> true
+            damageTracker.damage < effectiveHP * 0.03f -> true
 
             // Attempt to tank a limited amount of damage. 0.1f may seem like a large fraction,
             // but potential damage calculation is the absolute worst case scenario.
-            potentialDamage / effectiveHP < 0.1f -> true
+            potentialDamage > effectiveHP * 0.1f -> false
 
             else -> false
         }
@@ -275,7 +279,7 @@ class VentModule(private val ai: CustomShipAI) {
 
             ship.system?.isOn == true -> false
 
-            else -> ship.allGroupedWeapons.all { it.isIdle || it.cooldownRemaining > ventTime }
+            else -> ship.allGroupedWeapons.all { it.isIdle || it.cooldownRemaining > ship.fluxTracker.timeToVent }
         }
     }
 
