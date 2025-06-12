@@ -239,7 +239,7 @@ class VentModule(private val ai: CustomShipAI) {
             // but potential damage calculation is the absolute worst case scenario.
             potentialDamage > effectiveHP * 0.1f -> false
 
-            else -> false
+            else -> true
         }
     }
 
