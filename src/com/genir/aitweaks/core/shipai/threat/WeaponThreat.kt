@@ -9,9 +9,12 @@ import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
+import com.genir.aitweaks.core.shipai.movement.Kinematics
+import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.sqrt
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.vectorProjectionLength
 import kotlin.math.max
 
 class WeaponThreat(private val ship: ShipAPI) {
@@ -79,19 +82,31 @@ class WeaponThreat(private val ship: ShipAPI) {
     }
 
     private fun canWeaponHitShip(duration: Float, weapon: WeaponHandle, obstacles: List<ShipAPI>): Boolean {
+        val enemy: Kinematics = weapon.ship.kinematics
         val toShip = ship.location - weapon.location
         val distSqr = toShip.lengthSquared
-        val dist = sqrt(distSqr) - ship.shieldRadiusEvenIfNoShield / 2
+        val dist = sqrt(distSqr) - ship.boundsRadius
 
         // Check if the ship is out of weapons range.
-        val adjustedMovementTime = if (weapon.ship.engineController.isFlamedOut) 0f else duration
-        if (dist - adjustedMovementTime * weapon.ship.maxSpeed > weapon.totalRange) {
-            return false
+        val speedToEnemy = -vectorProjectionLength(ship.velocity, toShip)
+        val approachSpeed = enemy.maxSpeed + speedToEnemy
+        when {
+            dist < weapon.totalRange -> Unit
+
+            // Ship is moving away from the enemy.
+            approachSpeed <= 0 -> {
+                return false
+            }
+
+            // Enemy is pursuing the ship.
+            approachSpeed > 0 && (dist - weapon.totalRange) / approachSpeed > duration -> {
+                return false
+            }
         }
 
         // Check if the ship is out of weapons arc.
         val isGuidedFinisherMissile = weapon.isFinisherMissile && !weapon.isUnguidedMissile
-        val weaponArc = weapon.absoluteArc.extendedBy(adjustedMovementTime * weapon.ship.maxTurnRate)
+        val weaponArc = weapon.absoluteArc.extendedBy(duration * enemy.maxTurnRate)
         if (!isGuidedFinisherMissile && !weaponArc.contains(toShip.facing)) {
             return false
         }

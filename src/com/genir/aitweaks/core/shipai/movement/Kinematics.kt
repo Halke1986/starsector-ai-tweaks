@@ -50,6 +50,9 @@ class Kinematics(val ship: ShipAPI) {
     val angularVelocity: Float
         get() = ship.angularVelocity * timeMult
 
+    val maxTurnRate: Float
+        get() = ship.maxTurnRate * timeMult
+
     val turnAcceleration: Float
         get() = ship.turnAcceleration * timeMult
 

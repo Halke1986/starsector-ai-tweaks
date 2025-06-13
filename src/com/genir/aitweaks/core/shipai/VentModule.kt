@@ -40,6 +40,7 @@ class VentModule(private val ai: CustomShipAI) {
         const val backoffLowerThreshold = 0.1f
 
         const val ventTrackingPeriod = 4.3f
+        const val engageBeforeVentFinish = 1.5f
 
         const val farAway = 1e8f
     }
@@ -51,7 +52,6 @@ class VentModule(private val ai: CustomShipAI) {
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
-//            ventTime = ship.fluxTracker.timeToVent
             shouldFinishTarget = shouldFinishTarget()
             updateBackoffStatus()
             shouldInitVent = shouldInitVent()
@@ -125,7 +125,7 @@ class VentModule(private val ai: CustomShipAI) {
             ai.ventModule.isSafe -> when {
                 // Stop backing off when venting is close to finished.
                 // Otherwise, ship will start reversing course too late and back off too far.
-                ship.fluxTracker.isVenting && ship.fluxTracker.timeToVent < 3f -> {
+                ship.fluxTracker.isVenting && ship.fluxTracker.timeToVent < engageBeforeVentFinish -> {
                     null
                 }
 
