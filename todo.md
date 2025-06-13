@@ -49,7 +49,4 @@ take a look at progressive staggered fire
 
 approach into missile range
 
-REPORTED by Arisaka 
-Has anybody else had issues with rift lightning? I fitted my Eagles with it and had the displeasure of discovering that they don’t want to fire on the enemy. Is there some setting I can tweak to correct this or is it unintended behaviour?
-
 ----------------------------------------------------------------

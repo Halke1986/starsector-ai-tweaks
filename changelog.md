@@ -1,3 +1,5 @@
+- Autofire AI: Fixed a bug where Rift Lightning would not fire. Reported by Arisaka.
+
 Version v2.1.5
 
 - Autofire AI: Fixed another bug where Voidblaster was firing at targets beyond its effective range.

@@ -130,8 +130,14 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
 
         val flightDistance = weapon.range - projectileLength
         val frames: Int = (flightDistance / distPerFrame).toInt()
-        val projectileRange: Float = distPerFrame * frames
 
+        // Special case of scripted weapons with very high
+        // projectile speed, like the Rift Lightning.
+        if (frames == 0) {
+            return weapon.range
+        }
+
+        val projectileRange: Float = distPerFrame * frames
         return projectileSpawnOffset + projectileRange
     }
 
