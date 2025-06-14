@@ -1,7 +1,6 @@
 package com.genir.aitweaks.launcher
 
 import com.fs.starfarer.api.BaseModPlugin
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.PluginPick
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.ShipAIPlugin
@@ -30,25 +29,7 @@ class AITweaksBaseModPlugin : BaseModPlugin() {
         MakeAITweaksRemovable.afterGameSave()
     }
 
-    override fun onNewGame() {
-        onGameStart()
-    }
-
     override fun onGameLoad(newGame: Boolean) {
         MakeAITweaksRemovable.onGameLoad()
-        onGameStart()
-    }
-
-    private fun onGameStart() {
-        val sector = Global.getSector()
-        if (!sector.hasTransientScript(AITweaksEveryFrameScript::class.java)) {
-            sector.addTransientScript(AITweaksEveryFrameScript())
-        }
-
-        // Register Cryosleeper encounter plugin.
-        val plugins = sector.genericPlugins
-        if (!plugins.hasPlugin(CryosleeperEncounter::class.java)) {
-            plugins.addPlugin(CryosleeperEncounter(), true)
-        }
     }
 }
