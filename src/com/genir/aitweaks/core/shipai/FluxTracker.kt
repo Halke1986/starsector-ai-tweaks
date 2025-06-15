@@ -11,7 +11,7 @@ class FluxTracker(val ship: ShipAPI, private val period: Float) {
     private val history = LinkedList<Record>()
 
     fun advance() {
-        if (ship.fluxTracker.isVenting){
+        if (ship.fluxTracker.isVenting) {
             history.clear()
             return
         }

@@ -5,15 +5,11 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.FleetCohesionAI
-import com.genir.aitweaks.core.SearchAndDestroyManager
 import com.genir.aitweaks.core.debug.DebugPlugin
 import com.genir.aitweaks.core.debug.removeGrid
 import com.genir.aitweaks.core.playerassist.AimAssistManager
 import com.genir.aitweaks.core.playerassist.ShieldAssistManager
-import com.genir.aitweaks.core.shipai.FleetSegmentation
-import com.genir.aitweaks.core.shipai.coordinators.AttackCoordinator
-import com.genir.aitweaks.core.shipai.coordinators.NavigationCoordinator
+import com.genir.aitweaks.core.shipai.global.*
 import com.genir.aitweaks.core.state.Config.Companion.config
 
 class State : BaseEveryFrameCombatPlugin() {

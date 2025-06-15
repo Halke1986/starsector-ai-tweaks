@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.shipai
+package com.genir.aitweaks.core.shipai.global
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
