@@ -1,3 +1,5 @@
+Version v2.1.6
+
 - Autofire AI: Fixed a bug where Rift Lightning would not fire. Reported by Arisaka.
 - Custom AI: Improved venting behavior.
 
