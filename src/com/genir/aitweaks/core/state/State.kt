@@ -33,6 +33,7 @@ class State : BaseEveryFrameCombatPlugin() {
     val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
     val maneuverCoordinator: AttackCoordinator = AttackCoordinator()
     val navigateCoordinator: NavigationCoordinator = NavigationCoordinator()
+    val projectileTracker: ProjectileTracker = ProjectileTracker()
 
     private val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
     private val searchAndDestroy: SearchAndDestroyManager = SearchAndDestroyManager()
@@ -45,6 +46,7 @@ class State : BaseEveryFrameCombatPlugin() {
         searchAndDestroy,
         maneuverCoordinator,
         navigateCoordinator,
+        projectileTracker,
         Speedup(),
         AimAssistManager(),
         ShieldAssistManager(),

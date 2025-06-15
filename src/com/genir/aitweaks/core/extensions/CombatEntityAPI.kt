@@ -62,3 +62,6 @@ val CombatEntityAPI.hasShield: Boolean
 
         else -> true
     }
+
+val CombatEntityAPI.root: CombatEntityAPI
+    get() = (this as? ShipAPI)?.root ?: this

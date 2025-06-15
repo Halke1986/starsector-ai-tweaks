@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.shipai.threat
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
@@ -14,6 +13,7 @@ class MissileThreat(val ship: ShipAPI) {
         val allMissiles: Sequence<MissileAPI> = Global.getCombatEngine().missiles.asSequence()
         val allies: List<ShipAPI> = findAllies()
 
+        // Find maneuvering missiles that are likely to hit the ship.
         val missiles = allMissiles.filter { missile ->
             when {
                 !missile.isValidTarget -> false
@@ -32,7 +32,9 @@ class MissileThreat(val ship: ShipAPI) {
             }
         }
 
-        return missiles.asIterable().sumOf { damage(it) }
+        return missiles.asIterable().sumOf { missile ->
+            missile.damageAmount * missile.damageType.armorMult
+        }
     }
 
     private fun findAllies(): List<ShipAPI> {
@@ -76,18 +78,6 @@ class MissileThreat(val ship: ShipAPI) {
             val dist = effectiveDistance(ally, missile)
             return@none dist < shipDist
         }
-    }
-
-    private fun damage(missile: MissileAPI): Float {
-        val damageMultiplier = when (missile.damageType) {
-            DamageType.HIGH_EXPLOSIVE -> 2f
-
-            DamageType.FRAGMENTATION -> 0.25f
-
-            else -> 1f
-        }
-
-        return missile.damageAmount * damageMultiplier
     }
 
     private fun effectiveDistance(target: ShipAPI, missile: MissileAPI): Float {

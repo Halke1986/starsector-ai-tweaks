@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.shipai.autofire
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
@@ -100,7 +101,7 @@ fun interceptArc(weapon: WeaponHandle, target: BallisticTarget, params: Ballisti
     )
 }
 
-/** Calculates if projectile will collide with the target circumference,
+/** Calculates if hypothetical projectile will collide with the target circumference,
  * given current weapon facing.
  * Collision range is returned, null if no collision. */
 fun willHitCircumference(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Float? {
@@ -109,6 +110,20 @@ fun willHitCircumference(weapon: WeaponHandle, target: BallisticTarget, params: 
         ?: return null
 
     return weapon.projectileSpawnOffset + projectileFlightDistance
+}
+
+/** Calculates if a projectile will collide with the target circumference.
+ * Collision range is returned, null if no collision. */
+fun willHitCircumference(projectile: DamagingProjectileAPI, target: BallisticTarget): Float? {
+    val projectileVelocity = projectile.facing.direction.unitVector * projectile.moveSpeed + projectile.weapon.ship.velocity
+
+    val p = projectile.location - target.location
+    val v = projectileVelocity - target.velocity
+
+    val projectileFlightTime = solve(p, v, target.radius)?.smallerNonNegative
+        ?: return null
+
+    return projectileFlightTime * projectile.moveSpeed
 }
 
 /** Calculates if a perfectly accurate projectile will collide with target shield,
@@ -148,8 +163,8 @@ fun willHitBounds(weapon: WeaponHandle, target: ShipAPI, params: BallisticParams
 
 /** Target location and velocity in weapon frame of reference. */
 private fun targetCoords(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Vector2f> {
-    val vAbs = (target.velocity - weapon.ship.velocity)
-    val pAbs = (target.location - weapon.location)
+    val vAbs = target.velocity - weapon.ship.velocity
+    val pAbs = target.location - weapon.location
 
     val p = pAbs + vAbs * (params.delay)
     val v = vAbs / (weapon.projectileSpeed * params.accuracy)
@@ -159,8 +174,8 @@ private fun targetCoords(weapon: WeaponHandle, target: BallisticTarget, params: 
 
 /** Projectile location and velocity in target frame of reference. */
 private fun projectileCoords(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Vector2f> {
-    val vAbs = (weapon.ship.velocity - target.velocity)
-    val pAbs = (weapon.location - target.location)
+    val vAbs = weapon.ship.velocity - target.velocity
+    val pAbs = weapon.location - target.location
     val vProj = weapon.angleWhenFiring.unitVector
 
     val p = pAbs + vAbs * params.delay + vProj * weapon.projectileSpawnOffset

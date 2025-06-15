@@ -98,8 +98,7 @@ fun firstShipAlongLineOfFire(weapon: WeaponHandle, target: CombatEntityAPI, para
         when {
             ship.isFighter -> false
             ship.isExpired -> false
-            ship == weapon.ship -> false
-            weapon.ship.root == ship.root -> false
+            ship.root == weapon.ship.root -> false
 
             ship.owner == weapon.ship.owner -> true
             ship.isPhased -> false
