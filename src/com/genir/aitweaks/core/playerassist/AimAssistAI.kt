@@ -154,7 +154,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         val weaponGroup = WeaponGroup(ship, weapons.filter { it.shouldAim })
         if (target != null) {
             // Rotate ship to face the target intercept with the selected weapon group.
-            val expectedFacing = weaponGroup.attackFacing(target, targetLocation(target))
+            val expectedFacing = weaponGroup.shipAttackFacing(target, targetLocation(target))
             val facingChange = angularVelocity(target.location - ship.location, target.velocity - ship.velocity)
             engineController!!.facing(dt, expectedFacing, facingChange)
         } else {

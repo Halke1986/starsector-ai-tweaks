@@ -19,7 +19,7 @@ import org.lwjgl.util.vector.Vector2f
 
 /** A group of weapons that should be able to fire along a single attack vector. */
 class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
-    val defaultFacing: Direction = defaultAttackFacing()
+    val defaultFacing: Direction = defaultAttackFacing() // Default group facing in ship frame of reference.
     val dps: Float = weapons.sumOf { it.effectiveDPS }
     private val rangeMap: Map<WeaponHandle, Float> = weaponRanges()
     val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)
@@ -75,8 +75,9 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
         return -optimalArc.distanceTo(0f.direction)
     }
 
-    /** Calculate facing that maximizes DPS delivered to the target. */
-    fun attackFacing(target: CombatEntityAPI, targetLocationOverride: Vector2f? = null): Direction {
+    /** Calculate ship facing that maximizes DPS delivered
+     * to the target when using the current weapon group. */
+    fun shipAttackFacing(target: CombatEntityAPI, targetLocationOverride: Vector2f? = null): Direction {
         val ballisticTarget = BallisticTarget(
             targetLocationOverride ?: target.location,
             target.timeAdjustedVelocity,

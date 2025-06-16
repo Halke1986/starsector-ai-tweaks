@@ -87,7 +87,7 @@ class Movement(val ai: CustomShipAI) {
 
             // Face the attack target.
             currentAttackTarget != null -> {
-                weaponGroup.attackFacing(currentAttackTarget)
+                weaponGroup.shipAttackFacing(currentAttackTarget)
             }
 
             // Face threat vector when no target.
