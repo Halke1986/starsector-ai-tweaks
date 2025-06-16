@@ -107,8 +107,11 @@ fun firstShipAlongLineOfFire(weapon: WeaponHandle, target: CombatEntityAPI, para
     }
 
     val evaluated = obstacles.mapNotNull { ship ->
-        if (ship.owner == weapon.ship.owner) analyzeAllyHit(weapon, target, ship, params)
-        else analyzeHit(weapon, ship, params)
+        if (ship.owner == weapon.ship.owner) {
+            analyzeAllyHit(weapon, target, ship, params)
+        } else {
+            analyzeHit(weapon, ship, params)
+        }
     }
 
     return evaluated.minWithOrNull(compareBy { it.range })
