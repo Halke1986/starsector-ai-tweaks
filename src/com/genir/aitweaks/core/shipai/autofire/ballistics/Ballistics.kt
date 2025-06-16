@@ -27,10 +27,6 @@ import org.lwjgl.util.vector.Vector2f
 private const val cos180 = -1f
 private const val approachesInfinity = 1e7f
 
-/** Weapon attack parameters: accuracy and delay until attack. */
-data class BallisticParams(val accuracy: Float, val delay: Float)
-
-val defaultBallisticParams = BallisticParams(1f, 0f)
 
 /** Closest possible range at which the projectile can collide with the target
  * circumference, for any weapon facing.

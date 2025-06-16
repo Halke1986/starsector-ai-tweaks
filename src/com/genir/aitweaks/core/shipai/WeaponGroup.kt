@@ -5,8 +5,8 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.Tag
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.ballistics.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.interceptArc
 import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.utils.Bounds
