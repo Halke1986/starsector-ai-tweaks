@@ -12,7 +12,7 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.BaseShipAI
 import com.genir.aitweaks.core.shipai.WeaponGroup
-import com.genir.aitweaks.core.shipai.autofire.*
+import com.genir.aitweaks.core.shipai.autofire.ballistics.*
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.Config

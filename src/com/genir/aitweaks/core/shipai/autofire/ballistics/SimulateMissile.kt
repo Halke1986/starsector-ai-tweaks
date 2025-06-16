@@ -1,9 +1,9 @@
-package com.genir.aitweaks.core.shipai.autofire
+package com.genir.aitweaks.core.shipai.autofire.ballistics
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.MutableStat
-import com.fs.starfarer.api.combat.ShipHullSpecAPI.EngineSpecAPI
+import com.fs.starfarer.api.combat.ShipHullSpecAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
@@ -12,8 +12,6 @@ import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
-
-// TODO enable for AI (Perdition specifically)
 
 class SimulateMissile {
     data class Frame(val velocity: Vector2f, val location: Vector2f)
@@ -109,7 +107,7 @@ class SimulateMissile {
 
             init {
                 val missileSpec: MissileSpecAPI = weapon.spec.projectileSpec as MissileSpecAPI
-                val engineSpec: EngineSpecAPI = missileSpec.hullSpec.engineSpec
+                val engineSpec: ShipHullSpecAPI.EngineSpecAPI = missileSpec.hullSpec.engineSpec
                 val shipStats: MutableShipStatsAPI = weapon.ship.mutableStats
 
                 val maxSpeedStat = MutableStat(engineSpec.maxSpeed)

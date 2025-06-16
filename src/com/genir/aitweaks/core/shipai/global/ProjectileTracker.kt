@@ -10,8 +10,8 @@ import com.genir.aitweaks.core.extensions.isMissile
 import com.genir.aitweaks.core.extensions.root
 import com.genir.aitweaks.core.extensions.timeAdjustedVelocity
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
-import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.willHitCircumference
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
+import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitCircumference
 
 class ProjectileTracker : BaseEveryFrameCombatPlugin() {
     private val threats: MutableMap<ShipAPI, MutableSet<DamagingProjectileAPI>> = mutableMapOf()

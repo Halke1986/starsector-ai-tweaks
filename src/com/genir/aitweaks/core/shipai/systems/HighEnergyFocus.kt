@@ -11,8 +11,8 @@ import com.genir.aitweaks.core.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.extensions.isValidTarget
 import com.genir.aitweaks.core.extensions.sumOf
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.shipai.autofire.defaultBallisticParams
-import com.genir.aitweaks.core.shipai.autofire.willHitShield
+import com.genir.aitweaks.core.shipai.autofire.ballistics.defaultBallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitShield
 import org.lazywizard.lazylib.combat.AIUtils
 import org.lwjgl.util.vector.Vector2f
 

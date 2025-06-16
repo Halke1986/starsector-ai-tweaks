@@ -7,6 +7,10 @@ import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.extensions.length
 import com.genir.aitweaks.core.extensions.root
 import com.genir.aitweaks.core.handles.WeaponHandle
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
+import com.genir.aitweaks.core.shipai.autofire.ballistics.intercept
+import com.genir.aitweaks.core.shipai.autofire.ballistics.interceptArc
 import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.types.Arc
 

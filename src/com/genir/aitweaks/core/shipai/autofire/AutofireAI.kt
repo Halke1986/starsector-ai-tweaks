@@ -11,10 +11,11 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.ExtendedShipAI
 import com.genir.aitweaks.core.shipai.Preset
-import com.genir.aitweaks.core.shipai.autofire.Hit.Type.ROTATE_BEAM
-import com.genir.aitweaks.core.shipai.autofire.Hit.Type.SHIELD
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.shipai.autofire.UpdateTarget.Companion.TARGET_SEARCH_MULT
+import com.genir.aitweaks.core.shipai.autofire.ballistics.*
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.ROTATE_BEAM
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.SHIELD
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.types.Direction

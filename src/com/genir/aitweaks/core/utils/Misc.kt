@@ -9,10 +9,10 @@ import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.Preset
-import com.genir.aitweaks.core.shipai.autofire.BallisticParams
-import com.genir.aitweaks.core.shipai.autofire.Hit
-import com.genir.aitweaks.core.shipai.autofire.analyzeAllyHit
-import com.genir.aitweaks.core.shipai.autofire.analyzeHit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeAllyHit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeHit
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.starfarer.combat.entities.Ship
 import org.json.JSONObject

@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.shipai.autofire
+package com.genir.aitweaks.core.shipai.autofire.ballistics
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
@@ -7,7 +7,8 @@ import com.genir.aitweaks.core.extensions.hasShield
 import com.genir.aitweaks.core.extensions.isHit
 import com.genir.aitweaks.core.extensions.isShip
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.shipai.autofire.Hit.Type.*
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.*
+import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 

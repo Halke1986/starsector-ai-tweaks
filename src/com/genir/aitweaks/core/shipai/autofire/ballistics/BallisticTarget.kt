@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.shipai.autofire
+package com.genir.aitweaks.core.shipai.autofire.ballistics
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
