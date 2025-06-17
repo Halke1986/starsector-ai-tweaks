@@ -32,23 +32,22 @@ fun analyzeHit(projectile: DamagingProjectileAPI, target: CombatEntityAPI): Hit?
 private fun analyzeHit(projectileMotion: LinearMotion, target: CombatEntityAPI): Hit? {
     // Simple circumference collision is enough for missiles and fighters.
     if (!target.isShip) {
-        val hitRange: Float? = willHitCircumference(projectileMotion, BallisticTarget.collisionRadius(target))
-        return hitRange?.let {
+        return willHitCircumference(projectileMotion, BallisticTarget.collisionRadius(target))?.let { hitRange ->
             Hit(target, hitRange, Hit.Type.HULL)
         }
     }
 
     // Check shield hit.
-    if (target.hasShield) {
-        val hitRange: Float? = willHitShield(projectileMotion, target as ShipAPI)
-        hitRange?.let {
-            return Hit(target, hitRange, Hit.Type.SHIELD)
-        }
+    willHitShield(projectileMotion, target as ShipAPI)?.let { hitRange ->
+        return Hit(target, hitRange, Hit.Type.SHIELD)
     }
 
+    // Check collision radius hit before testing bounds, to increases performance.
+    willHitCircumference(projectileMotion, BallisticTarget.collisionRadius(target))
+        ?: return null
+
     // Check bounds hit.
-    val hitRange: Float? = willHitBounds(projectileMotion, target as ShipAPI)
-    return hitRange?.let {
+    return willHitBounds(projectileMotion, target)?.let { hitRange ->
         Hit(target, hitRange, Hit.Type.HULL)
     }
 }
@@ -75,6 +74,10 @@ fun willHitShield(weapon: WeaponHandle, target: ShipAPI, params: BallisticParams
  * Will not detect hits to inside of shield.
  * Collision range is returned, null if no collision. */
 private fun willHitShield(projectileMotion: LinearMotion, target: ShipAPI): Float? {
+    if (!target.hasShield) {
+        return null
+    }
+
     val shield = target.shield
         ?: return null
 
