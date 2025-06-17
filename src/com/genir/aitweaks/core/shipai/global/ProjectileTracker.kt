@@ -5,13 +5,11 @@ import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.extensions.boundsRadius
 import com.genir.aitweaks.core.extensions.isMissile
 import com.genir.aitweaks.core.extensions.root
-import com.genir.aitweaks.core.extensions.timeAdjustedVelocity
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
-import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitCircumference
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeHit
 
 class ProjectileTracker : BaseEveryFrameCombatPlugin() {
     private val threats: MutableMap<ShipAPI, MutableSet<DamagingProjectileAPI>> = mutableMapOf()
@@ -21,7 +19,7 @@ class ProjectileTracker : BaseEveryFrameCombatPlugin() {
             !it.isMissile && it.elapsed == 0f
         }
 
-        val allTargets: List<BallisticTarget> = findTargets()
+        val allTargets: List<ShipAPI> = findTargets()
 
         newProjectiles.forEach { projectile ->
             if (projectile.weapon == null) {
@@ -68,7 +66,7 @@ class ProjectileTracker : BaseEveryFrameCombatPlugin() {
         }
     }
 
-    private fun findTargets(): List<BallisticTarget> {
+    private fun findTargets(): List<ShipAPI> {
         val ships = Global.getCombatEngine().ships.asSequence().filter { ship ->
             when {
                 ship.isFighter -> false
@@ -78,39 +76,28 @@ class ProjectileTracker : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        val targets = ships.map { ship ->
-            BallisticTarget(
-                ship.location,
-                ship.timeAdjustedVelocity,
-                ship.boundsRadius,
-                ship,
-            )
-        }
-
-        return targets.toList()
+        return ships.toList()
     }
 
-    private fun firstShipAlongFlightPath(projectile: DamagingProjectileAPI, allTargets: List<BallisticTarget>): ShipAPI? {
-        val targets: Sequence<BallisticTarget> = allTargets.asSequence().filter { target ->
-            target.entity.root != projectile.weapon.ship.root
+    private fun firstShipAlongFlightPath(projectile: DamagingProjectileAPI, allTargets: List<ShipAPI>): ShipAPI? {
+        val targets: Sequence<ShipAPI> = allTargets.asSequence().filter { target ->
+            target.root != projectile.weapon.ship.root
         }
 
-        var closestHit: Float = Float.MAX_VALUE
-        var hit: BallisticTarget? = null
+        var closestHit: Hit? = null
+        for (target in targets) {
 
-        targets.forEach { target ->
-            val hitRange: Float? = willHitCircumference(projectile, target)
+            val hit: Hit? = analyzeHit(projectile, target)
 
-            if (hitRange != null && hitRange < closestHit) {
-                closestHit = hitRange
-                hit = target
+            if (hit != null && (closestHit == null || hit.range < closestHit.range)) {
+                closestHit = hit
             }
         }
 
-        if (closestHit > projectile.weapon.handle.totalRange) {
+        if (closestHit == null || closestHit.range > projectile.weapon.handle.totalRange) {
             return null
         }
 
-        return hit?.entity as? ShipAPI
+        return closestHit.target as? ShipAPI
     }
 }

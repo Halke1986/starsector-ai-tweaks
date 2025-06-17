@@ -1,51 +1,118 @@
 package com.genir.aitweaks.core.shipai.autofire.ballistics
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.extensions.facing
-import com.genir.aitweaks.core.extensions.hasShield
-import com.genir.aitweaks.core.extensions.isHit
-import com.genir.aitweaks.core.extensions.isShip
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.*
-import com.genir.aitweaks.core.shipai.autofire.firingCycle
-import com.genir.aitweaks.core.utils.types.Arc
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
-
-data class Hit(val target: CombatEntityAPI, val range: Float, val type: Type) {
-    enum class Type {
-        SHIELD,
-        HULL,
-        ALLY,
-        ROTATE_BEAM // placeholder type for mock hit used by beams rotating to a new target
-    }
-}
+import com.genir.aitweaks.core.utils.Bounds
+import com.genir.aitweaks.core.utils.solve
+import com.genir.aitweaks.core.utils.types.LinearMotion
 
 /** Analyzes the potential collision between projectile and target. Null if no collision. */
 fun analyzeHit(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit? {
+    val projectileMotion = predictProjectileMotion(weapon, target.linearMotion, params)
+
+    val hit = analyzeHit(projectileMotion, target)
+        ?: return null
+
+    return Hit(
+        target = hit.target,
+        range = hit.range + weapon.projectileSpawnOffset,
+        type = hit.type
+    )
+}
+
+fun analyzeHit(projectile: DamagingProjectileAPI, target: CombatEntityAPI): Hit? {
+    val projectileMotion = projectile.linearMotion - target.linearMotion
+
+    return analyzeHit(projectileMotion, target)
+}
+
+private fun analyzeHit(projectileMotion: LinearMotion, target: CombatEntityAPI): Hit? {
     // Simple circumference collision is enough for missiles and fighters.
     if (!target.isShip) {
-        val hitRange: Float? = willHitCircumference(weapon, BallisticTarget.collisionRadius(target), params)
-        return hitRange?.let { Hit(target, hitRange, HULL) }
+        val hitRange: Float? = willHitCircumference(projectileMotion, BallisticTarget.collisionRadius(target))
+        return hitRange?.let {
+            Hit(target, hitRange, Hit.Type.HULL)
+        }
     }
 
     // Check shield hit.
     if (target.hasShield) {
-        val hitRange: Float? = willHitShield(weapon, target as ShipAPI, params)
-        hitRange?.let { return Hit(target, hitRange, SHIELD) }
+        val hitRange: Float? = willHitShield(projectileMotion, target as ShipAPI)
+        hitRange?.let {
+            return Hit(target, hitRange, Hit.Type.SHIELD)
+        }
     }
 
     // Check bounds hit.
-    val hitRange: Float? = willHitBounds(weapon, target as ShipAPI, params)
-    return hitRange?.let { Hit(target, hitRange, HULL) }
+    val hitRange: Float? = willHitBounds(projectileMotion, target as ShipAPI)
+    return hitRange?.let {
+        Hit(target, hitRange, Hit.Type.HULL)
+    }
 }
 
-fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Hit? {
-    return when {
-        weapon.noFF -> null
-        !canHitAlly(weapon, target, ally, params) -> null
-        else -> Hit(ally, closestHitRange(weapon, BallisticTarget.shieldRadius(ally), params), ALLY)
+/** Calculates if a projectile will collide with the target circumference.
+ * Collision range is returned, null if no collision. */
+private fun willHitCircumference(projectileMotion: LinearMotion, target: BallisticTarget): Float? {
+    return solve(projectileMotion, target.radius)?.smallerNonNegative
+}
+
+/** Calculates if a perfectly accurate projectile will collide with target shield,
+ * given current weapon facing. Will not detect hits to inside of shield.
+ * Collision range is returned, null if no collision. */
+fun willHitShield(weapon: WeaponHandle, target: ShipAPI, params: BallisticParams): Float? {
+    val projectileMotion = predictProjectileMotion(weapon, target.linearMotion, params)
+
+    val range = willHitShield(projectileMotion, target)
+        ?: return null
+
+    return range + weapon.projectileSpawnOffset
+}
+
+/** Calculates if a projectile will collide with target shield.
+ * Will not detect hits to inside of shield.
+ * Collision range is returned, null if no collision. */
+private fun willHitShield(projectileMotion: LinearMotion, target: ShipAPI): Float? {
+    val shield = target.shield
+        ?: return null
+
+    if (shield.isOff) {
+        return null
     }
+
+    val projectileFlightDistance = solve(projectileMotion, shield.radius)?.smallerNonNegative
+        ?: return null
+
+    val hitPoint = projectileMotion.positionAfter(projectileFlightDistance)
+
+    return if (shield.isHit(hitPoint)) {
+        projectileFlightDistance
+    } else {
+        null
+    }
+}
+
+/** Calculates if a perfectly accurate projectile will collide with target bounds,
+ * given current weapon facing.
+ * Collision range is returned, null if no collision. */
+private fun willHitBounds(projectileMotion: LinearMotion, target: ShipAPI): Float? {
+    return Bounds.collision(projectileMotion.position, projectileMotion.velocity, target)
+}
+
+/** Predicted projectile location and velocity in target frame of reference.
+ * Assumes a perfectly accurate weapon.
+ * weapon.projectileSpeed is used as velocity unit.*/
+private fun predictProjectileMotion(weapon: WeaponHandle, target: LinearMotion, params: BallisticParams): LinearMotion {
+    val vAbs = weapon.ship.velocity - target.velocity
+    val pAbs = weapon.location - target.position
+    val vProj = weapon.facingWhenFiringThisFrame.unitVector
+
+    return LinearMotion(
+        position = pAbs + vAbs * params.delay + vProj * weapon.projectileSpawnOffset,
+        velocity = vProj + vAbs / (weapon.projectileSpeed * params.accuracy)
+    )
 }
 
 fun estimateIdealHit(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit {
@@ -53,38 +120,7 @@ fun estimateIdealHit(weapon: WeaponHandle, target: CombatEntityAPI, params: Ball
     val (hitPoint, range) = closestHitInTargetFrameOfReference(weapon, ballisticTarget, params)
 
     val shieldHit = target.hasShield && target.shield.isHit(hitPoint)
-    val hitType = if (shieldHit) SHIELD else HULL
+    val hitType = if (shieldHit) Hit.Type.SHIELD else Hit.Type.HULL
 
     return Hit(target, range, hitType)
-}
-
-/** Calculates if an inaccurate projectile may collide with allay ship */
-private fun canHitAlly(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Boolean {
-    val (_, burstEnd) = weaponBurstInterval(weapon)
-    val startParams = BallisticParams(params.accuracy, params.delay)
-    val endParams = BallisticParams(params.accuracy, params.delay + burstEnd)
-
-    val ballisticTarget = BallisticTarget.collisionRadius(target)
-    val ballisticAlly = BallisticTarget.shieldRadius(ally)
-
-    val allyArc = Arc.union(
-        interceptArc(weapon, ballisticAlly, startParams),
-        interceptArc(weapon, ballisticAlly, endParams),
-    )
-
-    val enemyArc = Arc.fromTo(weapon.currAngle.direction, intercept(weapon, ballisticTarget, endParams).facing)
-
-    val spread = weapon.spec.maxSpread + 2f
-    return allyArc.extendedBy(spread).overlaps(enemyArc)
-}
-
-/** Calculates the time intervals between receiving a fire command
- * and the start and end of a burst for the given weapon. */
-private fun weaponBurstInterval(weapon: WeaponHandle): Pair<Float, Float> {
-    // Don't bother with interruptible burst weapons.
-    // They are rare and difficult to account for.
-    if (weapon.spec.isInterruptibleBurst) return Pair(0f, 0f)
-
-    val cycle = weapon.firingCycle
-    return Pair(cycle.warmupDuration, cycle.warmupDuration + cycle.burstDuration)
 }

@@ -1,41 +1,36 @@
 package com.genir.aitweaks.core.shipai.autofire.ballistics
 
-import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.AutofireAIPlugin
-import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.DamagingProjectileAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.pointsOfTangency
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Arc
-import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.LinearMotion
 import org.lwjgl.util.vector.Vector2f
 
 /**
  * All functions in this file take into account target velocity
  * when calculating hit location. Target acceleration is ignored.
  *
- * All functions in this file, except willHitCircumferenceCautious(),
- * assume a perfectly accurate weapon, shooting projectiles with zero
- * collision radius.
+ * All functions in this file assume a perfectly accurate weapon,
+ * shooting projectiles with zero collision radius.
+ *
+ * All functions in this file return the result in weapon frame
+ * of reference, unless stated otherwise.
  */
 
 private const val cos180 = -1f
 private const val approachesInfinity = 1e7f
 
-
-/** Closest possible range at which the projectile can collide with the target
- * circumference, for any weapon facing.
+/** Closest possible range at which the projectile fired by the weapon can collide
+ * with the target circumference, for any weapon facing.
  * When the target's speed approaches the speed of the projectile, the intercept
  * time and location approach infinity. In such cases, the function assumes an
  * arbitrary long time period to approximate the target location. */
 fun closestHitRange(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Float {
-    val pv = targetCoords(weapon, target, params)
-    if (targetAboveWeapon(pv.first, weapon, target)) {
+    val pv = targetMotion(weapon, target.linearMotion, params)
+    if (targetAboveWeapon(pv.position, weapon, target)) {
         return 0f
     }
 
@@ -46,23 +41,16 @@ fun closestHitRange(weapon: WeaponHandle, target: BallisticTarget, params: Balli
     return projectileOffset + projectileFlightDistance
 }
 
-fun closestHitInTargetFrameOfReference(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Float> {
-    val (p, v) = targetCoords(weapon, target, params)
-    val range = closestHitRange(weapon, target, params)
-    val hitPoint = -(p + v * range).resized(target.radius)
-    return Pair(hitPoint, range)
-}
-
 /** Weapon aim location required to hit center point of a moving target. */
 fun intercept(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Vector2f {
     if (weapon.isUnguidedMissile) {
         return SimulateMissile.missileIntercept(weapon, target)
     }
 
-    val (p, v) = targetCoords(weapon, target, params)
-    val projectileFlightDistance = solve(p, v, weapon.projectileSpawnOffset, 1f, 0f, 0f)?.smallerNonNegative
+    val pv = targetMotion(weapon, target.linearMotion, params)
+    val projectileFlightDistance = solve(pv, weapon.projectileSpawnOffset, 1f, 0f, 0f)?.smallerNonNegative
 
-    return p + v * (projectileFlightDistance ?: approachesInfinity)
+    return pv.positionAfter(projectileFlightDistance ?: approachesInfinity)
 }
 
 /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
@@ -81,8 +69,8 @@ fun canTrack(weapon: WeaponHandle, target: BallisticTarget, params: BallisticPar
  * Similar to intercept point, but not restricted to target center point.
  * For simplicity, the barrel offset is omitted. */
 fun interceptArc(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Arc {
-    val (p, _) = targetCoords(weapon, target, params)
-    val points = pointsOfTangency(p, target.radius)
+    val pv = targetMotion(weapon, target.linearMotion, params)
+    val points = pointsOfTangency(pv.position, target.radius)
         ?: return Arc(360f, 0f.direction)
 
     val target1 = BallisticTarget(weapon.location + points.first, target.velocity, 0f, target.entity)
@@ -97,123 +85,32 @@ fun interceptArc(weapon: WeaponHandle, target: BallisticTarget, params: Ballisti
     )
 }
 
-/** Calculates if hypothetical projectile will collide with the target circumference,
- * given current weapon facing.
- * Collision range is returned, null if no collision. */
-fun willHitCircumference(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Float? {
-    val pv = projectileCoords(weapon, target, params)
-    val projectileFlightDistance = solve(pv, target.radius)?.smallerNonNegative
-        ?: return null
-
-    return weapon.projectileSpawnOffset + projectileFlightDistance
+/** Closest possible range at which the projectile fired by the weapon can collide
+ * with the target circumference, for any weapon facing.
+ *
+ * Returns hitPoint in target frame of reference and projectile flight range. */
+fun closestHitInTargetFrameOfReference(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Float> {
+    val pv = targetMotion(weapon, target.linearMotion, params)
+    val range = closestHitRange(weapon, target, params)
+    val hitPoint = -pv.positionAfter(range).resized(target.radius)
+    return Pair(hitPoint, range)
 }
 
-/** Calculates if a projectile will collide with the target circumference.
- * Collision range is returned, null if no collision. */
-fun willHitCircumference(projectile: DamagingProjectileAPI, target: BallisticTarget): Float? {
-    val projectileVelocity = projectile.facing.direction.unitVector * projectile.moveSpeed + projectile.weapon.ship.velocity
-
-    val p = projectile.location - target.location
-    val v = projectileVelocity - target.velocity
-
-    val projectileFlightTime = solve(p, v, target.radius)?.smallerNonNegative
-        ?: return null
-
-    return projectileFlightTime * projectile.moveSpeed
-}
-
-/** Calculates if a perfectly accurate projectile will collide with target shield,
- * given current weapon facing. Will not detect hits to inside of shield.
- * Collision range is returned, null if no collision. */
-fun willHitShield(weapon: WeaponHandle, target: ShipAPI, params: BallisticParams): Float? {
-    val shield = target.shield
-        ?: return null
-
-    if (shield.isOff) {
-        return null
-    }
-
-    val (p, v) = projectileCoords(weapon, BallisticTarget.shieldRadius(target), params)
-    val projectileFlightDistance = solve(p, v, shield.radius)?.smallerNonNegative
-        ?: return null
-
-    val hitPoint = p + v * projectileFlightDistance
-
-    return if (shield.isHit(hitPoint)) {
-        weapon.projectileSpawnOffset + projectileFlightDistance
-    } else {
-        null
-    }
-}
-
-/** Calculates if a perfectly accurate projectile will collide with target bounds,
- * given current weapon facing.
- * Collision range is returned, null if no collision. */
-fun willHitBounds(weapon: WeaponHandle, target: ShipAPI, params: BallisticParams): Float? {
-    val (p, v) = projectileCoords(weapon, BallisticTarget.collisionRadius(target), params)
-    val projectileFlightDistance = Bounds.collision(p, v, target)
-        ?: return null
-
-    return weapon.projectileSpawnOffset + projectileFlightDistance
-}
-
-/** Target location and velocity in weapon frame of reference. */
-private fun targetCoords(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Vector2f> {
+/** Target location and velocity in weapon frame of reference.
+ * weapon.projectileSpeed is used as velocity unit.  */
+private fun targetMotion(weapon: WeaponHandle, target: LinearMotion, params: BallisticParams): LinearMotion {
+    val pAbs = target.position - weapon.location
     val vAbs = target.velocity - weapon.ship.velocity
-    val pAbs = target.location - weapon.location
 
-    val p = pAbs + vAbs * (params.delay)
-    val v = vAbs / (weapon.projectileSpeed * params.accuracy)
-
-    return Pair(p, v)
+    return LinearMotion(
+        position = pAbs + vAbs * (params.delay),
+        velocity = vAbs / (weapon.projectileSpeed * params.accuracy),
+    )
 }
 
-/** Projectile location and velocity in target frame of reference. */
-private fun projectileCoords(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Vector2f> {
-    val vAbs = weapon.ship.velocity - target.velocity
-    val pAbs = weapon.location - target.location
-    val vProj = weapon.angleWhenFiring.unitVector
-
-    val p = pAbs + vAbs * params.delay + vProj * weapon.projectileSpawnOffset
-    val v = vProj + vAbs / (weapon.projectileSpeed * params.accuracy)
-
-    return Pair(p, v)
-}
-
-/** True if target collision radius is above weapon projectile spawn radius.  */
+/** True if target collision radius is above weapon projectile spawn radius. */
 private fun targetAboveWeapon(locationRelative: Vector2f, weapon: WeaponHandle, target: BallisticTarget): Boolean {
     val d2 = locationRelative.lengthSquared
     val r = weapon.projectileSpawnOffset + target.radius
     return d2 < r * r
 }
-
-/** Ballistic calculations are performed before the game engine updates weapon states.
- * For beam weapons, which fire after completing rotation, this means the ballistic
- * calculations use outdated facing values.
- * To prevent errors caused by this timing mismatch, the WeaponHandle.angleWhenFiring
- * method computes the expected weapon facing at the moment of firing. */
-private val WeaponHandle.angleWhenFiring: Direction
-    get() {
-        val currAngle = currAngle.direction
-
-        // Non-beam weapons fire *before* rotation.
-        if (!isBeam)
-            return currAngle
-
-        val ai: AutofireAIPlugin = autofirePlugin
-            ?: return currAngle
-
-        val target: CombatEntityAPI = (ai.targetShip ?: ai.targetMissile)
-            ?: return currAngle
-
-        // Assume beam weapon will aim directly at the target.
-        val expectedAngle = (target.location - location).facing
-        val offset = currAngle - expectedAngle
-        val turnRate = turnRate * Global.getCombatEngine().elapsedInLastFrame
-
-        return if (offset.length < turnRate) {
-            expectedAngle
-        } else {
-            currAngle
-        }
-    }

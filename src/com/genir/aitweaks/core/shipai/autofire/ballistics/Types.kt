@@ -38,3 +38,24 @@ data class BallisticTarget(
         }
     }
 }
+
+/** Weapon attack parameters: accuracy and delay until attack. */
+data class BallisticParams(val accuracy: Float, val delay: Float) {
+    companion object {
+        val defaultBallisticParams = BallisticParams(1f, 0f)
+    }
+}
+
+/** Expected hit on a target. */
+data class Hit(
+    val target: CombatEntityAPI,
+    val range: Float,
+    val type: Type,
+) {
+    enum class Type {
+        SHIELD,
+        HULL,
+        ALLY,
+        ROTATE_BEAM // placeholder type for mock hit used by beams rotating to a new target
+    }
+}

@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core.utils
 
+import com.genir.aitweaks.core.utils.types.LinearMotion
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min
@@ -84,8 +85,8 @@ fun solve(p: Vector2f, v: Vector2f, q: Float, w: Float, r: Float, cosA: Float): 
     return quad(a, 2 * b, c)
 }
 
-fun solve(pv: Pair<Vector2f, Vector2f>, q: Float, w: Float, r: Float, cosA: Float): QuadSolution? {
-    return solve(pv.first, pv.second, q, w, r, cosA)
+fun solve(pv: LinearMotion, q: Float, w: Float, r: Float, cosA: Float): QuadSolution? {
+    return solve(pv.position, pv.velocity, q, w, r, cosA)
 }
 
 /** Time after which point P travelling with velocity V
@@ -98,6 +99,6 @@ fun solve(p: Vector2f, v: Vector2f, r: Float): QuadSolution? {
     return quad(a, 2 * b, c)
 }
 
-fun solve(pv: Pair<Vector2f, Vector2f>, r: Float): QuadSolution? {
+fun solve(pv: LinearMotion, r: Float): QuadSolution? {
     return solve(pv, 0f, 0f, r, 0f)
 }
