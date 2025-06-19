@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.shipai.autofire.ballistics
 
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.utils.pointsOfTangency
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Arc
@@ -24,10 +25,7 @@ private const val cos180 = -1f
 private const val approachesInfinity = 1e7f
 
 /** Closest possible range at which the projectile fired by the weapon can collide
- * with the target circumference, for any weapon facing.
- * When the target's speed approaches the speed of the projectile, the intercept
- * time and location approach infinity. In such cases, the function assumes an
- * arbitrary long time period to approximate the target location. */
+ * with the target circumference, for any weapon facing. */
 fun closestHitRange(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Float {
     val pv = targetMotion(weapon, target.linearMotion, params)
     if (targetAboveWeapon(pv.position, weapon, target)) {
@@ -36,12 +34,15 @@ fun closestHitRange(weapon: WeaponHandle, target: BallisticTarget, params: Balli
 
     val projectileOffset = weapon.projectileSpawnOffset
     val projectileFlightDistance = solve(pv, projectileOffset, 1f, target.radius, cos180)?.smallerNonNegative
-        ?: return approachesInfinity
+        ?: return Float.POSITIVE_INFINITY
 
     return projectileOffset + projectileFlightDistance
 }
 
-/** Weapon aim location required to hit center point of a moving target. */
+/** Weapon aim location required to hit center point of a moving target.
+ * When the target's speed approaches the speed of the projectile, the intercept
+ * time and location approach infinity. In such cases, the function assumes an
+ * arbitrary long time period to approximate the target location. */
 fun intercept(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Vector2f {
     if (weapon.isUnguidedMissile) {
         return SimulateMissile.missileIntercept(weapon, target)
@@ -94,6 +95,55 @@ fun closestHitInTargetFrameOfReference(weapon: WeaponHandle, target: BallisticTa
     val range = closestHitRange(weapon, target, params)
     val hitPoint = -pv.positionAfter(range).resized(target.radius)
     return Pair(hitPoint, range)
+}
+
+/** Time after which target enters weapon effective firing range. */
+fun timeToRange(weapon: WeaponHandle, target: BallisticTarget, range: Float): Float {
+    if (range <= 0) {
+        return 0f
+    }
+
+    val currentRange = closestHitRange(weapon, target, defaultBallisticParams)
+
+    when {
+        // Already in range.
+        currentRange <= range -> {
+            return 0f
+        }
+
+        // Not possible to hit the target if
+        // it's faster than the projectile.
+        currentRange == Float.POSITIVE_INFINITY -> {
+            return Float.POSITIVE_INFINITY
+        }
+    }
+
+    // Target motion in weapon frame of reference. The projectile velocity
+    // is not relevant in the following calculation, therefore the target
+    // velocity is not normalized to the projectile speed.
+    val targetMotion = LinearMotion(
+        position = target.location - weapon.location,
+        velocity = target.velocity - weapon.ship.velocity,
+    )
+
+    // Time after which the target crosses the weapon range radius.
+    // If the equation has no positive solutions, the target will
+    // never cross the radius.
+    val timeToCross = solve(targetMotion, range + target.radius)?.smallerNonNegative
+        ?: return Float.POSITIVE_INFINITY
+
+    // Time it takes the projectile to reach the weapon range radius.
+    val projectileFlightTime = (range - weapon.projectileSpawnOffset) / weapon.projectileSpeed
+
+    // Target began inside range but moving away; the earlier
+    // currentRange <= range would have caught any hittable case.
+    if (timeToCross < projectileFlightTime) {
+        return Float.POSITIVE_INFINITY
+    }
+
+    // Weapon should be fired in advance of the target entering the range
+    // threshold, so that the projectile meets it at the edge of its range.
+    return timeToCross - projectileFlightTime
 }
 
 /** Target location and velocity in weapon frame of reference.
