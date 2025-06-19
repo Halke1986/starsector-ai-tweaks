@@ -6,7 +6,10 @@ import com.genir.aitweaks.core.extensions.times
 import com.genir.aitweaks.core.utils.crossProductZ
 import org.lwjgl.util.vector.Vector2f
 
-data class LinearMotion(val position: Vector2f, val velocity: Vector2f) {
+data class LinearMotion(
+    val position: Vector2f,
+    val velocity: Vector2f,
+) {
     fun positionAfter(time: Float): Vector2f {
         return position + velocity * time
     }

@@ -9,7 +9,8 @@ import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.LinearMotion
 
-/** Analyzes the potential collision between projectile and target. Null if no collision. */
+/** Analyze the potential collision between a perfectly accurate projectile fired from the weapon and the target.
+ * Null if no collision. */
 fun analyzeHit(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit? {
     val projectileMotion = predictProjectileMotion(weapon, target.linearMotion, params)
 
@@ -23,10 +24,69 @@ fun analyzeHit(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticP
     )
 }
 
+/** Analyze the potential collision between the projectile and the target.
+ * Null if no collision. */
 fun analyzeHit(projectile: DamagingProjectileAPI, target: CombatEntityAPI): Hit? {
     val projectileMotion = projectile.linearMotion - target.linearMotion
 
     return analyzeHit(projectileMotion, target)
+}
+
+/** Calculates if a perfectly accurate projectile fired from the weapon will collide with the target circumference.
+ * Collision range is returned; null if no collision. */
+fun willHitCircumference(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Float? {
+    val projectileMotion = predictProjectileMotion(weapon, target.linearMotion, params)
+    val ballisticTarget = BallisticTarget.collisionRadius(target)
+
+    return willHitCircumference(projectileMotion, ballisticTarget)?.let { range ->
+        range + weapon.projectileSpawnOffset
+    }
+}
+
+/** Calculates if the projectile will collide with the target circumference.
+ * Collision range is returned; null if no collision. */
+fun willHitCircumference(projectile: DamagingProjectileAPI, target: CombatEntityAPI): Float? {
+    val projectileMotion = projectile.linearMotion - target.linearMotion
+    val ballisticTarget = BallisticTarget.collisionRadius(target)
+
+    return willHitCircumference(projectileMotion, ballisticTarget)
+}
+
+/** Calculates if a perfectly accurate projectile fired from the weapon will collide with the target shield.
+ * Will not detect hits to inside of shield.
+ * Collision range is returned; null if no collision. */
+fun willHitShield(weapon: WeaponHandle, target: ShipAPI, params: BallisticParams): Float? {
+    val projectileMotion = predictProjectileMotion(weapon, target.linearMotion, params)
+
+    return willHitShield(projectileMotion, target)?.let { range ->
+        range + weapon.projectileSpawnOffset
+    }
+}
+
+/** Calculates if the projectile will collide with the target shield.
+ * Collision range is returned; null if no collision. */
+fun willHitShield(projectile: DamagingProjectileAPI, target: CombatEntityAPI): Float? {
+    val projectileMotion = projectile.linearMotion - target.linearMotion
+
+    return willHitShield(projectileMotion, target)
+}
+
+/** Calculates if a perfectly accurate projectile fired from the weapon will collide with the target bounds.
+ * Collision range is returned; null if no collision. */
+fun willHitBounds(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Float? {
+    val projectileMotion = predictProjectileMotion(weapon, target.linearMotion, params)
+
+    return willHitBounds(projectileMotion, target)?.let { range ->
+        range + weapon.projectileSpawnOffset
+    }
+}
+
+/** Calculates if the projectile will collide with the target bounds.
+ * Collision range is returned; null if no collision. */
+fun willHitBounds(projectile: DamagingProjectileAPI, target: CombatEntityAPI): Float? {
+    val projectileMotion = projectile.linearMotion - target.linearMotion
+
+    return willHitBounds(projectileMotion, target)
 }
 
 private fun analyzeHit(projectileMotion: LinearMotion, target: CombatEntityAPI): Hit? {
@@ -52,39 +112,20 @@ private fun analyzeHit(projectileMotion: LinearMotion, target: CombatEntityAPI):
     }
 }
 
-/** Calculates if a projectile will collide with the target circumference.
- * Collision range is returned, null if no collision. */
 private fun willHitCircumference(projectileMotion: LinearMotion, target: BallisticTarget): Float? {
     return solve(projectileMotion, target.radius)?.smallerNonNegative
 }
 
-/** Calculates if a perfectly accurate projectile will collide with target shield,
- * given current weapon facing. Will not detect hits to inside of shield.
- * Collision range is returned, null if no collision. */
-fun willHitShield(weapon: WeaponHandle, target: ShipAPI, params: BallisticParams): Float? {
-    val projectileMotion = predictProjectileMotion(weapon, target.linearMotion, params)
+private fun willHitShield(projectileMotion: LinearMotion, target: CombatEntityAPI): Float? {
+    when {
+        !target.isShip -> return null
 
-    val range = willHitShield(projectileMotion, target)
-        ?: return null
+        !target.hasShield -> return null
 
-    return range + weapon.projectileSpawnOffset
-}
-
-/** Calculates if a projectile will collide with target shield.
- * Will not detect hits to inside of shield.
- * Collision range is returned, null if no collision. */
-private fun willHitShield(projectileMotion: LinearMotion, target: ShipAPI): Float? {
-    if (!target.hasShield) {
-        return null
+        target.shield.isOff -> return null
     }
 
     val shield = target.shield
-        ?: return null
-
-    if (shield.isOff) {
-        return null
-    }
-
     val projectileFlightDistance = solve(projectileMotion, shield.radius)?.smallerNonNegative
         ?: return null
 
@@ -97,16 +138,13 @@ private fun willHitShield(projectileMotion: LinearMotion, target: ShipAPI): Floa
     }
 }
 
-/** Calculates if a perfectly accurate projectile will collide with target bounds,
- * given current weapon facing.
- * Collision range is returned, null if no collision. */
-private fun willHitBounds(projectileMotion: LinearMotion, target: ShipAPI): Float? {
+private fun willHitBounds(projectileMotion: LinearMotion, target: CombatEntityAPI): Float? {
     return Bounds.collision(projectileMotion.position, projectileMotion.velocity, target)
 }
 
 /** Predicted projectile location and velocity in target frame of reference.
  * Assumes a perfectly accurate weapon.
- * weapon.projectileSpeed is used as velocity unit.*/
+ * weapon.projectileSpeed is used as the unit of velocity.*/
 private fun predictProjectileMotion(weapon: WeaponHandle, target: LinearMotion, params: BallisticParams): LinearMotion {
     val vAbs = weapon.ship.velocity - target.velocity
     val pAbs = weapon.location - target.position

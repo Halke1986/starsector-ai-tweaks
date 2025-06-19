@@ -1,18 +1,24 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.DamagingProjectileAPI
+import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
+import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitBounds
+import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitShield
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
 import com.genir.aitweaks.core.shipai.threat.MissileThreat
 import com.genir.aitweaks.core.shipai.threat.WeaponThreat
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
+import kotlin.math.pow
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
 
 class VentModule(private val ai: CustomShipAI) {
@@ -222,24 +228,103 @@ class VentModule(private val ai: CustomShipAI) {
 
     /** Decide if it's safe to vent. */
     private fun isSafe(): Boolean {
+        val effectiveHP: Float = ship.hitpoints * ship.hullLevel.let { it * it * it * it }
+
         val duration = ship.fluxTracker.timeToVent * ventTimeFactor
         val (finisherMissileDanger, potentialDamage) = weaponThreat.potentialDamage(duration)
-        val effectiveHP: Float = ship.hitpoints * ship.hullLevel.let { it * it * it * it }
+
+        val projectileDamage = run {
+            val projectiles = state.projectileTracker.threats(ship)
+            effectiveDamage(filterRelevantProjectiles(projectiles))
+        }
+
+        val missileDamage = effectiveDamage(missileThreat.threats(duration))
 
         return when {
             // Don't get hit by a finisher missile.
-            finisherMissileDanger -> false
+            finisherMissileDanger -> {
+                false
+            }
 
-            missileThreat.potentialDamage(duration) > effectiveHP * 0.1f -> false
+            projectileDamage + missileDamage > effectiveHP * 0.095f -> {
+                false
+            }
+
+            // The ship is not in range of any weapons, but there are projectiles inbound.
+            // Assume the ship has just destroyed its duel opponent, and no more projectiles
+            // will be incoming. Wait for the remaining projectiles to be intercepted by the
+            // shield, and vent only after the duel is fully concluded.
+            potentialDamage == 0f && projectileDamage > 0 -> {
+                false
+            }
 
             // Received negligible damage.
-            damageTracker.damage < effectiveHP * 0.03f -> true
+            damageTracker.damage < effectiveHP * 0.03f -> {
+                true
+            }
 
             // Attempt to tank a limited amount of damage. 0.1f may seem like a large fraction,
             // but potential damage calculation is the absolute worst case scenario.
-            potentialDamage > effectiveHP * 0.1f -> false
+            potentialDamage > effectiveHP * 0.1f -> {
+                false
+            }
 
-            else -> true
+            else -> {
+                true
+            }
+        }
+    }
+
+    private fun filterRelevantProjectiles(projectiles: Sequence<DamagingProjectileAPI>): Sequence<DamagingProjectileAPI> {
+        // If the ship has no shields, venting does not affect incoming projectiles.
+        // An exception might be a ship system, but this is currently ignored.
+        if (!ship.hasShield) {
+            return sequenceOf()
+        }
+
+        return projectiles.filter { projectile ->
+            when {
+                // Ignore fighters, for now at least. In vanilla, it's viable
+                // because fighters have weak weapons but can swarm backing off
+                // ships and prevent them from venting indefinitely.
+                projectile.weapon?.ship?.isFighter == true -> {
+                    false
+                }
+
+                willHitBounds(projectile, ship) == null -> {
+                    false
+                }
+
+                // Assume an omni shield has the chance to intercept each projectile.
+                ship.shield.type == ShieldAPI.ShieldType.OMNI -> {
+                    true
+                }
+
+                // Projectile will likely bypass shields.
+                // Assume venting will not affect its intercept.
+                willHitShield(projectile, ship) == null -> {
+                    false
+                }
+
+                else -> {
+                    true
+                }
+            }
+        }
+    }
+
+    private fun effectiveDamage(threats: Sequence<DamagingProjectileAPI>): Float {
+        val shipHp = ship.hitpoints * ship.hullLevel
+
+        return threats.asIterable().sumOf { projectile ->
+            val damageBase = projectile.damageAmount * projectile.damageType.armorMult
+            if (damageBase >= shipHp) {
+                return@sumOf damageBase
+            }
+
+            val weight = 1f - (1f - damageBase / shipHp).pow(32)
+
+            damageBase * weight
         }
     }
 
@@ -249,9 +334,13 @@ class VentModule(private val ai: CustomShipAI) {
         val target: ShipAPI = ai.attackTarget as? ShipAPI ?: return false
 
         when {
-            target.isFighter -> return false
+            target.isFighter -> {
+                return false
+            }
 
-            target.root.isFrigate -> return false
+            target.root.isFrigate -> {
+                return false
+            }
 
             // Target is behind healthy shields.
             target.shield?.isOn == true && target.fluxLevel < 0.8f -> {
@@ -264,7 +353,9 @@ class VentModule(private val ai: CustomShipAI) {
             }
 
             // The ship is the victim, not the target.
-            target.hullLevel > ship.hullLevel -> return false
+            target.hullLevel > ship.hullLevel -> {
+                return false
+            }
         }
 
         // The more damaged the target, the higher flux level

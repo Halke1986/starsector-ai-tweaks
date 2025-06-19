@@ -35,7 +35,7 @@ class ProjectileTracker : BaseEveryFrameCombatPlugin() {
         garbageCollection()
     }
 
-    fun getThreats(ship: ShipAPI): Sequence<DamagingProjectileAPI> {
+    fun threats(ship: ShipAPI): Sequence<DamagingProjectileAPI> {
         val allThreats = threats[ship]
             ?: return sequenceOf()
 
@@ -86,9 +86,7 @@ class ProjectileTracker : BaseEveryFrameCombatPlugin() {
 
         var closestHit: Hit? = null
         for (target in targets) {
-
             val hit: Hit? = analyzeHit(projectile, target)
-
             if (hit != null && (closestHit == null || hit.range < closestHit.range)) {
                 closestHit = hit
             }

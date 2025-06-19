@@ -61,7 +61,11 @@ val CombatEntityAPI.hasShield: Boolean
 
         shield == null -> false
 
-        else -> true
+        shield.type == ShieldAPI.ShieldType.FRONT -> true
+
+        shield.type == ShieldAPI.ShieldType.OMNI -> true
+
+        else -> false
     }
 
 val CombatEntityAPI.root: CombatEntityAPI
@@ -70,5 +74,5 @@ val CombatEntityAPI.root: CombatEntityAPI
 val CombatEntityAPI.linearMotion: LinearMotion
     get() = LinearMotion(
         position = location,
-        velocity = velocity,
+        velocity = timeAdjustedVelocity,
     )

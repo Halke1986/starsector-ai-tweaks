@@ -42,23 +42,30 @@ class WeaponThreat(private val ship: ShipAPI) {
         val obstacles: MutableList<ShipAPI> = mutableListOf()
 
         Global.getCombatEngine().ships.asSequence().forEach { entity ->
-            when {
-                entity.root == ship.root -> Unit
-                entity.isFighter -> Unit
+            if (entity.root == ship.root) {
+                return@forEach
+            }
 
-                entity.isHostile(ship) -> {
-                    // Don't consider overloaded or venting enemies.
-                    val tracker = entity.fluxTracker
-                    when {
-                        !tracker.isOverloadedOrVenting -> enemies.add(entity)
-                        duration - 2f > max(tracker.timeToVent, tracker.overloadTimeRemaining) -> enemies.add(entity)
+            if (entity.isFighter) {
+                return@forEach
+            }
+
+            if (!entity.isFast) {
+                obstacles.add(entity)
+            }
+
+            if (entity.isHostile(ship)) {
+                // Don't consider overloaded or venting enemies.
+                val tracker = entity.fluxTracker
+                when {
+                    !tracker.isOverloadedOrVenting -> {
+                        enemies.add(entity)
                     }
 
-                    // Consider slow enemies as weapon obstacles.
-                    if (!entity.isFast) obstacles.add(entity)
+                    duration > max(tracker.timeToVent, tracker.overloadTimeRemaining) -> {
+                        enemies.add(entity)
+                    }
                 }
-
-                else -> if (!entity.isFast) obstacles.add(entity)
             }
         }
 
@@ -91,7 +98,9 @@ class WeaponThreat(private val ship: ShipAPI) {
         val speedToEnemy = -vectorProjectionLength(ship.velocity, toShip)
         val approachSpeed = enemy.maxSpeed + speedToEnemy
         when {
-            dist < weapon.totalRange -> Unit
+            dist < weapon.totalRange -> {
+                Unit
+            }
 
             // Ship is moving away from the enemy.
             approachSpeed <= 0 -> {

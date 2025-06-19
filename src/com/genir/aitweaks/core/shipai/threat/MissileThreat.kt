@@ -9,12 +9,12 @@ import com.genir.aitweaks.core.utils.vectorProjectionLength
 import kotlin.math.min
 
 class MissileThreat(val ship: ShipAPI) {
-    fun potentialDamage(duration: Float): Float {
+    fun threats(duration: Float): Sequence<MissileAPI> {
         val allMissiles: Sequence<MissileAPI> = Global.getCombatEngine().missiles.asSequence()
         val allies: List<ShipAPI> = findAllies()
 
         // Find maneuvering missiles that are likely to hit the ship.
-        val missiles = allMissiles.filter { missile ->
+        return allMissiles.filter { missile ->
             when {
                 !missile.isValidTarget -> false
 
@@ -30,10 +30,6 @@ class MissileThreat(val ship: ShipAPI) {
 
                 else -> true
             }
-        }
-
-        return missiles.asIterable().sumOf { missile ->
-            missile.damageAmount * missile.damageType.armorMult
         }
     }
 
