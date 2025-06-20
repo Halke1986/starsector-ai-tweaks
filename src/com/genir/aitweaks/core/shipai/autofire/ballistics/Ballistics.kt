@@ -96,56 +96,6 @@ fun closestHitInTargetFrameOfReference(weapon: WeaponHandle, target: BallisticTa
     return Pair(hitPoint, range)
 }
 
-/** Time after which target enters weapon effective firing range. */
-fun timeToRange(weapon: WeaponHandle, target: BallisticTarget, range: Float, params: BallisticParams): Float {
-    if (range <= 0) {
-        return 0f
-    }
-
-    val currentRange = closestHitRange(weapon, target, params)
-
-    when {
-        // Already in range.
-        currentRange <= range -> {
-            return 0f
-        }
-
-        // Not possible to hit the target if
-        // it's faster than the projectile.
-        currentRange == Float.POSITIVE_INFINITY -> {
-            return Float.POSITIVE_INFINITY
-        }
-    }
-
-    // Target motion in weapon frame of reference. The projectile velocity
-    // is not relevant in the following calculation, therefore the target
-    // velocity is not normalized to the projectile speed.
-    val vAbs = target.velocity - weapon.ship.velocity
-    val targetMotion = LinearMotion(
-        position = target.location - weapon.location + vAbs * params.delay,
-        velocity = vAbs,
-    )
-
-    // Time after which the target crosses the weapon range radius.
-    // If the equation has no positive solutions, the target will
-    // never cross the radius.
-    val timeToCross = solve(targetMotion, range + target.radius)?.smallerNonNegative
-        ?: return Float.POSITIVE_INFINITY
-
-    // Time it takes the projectile to reach the weapon range radius.
-    val projectileFlightTime = (range - weapon.projectileSpawnOffset) / weapon.projectileSpeed
-
-    // Target began inside range but moving away; the earlier
-    // currentRange <= range would have caught any hittable case.
-    if (timeToCross < projectileFlightTime) {
-        return Float.POSITIVE_INFINITY
-    }
-
-    // Weapon should be fired in advance of the target entering the range
-    // threshold, so that the projectile meets it at the edge of its range.
-    return timeToCross - projectileFlightTime
-}
-
 /** Target location and velocity in weapon frame of reference.
  * weapon.projectileSpeed is used as velocity unit.  */
 private fun targetMotion(weapon: WeaponHandle, target: LinearMotion, params: BallisticParams): LinearMotion {

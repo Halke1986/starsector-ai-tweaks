@@ -104,7 +104,7 @@ class VentModule(private val ai: CustomShipAI) {
 //        if (isBackingOff && !ship.fluxTracker.isVenting) {
 //            Debug.drawCircle(ship.location, ship.collisionRadius / 2, YELLOW)
 //
-//            findDangerousWeapons().filter { it.isFinisherMissile }.forEach {
+//            weaponThreat.findDangerousWeapons(ship.fluxTracker.timeToVent * ventTimeFactor).forEach {
 //                Debug.drawLine(ship.location, it.location, RED)
 //            }
 //        }
