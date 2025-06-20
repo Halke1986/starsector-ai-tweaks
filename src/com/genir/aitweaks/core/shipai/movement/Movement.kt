@@ -157,7 +157,6 @@ class Movement(val ai: CustomShipAI) {
         val directApproach = kinematics.location - maneuverTarget.location
 
         // Post-processing flags.
-        var approachDirectly = false
         var preferMapCenter = true
 
         val attackVector: Vector2f = when {
@@ -169,8 +168,6 @@ class Movement(val ai: CustomShipAI) {
 
             // Move straight to the target if ship is an assault ship.
             ai.isAssaultShip -> {
-                // Assault ships don't need angle adjustment, as it interferes with the burn drive.
-                approachDirectly = true
                 directApproach
             }
 
@@ -221,7 +218,7 @@ class Movement(val ai: CustomShipAI) {
         attackLocation = attackLocation.resized(ai.attackRange) + maneuverTarget.location
 
         attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
-        return approachTarget(dt, maneuverTarget.kinematics, attackLocation, approachDirectly, speedLimits)
+        return approachTarget(dt, maneuverTarget.kinematics, attackLocation, speedLimits)
     }
 
     /** Take into account other entities when planning ship attack location. */
@@ -300,10 +297,9 @@ class Movement(val ai: CustomShipAI) {
         dt: Float,
         maneuverTarget: Kinematics,
         attackLocation: Vector2f,
-        approachDirectly: Boolean,
         speedLimits: List<CollisionAvoidance.Limit>,
     ): Destination {
-        // Do calculations in target frame of reference.
+        // Perform calculations in target frame of reference.
         val toShip = kinematics.location - maneuverTarget.location
         val toAttackLocation = attackLocation - maneuverTarget.location
 
@@ -313,19 +309,13 @@ class Movement(val ai: CustomShipAI) {
             return orbitTarget(dt, maneuverTarget, attackLocation, speedLimits)
         }
 
-        // Ship is far from the target, but is required to approach directly,
-        // without taking the tangential route.
-        if (approachDirectly) {
-            return Destination(attackLocation, maneuverTarget.velocity)
-        }
-
         val pointsOfTangency: Pair<Vector2f, Vector2f> = pointsOfTangency(-toShip, ai.attackRange)
             ?: return orbitTarget(dt, maneuverTarget, attackLocation, speedLimits)
 
         val cosTangent: Float = ai.attackRange / dist
         val cosTarget: Float = dotProduct(toAttackLocation, toShip) / (ai.attackRange * dist)
         if (cosTangent <= cosTarget) {
-            return Destination(attackLocation, maneuverTarget.velocity)
+            return orbitTarget(dt, maneuverTarget, attackLocation, speedLimits)
         }
 
         // If heading directly to the attack location would bring the ship too close to the target,
@@ -346,10 +336,11 @@ class Movement(val ai: CustomShipAI) {
         attackLocation: Vector2f,
         speedLimits: List<CollisionAvoidance.Limit>,
     ): Destination {
+        // Perform calculations in target frame of reference.
         val toShip = kinematics.location - maneuverTarget.location
         val toAttackLocation = attackLocation - maneuverTarget.location
 
-        // Approach the orbit directly.
+        // Calculate the orbit parameters.
         val closestLocationOnOrbit = maneuverTarget.location + toShip.resized(toAttackLocation.length)
         val orbitVelocityVector = toShip.rotated(RotationMatrix(-90f * (toShip.facing - toAttackLocation.facing).sign)).resized(1f)
 
@@ -372,6 +363,8 @@ class Movement(val ai: CustomShipAI) {
             lim.clampSpeed(expectedDirection, clampedSpeed)
         }
 
+        // Instruct the engine controller to position the ship on the calculated orbit,
+        // and assume the calculated orbital speed.
         return Destination(closestLocationOnOrbit, expectedVelocity.resized(clampedSpeed))
     }
 }

@@ -43,22 +43,22 @@ fun angularVelocity(p: Vector2f, v: Vector2f): Float {
     return crossProductZ(p, v) / p.lengthSquared * RADIANS_TO_DEGREES
 }
 
-/** Vector projection of 'a' onto 'b' */
-fun vectorProjection(a: Vector2f, b: Vector2f): Vector2f {
-    return b * (dotProduct(a, b) / dotProduct(b, b))
+/** Vector projection of 'vector' onto 'axis' */
+fun vectorProjection(vector: Vector2f, axis: Vector2f): Vector2f {
+    return axis * (dotProduct(vector, axis) / dotProduct(axis, axis))
 }
 
-/** Vector rejection of 'a' from 'b' */
-fun vectorRejection(a: Vector2f, b: Vector2f): Vector2f {
-    return a - vectorProjection(a, b)
+/** Vector rejection of 'vector' from 'axis' */
+fun vectorRejection(vector: Vector2f, axis: Vector2f): Vector2f {
+    return vector - vectorProjection(vector, axis)
 }
 
-/** Length of vector projection of 'a' onto 'b'. Positive value
- * is returned if 'b' and 'a projection onto b' have same the
+/** Length of vector projection of 'vector' onto 'axis'. Positive value
+ * is returned if 'axis' and 'a projection onto axis' have same the
  * direction, negative otherwise. */
-fun vectorProjectionLength(a: Vector2f, b: Vector2f): Float {
-    val p = vectorProjection(a, b)
-    return dotProduct(p, b).sign * p.length
+fun vectorProjectionLength(vector: Vector2f, axis: Vector2f): Float {
+    val p = vectorProjection(vector, axis)
+    return dotProduct(p, axis).sign * p.length
 }
 
 /** Angular size of a circle, as observed from point (0,0). */
