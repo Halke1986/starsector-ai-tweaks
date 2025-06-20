@@ -85,10 +85,6 @@ inline fun <reified T : Enum<T>> loadEnum(json: JSONObject, fieldName: String): 
     }
 }
 
-fun getShortestRotation(from: Vector2f, to: Vector2f): Direction {
-    return to.facing - from.facing
-}
-
 fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Direction {
     return (to - pivot).facing - (from - pivot).facing
 }

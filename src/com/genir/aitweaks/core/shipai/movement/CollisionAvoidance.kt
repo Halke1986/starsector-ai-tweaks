@@ -12,7 +12,6 @@ import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
 import com.genir.aitweaks.core.utils.PI
 import com.genir.aitweaks.core.utils.distanceToOrigin
-import com.genir.aitweaks.core.utils.getShortestRotation
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
@@ -168,9 +167,12 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }
 
         // Allow chasing targets into the border zone.
-        val tgtLoc = ai.maneuverTarget?.location
-        if (tgtLoc != null && !ai.ventModule.isBackingOff && (getShortestRotation(tgtLoc - kinematics.location, borderIntrusion)).length < 90f) {
-            return null
+        val target = ai.maneuverTarget
+        if (target != null) {
+            val toTarget = target.location - kinematics.location
+            if (!ai.ventModule.isBackingOff && (toTarget.facing - borderIntrusion.facing).length < 90f) {
+                return null
+            }
         }
 
         ai.isAvoidingBorder = true
