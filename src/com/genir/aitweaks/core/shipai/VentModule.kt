@@ -32,7 +32,6 @@ class VentModule(private val ai: CustomShipAI) {
     var isBackingOff: Boolean = false
     var shouldFinishTarget: Boolean = false
 
-    //    private var ventTime: Float = ship.fluxTracker.timeToVent
     private var shouldInitVent: Boolean = false
     private var ventTrigger: Boolean = false
     private var isSafe: Boolean = false

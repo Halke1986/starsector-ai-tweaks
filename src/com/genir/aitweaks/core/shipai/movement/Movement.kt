@@ -309,7 +309,7 @@ class Movement(val ai: CustomShipAI) {
 
         // Ship is close enough to target to start orbiting it.
         val dist = toShip.length
-        if (dist < ai.attackRange * 1.2f) {
+        if (dist < max(maneuverTarget.ship.maxRange, ai.attackRange * 1.2f)) {
             return orbitTarget(dt, maneuverTarget, attackLocation, speedLimits)
         }
 

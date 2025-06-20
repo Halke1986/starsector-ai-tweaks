@@ -2,7 +2,6 @@ package com.genir.aitweaks.core.shipai.autofire.ballistics
 
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.utils.pointsOfTangency
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Arc
@@ -98,12 +97,12 @@ fun closestHitInTargetFrameOfReference(weapon: WeaponHandle, target: BallisticTa
 }
 
 /** Time after which target enters weapon effective firing range. */
-fun timeToRange(weapon: WeaponHandle, target: BallisticTarget, range: Float): Float {
+fun timeToRange(weapon: WeaponHandle, target: BallisticTarget, range: Float, params: BallisticParams): Float {
     if (range <= 0) {
         return 0f
     }
 
-    val currentRange = closestHitRange(weapon, target, defaultBallisticParams)
+    val currentRange = closestHitRange(weapon, target, params)
 
     when {
         // Already in range.
@@ -121,9 +120,10 @@ fun timeToRange(weapon: WeaponHandle, target: BallisticTarget, range: Float): Fl
     // Target motion in weapon frame of reference. The projectile velocity
     // is not relevant in the following calculation, therefore the target
     // velocity is not normalized to the projectile speed.
+    val vAbs = target.velocity - weapon.ship.velocity
     val targetMotion = LinearMotion(
-        position = target.location - weapon.location,
-        velocity = target.velocity - weapon.ship.velocity,
+        position = target.location - weapon.location + vAbs * params.delay,
+        velocity = vAbs,
     )
 
     // Time after which the target crosses the weapon range radius.
@@ -153,7 +153,7 @@ private fun targetMotion(weapon: WeaponHandle, target: LinearMotion, params: Bal
     val vAbs = target.velocity - weapon.ship.velocity
 
     return LinearMotion(
-        position = pAbs + vAbs * (params.delay),
+        position = pAbs + vAbs * params.delay,
         velocity = vAbs / (weapon.projectileSpeed * params.accuracy),
     )
 }

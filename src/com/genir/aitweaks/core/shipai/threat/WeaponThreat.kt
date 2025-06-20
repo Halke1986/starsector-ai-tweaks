@@ -9,12 +9,13 @@ import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
+import com.genir.aitweaks.core.shipai.autofire.ballistics.timeToRange
 import com.genir.aitweaks.core.shipai.movement.Kinematics
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.distanceToOrigin
-import com.genir.aitweaks.core.utils.sqrt
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.vectorProjectionLength
 import kotlin.math.max
 
 class WeaponThreat(private val ship: ShipAPI) {
@@ -56,15 +57,8 @@ class WeaponThreat(private val ship: ShipAPI) {
 
             if (entity.isHostile(ship)) {
                 // Don't consider overloaded or venting enemies.
-                val tracker = entity.fluxTracker
-                when {
-                    !tracker.isOverloadedOrVenting -> {
-                        enemies.add(entity)
-                    }
-
-                    duration > max(tracker.timeToVent, tracker.overloadTimeRemaining) -> {
-                        enemies.add(entity)
-                    }
+                if (entity.offlineTimeRemaining <= duration) {
+                    enemies.add(entity)
                 }
             }
         }
@@ -92,37 +86,28 @@ class WeaponThreat(private val ship: ShipAPI) {
         val enemy: Kinematics = weapon.ship.kinematics
         val toShip = ship.location - weapon.location
         val distSqr = toShip.lengthSquared
-        val dist = sqrt(distSqr) - ship.boundsRadius
 
-        // Check if the ship is out of weapons range.
-        val speedToEnemy = -vectorProjectionLength(ship.velocity, toShip)
-        val approachSpeed = enemy.maxSpeed + speedToEnemy
-        when {
-            dist < weapon.totalRange -> {
-                Unit
-            }
+        // Check if projectile will reach the ship during venting.
+        val attackStart = max(
+            weapon.cooldownRemaining,
+            weapon.ship.offlineTimeRemaining,
+        )
 
-            // Ship is moving away from the enemy.
-            approachSpeed <= 0 -> {
-                return false
-            }
+        val timeToRange = timeToRange(
+            weapon,
+            BallisticTarget.shieldRadius(ship),
+            weapon.totalRange,
+            BallisticParams(accuracy = 1f, delay = attackStart),
+        )
 
-            // Enemy is pursuing the ship.
-            approachSpeed > 0 && (dist - weapon.totalRange) / approachSpeed > duration -> {
-                return false
-            }
+        if (timeToRange > duration) {
+            return false
         }
 
         // Check if the ship is out of weapons arc.
         val isGuidedFinisherMissile = weapon.isFinisherMissile && !weapon.isUnguidedMissile
         val weaponArc = weapon.absoluteArc.extendedBy(duration * enemy.maxTurnRate)
         if (!isGuidedFinisherMissile && !weaponArc.contains(toShip.facing)) {
-            return false
-        }
-
-        // Check if projectile will reach the ship during venting.
-        val adjustedVentTime = duration - weapon.cooldownRemaining
-        if (dist / weapon.maxProjectileSpeed > adjustedVentTime) {
             return false
         }
 
