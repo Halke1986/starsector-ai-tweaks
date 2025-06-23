@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Assignment
 import com.genir.aitweaks.core.shipai.CustomShipAI
-import com.genir.aitweaks.core.shipai.coordinators.AttackCoordinator
+import com.genir.aitweaks.core.shipai.global.AttackCoordinator
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.State.Companion.state
@@ -87,7 +87,7 @@ class Movement(val ai: CustomShipAI) {
 
             // Face the attack target.
             currentAttackTarget != null -> {
-                weaponGroup.attackFacing(currentAttackTarget)
+                weaponGroup.shipAttackFacing(currentAttackTarget)
             }
 
             // Face threat vector when no target.
@@ -305,7 +305,7 @@ class Movement(val ai: CustomShipAI) {
 
         // Ship is close enough to target to start orbiting it.
         val dist = toShip.length
-        if (dist < ai.attackRange * 1.2f) {
+        if (dist < max(maneuverTarget.ship.maxRange, ai.attackRange * 1.2f)) {
             return orbitTarget(dt, maneuverTarget, attackLocation, speedLimits)
         }
 

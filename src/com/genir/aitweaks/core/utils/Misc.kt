@@ -9,10 +9,10 @@ import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.Preset
-import com.genir.aitweaks.core.shipai.autofire.BallisticParams
-import com.genir.aitweaks.core.shipai.autofire.Hit
-import com.genir.aitweaks.core.shipai.autofire.analyzeAllyHit
-import com.genir.aitweaks.core.shipai.autofire.analyzeHit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeAllyHit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeHit
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.starfarer.combat.entities.Ship
 import org.json.JSONObject
@@ -94,8 +94,7 @@ fun firstShipAlongLineOfFire(weapon: WeaponHandle, target: CombatEntityAPI, para
         when {
             ship.isFighter -> false
             ship.isExpired -> false
-            ship == weapon.ship -> false
-            weapon.ship.root == ship.root -> false
+            ship.root == weapon.ship.root -> false
 
             ship.owner == weapon.ship.owner -> true
             ship.isPhased -> false
@@ -104,8 +103,11 @@ fun firstShipAlongLineOfFire(weapon: WeaponHandle, target: CombatEntityAPI, para
     }
 
     val evaluated = obstacles.mapNotNull { ship ->
-        if (ship.owner == weapon.ship.owner) analyzeAllyHit(weapon, target, ship, params)
-        else analyzeHit(weapon, ship, params)
+        if (ship.owner == weapon.ship.owner) {
+            analyzeAllyHit(weapon, target, ship, params)
+        } else {
+            analyzeHit(weapon, ship, params)
+        }
     }
 
     return evaluated.minWithOrNull(compareBy { it.range })

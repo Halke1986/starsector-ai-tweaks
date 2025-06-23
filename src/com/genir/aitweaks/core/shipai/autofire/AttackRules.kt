@@ -6,8 +6,10 @@ import com.fs.starfarer.api.combat.WeaponAPI.AIHints.PD_ALSO
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.LARGE
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.shipai.autofire.Hit.Type.*
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.*
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.shieldUptime
 import kotlin.math.min

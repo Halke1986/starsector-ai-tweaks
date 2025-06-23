@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core
+package com.genir.aitweaks.core.shipai.global
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
@@ -6,7 +6,7 @@ import com.fs.starfarer.api.combat.CombatFleetManagerAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.state.State
 
 /** Make ships defaults to Search and Destroy order. Ships will not be automatically
  * assigned to Assault, Eliminate or any other tasks. Player can manually assign ships
@@ -37,12 +37,12 @@ class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
         }
 
         if (firstFrameWithShips == -1 && allShips.isNotEmpty()) {
-            firstFrameWithShips = state.unpausedFrameCount
+            firstFrameWithShips = State.state.unpausedFrameCount
         }
 
         // The hullmod is suppressed during initial deployment,
         // to allow for easy objective capping.
-        if (firstFrameWithShips == state.unpausedFrameCount) {
+        if (firstFrameWithShips == State.state.unpausedFrameCount) {
             shipsToOrder.forEach { ship ->
                 if (ship.hasDirectOrders) {
                     initialAssignments.remove(ship)
@@ -54,7 +54,7 @@ class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        if (firstFrameWithShips != state.unpausedFrameCount) {
+        if (firstFrameWithShips != State.state.unpausedFrameCount) {
             shipsToOrder.forEach { ship ->
                 // Transform initial auto-assignments into direct orders,
                 // so that the task manager will not modify them.

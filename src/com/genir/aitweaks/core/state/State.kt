@@ -5,15 +5,11 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.FleetCohesionAI
-import com.genir.aitweaks.core.SearchAndDestroyManager
 import com.genir.aitweaks.core.debug.DebugPlugin
 import com.genir.aitweaks.core.debug.removeGrid
 import com.genir.aitweaks.core.playerassist.AimAssistManager
 import com.genir.aitweaks.core.playerassist.ShieldAssistManager
-import com.genir.aitweaks.core.shipai.FleetSegmentation
-import com.genir.aitweaks.core.shipai.coordinators.AttackCoordinator
-import com.genir.aitweaks.core.shipai.coordinators.NavigationCoordinator
+import com.genir.aitweaks.core.shipai.global.*
 import com.genir.aitweaks.core.state.Config.Companion.config
 
 class State : BaseEveryFrameCombatPlugin() {
@@ -37,6 +33,7 @@ class State : BaseEveryFrameCombatPlugin() {
     val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
     val maneuverCoordinator: AttackCoordinator = AttackCoordinator()
     val navigateCoordinator: NavigationCoordinator = NavigationCoordinator()
+    val projectileTracker: ProjectileTracker = ProjectileTracker()
 
     private val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
     private val searchAndDestroy: SearchAndDestroyManager = SearchAndDestroyManager()
@@ -49,6 +46,7 @@ class State : BaseEveryFrameCombatPlugin() {
         searchAndDestroy,
         maneuverCoordinator,
         navigateCoordinator,
+        projectileTracker,
         Speedup(),
         AimAssistManager(),
         ShieldAssistManager(),

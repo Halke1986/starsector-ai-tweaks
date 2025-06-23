@@ -49,4 +49,8 @@ take a look at progressive staggered fire
 
 approach into missile range
 
+vent logic:
+  - calculate proper damage for dangerous weapons, remove finisherMissile flag
+  - properly handle non-guided missiles
+
 ----------------------------------------------------------------

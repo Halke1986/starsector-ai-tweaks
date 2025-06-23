@@ -10,9 +10,9 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Flags
-import com.genir.aitweaks.core.shipai.autofire.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.canTrack
-import com.genir.aitweaks.core.shipai.autofire.defaultBallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
+import com.genir.aitweaks.core.shipai.autofire.ballistics.canTrack
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction

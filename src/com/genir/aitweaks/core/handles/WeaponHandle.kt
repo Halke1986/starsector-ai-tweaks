@@ -8,6 +8,8 @@ import com.fs.starfarer.api.loading.ProjectileSpawnType.BALLISTIC_AS_BEAM
 import com.fs.starfarer.api.loading.ProjectileSpawnType.BEAM
 import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
+import com.genir.aitweaks.core.extensions.facing
+import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.handles.wrappers.WeaponWrapper
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
@@ -341,6 +343,38 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
             WeaponType.ENERGY -> ship.mutableStats.energyAmmoRegenMult.modifiedValue
             WeaponType.MISSILE -> ship.mutableStats.missileAmmoRegenMult.modifiedValue
             else -> 1f
+        }
+
+    /** Ballistic calculations are performed before the game engine updates weapon states.
+     * For beam weapons, which fire after completing rotation, this means the ballistic
+     * calculations use outdated facing values.
+     * To prevent errors caused by this timing mismatch, the facingWhenFiringThisFrame
+     * method computes the expected weapon facing at the moment of firing. */
+    val facingWhenFiringThisFrame: Direction
+        get() {
+            val currAngle = currAngle.direction
+
+            // Non-beam weapons fire *before* rotation.
+            if (!isBeam) {
+                return currAngle
+            }
+
+            val ai: AutofireAIPlugin = autofirePlugin
+                ?: return currAngle
+
+            val target: CombatEntityAPI = (ai.targetShip ?: ai.targetMissile)
+                ?: return currAngle
+
+            // Assume beam weapon will aim directly at the target.
+            val expectedAngle = (target.location - location).facing
+            val offset = currAngle - expectedAngle
+            val turnRate = turnRate * Global.getCombatEngine().elapsedInLastFrame
+
+            return if (offset.length < turnRate) {
+                expectedAngle
+            } else {
+                currAngle
+            }
         }
 
     override fun equals(other: Any?): Boolean {

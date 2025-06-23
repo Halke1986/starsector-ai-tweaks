@@ -181,3 +181,18 @@ val ShipAPI.isFlamedOut: Boolean
 
 val ShipAPI.isSkirmisher: Boolean
     get() = root.isFrigate || variant.hasHullMod("aitweaks_skirmisher")
+
+val ShipAPI.offlineTimeRemaining: Float
+    get() = when {
+        fluxTracker.isOverloaded -> {
+            fluxTracker.overloadTimeRemaining
+        }
+
+        fluxTracker.isVenting -> {
+            fluxTracker.timeToVent
+        }
+
+        else -> {
+            0f
+        }
+    }

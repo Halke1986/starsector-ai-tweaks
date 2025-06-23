@@ -9,12 +9,15 @@ import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
+import com.genir.aitweaks.core.shipai.autofire.ballistics.closestHitRange
 import com.genir.aitweaks.core.shipai.movement.Kinematics
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.distanceToOrigin
-import com.genir.aitweaks.core.utils.sqrt
+import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
-import com.genir.aitweaks.core.utils.vectorProjectionLength
+import com.genir.aitweaks.core.utils.types.LinearMotion
 import kotlin.math.max
 
 class WeaponThreat(private val ship: ShipAPI) {
@@ -37,32 +40,34 @@ class WeaponThreat(private val ship: ShipAPI) {
         )
     }
 
-    private fun findDangerousWeapons(duration: Float): List<WeaponHandle> {
+    fun findDangerousWeapons(duration: Float): List<WeaponHandle> {
         val enemies: MutableList<ShipAPI> = mutableListOf()
         val obstacles: MutableList<ShipAPI> = mutableListOf()
 
         Global.getCombatEngine().ships.asSequence().forEach { entity ->
-            when {
-                entity.root == ship.root -> Unit
-                entity.isFighter -> Unit
+            if (entity.root == ship.root) {
+                return@forEach
+            }
 
-                entity.isHostile(ship) -> {
-                    // Don't consider overloaded or venting enemies.
-                    val tracker = entity.fluxTracker
-                    when {
-                        !tracker.isOverloadedOrVenting -> enemies.add(entity)
-                        duration - 2f > max(tracker.timeToVent, tracker.overloadTimeRemaining) -> enemies.add(entity)
-                    }
+            if (entity.isFighter) {
+                return@forEach
+            }
 
-                    // Consider slow enemies as weapon obstacles.
-                    if (!entity.isFast) obstacles.add(entity)
+            if (!entity.isFast) {
+                obstacles.add(entity)
+            }
+
+            if (entity.isHostile(ship)) {
+                // Don't consider overloaded or venting enemies.
+                if (entity.offlineTimeRemaining <= duration) {
+                    enemies.add(entity)
                 }
-
-                else -> if (!entity.isFast) obstacles.add(entity)
             }
         }
 
-        return enemies.flatMap { it.allWeapons.map { weaponAPI -> weaponAPI.handle } }.filter { weapon ->
+        val allEnemyWeapons = enemies.flatMap { it.allWeapons.map { weaponAPI -> weaponAPI.handle } }
+
+        return allEnemyWeapons.filter { weapon ->
             when {
                 weapon.isDisabled -> false
                 weapon.isPermanentlyDisabled -> false
@@ -85,35 +90,29 @@ class WeaponThreat(private val ship: ShipAPI) {
         val enemy: Kinematics = weapon.ship.kinematics
         val toShip = ship.location - weapon.location
         val distSqr = toShip.lengthSquared
-        val dist = sqrt(distSqr) - ship.boundsRadius
 
-        // Check if the ship is out of weapons range.
-        val speedToEnemy = -vectorProjectionLength(ship.velocity, toShip)
-        val approachSpeed = enemy.maxSpeed + speedToEnemy
-        when {
-            dist < weapon.totalRange -> Unit
+        // Check if projectile will reach the ship during venting.
+        val attackStart = max(
+            weapon.cooldownRemaining,
+            weapon.ship.offlineTimeRemaining,
+        )
 
-            // Ship is moving away from the enemy.
-            approachSpeed <= 0 -> {
-                return false
-            }
+        val timeToRange = timeToHit(
+            weapon,
+            BallisticTarget.shieldRadius(ship),
+            weapon.totalRange,
+            weapon.maxProjectileSpeed,
+            BallisticParams(accuracy = 1f, delay = attackStart),
+        )
 
-            // Enemy is pursuing the ship.
-            approachSpeed > 0 && (dist - weapon.totalRange) / approachSpeed > duration -> {
-                return false
-            }
+        if (timeToRange > duration) {
+            return false
         }
 
         // Check if the ship is out of weapons arc.
         val isGuidedFinisherMissile = weapon.isFinisherMissile && !weapon.isUnguidedMissile
         val weaponArc = weapon.absoluteArc.extendedBy(duration * enemy.maxTurnRate)
         if (!isGuidedFinisherMissile && !weaponArc.contains(toShip.facing)) {
-            return false
-        }
-
-        // Check if projectile will reach the ship during venting.
-        val adjustedVentTime = duration - weapon.cooldownRemaining
-        if (dist / weapon.maxProjectileSpeed > adjustedVentTime) {
             return false
         }
 
@@ -145,6 +144,57 @@ class WeaponThreat(private val ship: ShipAPI) {
 
             distanceToOrigin(p, toShip) <= radius
         }
+    }
+
+    /** Time after which projectile fired by the weapon can hit the target. */
+    private fun timeToHit(weapon: WeaponHandle, target: BallisticTarget, range: Float, projectileSpeed: Float, params: BallisticParams): Float {
+        if (range <= 0) {
+            return 0f
+        }
+
+        val currentRange = closestHitRange(weapon, target, params)
+
+        when {
+            // Already in range. Assume weapon fires immediately
+            // (while accounting for delay parameter).
+            currentRange <= range -> {
+                return params.delay + currentRange / projectileSpeed
+            }
+
+            // Not possible to hit the target if
+            // it's faster than the projectile.
+            currentRange == Float.POSITIVE_INFINITY -> {
+                return Float.POSITIVE_INFINITY
+            }
+        }
+
+        // Target motion in weapon frame of reference. The projectile velocity
+        // is not relevant in the following calculation, therefore the target
+        // velocity is not normalized to the projectile speed.
+        val vAbs = target.velocity - weapon.ship.velocity
+        val targetMotion = LinearMotion(
+            position = target.location - weapon.location + vAbs * params.delay,
+            velocity = vAbs,
+        )
+
+        // Time after which the target crosses the weapon range radius.
+        // If the equation has no positive solutions, the target will
+        // never cross the radius.
+        val timeToCross = solve(targetMotion, range + target.radius)?.smallerNonNegative
+            ?: return Float.POSITIVE_INFINITY
+
+        // Time it takes the projectile to reach the weapon range radius.
+        val projectileFlightTime = (range - weapon.projectileSpawnOffset) / weapon.projectileSpeed
+
+        // Target began inside range but moving away; the earlier
+        // currentRange <= range would have caught any hittable case.
+        if (timeToCross < projectileFlightTime) {
+            return Float.POSITIVE_INFINITY
+        }
+
+        // Weapon should be fired in advance of the target entering the range
+        // threshold, so that the projectile meets it at the edge of its range.
+        return params.delay + timeToCross
     }
 
     private fun potentialDamage(duration: Float, weapon: WeaponHandle): Float {

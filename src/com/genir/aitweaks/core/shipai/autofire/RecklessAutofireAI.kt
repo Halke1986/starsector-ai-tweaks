@@ -5,8 +5,10 @@ import com.genir.aitweaks.core.extensions.isValidTarget
 import com.genir.aitweaks.core.extensions.length
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.shipai.autofire.Hit.Type.HULL
-import com.genir.aitweaks.core.shipai.autofire.Hit.Type.SHIELD
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.HULL
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.SHIELD
+import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeHit
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 
 /** Specialized AutofireAI implementation for weapons that are most

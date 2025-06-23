@@ -11,7 +11,7 @@ import com.genir.aitweaks.core.extensions.isNearMapCenterline
 import com.genir.aitweaks.core.extensions.length
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.shipai.Assignment.Type.*
-import com.genir.aitweaks.core.shipai.coordinators.NavigationCoordinator
+import com.genir.aitweaks.core.shipai.global.NavigationCoordinator
 import com.genir.aitweaks.core.state.State.Companion.state
 import org.lwjgl.util.vector.Vector2f
 

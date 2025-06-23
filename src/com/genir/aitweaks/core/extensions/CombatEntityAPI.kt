@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.extensions
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.utils.Bounds
+import com.genir.aitweaks.core.utils.types.LinearMotion
 import org.lwjgl.util.vector.Vector2f
 
 val CombatEntityAPI.isValidTarget: Boolean
@@ -60,5 +61,18 @@ val CombatEntityAPI.hasShield: Boolean
 
         shield == null -> false
 
-        else -> true
+        shield.type == ShieldAPI.ShieldType.FRONT -> true
+
+        shield.type == ShieldAPI.ShieldType.OMNI -> true
+
+        else -> false
     }
+
+val CombatEntityAPI.root: CombatEntityAPI
+    get() = (this as? ShipAPI)?.root ?: this
+
+val CombatEntityAPI.linearMotion: LinearMotion
+    get() = LinearMotion(
+        position = location,
+        velocity = timeAdjustedVelocity,
+    )

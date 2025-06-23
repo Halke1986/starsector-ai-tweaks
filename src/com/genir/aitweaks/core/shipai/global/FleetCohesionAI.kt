@@ -1,16 +1,15 @@
-package com.genir.aitweaks.core
+package com.genir.aitweaks.core.shipai.global
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.AssignmentTargetAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.CombatAssignmentType
-import com.fs.starfarer.api.combat.CombatAssignmentType.SEARCH_AND_DESTROY
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.state.Config.Companion.config
-import com.genir.aitweaks.core.state.State.Companion.state
+import com.genir.aitweaks.core.state.Config
+import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.utils.closestEntity
 import com.genir.aitweaks.core.utils.isCloseToEnemy
 import com.genir.starfarer.combat.tasks.CombatTaskManager
@@ -32,7 +31,7 @@ class FleetCohesionAI(private val side: Int) : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         val engine = Global.getCombatEngine()
         when {
-            !config.enableFleetCohesion -> return
+            !Config.config.enableFleetCohesion -> return
 
             engine.isSimulation -> return
 
@@ -83,7 +82,7 @@ class FleetCohesionAI(private val side: Int) : BaseEveryFrameCombatPlugin() {
     }
 
     private fun findValidTarget(ship: ShipAPI, currentTarget: ShipAPI?): ShipAPI? {
-        val segmentation = state.fleetSegmentation[side]
+        val segmentation = State.state.fleetSegmentation[side]
         return when {
             // Ship is engaging or planning to engage the primary group.
             currentTarget in segmentation.primaryTargets() -> currentTarget
@@ -104,7 +103,7 @@ class FleetCohesionAI(private val side: Int) : BaseEveryFrameCombatPlugin() {
         val currentAssignmentType: CombatAssignmentType? = ship.assignment?.type
         if (currentAssignmentType != null) {
             when {
-                ship.variant.hasHullMod("aitweaks_search_and_destroy") && currentAssignmentType != SEARCH_AND_DESTROY -> {
+                ship.variant.hasHullMod("aitweaks_search_and_destroy") && currentAssignmentType != CombatAssignmentType.SEARCH_AND_DESTROY -> {
                     return
                 }
 

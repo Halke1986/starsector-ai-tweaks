@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.shipai.threat
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
@@ -10,11 +9,12 @@ import com.genir.aitweaks.core.utils.vectorProjectionLength
 import kotlin.math.min
 
 class MissileThreat(val ship: ShipAPI) {
-    fun potentialDamage(duration: Float): Float {
+    fun threats(duration: Float): Sequence<MissileAPI> {
         val allMissiles: Sequence<MissileAPI> = Global.getCombatEngine().missiles.asSequence()
         val allies: List<ShipAPI> = findAllies()
 
-        val missiles = allMissiles.filter { missile ->
+        // Find maneuvering missiles that are likely to hit the ship.
+        return allMissiles.filter { missile ->
             when {
                 !missile.isValidTarget -> false
 
@@ -31,8 +31,6 @@ class MissileThreat(val ship: ShipAPI) {
                 else -> true
             }
         }
-
-        return missiles.asIterable().sumOf { damage(it) }
     }
 
     private fun findAllies(): List<ShipAPI> {
@@ -76,18 +74,6 @@ class MissileThreat(val ship: ShipAPI) {
             val dist = effectiveDistance(ally, missile)
             return@none dist < shipDist
         }
-    }
-
-    private fun damage(missile: MissileAPI): Float {
-        val damageMultiplier = when (missile.damageType) {
-            DamageType.HIGH_EXPLOSIVE -> 2f
-
-            DamageType.FRAGMENTATION -> 0.25f
-
-            else -> 1f
-        }
-
-        return missile.damageAmount * damageMultiplier
     }
 
     private fun effectiveDistance(target: ShipAPI, missile: MissileAPI): Float {

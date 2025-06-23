@@ -12,7 +12,11 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.BaseShipAI
 import com.genir.aitweaks.core.shipai.WeaponGroup
-import com.genir.aitweaks.core.shipai.autofire.*
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
+import com.genir.aitweaks.core.shipai.autofire.ballistics.intercept
+import com.genir.aitweaks.core.shipai.autofire.ballistics.interceptArc
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.Config
@@ -150,7 +154,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         val weaponGroup = WeaponGroup(ship, weapons.filter { it.shouldAim })
         if (target != null) {
             // Rotate ship to face the target intercept with the selected weapon group.
-            val expectedFacing = weaponGroup.attackFacing(target, targetLocation(target))
+            val expectedFacing = weaponGroup.shipAttackFacing(target, targetLocation(target))
             val facingChange = angularVelocity(target.location - ship.location, target.velocity - ship.velocity)
             engineController!!.facing(dt, expectedFacing, facingChange)
         } else {
