@@ -1,3 +1,5 @@
+- Custom AI: Further improved venting behavior: ships will no longer ignore incoming Hellbore projectiles when deciding whether to vent.
+
 Version v2.1.6
 
 - Autofire AI: Fixed a bug where Rift Lightning would not fire. Reported by Arisaka.

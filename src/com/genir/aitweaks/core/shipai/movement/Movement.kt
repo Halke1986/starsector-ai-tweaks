@@ -303,9 +303,9 @@ class Movement(val ai: CustomShipAI) {
         val toShip = kinematics.location - maneuverTarget.location
         val toAttackLocation = attackLocation - maneuverTarget.location
 
-        // Ship is close enough to target to start orbiting it.
+        // Ship is close enough to target to start orbiting and engage.
         val dist = toShip.length
-        if (dist < max(maneuverTarget.ship.maxRange, ai.attackRange * 1.2f)) {
+        if (dist < max(maneuverTarget.ship.maxRangeNoMissiles, ai.attackRange * 1.2f)) {
             return orbitTarget(dt, maneuverTarget, attackLocation, speedLimits)
         }
 

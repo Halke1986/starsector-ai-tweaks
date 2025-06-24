@@ -170,6 +170,9 @@ private fun ShipAPI.statWithoutMobilityBonuses(modifiedStat: MutableStat): Mutab
 val ShipAPI.maxRange: Float
     get() = allGroupedWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.direction, it.totalRange) } ?: 0f
 
+val ShipAPI.maxRangeNoMissiles: Float
+    get() = allGroupedWeapons.filter { !it.isMissile }.maxOfOrNull { it.slot.rangeFromShipCenter(0f.direction, it.totalRange) } ?: 0f
+
 val ShipAPI.AIPersonality: String
     get() = (ai as? BasicShipAI)?.config?.personalityOverride ?: (this as Ship).personality
 
