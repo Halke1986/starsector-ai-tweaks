@@ -42,8 +42,8 @@ DesperatePeter's [AdvancedGunneryControl](https://fractalsoftworks.com/forum/ind
 the method of attaching AutofireAIPlugins to existing ships and preserving the underlying vanilla logic. If you want
 even more customizable weapon behavior, AdvancedGunneryControl has it!
 
-AI Improvements
----------------
+Ship AI Improvements
+--------------------
 
 ### 1. Custom ship AI ###
 
@@ -72,103 +72,7 @@ front-facing behavior when issued an escort order.
 
 The fix applies to ballistic and beam weapons, but not missiles.
 
-### 3. Autofire AI ###
-
-AI Tweaks provides weapon AI implemented from scratch. It aims at fixing various vanilla AI deficiencies. The most
-noticeable differences from vanilla autofire AI are:
-
-#### Improved target leading algorithm ####
-
-Vulcan cannons are finally able to reliably shoot down Salamanders!
-
-Vanilla target leading algorithm calculates only approximate intercept point, even for ships that are supposed to have
-excellent autofire accuracy. AI Tweaks replaces the vanilla algorithm with an improved one. The improved algorithm
-calculates exact intercept point by solving quadratic equations. Accuracy bonus mechanism is respected, so ships with
-low combat readiness will still have difficulties with target tracking. The difference is most noticeable for ship PD
-weapons tracking missiles aimed at different allied ships.
-
-Additionally, weapon fade range is taken into account when attacking shieldless targets. When a projectile passes its
-maximum range, it begins to fade. Fading projectiles deal only soft flux damage to shields and its attack strength
-rapidly diminishes. But they are still effective against hulls, and especially missiles. Accounting for fade increases
-effective range of some PD weapons by up to 50%, and anti armor range by about 10% to 15%.
-
-#### Staggered firing mode ####
-
-Ships will use autofire weapons in staggered firing mode. In this mode, all weapons of the same type fire at a constant
-interval.
-
-Staggered fire mode does not apply to phase ships, allowing them to fire all weapons immediately after exiting P-space.
-
-The feature can be configured via LunaLib settings.
-
-![staggered_firing_mode](https://vimeo.com/1037950693)
-
-#### Aggressive friendly fire behavior ####
-
-Ships are finally not paralyzed by the slightest possibility of inflicting friendly fire damage. Quite the opposite,
-weapons will fire shots skimming the very surfaces of allied shields! AI can afford very tight ff tolerances thanks to
-improved math, which allows to reliably account for allies movement. But be warned, the math doesn't predict course
-changes. So if you have frigates that like to dance in front of big guns, they will get hit. Overall, the ratio of ff
-incidents will increase, but the ratio of enemy hits will increase more substantially.
-
-#### Focusing fire on a single target ####
-
-Vanilla AI likes to assign ship weapons to different targets, leading to situations where a ship fights all nearby
-enemies, but destroys none. Starsector 0.96 contained a feature-bug that allowed to fix the
-behavior ([forum thread](https://fractalsoftworks.com/forum/index.php?topic=28093.0)), but it was removed in 0.97. AI
-Tweaks improve the target selection algorithm, so that weapons strongly prefer to attack the target faced by the ship.
-Note that for autopilot controlled ships, true target is not the same as R-selected target.
-
-At the same time, the weapons are not completely glued to ships target, as is the case with the bug referenced above. PD
-weapons will still prioritize missiles and normal weapons will consider other targets if ships target is outside firing
-arc or range. Overall, the result is much more focused fire, leading to noticeably faster kill times.
-
-#### Specialized target leading algorithm for hardpoints ####
-
-It is not uncommon for vanilla Autofire AI to target hardpoint weapons away from an enemy in front of the ship, wasting
-opportunity to inflict damage. There are two reasons for the incorrect behavior. The vanilla AI may simply chose to
-target an enemy off-axis, or it may target the correct enemy, but order the weapon to rotate too soon. In the latter
-case, when the ship rotates towards the enemy, the weapon ends up over-rotated.
-
-Modified AI predicts the enemy location and pre-aims hardpoint weapons at the correct angle, even before the ship
-rotates towards the enemy. All front-facing hardpoints are affected by the change, but only on AI-piloted ships.
-
-Example of the incorrect behavior, fixed by AI Tweaks. One of the Guardians High Intensity Lasers is aiming at the void:
-
-![hardpoint miss](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/hardpoint_miss.jpg)
-
-#### Improved beam weapon target switching ####
-
-In Starsector, beam weapons have a finite travel speed, which can cause delays in reaching their targets. When a beam
-weapon switches targets, rotating the existing beam to the new target may be faster and more efficient than stopping and
-re-firing once aligned. This is particularly useful for point-defense (PD) beams, which often need to rapidly engage
-multiple incoming missiles.
-
-The improved AI applies only to normal beams, not burst or ammo based beams.
-
-![beam weapon ai](https://player.vimeo.com/video/1026930513?h=9c69150945)
-
-#### Modified anti-shield burst weapon AI ####
-
-A simple modification preventing autofire AI from firing ammo-based kinetic weapons, as well as the Light Needler, Heavy
-Needler and Storm Needler on shieldless targets. This change greatly improves needlers anti shield capability by
-preventing them from wasting bursts on exposed hulls. All ships are subject to the change, no hullmod is required.
-
-The feature can be disabled via LunaLib settings.
-
-#### Additional changes ####
-
-AI Tweaks autofire introduces a number of smaller changes in comparison to vanilla AI, some of which may not be
-intentional. In no specific order:
-
-* USE_LESS_VS_SHIELDS weapons (Mining Blaster and IR Autolance in vanilla) do not fire on shields when their magazines
-  is above 80; vanilla AI does that to avoid "wasting" recharges
-* phased ships are targeted only by beams and PD weapons, but only if the weapon is not ammo- or burst-based
-* non-PD weapons attack fighters only when there are no bigger hulls in range
-* shield hits are correctly predicted even for modular ships like stations, improving behavior of weapons that are
-  supposed to attack shields only, or avoid shields
-
-### 4. Fleet Cohesion AI ###
+### 3. Fleet Cohesion AI ###
 
 Fleet Cohesion AI fixes one of the more frustrating aspects of vanilla AI: cruisers and capital ships leaving the main
 battle line and chasing lone frigates and destroyers to the edge of the map. With the fixed AI the fleet stays together
@@ -181,7 +85,7 @@ Additional details:
 * Fleet Cohesion AI applies only to player fleet. Enemy fleet keeps the vanilla Admiral AI.
 * Fleet Cohesion AI is disabled during full assault and when at least one AVOID order is issued.
 
-### 5. Fixed Invictus and Lidar Array AI ###
+### 4. Fixed Invictus and Lidar Array AI ###
 
 "Cuz my problem with ai invictus is it just wastes it’s system 9/10 times" - niceman121454 on Discord.
 
@@ -202,13 +106,116 @@ Invictus aiming hardpoint weapons with the entire ship, note the aim is not cent
 
 ![target lead](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/target_lead.png)
 
-### 6. Improved High Energy Focus ship system AI ###
+### 5. Improved High Energy Focus ship system AI ###
 
 This mod changes the way AI controlled ships use their High Energy Focus system. AI will no longer be tempted to
 activate HEF just because there's a fighter or missile in range of PD beams or because an enemy ship can barely be
 reached by a Graviton Beam. The precious HEF charges will be preserved for big guns instead. Best use case is of course
 the mighty Executor. With two linked Gigacannons and officer with System Expertise almost every salvo will be spiced up
 by High Energy Focus!
+
+Autofire AI
+-----------
+
+### 1. Improved target leading algorithm ###
+
+Vulcan cannons are finally able to reliably shoot down Salamanders!
+
+Vanilla target leading algorithm calculates only approximate intercept point, even for ships that are supposed to have
+excellent autofire accuracy. AI Tweaks replaces the vanilla algorithm with an improved one. The improved algorithm
+calculates exact intercept point by solving quadratic equations. Accuracy bonus mechanism is respected, so ships with
+low combat readiness will still have difficulties with target tracking. The difference is most noticeable for ship PD
+weapons tracking missiles aimed at different allied ships.
+
+Additionally, weapon fade range is taken into account when attacking shieldless targets. When a projectile passes its
+maximum range, it begins to fade. Fading projectiles deal only soft flux damage to shields and its attack strength
+rapidly diminishes. But they are still effective against hulls, and especially missiles. Accounting for fade increases
+effective range of some PD weapons by up to 50%, and anti armor range by about 10% to 15%.
+
+### 2. Staggered firing mode ###
+
+Ships will use autofire weapons in staggered firing mode. In this mode, all weapons of the same type fire at a constant
+interval.
+
+Staggered fire mode does not apply to phase ships, allowing them to fire all weapons immediately after exiting P-space.
+
+The feature can be configured via LunaLib settings.
+
+![staggered_firing_mode](https://vimeo.com/1037950693)
+
+### 3. Aggressive friendly fire behavior ###
+
+Ships are finally not paralyzed by the slightest possibility of inflicting friendly fire damage. Quite the opposite,
+weapons will fire shots skimming the very surfaces of allied shields! AI can afford very tight ff tolerances thanks to
+improved math, which allows to reliably account for allies movement. But be warned, the math doesn't predict course
+changes. So if you have frigates that like to dance in front of big guns, they will get hit. Overall, the ratio of ff
+incidents will increase, but the ratio of enemy hits will increase more substantially.
+
+### 4. Focusing fire on a single target ###
+
+Vanilla AI likes to assign ship weapons to different targets, leading to situations where a ship fights all nearby
+enemies, but destroys none. Starsector 0.96 contained a feature-bug that allowed to fix the
+behavior ([forum thread](https://fractalsoftworks.com/forum/index.php?topic=28093.0)), but it was removed in 0.97. AI
+Tweaks improve the target selection algorithm, so that weapons strongly prefer to attack the target faced by the ship.
+Note that for autopilot controlled ships, true target is not the same as R-selected target.
+
+At the same time, the weapons are not completely glued to ships target, as is the case with the bug referenced above. PD
+weapons will still prioritize missiles and normal weapons will consider other targets if ships target is outside firing
+arc or range. Overall, the result is much more focused fire, leading to noticeably faster kill times.
+
+### 5. Specialized target leading algorithm for hardpoints ###
+
+It is not uncommon for vanilla Autofire AI to target hardpoint weapons away from an enemy in front of the ship, wasting
+opportunity to inflict damage. There are two reasons for the incorrect behavior. The vanilla AI may simply chose to
+target an enemy off-axis, or it may target the correct enemy, but order the weapon to rotate too soon. In the latter
+case, when the ship rotates towards the enemy, the weapon ends up over-rotated.
+
+Modified AI predicts the enemy location and pre-aims hardpoint weapons at the correct angle, even before the ship
+rotates towards the enemy. All front-facing hardpoints are affected by the change, but only on AI-piloted ships.
+
+Example of the incorrect behavior, fixed by AI Tweaks. One of the Guardians High Intensity Lasers is aiming at the void:
+
+![hardpoint miss](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/hardpoint_miss.jpg)
+
+### 6. Improved beam weapon target switching ###
+
+In Starsector, beam weapons have a finite travel speed, which can cause delays in reaching their targets. When a beam
+weapon switches targets, rotating the existing beam to the new target may be faster and more efficient than stopping and
+re-firing once aligned. This is particularly useful for point-defense (PD) beams, which often need to rapidly engage
+multiple incoming missiles.
+
+The improved AI applies only to normal beams, not burst or ammo based beams.
+
+![beam weapon ai](https://vimeo.com/1026930513)
+
+### 7. Modified anti-shield burst weapon AI ###
+
+A simple modification preventing autofire AI from firing ammo-based kinetic weapons, as well as the Light Needler, Heavy
+Needler and Storm Needler on shieldless targets. This change greatly improves needlers anti shield capability by
+preventing them from wasting bursts on exposed hulls. All ships are subject to the change, no hullmod is required.
+
+The feature can be disabled via LunaLib settings.
+
+### 8. Non-burst beams can fire through inside of allied ships’ shields ###
+
+Autofire AI takes advantage of the game mechanic beams fired from inside an allied ship’s semicircular shield arc 
+pass outward through that shield.
+
+This feature can be disabled in LunaLib settings.
+
+![hardpoint miss](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/through_shield.png)
+
+### 9. Additional changes ###
+
+AI Tweaks autofire introduces a number of smaller changes in comparison to vanilla AI, some of which may not be
+intentional. In no specific order:
+
+* USE_LESS_VS_SHIELDS weapons (Mining Blaster and IR Autolance in vanilla) do not fire on shields when their magazines
+  is above 80; vanilla AI does that to avoid "wasting" recharges; this can be disabled via LunaLib settings
+* phased ships are targeted only by beams and PD weapons, but only if the weapon is not ammo- or burst-based
+* non-PD weapons attack fighters only when there are no bigger hulls in range
+* shield hits are correctly predicted even for modular ships like stations, improving behavior of weapons that are
+  supposed to attack shields only, or avoid shields
 
 Player Assist
 -------------
@@ -247,8 +254,8 @@ When active, an AIM ASSIST status icon is displayed:
 
 ![aim assist_ui](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/aim_assist.png)
 
-AI Configuration
-----------------
+Ship AI Configuration
+---------------------
 
 ### 1. Changing the personality of automated ships ###
 
@@ -313,4 +320,4 @@ main battle line, it will not prioritize doing so. On ships without Custom AI, t
 allowing them to revert to vanilla behavior of chasing enemy frigates to the edge of the map. This hullmod cannot be installed 
 on frigates as they are inherently considered skirmishers."
 
-![skiremisher](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/skirmisher.png)
+![skirmisher](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/skirmisher.png)

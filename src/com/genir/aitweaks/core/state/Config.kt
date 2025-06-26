@@ -22,6 +22,7 @@ class Config {
     val enableNeedlerFix: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_needler_fix")!!
     val enableBeamSweep: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_beam_sweep")!!
     val strictUseLessVSShields: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_strict_use_less_vs_shields")!!
+    val fireThroughShields: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_allow_beams_through_shields")!!
 
     // Player assist
     val shieldAssistKeybind: Int = LunaSettings.getInt("aitweaks", "aitweaks_shield_assist_keybind")!!

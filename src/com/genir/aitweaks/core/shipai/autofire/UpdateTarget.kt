@@ -11,8 +11,10 @@ import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.*
+import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Grid
+import com.genir.aitweaks.core.utils.angularVelocity
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
@@ -258,25 +260,41 @@ class UpdateTarget(
     }
 
     private fun evaluateTarget(target: CombatEntityAPI): Pair<CombatEntityAPI, Float> {
+        var evaluation = 0f
         val ballisticTarget = BallisticTarget.collisionRadius(target)
         val dist = intercept(weapon, ballisticTarget, params).length
         val range = weapon.totalRange
 
-        return if (dist <= range) {
-            // Evaluate the target based on angle and distance.
-            val angle = ((target.location - weapon.location).facing - weapon.currAngle.direction).radians
-            val angleWeight = 0.75f
+        // Evaluate the target based on angle from current weapon facing.
+        val angle = ((target.location - weapon.location).facing - weapon.currAngle.direction).radians
+        val angleWeight = if (dist <= range) 0.75f else 0.25f // Lower angle weight for out of range targets.
+        evaluation += abs(angle) * angleWeight
 
-            val evalAngle = abs(angle) * angleWeight
-            val evalDist = dist / range
-
-            Pair(target, evalAngle + evalDist)
-        } else {
-            // If the target is out of range, evaluate it based only on range, ignoring the angle.
-            val outOfRangePenalty = 1e3f
-
-            val evalDist = (dist - range) / range
-            Pair(target, evalDist + outOfRangePenalty)
+        // Evaluate the target based on range.
+        val evalDist = dist / range
+        evaluation += evalDist
+        if (dist > range) {
+            val outOfRangePenalty = 1e4f
+            evaluation += outOfRangePenalty
         }
+
+        if (estimateAngularVelocity(target) > weapon.turnRateWhileFiring) {
+            val unableToTrackPenalty = 1e3f
+            evaluation += unableToTrackPenalty
+        }
+
+        return Pair(target, evaluation)
+    }
+
+    /** Estimate target angular velocity in weapon frame of reference.
+     * Similar to InterceptTracker, but less precise. */
+    private fun estimateAngularVelocity(target: CombatEntityAPI): Float {
+        val kinematics = weapon.ship.kinematics
+
+        val p = target.location - weapon.location
+        val v = target.timeAdjustedVelocity - kinematics.velocity
+
+        val targetW = angularVelocity(p, v)
+        return targetW - kinematics.angularVelocity
     }
 }

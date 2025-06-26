@@ -25,7 +25,7 @@ class FluxTracker(val ship: ShipAPI, private val period: Float) {
 
         history.addFirst(newRecord)
 
-        if (timestamp - history.last.timestamp > period) {
+        if (timestamp - history.last().timestamp > period) {
             history.removeLast()
         }
     }
@@ -35,6 +35,6 @@ class FluxTracker(val ship: ShipAPI, private val period: Float) {
             return 0f
         }
 
-        return history.first.value - history.last.value
+        return history.first().value - history.last().value
     }
 }

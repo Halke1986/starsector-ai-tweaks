@@ -1,3 +1,6 @@
+- Custom AI: Further improved venting behavior: ships will no longer ignore incoming Hellbore projectiles when deciding whether to vent.
+- Autofire AI: Non-burst beams can fire through inside of allied ships’ shields. This feature can be disabled in LunaLib settings.
+
 Version v2.1.6
 
 - Autofire AI: Fixed a bug where Rift Lightning would not fire. Reported by Arisaka.

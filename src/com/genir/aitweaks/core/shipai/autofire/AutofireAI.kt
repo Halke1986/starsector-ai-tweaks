@@ -465,29 +465,6 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         }
     }
 
-    /** Tracks intercept angular velocity and angular distance in weapon slot frame of reference. */
-    private class InterceptTracker(private val weapon: WeaponHandle) {
-        private var prevAngleToIntercept: Direction? = null
-        var interceptVelocity = 0f
-
-        fun advance(dt: Float, intercept: Vector2f?) {
-            if (intercept == null) {
-                return
-            }
-
-            val angleToIntercept: Direction = intercept.facing - weapon.absoluteArc.facing
-            interceptVelocity = (angleToIntercept - (prevAngleToIntercept ?: angleToIntercept)).degrees / dt
-            prevAngleToIntercept = angleToIntercept
-        }
-
-        /** clear should be called after target change,
-         * to avoid false intercept velocity estimation. */
-        fun clear() {
-            prevAngleToIntercept = null
-            interceptVelocity = 0f
-        }
-    }
-
     private val WeaponHandle.isSlowTurret: Boolean
         get() = turnRateWhileFiring < ship.baseTurnRate
 }

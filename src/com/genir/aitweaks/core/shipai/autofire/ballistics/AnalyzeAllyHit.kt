@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
+import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 
@@ -16,6 +17,12 @@ fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipAPI,
     return when {
         weapon.noFF -> {
             null
+        }
+
+        config.fireThroughShields && weapon.isPlainBeam -> {
+            return analyzeHit(weapon, ally, params)?.let { hit ->
+                Hit(hit.target, hit.range, Hit.Type.ALLY)
+            }
         }
 
         !canHitAlly(weapon, target, ally, params) -> {
