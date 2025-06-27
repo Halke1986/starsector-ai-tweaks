@@ -4,19 +4,13 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - attack enemy ships that are inflicting damage
 
-- sometimes guided finisher missiles are ignored when venting, especially on phase ships
-
 - area targeting for devastator
-
-- do not track targets with angular velocity higher than weapon rotation
 
 - avoid blocking burn vector via collision avoidance
 
 - revisit hiding behind allies to vent
 
 - extract vanilla missile decisioning
-
-- take damage type into account when calculating history of calculated damage, to not ignore hellbores when venting
 
 - try to attack same enemy battle group during initial split
 
@@ -52,5 +46,9 @@ approach into missile range
 vent logic:
   - calculate proper damage for dangerous weapons, remove finisherMissile flag
   - properly handle non-guided missiles
+
+hef allows changing maneuver target
+
+do not ignore projectiles from dead ships
 
 ----------------------------------------------------------------

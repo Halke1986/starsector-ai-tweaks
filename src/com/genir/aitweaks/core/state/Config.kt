@@ -12,9 +12,8 @@ class Config {
         var config = Config()
     }
 
-    // General
+    // Ship AI
     val enableFleetCohesion: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai")!!
-    val enableTitleScreenFire: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_title_screen_fire")!!
     val aiPersonality: String? = LunaSettings.getString("aitweaks", "aitweaks_ai_core_personality")
 
     // Autofire AI
@@ -37,4 +36,5 @@ class Config {
     val removeCombatMapGrid: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_remove_combat_map_grid")!!
     val enableSimulatorCustomAI: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_simulator_custom_ai")!!
     val enableAllCustomAI: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_all_custom_ai")!!
+    val enableTitleScreenFire: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_title_screen_fire")!!
 }
