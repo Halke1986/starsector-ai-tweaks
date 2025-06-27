@@ -6,12 +6,11 @@ import com.fs.starfarer.api.combat.CombatFleetManagerAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.state.State
 
 /** Make ships defaults to Search and Destroy order. Ships will not be automatically
  * assigned to Assault, Eliminate or any other tasks. Player can manually assign ships
  * to any tasks. */
-class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
+class SearchAndDestroyManager(private val globalAI: GlobalAI) : BaseEveryFrameCombatPlugin() {
     private val initialAssignments: MutableMap<ShipAPI, CombatFleetManagerAPI.AssignmentInfo> = mutableMapOf()
 
     private var firstFrameWithShips = -1
@@ -31,18 +30,20 @@ class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
         val shipsToOrder = allShips.filter { ship ->
             when {
                 ship.isUnderManualControl -> false
+
                 !ship.variant.hasHullMod("aitweaks_search_and_destroy") -> false
+
                 else -> true
             }
         }
 
         if (firstFrameWithShips == -1 && allShips.isNotEmpty()) {
-            firstFrameWithShips = State.state.unpausedFrameCount
+            firstFrameWithShips = globalAI.frameTracker.unpausedCount
         }
 
         // The hullmod is suppressed during initial deployment,
         // to allow for easy objective capping.
-        if (firstFrameWithShips == State.state.unpausedFrameCount) {
+        if (firstFrameWithShips == globalAI.frameTracker.unpausedCount) {
             shipsToOrder.forEach { ship ->
                 if (ship.hasDirectOrders) {
                     initialAssignments.remove(ship)
@@ -54,7 +55,7 @@ class SearchAndDestroyManager : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        if (firstFrameWithShips != State.state.unpausedFrameCount) {
+        if (firstFrameWithShips != globalAI.frameTracker.unpausedCount) {
             shipsToOrder.forEach { ship ->
                 // Transform initial auto-assignments into direct orders,
                 // so that the task manager will not modify them.

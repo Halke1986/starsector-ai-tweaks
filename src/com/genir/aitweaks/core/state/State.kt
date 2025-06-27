@@ -9,15 +9,13 @@ import com.genir.aitweaks.core.debug.DebugPlugin
 import com.genir.aitweaks.core.debug.removeGrid
 import com.genir.aitweaks.core.playerassist.AimAssistManager
 import com.genir.aitweaks.core.playerassist.ShieldAssistManager
-import com.genir.aitweaks.core.shipai.global.*
+import com.genir.aitweaks.core.shipai.global.GlobalAI
 import com.genir.aitweaks.core.state.Config.Companion.config
+import com.genir.aitweaks.core.utils.FrameTracker
 
 class State : BaseEveryFrameCombatPlugin() {
     companion object {
-        val state: State
-            get() = stateSafe!!
-
-        val stateSafe: State?
+        val state: State?
             get() = Global.getCombatEngine()?.customData?.get("aitweaks_combat_state") as? State
     }
 
@@ -26,49 +24,31 @@ class State : BaseEveryFrameCombatPlugin() {
         config = Config()
     }
 
-    var frameCount: Int = 0
-    var unpausedFrameCount: Int = 0
+    private val frameTracker: FrameTracker = FrameTracker()
     val debugPlugin: DebugPlugin? = if (config.devMode) DebugPlugin() else null
+    val globalAI: GlobalAI? = if (config.useVanillaAI) null else GlobalAI()
 
-    val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
-    val maneuverCoordinator: AttackCoordinator = AttackCoordinator()
-    val navigateCoordinator: NavigationCoordinator = NavigationCoordinator()
-    val projectileTracker: ProjectileTracker = ProjectileTracker()
-
-    private val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0), FleetCohesionAI(1))
-    private val searchAndDestroy: SearchAndDestroyManager = SearchAndDestroyManager()
-
-    private val plugins: List<BaseEveryFrameCombatPlugin> = listOf(
-        fleetSegmentation[0],
-        fleetSegmentation[1],
-        fleetCohesion[0],
-        fleetCohesion[1],
-        searchAndDestroy,
-        maneuverCoordinator,
-        navigateCoordinator,
-        projectileTracker,
+    private val plugins: List<BaseEveryFrameCombatPlugin?> = listOf(
+        globalAI,
         Speedup(),
         AimAssistManager(),
         ShieldAssistManager(),
     )
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
-        debugPlugin?.advance(dt, events)
-
-        if (frameCount == 0) {
+        if (frameTracker.count == 0) {
             removeGrid()
         }
+
+        debugPlugin?.advance(dt, events)
 
         // Advance plugins only in combat.
         if (Global.getCurrentState() == GameState.COMBAT) {
             VanillaKeymap.advance()
-            plugins.forEach { it.advance(dt, events) }
+            plugins.forEach { it?.advance(dt, events) }
         }
 
-        frameCount++
-        if (!Global.getCombatEngine().isPaused) {
-            unpausedFrameCount++
-        }
+        frameTracker.advance()
     }
 
     override fun renderInUICoords(viewport: ViewportAPI?) {

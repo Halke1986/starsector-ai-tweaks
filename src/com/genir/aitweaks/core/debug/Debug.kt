@@ -8,7 +8,7 @@ import com.genir.aitweaks.core.extensions.plus
 import com.genir.aitweaks.core.extensions.times
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
-import com.genir.aitweaks.core.state.State.Companion.stateSafe
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
@@ -28,7 +28,7 @@ object Debug {
         get() = Print
 
     private val debugPlugin: DebugPlugin?
-        get() = stateSafe?.debugPlugin
+        get() = state?.debugPlugin
 
     fun drawCircle(pos: Vector2f, r: Float, color: Color = Color.CYAN) {
         debugPlugin?.renderer?.circles?.add(Renderer.Circle(pos, r, color))

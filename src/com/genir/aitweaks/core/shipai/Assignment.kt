@@ -12,7 +12,6 @@ import com.genir.aitweaks.core.extensions.length
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.shipai.Assignment.Type.*
 import com.genir.aitweaks.core.shipai.global.NavigationCoordinator
-import com.genir.aitweaks.core.state.State.Companion.state
 import org.lwjgl.util.vector.Vector2f
 
 class Assignment(private val ai: CustomShipAI) {
@@ -90,7 +89,7 @@ class Assignment(private val ai: CustomShipAI) {
         }
 
         val coordinatedWaypoint = if (type == NAVIGATE_IN_FORMATION) {
-            val navigationCoordinator: NavigationCoordinator = state.navigateCoordinator
+            val navigationCoordinator: NavigationCoordinator = ai.globalAI.navigateCoordinator
             val (waypoint, _) = navigationCoordinator.coordinateNavigation(ai, target)
             waypoint
         } else {

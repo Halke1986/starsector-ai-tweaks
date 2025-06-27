@@ -9,7 +9,6 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.state.Config
-import com.genir.aitweaks.core.state.State
 import com.genir.aitweaks.core.utils.closestEntity
 import com.genir.aitweaks.core.utils.isCloseToEnemy
 import com.genir.starfarer.combat.tasks.CombatTaskManager
@@ -18,7 +17,7 @@ import org.lwjgl.util.vector.Vector2f
 /** FleetCohesionAI attempts to keep vanilla-AI controlled ships as a cohesive unit.
  * Vanilla AI, if left unsupervised, will let th ships scatter randomly around the
  * battlefield. */
-class FleetCohesionAI(private val side: Int) : BaseEveryFrameCombatPlugin() {
+class FleetCohesionAI(private val side: Int, private val globalAI: GlobalAI) : BaseEveryFrameCombatPlugin() {
     private val enemy: Int = side xor 1
 
     private val cohesionAssignments: MutableSet<AssignmentKey> = mutableSetOf()
@@ -82,7 +81,7 @@ class FleetCohesionAI(private val side: Int) : BaseEveryFrameCombatPlugin() {
     }
 
     private fun findValidTarget(ship: ShipAPI, currentTarget: ShipAPI?): ShipAPI? {
-        val segmentation = State.state.fleetSegmentation[side]
+        val segmentation = globalAI.fleetSegmentation[side]
         return when {
             // Ship is engaging or planning to engage the primary group.
             currentTarget in segmentation.primaryTargets() -> currentTarget

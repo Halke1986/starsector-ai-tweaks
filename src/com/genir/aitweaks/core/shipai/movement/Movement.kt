@@ -9,7 +9,6 @@ import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.global.AttackCoordinator
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
-import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
@@ -35,7 +34,7 @@ class Movement(val ai: CustomShipAI) {
     private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 90f else -90f)
 
     fun advance(dt: Float) {
-        if (prevFrameIdx != state.frameCount) {
+        if (prevFrameIdx != ai.globalAI.frameTracker.count) {
             engineController.clearCommands()
 
             setFacing(dt)
@@ -44,7 +43,7 @@ class Movement(val ai: CustomShipAI) {
 
         engineController.executeCommands()
 
-        prevFrameIdx = state.frameCount
+        prevFrameIdx = ai.globalAI.frameTracker.count
     }
 
     private fun setFacing(dt: Float) {
@@ -224,7 +223,7 @@ class Movement(val ai: CustomShipAI) {
     /** Take into account other entities when planning ship attack location. */
     fun coordinateAttackLocation(maneuverTarget: ShipAPI, attackLocation: Vector2f): Vector2f {
         // Coordinate the attack with allied ships.
-        val coordinator: AttackCoordinator = state.maneuverCoordinator
+        val coordinator: AttackCoordinator = ai.globalAI.maneuverCoordinator
         val (coordinatedAttackLocation, taskForceSize) = coordinator.coordinateAttack(ai, maneuverTarget, attackLocation)
         var adjustedAttackLocation = coordinatedAttackLocation
 

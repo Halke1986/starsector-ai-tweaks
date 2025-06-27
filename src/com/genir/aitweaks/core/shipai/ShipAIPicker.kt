@@ -13,7 +13,9 @@ import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.genir.aitweaks.core.extensions.isAutomated
 import com.genir.aitweaks.core.extensions.isModule
 import com.genir.aitweaks.core.extensions.isPhase
+import com.genir.aitweaks.core.shipai.global.GlobalAI
 import com.genir.aitweaks.core.state.Config.Companion.config
+import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.starfarer.combat.ai.BasicShipAI
 
 class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
@@ -38,11 +40,16 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
     }
 
     private fun pickShipAIInner(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
+        val globalAI: GlobalAI = state?.globalAI
+            ?: return null
+
         when {
             // Do not override AI in title screen. NOTE: for player ship modules
             // in simulator Global.getCurrentState() returns CAMPAIGN, as opposed
             // to the expected COMBAT.
             Global.getCurrentState() == GameState.TITLE -> return null
+
+            config.useVanillaAI -> return null
 
             ship.isFighter -> return null
         }
@@ -50,7 +57,7 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
         // If a Custom AI is explicitly assigned to the ship via a hullmod,
         // prioritize it highly, potentially overriding AIs from other mods.
         if (shouldHaveCustomAIByHullmod(ship)) {
-            return PluginPick(CustomShipAI(ship), MOD_SPECIFIC)
+            return PluginPick(CustomShipAI(ship, globalAI), MOD_SPECIFIC)
         }
 
         // Identify other mods or vanilla AI pick.
@@ -67,7 +74,7 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
 
         // Custom AI does not care about personality config.
         if (shouldHaveCustomAI(ship)) {
-            return PluginPick(CustomShipAI(ship), MOD_SPECIFIC)
+            return PluginPick(CustomShipAI(ship, globalAI), MOD_SPECIFIC)
         }
 
         // Get personality config.

@@ -12,12 +12,12 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset.Companion.assaultShipApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.fullAssaultApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
+import com.genir.aitweaks.core.shipai.global.GlobalAI
 import com.genir.aitweaks.core.shipai.movement.Movement
 import com.genir.aitweaks.core.shipai.systems.BurnDriveToggle
 import com.genir.aitweaks.core.shipai.systems.SystemAI
 import com.genir.aitweaks.core.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.state.Config
-import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Arc
 import org.lwjgl.util.vector.Vector2f
@@ -25,7 +25,7 @@ import java.awt.Color
 import kotlin.math.max
 
 @Suppress("MemberVisibilityCanBePrivate")
-class CustomShipAI(val ship: ShipAPI) : BaseShipAI() {
+class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     // Subsystems.
     val movement: Movement = Movement(this)
     val assignment: Assignment = Assignment(this)
@@ -192,7 +192,7 @@ class CustomShipAI(val ship: ShipAPI) : BaseShipAI() {
 
     /** Find a new maneuver target using enemy fleet segmentation. */
     private fun findClosestSegmentationTarget(): ShipAPI? {
-        val segmentation = state.fleetSegmentation[ship.owner]
+        val segmentation = globalAI.fleetSegmentation[ship.owner]
 
         // Prioritize the nearest segmentation target over primary targets if the ship is already in proximity to it.
         val allTargets = segmentation.allTargets(ship.isFast).filter { isTargetVisible(it) }

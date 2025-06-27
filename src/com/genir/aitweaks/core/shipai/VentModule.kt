@@ -14,7 +14,6 @@ import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
 import com.genir.aitweaks.core.shipai.threat.MissileThreat
 import com.genir.aitweaks.core.shipai.threat.WeaponThreat
-import com.genir.aitweaks.core.state.State.Companion.state
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
@@ -233,7 +232,7 @@ class VentModule(private val ai: CustomShipAI) {
         val (finisherMissileDanger, potentialDamage) = weaponThreat.potentialDamage(duration)
 
         val projectileDamage = run {
-            val projectiles = state.projectileTracker.threats(ship)
+            val projectiles = ai.globalAI.projectileTracker.threats(ship)
             effectiveDamage(filterRelevantProjectiles(projectiles))
         }
 

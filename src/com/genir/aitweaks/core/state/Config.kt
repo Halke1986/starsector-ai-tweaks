@@ -24,6 +24,7 @@ class Config {
     val fireThroughShields: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_allow_beams_through_shields")!!
 
     // Player assist
+    val useVanillaAI: Boolean = false
     val shieldAssistKeybind: Int = LunaSettings.getInt("aitweaks", "aitweaks_shield_assist_keybind")!!
     val aimAssistKeybind: Int = LunaSettings.getInt("aitweaks", "aitweaks_aim_bot_keybind")!!
     val aimAssistRotateShip: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_aim_bot_rotate_ship")!!
