@@ -7,6 +7,10 @@ import com.fs.starfarer.api.combat.ShipCommand
 
 /** Disable ship system, except for manually piloted ship. */
 class SystemShunt : BaseHullMod() {
+    override fun showInRefitScreenModPickerFor(ship: ShipAPI): Boolean {
+        return enableHullmods()
+    }
+
     override fun advanceInCombat(ship: ShipAPI, dt: Float) {
         if (ship != Global.getCombatEngine().playerShip || !Global.getCombatEngine().isUIAutopilotOn) {
             ship.blockCommandForOneFrame(ShipCommand.USE_SYSTEM)

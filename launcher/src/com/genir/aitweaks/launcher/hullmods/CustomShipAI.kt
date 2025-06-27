@@ -11,7 +11,7 @@ class CustomShipAI : BaseHullMod() {
 
     /** Returns true if custom AI can control the given ship. */
     override fun showInRefitScreenModPickerFor(ship: ShipAPI): Boolean {
-        return shipAIPicker.canHaveCustomAI(ship)
+        return enableHullmods() && shipAIPicker.canHaveCustomAI(ship)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? = when (index) {

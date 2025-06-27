@@ -5,11 +5,11 @@ import com.fs.starfarer.api.combat.ShipAPI
 
 class Skirmisher : BaseHullMod() {
     override fun showInRefitScreenModPickerFor(ship: ShipAPI): Boolean {
-        return !ship.isFrigate
+        return enableHullmods() && !ship.isFrigate
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? = when (index) {
-            0 -> "frigates,"
-            else -> null
-        }
+        0 -> "frigates,"
+        else -> null
+    }
 }
