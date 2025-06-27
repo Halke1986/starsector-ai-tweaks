@@ -226,33 +226,28 @@ class VentModule(private val ai: CustomShipAI) {
 
     /** Decide if it's safe to vent. */
     private fun isSafe(): Boolean {
-        val effectiveHP: Float = ship.hitpoints * ship.hullLevel.let { it * it * it * it }
+        val allProjectiles = ai.globalAI.projectileTracker.threats(ship)
+        val projectiles = filterRelevantProjectiles(allProjectiles).toList()
 
-        val duration = ship.fluxTracker.timeToVent * ventTimeFactor
-        val (finisherMissileDanger, potentialDamage) = weaponThreat.potentialDamage(duration)
-
-        val projectileDamage = run {
-            val projectiles = ai.globalAI.projectileTracker.threats(ship)
-            effectiveDamage(filterRelevantProjectiles(projectiles))
+        // Wait for projectiles shot by already dead ships to dissipate.
+        if (projectiles.any { !it.weapon.ship.isAlive }) {
+            return false
         }
 
+        val duration = ship.fluxTracker.timeToVent * ventTimeFactor
+        val (finisherMissileDanger, weaponDamage) = weaponThreat.potentialDamage(duration)
+
+        // Don't get hit by a finisher missile.
+        if (finisherMissileDanger) {
+            return false
+        }
+
+        val projectileDamage = effectiveDamage(filterRelevantProjectiles(projectiles.asSequence()))
         val missileDamage = effectiveDamage(missileThreat.threats(duration))
 
+        val effectiveHP: Float = ship.hitpoints * ship.hullLevel.let { it * it * it * it }
         return when {
-            // Don't get hit by a finisher missile.
-            finisherMissileDanger -> {
-                false
-            }
-
             projectileDamage + missileDamage > effectiveHP * 0.095f -> {
-                false
-            }
-
-            // The ship is not in range of any weapons, but there are projectiles inbound.
-            // Assume the ship has just destroyed its duel opponent, and no more projectiles
-            // will be incoming. Wait for the remaining projectiles to be intercepted by the
-            // shield, and vent only after the duel is fully concluded.
-            potentialDamage == 0f && projectileDamage > 0 -> {
                 false
             }
 
@@ -263,7 +258,7 @@ class VentModule(private val ai: CustomShipAI) {
 
             // Attempt to tank a limited amount of damage. 0.1f may seem like a large fraction,
             // but potential damage calculation is the absolute worst case scenario.
-            potentialDamage > effectiveHP * 0.1f -> {
+            weaponDamage > effectiveHP * 0.1f -> {
                 false
             }
 

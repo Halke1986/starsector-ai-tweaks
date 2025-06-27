@@ -47,8 +47,4 @@ vent logic:
   - calculate proper damage for dangerous weapons, remove finisherMissile flag
   - properly handle non-guided missiles
 
-hef allows changing maneuver target
-
-do not ignore projectiles from dead ships
-
 ----------------------------------------------------------------

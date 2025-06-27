@@ -140,7 +140,8 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
         }
 
         val projectileRange: Float = distPerFrame * frames
-        return projectileSpawnOffset + projectileRange
+        val ensureHitBuffer = 10f
+        return projectileSpawnOffset + projectileRange - ensureHitBuffer
     }
 
     val totalRange: Float
