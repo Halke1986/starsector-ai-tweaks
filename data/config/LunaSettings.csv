@@ -9,7 +9,7 @@ aitweaks_enable_beam_sweep,,,,Enable PD Beam Sweep,,Boolean,true,,,,"Allow PD be
 aitweaks_strict_use_less_vs_shields,,,,Strict USE_LESS_VS_SHIELDS,,Boolean,true,,,,"Weapons tagged USE_LESS_VS_SHIELDS (such as the Mining Blaster and IR Autolance) will not fire at shields, ever. When this option is off, those weapons revert to vanilla behaviour and will target shields once their magazines are full.",,,,,Autofire AI
 aitweaks_allow_beams_through_shields,,,,Allow Beams Attack Through Allied Shields,,Boolean,true,,,,"Allow to fire non-burst beams through inside of allied ships’ shields.",,,,,Autofire AI
 
-aitweaks_use_vanilla_ai,,,,Only Player Assist,,Boolean,false,,,,"todo",,,,,Player Assist
+aitweaks_use_vanilla_ai,,,,Only Player Assist,,Boolean,false,,,,"Disable all AI Tweaks modifications to Ship AI; keep only Player Assist features enabled.",,,,,Player Assist
 aitweaks_shield_assist_keybind,,,,Shield Assist Toggle Keybind,,Keycode,27,,,,"Hotkey used to pass control of player ship shield to AI. The AI will take over the shield control when player is piloting manually. Indicator circle is drawn around the ship when shield is in AI control.",,,,,Player Assist
 aitweaks_aim_bot_keybind,,,,Aim Assist Toggle Keybind,,Keycode,26,,,,"Hotkey to toggle aim assist for manually controlled weapon groups. When enabled, aim assist automatically calculates and applies target leading for all projectile and unguided missile weapons in the selected weapon group.",,,,,Player Assist
 aitweaks_aim_bot_rotate_ship,,,,Aim Assist Controls Ship Facing,,Boolean,true,,,,"Allow aim assist to correct ship facing when auto-turning to cursor. Aim assist will rotate the ship to correctly aim the selected weapon group.",,,,,Player Assist
