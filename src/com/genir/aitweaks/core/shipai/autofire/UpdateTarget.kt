@@ -278,7 +278,9 @@ class UpdateTarget(
             evaluation += outOfRangePenalty
         }
 
-        if (estimateAngularVelocity(target) > weapon.turnRateWhileFiring) {
+        // Beams exhibit rapid on/off behavior when attempting
+        // to track targets with too high angular velocity.
+        if (weapon.isPlainBeam && estimateAngularVelocity(target) > weapon.turnRateWhileFiring) {
             val unableToTrackPenalty = 1e3f
             evaluation += unableToTrackPenalty
         }

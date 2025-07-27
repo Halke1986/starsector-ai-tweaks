@@ -46,5 +46,19 @@ approach into missile range
 vent logic:
   - calculate proper damage for dangerous weapons, remove finisherMissile flag
   - properly handle non-guided missiles
+    
+vent still ignores hellbore!
+
+wizardlyparagon.
+ — 
+6/28/25, 5:45 PM
+Hello Mr. Genir I have a quick bug report I'd like to make. The AI Tweaks 2.1.6 mod is seemingly preventing Proximity Charge Launcher from properly firing at incoming fighters. I tested with an odyssey vs an astral with the odyssey having 2 PCL in the forward arc medium missile mounts. With AI Tweaks 2.1.6 enabled, the PCL's will not fire at the astral's fighters when they are making their attack runs at the odyssey, whereas they will fire if AI Tweaks is disabled
+
+
+emto demto[FBX]
+ — 
+6:57 PM
+@Genir shrouded maw will not use its churning locus with ai tweaks active, for some reason
+they never switch them to autofire on, and presumably because of the NO_MANUAL_FIRE tag they wont do anything else with them 
 
 ----------------------------------------------------------------
