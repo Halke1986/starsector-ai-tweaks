@@ -166,7 +166,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
             weapon.spec.isInterruptibleBurst -> false
 
             // Exclude "continuous" burst beams like the IR Autolance.
-            isBeam && spec.burstDuration > 0f && cooldown > 0f -> false
+            isBeam && spec.burstDuration > 0f && cooldown == 0f -> false
 
             else -> isBurstWeapon
         }
@@ -185,7 +185,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
      * BURST */
     override fun isInBurst(): Boolean {
         return when {
-            isNonInterruptibleBurstWeapon -> {
+            !isNonInterruptibleBurstWeapon -> {
                 false
             }
 
