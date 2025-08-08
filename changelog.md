@@ -1,3 +1,5 @@
+Version v2.1.7
+
 - Autofire AI: Non-burst beams can fire through inside of allied ships’ shields. This feature can be disabled in LunaLib settings.
 - Added LunaLib setting that disables all AI Tweaks features except Player Assist. Suggested by StriderGunship.
 - Added compatibility with the upcoming starsector-renderer mod.
