@@ -61,4 +61,6 @@ emto demto[FBX]
 @Genir shrouded maw will not use its churning locus with ai tweaks active, for some reason
 they never switch them to autofire on, and presumably because of the NO_MANUAL_FIRE tag they wont do anything else with them 
 
+- Custom AI: Further improved venting behavior: ships will no longer ignore incoming Hellbore projectiles when deciding whether to vent.
+
 ----------------------------------------------------------------

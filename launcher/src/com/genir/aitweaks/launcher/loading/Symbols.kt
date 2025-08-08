@@ -131,7 +131,7 @@ class Symbols {
         }
 
         // Identify approach maneuver by number of methods.
-        // The expected maneuver has the higher number of methods
+        // The expected maneuver has the higher number of methods.
         val candidateClasses: List<Class<*>> = candidates.map { classLoader.loadClass(it.replace("/", ".")) }
         return candidateClasses.maxWithOrNull { a, b -> a.declaredMethods.size - b.declaredMethods.size }!!
     }
@@ -186,7 +186,6 @@ class Symbols {
                         }
                     }
                 }
-
             }
         })
 

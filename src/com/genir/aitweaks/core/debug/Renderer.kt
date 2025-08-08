@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.BaseCombatLayeredRenderingPlugin
 import com.fs.starfarer.api.combat.CombatEngineLayers
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.util.Misc
+import com.genir.aitweaks.launcher.OpenGL
 import org.lazywizard.lazylib.opengl.DrawUtils
 import org.lwjgl.opengl.GL11
 import org.lwjgl.util.vector.Vector2f
@@ -35,22 +36,24 @@ class Renderer : BaseCombatLayeredRenderingPlugin() {
             prevArcs = mutableSetOf()
         }
 
-        if (lines.isEmpty() && circles.isEmpty() && arcs.isEmpty()) return
+        if (lines.isEmpty() && circles.isEmpty() && arcs.isEmpty()) {
+            return
+        }
 
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+        OpenGL.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
 
-        GL11.glDisable(GL11.GL_TEXTURE_2D)
-        GL11.glEnable(GL11.GL_BLEND)
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+        OpenGL.glDisable(GL11.GL_TEXTURE_2D)
+        OpenGL.glEnable(GL11.GL_BLEND)
+        OpenGL.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
 
-        GL11.glLineWidth(3f / Global.getCombatEngine().viewport.viewMult)
+        OpenGL.glLineWidth(3f / Global.getCombatEngine().viewport.viewMult)
 
         lines.forEach {
             Misc.setColor(it.color)
-            GL11.glBegin(GL11.GL_LINE_STRIP)
-            GL11.glVertex2f(it.a.x, it.a.y)
-            GL11.glVertex2f(it.b.x, it.b.y)
-            GL11.glEnd()
+            OpenGL.glBegin(GL11.GL_LINE_STRIP)
+            OpenGL.glVertex2f(it.a.x, it.a.y)
+            OpenGL.glVertex2f(it.b.x, it.b.y)
+            OpenGL.glEnd()
         }
 
         circles.forEach {
@@ -79,7 +82,7 @@ class Renderer : BaseCombatLayeredRenderingPlugin() {
             )
         }
 
-        GL11.glPopAttrib()
+        OpenGL.glPopAttrib()
 
         prevArcs = arcs
         prevCircles = circles
