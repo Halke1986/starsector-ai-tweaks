@@ -10,6 +10,7 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.getShortestRotation
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 
@@ -28,7 +29,7 @@ class SimulateMissile {
             var facing: Direction = (target.location - weapon.location).facing
 
             for (i in 0..3) {
-                val path: Sequence<Frame> = missilePath(dt, weapon, facing.unitVector, missileStats)
+                val path: Sequence<Frame> = missilePath(dt, weapon, facing, missileStats)
                 val error: Direction = angularDistanceToPath(dt, weapon, target, path)
                 facing += error
             }
@@ -38,7 +39,7 @@ class SimulateMissile {
 
         fun missilePath(weapon: WeaponHandle): Sequence<Frame> {
             val dt: Float = Global.getCombatEngine().elapsedInLastFrame
-            return missilePath(dt, weapon, weapon.currAngle.direction.unitVector, MissileStats(weapon))
+            return missilePath(dt, weapon, weapon.currAngle.direction, MissileStats(weapon))
         }
 
         /** Calculate the angular distance between missile path and
@@ -65,9 +66,10 @@ class SimulateMissile {
 
         /** Predict the entire path of a missile, given weapon facing,
          * starting from the weapon barrel location. */
-        private fun missilePath(dt: Float, weapon: WeaponHandle, facingVector: Vector2f, missileStats: MissileStats): Sequence<Frame> {
-            val p0: Vector2f = weapon.location + weapon.barrelOffset(facingVector)
+        private fun missilePath(dt: Float, weapon: WeaponHandle, weaponFacing: Direction, missileStats: MissileStats): Sequence<Frame> {
+            val p0: Vector2f = weapon.location + weapon.barrelOffset(weaponFacing)
             val vMax: Float = missileStats.maxSpeed * dt
+            val facingVector: Vector2f = weaponFacing.unitVector
             val v0: Vector2f = (weapon.ship.velocity + facingVector * missileStats.launchSpeed) * dt
             val a: Vector2f = facingVector * missileStats.acceleration * dt * dt
             val decel: Float = max(missileStats.acceleration, missileStats.deceleration) * 2f * dt * dt
@@ -84,8 +86,8 @@ class SimulateMissile {
 
         /** Calculate the barrel offset for the weapon, given weapon facing.
          * For multi-barreled weapons, average offset is returned. */
-        private fun WeaponHandle.barrelOffset(facingVector: Vector2f): Vector2f {
-            return facingVector * barrelOffset.length
+        private fun WeaponHandle.barrelOffset(weaponFacing: Direction): Vector2f {
+            return barrelOffset.rotated(weaponFacing.rotationMatrix)
         }
 
         /** Missile stats after applying ship bonuses. */

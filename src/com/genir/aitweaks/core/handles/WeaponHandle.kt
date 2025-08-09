@@ -240,6 +240,10 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
                 else -> listOf()
             }
 
+            if (offsets.isEmpty()) {
+                return Vector2f()
+            }
+
             val offsetSum: Vector2f = offsets.fold(Vector2f()) { sum, offset -> sum + offset }
             val average: Vector2f = offsetSum / offsets.size.toFloat()
 
