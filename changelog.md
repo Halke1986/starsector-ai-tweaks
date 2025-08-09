@@ -1,4 +1,7 @@
+Version v2.1.8
+
 - Fixed an IndexOutOfBoundsException that occurred when calculating the barrel offset for weapons with no barrels. Reported by cbxzcm and Breamic.
+- Custom AI: Fixed yet another case of interrupting weapon bursts by venting flux.
 
 Version v2.1.7
 
