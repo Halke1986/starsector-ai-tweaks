@@ -1,3 +1,5 @@
+- Fixed an IndexOutOfBoundsException that occurred when calculating the barrel offset for weapons with no barrels. Reported by cbxzcm and Breamic.
+
 Version v2.1.7
 
 - Autofire AI: Non-burst beams can fire through inside of allied ships’ shields. This feature can be disabled in LunaLib settings.

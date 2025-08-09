@@ -16,7 +16,7 @@ import kotlin.math.min
 object Bounds {
     /** Calculates the length ratio along vector with given starting position
      * and velocity, at which first collision with target bounds happens.
-     * The vector position and direction are in target frame of reference!. */
+     * The vector position and direction are in target frame of reference! */
     fun collision(position: Vector2f, velocity: Vector2f, target: CombatEntityAPI): Float? {
         // Check if there's a possibility of collision.
         val bounds = target.exactBounds as? com.genir.starfarer.combat.collision.Bounds ?: return null

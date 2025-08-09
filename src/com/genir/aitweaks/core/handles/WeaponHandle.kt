@@ -8,8 +8,10 @@ import com.fs.starfarer.api.loading.ProjectileSpawnType.BALLISTIC_AS_BEAM
 import com.fs.starfarer.api.loading.ProjectileSpawnType.BEAM
 import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
+import com.genir.aitweaks.core.extensions.div
 import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.extensions.minus
+import com.genir.aitweaks.core.extensions.plus
 import com.genir.aitweaks.core.handles.wrappers.WeaponWrapper
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
@@ -21,6 +23,7 @@ import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import com.genir.starfarer.combat.entities.ship.weapons.BeamWeapon
 import com.genir.starfarer.combat.systems.Weapon
+import org.lwjgl.util.vector.Vector2f
 import kotlin.math.floor
 
 /**
@@ -225,21 +228,28 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
     val target: CombatEntityAPI?
         get() = autofirePlugin?.let { it.targetShip ?: it.targetMissile } ?: ship.shipTarget
 
-    private val barrelOffset: Float
+    /** Calculate the barrel offset for the weapon.
+     * For multi-barreled weapons, average offset is returned. */
+    val barrelOffset: Vector2f
         get() {
-            val offsets = if (slot.isHardpoint) {
-                spec.hardpointFireOffsets
-            } else {
-                spec.turretFireOffsets
+            val offsets: List<Vector2f> = when {
+                slot.isHardpoint -> spec.hardpointFireOffsets
+
+                slot.isTurret -> spec.turretFireOffsets
+
+                else -> listOf()
             }
 
-            return offsets[0]?.x ?: 0f
+            val offsetSum: Vector2f = offsets.fold(Vector2f()) { sum, offset -> sum + offset }
+            val average: Vector2f = offsetSum / offsets.size.toFloat()
+
+            return average
         }
 
     /** Distance along the firing angle from the weapon's
      * location where the projectile is spawned. */
     val projectileSpawnOffset: Float
-        get() = barrelOffset + projectileLength
+        get() = barrelOffset.x + projectileLength
 
     private val projectileLength: Float
         get() {

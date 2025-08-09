@@ -85,16 +85,7 @@ class SimulateMissile {
         /** Calculate the barrel offset for the weapon, given weapon facing.
          * For multi-barreled weapons, average offset is returned. */
         private fun WeaponHandle.barrelOffset(facingVector: Vector2f): Vector2f {
-            val offsets: List<Vector2f> = when {
-                slot.isHardpoint -> spec.hardpointFireOffsets
-                slot.isTurret -> spec.turretFireOffsets
-                else -> listOf()
-            }
-
-            val offsetSum: Vector2f = offsets.fold(Vector2f()) { sum, offset -> sum + offset }
-            val average: Vector2f = offsetSum / offsets.size.toFloat()
-
-            return facingVector * average.length
+            return facingVector * barrelOffset.length
         }
 
         /** Missile stats after applying ship bonuses. */
