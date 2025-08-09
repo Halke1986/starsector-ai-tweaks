@@ -16,6 +16,7 @@ import com.genir.aitweaks.core.shipai.threat.MissileThreat
 import com.genir.aitweaks.core.shipai.threat.WeaponThreat
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
@@ -37,7 +38,6 @@ class VentModule(private val ai: CustomShipAI) {
     private var backoffDistance: Float = farAway
 
     private companion object Preset {
-        const val ventTimeFactor = 0.8f
         const val idleVentThreshold = 0.30f
         const val opportunisticVentThreshold = 0.5f
         const val backoffUpperThreshold = 0.75f
@@ -45,12 +45,14 @@ class VentModule(private val ai: CustomShipAI) {
 
         const val ventTrackingPeriod = 4.3f
         const val engageBeforeVentFinish = 1.5f
+        const val ventTimeFlatModifier = 0.8f
 
         const val farAway = 1e8f
     }
 
     fun advance(dt: Float) {
         debug()
+
         damageTracker.advance()
         fluxTracker.advance()
 
@@ -94,7 +96,9 @@ class VentModule(private val ai: CustomShipAI) {
             return
         }
 
-//        missileThreat.potentialDamage(ship.fluxTracker.timeToVent)
+//        missileThreat.threats(ship.fluxTracker.timeToVent).forEach {
+//            Debug.drawLine(ship.location, it.location, Color.YELLOW)
+//        }
 
 //        if (shouldFinishTarget && ship.fluxLevel > AIPreset.backoffUpperThreshold) {
 //            Debug.drawCircle(ship.location, ship.collisionRadius / 2, BLUE)
@@ -226,15 +230,7 @@ class VentModule(private val ai: CustomShipAI) {
 
     /** Decide if it's safe to vent. */
     private fun isSafe(): Boolean {
-        val allProjectiles = ai.globalAI.projectileTracker.threats(ship)
-        val projectiles = filterRelevantProjectiles(allProjectiles).toList()
-
-        // Wait for projectiles shot by already dead ships to dissipate.
-        if (projectiles.any { !it.weapon.ship.isAlive }) {
-            return false
-        }
-
-        val duration = ship.fluxTracker.timeToVent * ventTimeFactor
+        val duration = max(0f, ship.fluxTracker.timeToVent - ventTimeFlatModifier)
         val (finisherMissileDanger, weaponDamage) = weaponThreat.potentialDamage(duration)
 
         // Don't get hit by a finisher missile.
@@ -242,8 +238,12 @@ class VentModule(private val ai: CustomShipAI) {
             return false
         }
 
-        val projectileDamage = effectiveDamage(filterRelevantProjectiles(projectiles.asSequence()))
-        val missileDamage = effectiveDamage(missileThreat.threats(duration))
+        val allProjectiles = ai.globalAI.projectileTracker.threats(ship)
+        val projectiles = filterRelevantProjectiles(allProjectiles)
+        val projectileDamage = effectiveDamage(projectiles)
+
+        val missiles = missileThreat.threats(duration)
+        val missileDamage = effectiveDamage(missiles)
 
         val effectiveHP: Float = ship.hitpoints * ship.hullLevel.let { it * it * it * it }
         return when {
@@ -258,7 +258,7 @@ class VentModule(private val ai: CustomShipAI) {
 
             // Attempt to tank a limited amount of damage. 0.1f may seem like a large fraction,
             // but potential damage calculation is the absolute worst case scenario.
-            weaponDamage > effectiveHP * 0.1f -> {
+            projectileDamage + missileDamage + weaponDamage > effectiveHP * 0.1f -> {
                 false
             }
 
@@ -315,9 +315,17 @@ class VentModule(private val ai: CustomShipAI) {
                 return@sumOf damageBase
             }
 
+            // Weight the damage, to account for armor being
+            // effective against weak projectiles.
             val weight = 1f - (1f - damageBase / shipHp).pow(32)
 
-            damageBase * weight
+            // Increase the perceived damage of projectiles fired
+            // by enemies that have already been destroyed, so the
+            // ship won’t vent immediately after winning a duel if
+            // enemy projectiles are still inbound.
+            val deadEnemyBonus = if (!projectile.weapon.ship.isAlive) 10f else 1f
+
+            damageBase * weight * deadEnemyBonus
         }
     }
 

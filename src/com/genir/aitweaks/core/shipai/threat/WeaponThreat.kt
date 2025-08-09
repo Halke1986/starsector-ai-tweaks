@@ -40,7 +40,7 @@ class WeaponThreat(private val ship: ShipAPI) {
         )
     }
 
-    fun findDangerousWeapons(duration: Float): List<WeaponHandle> {
+    private fun findDangerousWeapons(duration: Float): List<WeaponHandle> {
         val enemies: MutableList<ShipAPI> = mutableListOf()
         val obstacles: MutableList<ShipAPI> = mutableListOf()
 
@@ -70,6 +70,7 @@ class WeaponThreat(private val ship: ShipAPI) {
         return allEnemyWeapons.filter { weapon ->
             when {
                 weapon.isDisabled -> false
+
                 weapon.isPermanentlyDisabled -> false
 
                 // Non-weapons, such as decoratives.
