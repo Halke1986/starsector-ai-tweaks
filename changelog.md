@@ -1,3 +1,5 @@
+Version v2.1.9
+
 - Fixed NullPointerException when getting the origin ship of a projectile without an assigned weapon. Reported by Rift and SilverWolf.
 
 Version v2.1.8
