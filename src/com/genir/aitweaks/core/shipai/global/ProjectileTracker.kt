@@ -81,7 +81,7 @@ class ProjectileTracker : BaseEveryFrameCombatPlugin() {
 
     private fun firstShipAlongFlightPath(projectile: DamagingProjectileAPI, allTargets: List<ShipAPI>): ShipAPI? {
         val targets: Sequence<ShipAPI> = allTargets.asSequence().filter { target ->
-            target.root != projectile.weapon.ship.root
+            target.root != projectile.weapon?.ship?.root
         }
 
         var closestHit: Hit? = null

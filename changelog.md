@@ -1,3 +1,5 @@
+- Fixed NullPointerException when getting the origin ship of a projectile without an assigned weapon. Reported by Rift and SilverWolf.
+
 Version v2.1.8
 
 - Fixed an IndexOutOfBoundsException that occurred when calculating the barrel offset for weapons with no barrels. Reported by cbxzcm and Breamic.

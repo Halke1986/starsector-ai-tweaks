@@ -323,7 +323,7 @@ class VentModule(private val ai: CustomShipAI) {
             // by enemies that have already been destroyed, so the
             // ship won’t vent immediately after winning a duel if
             // enemy projectiles are still inbound.
-            val deadEnemyBonus = if (!projectile.weapon.ship.isAlive) 10f else 1f
+            val deadEnemyBonus = if (projectile.weapon?.ship?.isAlive == false) 10f else 1f
 
             damageBase * weight * deadEnemyBonus
         }
