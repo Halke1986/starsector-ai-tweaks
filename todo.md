@@ -49,19 +49,4 @@ vent logic:
     
 vent still ignores hellbore!
 
-
-[quote author=CountV link=topic=28428.msg492012#msg492012 date=1754852153]
-Been using the mod for a bit, noticed a potential bug in the modified AI, it doesn't seem to be properly acknowledging the PD_ALSO tag for weapons. Vanilla PD_ALSO weapons still seem to prioritize point defense (targets missiles over enemy ships) instead of shooting ships first and only going for missiles if no other targets are in-range.
-
-First noticed it on the vanilla Rift Lightning weapon, and on further testing, it appears to also be happening for the Heavy Machine Gun and Devastator weapons which all have similar PD,PD_ALSO tags in the weapon_data csv file.
-
-Most obvious on the Rift Lightning built for range on a turret due to it's slower more precise shots.
-
-I am running a fairly large mod list, including AdvancedGunneryControl, but I made sure no AGC tags were on while testing this.
-
-This problem immediately stops happening if I toggle the new "Only Player Assist" option to True, ie. disabling the other AI Tweaks stuff presumably, and restarts again when I switch "Only Player Assist" back to False, so I'm guessing it's this mod.
-
-I am using AI Tweaks 2.1.8 for reference.
-[/quote]
-
 ----------------------------------------------------------------

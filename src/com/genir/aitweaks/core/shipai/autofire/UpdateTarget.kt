@@ -57,16 +57,14 @@ class UpdateTarget(
         return when {
             Global.getCurrentState() == GameState.TITLE && config.enableTitleScreenFire -> selectAsteroid()
 
-            // Obligatory PD
-            weapon.hasAIHint(PD_ONLY) -> combineSelectors(::selectMissile, selectFighter)
-
             // PD
+            weapon.hasAIHint(PD_ONLY) -> combineSelectors(::selectMissile, selectFighter)
+            weapon.hasAIHint(PD_ALSO) -> combineSelectors(selectShipOrFighter, ::selectMissile)
             weapon.hasAIHint(PD) -> combineSelectors(::selectMissile, selectFighter, selectShip)
 
             // Main weapons
             weapon.isAntiFighter -> selectShipOrFighter()
             weapon.hasAIHint(STRIKE) || weapon.isFinisherBeam -> selectShip()
-            weapon.ship.hullSpec.hullId.startsWith("guardian") -> selectShip()
 
             // Default main weapon.
             else -> combineSelectors(selectShip, selectNonSupportFighter)
