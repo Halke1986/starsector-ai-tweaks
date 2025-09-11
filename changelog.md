@@ -1,3 +1,5 @@
+Version v2.1.10
+
 - Autofire AI: Fixed a bug where the Shrouded Maw would not fire Churning Locus. Reported by emto demto.
 - Autofire AI: Fixed a bug where weapons with the PD_ALSO tag would prioritize attacking missiles. Reported by CountV.
 

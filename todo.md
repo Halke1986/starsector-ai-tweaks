@@ -49,4 +49,6 @@ vent logic:
     
 vent still ignores hellbore!
 
+aurora not using plasma burn to chase targets
+
 ----------------------------------------------------------------
