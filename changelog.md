@@ -1,3 +1,5 @@
+- Autofire AI: Fixed a bug where the Shrouded Maw would not fire Churning Locus. Reported by emto demto.
+
 Version v2.1.9
 
 - Fixed NullPointerException when getting the origin ship of a projectile without an assigned weapon. Reported by Rift and SilverWolf.

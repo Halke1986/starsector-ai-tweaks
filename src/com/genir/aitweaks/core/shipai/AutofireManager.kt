@@ -2,6 +2,8 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
+import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.weapons
 import com.genir.aitweaks.core.shipai.autofire.SyncFire
@@ -31,26 +33,52 @@ class AutofireManager(val ship: ShipAPI) : com.genir.starfarer.combat.ai.attack.
     }
 
     private fun ensureAutofire(): Int {
-        return ship.weaponGroupsCopy.count { group ->
+        return ship.weaponGroupsCopy.count { group: WeaponGroupAPI ->
             val weapons = group.weapons
 
-            val shouldAutofire = when {
-                weapons.any { it.isPD } -> true
-                !ship.hullSpec.isBuiltInMod("missile_reload") && weapons.any { it.isMissile } -> false
-                else -> true
-            }
-
+            val shouldAutofire = shouldAutofire(group)
             if (shouldAutofire) {
                 // Deselect group that should be auto-firing.
                 if (ship.selectedGroupAPI == group) {
                     (ship as Ship).setNoWeaponSelected()
                 }
+
                 group.toggleOn()
             } else {
                 group.toggleOff()
             }
 
-            shouldAutofire
+            return@count shouldAutofire
+        }
+    }
+
+    private fun shouldAutofire(group: WeaponGroupAPI): Boolean {
+        return when {
+            // Preserve the vanilla behavior of PD weapons forcing
+            // autofire for the entire group. As opposed to vanilla,
+            // count ammo based PD weapons as well.
+            group.weapons.any { it.isPD } -> {
+                true
+            }
+
+            // Weapons designed to be autofire-only force the entire group into autofire.
+            group.weapons.any { it.hasAIHint(WeaponAPI.AIHints.NO_MANUAL_FIRE) } -> {
+                true
+            }
+
+            // Do not conserve missiles if ship can regenerate them.
+            ship.hullSpec.isBuiltInMod("missile_reload") -> {
+                true
+            }
+
+            // Do not autofire limited ammo missiles.
+            group.weapons.any { it.isMissile && !it.hasAIHint(WeaponAPI.AIHints.DO_NOT_CONSERVE) } -> {
+                false
+            }
+
+            else -> {
+                true
+            }
         }
     }
 

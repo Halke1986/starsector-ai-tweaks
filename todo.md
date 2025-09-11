@@ -49,21 +49,6 @@ vent logic:
     
 vent still ignores hellbore!
 
-wizardlyparagon.
- — 
-6/28/25, 5:45 PM
-Hello Mr. Genir I have a quick bug report I'd like to make. The AI Tweaks 2.1.6 mod is seemingly preventing Proximity Charge Launcher from properly firing at incoming fighters. I tested with an odyssey vs an astral with the odyssey having 2 PCL in the forward arc medium missile mounts. With AI Tweaks 2.1.6 enabled, the PCL's will not fire at the astral's fighters when they are making their attack runs at the odyssey, whereas they will fire if AI Tweaks is disabled
-
-
-emto demto[FBX]
- — 
-6:57 PM
-@Genir shrouded maw will not use its churning locus with ai tweaks active, for some reason
-they never switch them to autofire on, and presumably because of the NO_MANUAL_FIRE tag they wont do anything else with them 
-
-- Custom AI: Further improved venting behavior: ships will no longer ignore incoming Hellbore projectiles when deciding whether to vent.
-
-
 
 [quote author=CountV link=topic=28428.msg492012#msg492012 date=1754852153]
 Been using the mod for a bit, noticed a potential bug in the modified AI, it doesn't seem to be properly acknowledging the PD_ALSO tag for weapons. Vanilla PD_ALSO weapons still seem to prioritize point defense (targets missiles over enemy ships) instead of shooting ships first and only going for missiles if no other targets are in-range.
