@@ -81,7 +81,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
         get() = spec.aiHints.contains(WeaponAPI.AIHints.PD) || spec.aiHints.contains(WeaponAPI.AIHints.PD_ONLY)
 
     val isMissile: Boolean
-        get() = type == WeaponType.MISSILE
+        get() = spec.projectileSpec is MissileSpecAPI
 
     val isUnguidedMissile: Boolean
         get() {
@@ -114,7 +114,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
 
     val arc: Arc
         get() {
-            val isMissileHardpoint = type == WeaponType.MISSILE && slot.isHardpoint
+            val isMissileHardpoint = isMissile && slot.isHardpoint
             val angle = if (isMissileHardpoint) 0f else weapon.arc
             return Arc(angle, arcFacing.direction)
         }
@@ -125,7 +125,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
 
     /** Actual weapon range depends on frame duration. */
     override fun getRange(): Float {
-        if (spec.projectileSpec == null || type == WeaponType.MISSILE) {
+        if (spec.projectileSpec == null || isMissile) {
             return weapon.range
         }
 

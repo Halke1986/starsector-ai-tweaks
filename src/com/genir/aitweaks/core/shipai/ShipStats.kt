@@ -29,7 +29,7 @@ class ShipStats(private val ship: ShipAPI) {
     private fun findSignificantWeapons(): List<WeaponHandle> {
         val weapons = ship.allGroupedWeapons.filter { weapon ->
             when {
-                weapon.type == WeaponAPI.WeaponType.MISSILE -> false
+                weapon.isMissile -> false
                 weapon.derivedStats.dps == 0f -> false
                 else -> true
             }

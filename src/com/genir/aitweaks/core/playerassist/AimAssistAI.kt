@@ -299,7 +299,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     }
 
     private val WeaponHandle.shouldAim: Boolean
-        get() = type != WeaponAPI.WeaponType.MISSILE || isUnguidedMissile
+        get() = !isMissile || isUnguidedMissile
 
     private val ShipAPI.nonAutofireWeapons: Set<WeaponHandle>
         get() = weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weapons }.filter { it.shouldAim }.toSet()
