@@ -101,7 +101,7 @@ class WeaponThreat(private val ship: ShipAPI) {
         val timeToRange = timeToHit(
             weapon,
             BallisticTarget.shieldRadius(ship),
-            weapon.totalRange,
+            weapon.engagementRange,
             weapon.maxProjectileSpeed,
             BallisticParams(accuracy = 1f, delay = attackStart),
         )

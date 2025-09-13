@@ -31,7 +31,7 @@ class RecklessAutofireAI(weapon: WeaponHandle) : AutofireAI(weapon) {
         val actualHit = firstShipAlongLineOfFire(weapon, target, ballisticParams)
         avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { return it }
 
-        if ((target.location - weapon.location).length > weapon.totalRange * 1.7f) return HoldFire.OUT_OF_RANGE
+        if ((target.location - weapon.location).length > weapon.engagementRange * 1.7f) return HoldFire.OUT_OF_RANGE
 
         return null
     }

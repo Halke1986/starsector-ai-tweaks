@@ -56,7 +56,7 @@ fun intercept(weapon: WeaponHandle, target: BallisticTarget, params: BallisticPa
 /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
 fun canTrack(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams, rangeOverride: Float? = null): Boolean {
     val closestHit = closestHitRange(weapon, target, params)
-    if (closestHit > (rangeOverride ?: weapon.totalRange)) {
+    if (closestHit > (rangeOverride ?: weapon.engagementRange)) {
         return false
     }
 

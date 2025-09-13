@@ -153,7 +153,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
 
             // Weapon can no longer track the target. Use double the weapon.totalRange to allow
             // tracking potential targets when there are no targets within the actual firing range.
-            !canTrack(weapon, BallisticTarget.collisionRadius(target), currentParams(), weapon.totalRange * TARGET_SEARCH_MULT) -> true
+            !canTrack(weapon, BallisticTarget.collisionRadius(target), currentParams(), weapon.engagementRange * TARGET_SEARCH_MULT) -> true
 
             else -> false
         }
@@ -378,7 +378,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
             }
 
             else -> {
-                hit.range <= weapon.totalRange
+                hit.range <= weapon.engagementRange
             }
         }
     }

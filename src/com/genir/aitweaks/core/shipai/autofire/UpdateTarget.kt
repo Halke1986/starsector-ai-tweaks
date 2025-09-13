@@ -31,7 +31,7 @@ class UpdateTarget(
 
     // Search within twice weapon.totalRange to account for projectile flight time,
     // allowing attacks to start before the target enters maximum range.
-    private val targetSearchRange = weapon.totalRange * TARGET_SEARCH_MULT
+    private val targetSearchRange = weapon.engagementRange * TARGET_SEARCH_MULT
 
     private val obstacleList by lazy {
         ObstacleList(weapon, targetSearchRange, params)
@@ -80,7 +80,7 @@ class UpdateTarget(
             if (target != null) {
                 val ballisticTarget = BallisticTarget.collisionRadius(target)
                 val dist = closestHitRange(weapon, ballisticTarget, params)
-                val range = weapon.totalRange
+                val range = weapon.engagementRange
 
                 // New in-range target found.
                 if (dist <= range) {
@@ -237,12 +237,12 @@ class UpdateTarget(
         isTargetAcceptable: ((CombatEntityAPI, Float) -> Boolean),
     ): CombatEntityAPI? {
         // Primary target takes priority.
-        if (attackTarget != null && isTargetAcceptable(attackTarget, weapon.totalRange)) {
+        if (attackTarget != null && isTargetAcceptable(attackTarget, weapon.engagementRange)) {
             return attackTarget
         }
 
         // Try tracking the current target.
-        if (current != null && isTargetAcceptable(current, weapon.totalRange)) {
+        if (current != null && isTargetAcceptable(current, weapon.engagementRange)) {
             return current
         }
 
@@ -261,7 +261,7 @@ class UpdateTarget(
         var evaluation = 0f
         val ballisticTarget = BallisticTarget.collisionRadius(target)
         val dist = intercept(weapon, ballisticTarget, params).length
-        val range = weapon.totalRange
+        val range = weapon.engagementRange
 
         // Evaluate the target based on angle from current weapon facing.
         val angle = ((target.location - weapon.location).facing - weapon.currAngle.direction).radians

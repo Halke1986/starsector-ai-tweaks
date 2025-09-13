@@ -90,7 +90,7 @@ fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Directio
 }
 
 fun firstShipAlongLineOfFire(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit? {
-    val obstacles = Grid.ships(weapon.location, weapon.totalRange).filter { ship ->
+    val obstacles = Grid.ships(weapon.location, weapon.engagementRange).filter { ship ->
         when {
             ship.isFighter -> false
             ship.isExpired -> false

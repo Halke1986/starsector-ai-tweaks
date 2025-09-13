@@ -89,7 +89,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
                 it,
                 BallisticTarget.collisionRadius(target),
                 defaultBallisticParams,
-                it.totalRange * weaponRangeFraction
+                it.engagementRange * weaponRangeFraction
             )
         } == null
     }

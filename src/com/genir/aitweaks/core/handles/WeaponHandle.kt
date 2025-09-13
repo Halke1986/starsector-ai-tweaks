@@ -147,7 +147,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
         return projectileSpawnOffset + projectileRange - ensureHitBuffer
     }
 
-    val totalRange: Float
+    val engagementRange: Float
         get() = range + projectileFadeRange * 0.33f
 
     val autofirePlugin: AutofireAIPlugin?

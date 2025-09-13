@@ -92,7 +92,7 @@ class ProjectileTracker : BaseEveryFrameCombatPlugin() {
             }
         }
 
-        if (closestHit == null || closestHit.range > projectile.weapon.handle.totalRange) {
+        if (closestHit == null || closestHit.range > projectile.weapon.handle.engagementRange) {
             return null
         }
 
