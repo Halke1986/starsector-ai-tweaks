@@ -62,6 +62,8 @@ class WeaponThreat(private val ship: ShipAPI) {
             }
         }
 
+        // Take all weapons into account, not just the grouped ones.
+        // Otherwise, system weapons like the Shrouded Eye beam will be ignored.
         val allEnemyWeapons = enemies.flatMap { it.allWeapons.map { weaponAPI -> weaponAPI.handle } }
 
         return allEnemyWeapons.filter { weapon ->
@@ -98,7 +100,6 @@ class WeaponThreat(private val ship: ShipAPI) {
         val timeToRange = timeToHit(
             weapon,
             BallisticTarget.shieldRadius(ship),
-            weapon.engagementRange,
             BallisticParams(accuracy = 1f, delay = attackStart),
         )
 
@@ -144,7 +145,8 @@ class WeaponThreat(private val ship: ShipAPI) {
     }
 
     /** Time after which projectile fired by the weapon can hit the target. */
-    private fun timeToHit(weapon: WeaponHandle, target: BallisticTarget, range: Float, params: BallisticParams): Float {
+    private fun timeToHit(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Float {
+        val range: Float = weapon.threatRange
         if (range <= 0) {
             return 0f
         }

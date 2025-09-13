@@ -152,6 +152,16 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
     val engagementRange: Float
         get() = range + projectileFadeRange * 0.33f
 
+    val threatRange: Float
+        get() {
+            return when {
+                // Missiles may cause damage beyond the weapon engagement range.
+                isMissile -> projectileSpeed * (weapon.spec.projectileSpec as MissileSpecAPI).maxFlightTime
+
+                else -> engagementRange
+            }
+        }
+
     val autofirePlugin: AutofireAIPlugin?
         get() = ship.getWeaponGroupFor(weapon)?.getAutofirePlugin(weapon)
 

@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.playerassist
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.WeaponGroupType
 import com.genir.aitweaks.core.debug.Debug
