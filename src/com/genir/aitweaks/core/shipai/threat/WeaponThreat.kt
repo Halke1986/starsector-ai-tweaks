@@ -2,10 +2,7 @@ package com.genir.aitweaks.core.shipai.threat
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.DamageType
-import com.fs.starfarer.api.combat.MutableStat
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipHullSpecAPI
-import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
@@ -102,7 +99,6 @@ class WeaponThreat(private val ship: ShipAPI) {
             weapon,
             BallisticTarget.shieldRadius(ship),
             weapon.engagementRange,
-            weapon.maxProjectileSpeed,
             BallisticParams(accuracy = 1f, delay = attackStart),
         )
 
@@ -148,7 +144,7 @@ class WeaponThreat(private val ship: ShipAPI) {
     }
 
     /** Time after which projectile fired by the weapon can hit the target. */
-    private fun timeToHit(weapon: WeaponHandle, target: BallisticTarget, range: Float, projectileSpeed: Float, params: BallisticParams): Float {
+    private fun timeToHit(weapon: WeaponHandle, target: BallisticTarget, range: Float, params: BallisticParams): Float {
         if (range <= 0) {
             return 0f
         }
@@ -159,7 +155,7 @@ class WeaponThreat(private val ship: ShipAPI) {
             // Already in range. Assume weapon fires immediately
             // (while accounting for delay parameter).
             currentRange <= range -> {
-                return params.delay + currentRange / projectileSpeed
+                return params.delay + currentRange / weapon.projectileSpeed
             }
 
             // Not possible to hit the target if
@@ -217,12 +213,4 @@ class WeaponThreat(private val ship: ShipAPI) {
 
     private val WeaponHandle.isFinisherMissile: Boolean
         get() = isMissile && damageType == DamageType.HIGH_EXPLOSIVE
-
-    private val WeaponHandle.maxProjectileSpeed: Float
-        get() {
-            val missileSpec: MissileSpecAPI = spec.projectileSpec as? MissileSpecAPI ?: return projectileSpeed
-            val engineSpec: ShipHullSpecAPI.EngineSpecAPI = missileSpec.hullSpec.engineSpec
-            val maxSpeedStat = MutableStat(engineSpec.maxSpeed)
-            return maxSpeedStat.modifiedValue
-        }
 }

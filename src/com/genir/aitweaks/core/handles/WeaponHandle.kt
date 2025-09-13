@@ -125,6 +125,8 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
 
     /** Actual weapon range depends on frame duration. */
     override fun getRange(): Float {
+        // For beam and missile weapons delegate
+        // the range calculation to vanilla.
         if (spec.projectileSpec == null || isMissile) {
             return weapon.range
         }
@@ -306,8 +308,25 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
     /** The true projectile speed, which may differ from the
      * value returned by vanilla WeaponAPI.projectileSpeed. */
     override fun getProjectileSpeed(): Float {
-        val projectileSpec = (spec.projectileSpec as? ProjectileSpecAPI)
-        return projectileSpec?.getMoveSpeed(ship.mutableStats, weapon) ?: weapon.projectileSpeed
+        return when (val spec = spec.projectileSpec) {
+            is ProjectileSpecAPI -> {
+                spec.getMoveSpeed(ship.mutableStats, weapon)
+            }
+
+            is MissileSpecAPI -> {
+                val engineSpec: ShipHullSpecAPI.EngineSpecAPI = spec.hullSpec.engineSpec
+                val shipStats: MutableShipStatsAPI = weapon.ship.mutableStats
+                val maxSpeedStat = MutableStat(engineSpec.maxSpeed)
+
+                maxSpeedStat.applyMods(shipStats.missileMaxSpeedBonus)
+
+                maxSpeedStat.modifiedValue
+            }
+
+            else -> {
+                weapon.projectileSpeed
+            }
+        }
     }
 
     /** Can the weapon shoot over allied ships. */
