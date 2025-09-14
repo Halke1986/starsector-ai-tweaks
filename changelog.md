@@ -1,3 +1,5 @@
+- Custom AI: Ships are now far less likely to vent when in range of Reapers or other dangerous missiles.
+
 Version v2.1.10
 
 - Autofire AI: Fixed a bug where the Shrouded Maw would not fire Churning Locus. Reported by emto demto.

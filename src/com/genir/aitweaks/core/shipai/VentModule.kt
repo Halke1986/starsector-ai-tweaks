@@ -45,7 +45,8 @@ class VentModule(private val ai: CustomShipAI) {
 
         const val ventTrackingPeriod = 4.3f
         const val engageBeforeVentFinish = 1.5f
-        const val ventTimeFlatModifier = 0.8f
+        const val ventTimeFlatModifierOptimistic = -1.0f
+        const val ventTimeFlatModifierPessimistic = 0.5f
 
         const val farAway = 1e8f
     }
@@ -230,7 +231,14 @@ class VentModule(private val ai: CustomShipAI) {
 
     /** Decide if it's safe to vent. */
     private fun isSafe(): Boolean {
-        val duration = max(0f, ship.fluxTracker.timeToVent - ventTimeFlatModifier)
+        // The Vent time modifier causes ships to start venting eagerly
+        // and become more cautious once the vent is in progress.
+        val modifier = if (ship.fluxTracker.isOverloadedOrVenting) {
+            ventTimeFlatModifierPessimistic
+        } else {
+            ventTimeFlatModifierOptimistic
+        }
+        val duration = max(0f, ship.fluxTracker.timeToVent + modifier)
         val (finisherMissileDanger, weaponDamage) = weaponThreat.potentialDamage(duration)
 
         // Don't get hit by a finisher missile.
