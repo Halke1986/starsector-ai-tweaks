@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatAssignmentType.RETREAT
 import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.FogOfWarAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.util.IntervalUtil
@@ -232,7 +233,12 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     /** Consider once seen ships as visible, even if they're in fog again. This allows
      * to avoid erratic target changes in the initial phase of the battle. */
     private fun isTargetVisible(target: ShipAPI): Boolean {
-        return target in knownSegmentationTargets || Global.getCombatEngine().getFogOfWar(ship.owner).isVisible(target)
+        if (target in knownSegmentationTargets) {
+            return true
+        }
+
+        val fog: FogOfWarAPI? = Global.getCombatEngine().getFogOfWar(ship.owner)
+        return fog?.isVisible(target) ?: true
     }
 
     /** Select which enemy ship to attack. This may be different

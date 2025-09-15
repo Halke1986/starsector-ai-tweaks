@@ -1,4 +1,5 @@
 - Custom AI: Ships are now far less likely to vent when in range of Reapers or other dangerous missiles.
+- Fixed a NullPointerException that could occur when checking if an enemy entity was visible through the fog of war. Reported by Para. 
 
 Version v2.1.10
 

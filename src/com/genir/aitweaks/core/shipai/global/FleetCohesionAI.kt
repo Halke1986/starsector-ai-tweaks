@@ -1,10 +1,7 @@
 package com.genir.aitweaks.core.shipai.global
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.AssignmentTargetAPI
-import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.CombatAssignmentType
-import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
@@ -91,8 +88,10 @@ class FleetCohesionAI(private val side: Int, private val globalAI: GlobalAI) : B
 
             // Ship has wrong target. Find the closest valid target in the main enemy battle group.
             else -> {
-                val fog = Global.getCombatEngine().getFogOfWar(side)
-                closestEntity(fog.filter(segmentation.primaryTargets(false)), ship.location) ?: currentTarget
+                val fog: FogOfWarAPI? = Global.getCombatEngine().getFogOfWar(side)
+                val targets: Sequence<ShipAPI> = segmentation.primaryTargets(false)
+                val visibleTargets: Sequence<CombatEntityAPI> = fog?.filter(targets) ?: targets
+                closestEntity(visibleTargets, ship.location) ?: currentTarget
             }
         }
     }
