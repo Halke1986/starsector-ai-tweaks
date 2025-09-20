@@ -4,6 +4,7 @@ import com.fs.starfarer.api.PluginPick
 import com.fs.starfarer.api.campaign.CampaignPlugin.PickPriority.MOD_GENERAL
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.state.Config.Companion.config
 
@@ -23,7 +24,12 @@ class AutofireAIPicker : com.genir.aitweaks.launcher.AutofireAIPicker {
                 null
             }
 
-            weapon.isMissile -> {
+            weapon.type == WeaponAPI.WeaponType.MISSILE -> {
+                null
+            }
+
+            // Missile weapons pretending to be ballistics.
+            weapon.spec.projectileSpec is MissileSpecAPI -> {
                 null
             }
 

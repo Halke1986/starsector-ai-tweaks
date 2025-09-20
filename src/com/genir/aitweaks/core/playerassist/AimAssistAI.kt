@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.playerassist
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.WeaponGroupType
 import com.genir.aitweaks.core.debug.Debug
@@ -298,7 +299,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     }
 
     private val WeaponHandle.shouldAim: Boolean
-        get() = !isMissile || isUnguidedMissile
+        get() = type != WeaponAPI.WeaponType.MISSILE || isUnguidedMissile
 
     private val ShipAPI.nonAutofireWeapons: Set<WeaponHandle>
         get() = weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weapons }.filter { it.shouldAim }.toSet()

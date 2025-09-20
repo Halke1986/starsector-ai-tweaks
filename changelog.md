@@ -1,3 +1,5 @@
+- Autofire AI: Fixed a regression where the AI hesitated to use ballistic and energy weapons that fire missile-like projectiles. Reported by Dru. 
+
 Version v2.1.11
 
 - Custom AI: Ships are now far less likely to vent when in range of Reapers or other dangerous missiles.
