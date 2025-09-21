@@ -42,7 +42,7 @@ approach into missile range
 
 aurora not using plasma burn to chase targets
 
-aim assist missing a single phase lance?
+shieldless ships should ignore all non-missile weapons when deciding if to vent 
 
 ----------------------------------------------------------------
 
