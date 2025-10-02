@@ -8,7 +8,6 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
-import com.genir.aitweaks.core.debug.expectedFacing
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset.Companion.assaultShipApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.fullAssaultApproachFactor
@@ -504,7 +503,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         // Try to stay on target.
         if (target == attackTarget) {
             val withinRange = currentEffectiveRange(target) <= weaponGroup.effectiveRange
-            val withinArc = (expectedFacing - ship.facing).length < 60f
+            val withinArc = (movement.expectedFacing - ship.facing).length < 60f
             if (withinRange && withinArc) {
                 evaluation += 1f
             }

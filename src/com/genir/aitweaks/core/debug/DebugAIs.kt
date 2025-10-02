@@ -19,8 +19,8 @@ import com.genir.starfarer.combat.entities.Ship
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
-var expectedFacing = 90f.direction
-const val df = -1f * 60f
+private var expectedFacing = 90f.direction
+private const val df = -1f * 60f
 
 class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : BaseEngineControllerAI() {
     private val controller = BasicEngineController(ship.kinematics)
