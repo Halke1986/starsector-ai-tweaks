@@ -60,9 +60,17 @@ class VentModule(private val ai: CustomShipAI) {
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
             shouldFinishTarget = shouldFinishTarget()
-            updateBackoffStatus()
+            isBackingOff = updateBackoffStatus()
             shouldInitVent = shouldInitVent()
 
+            // Update the AI flag.
+            if (isBackingOff) {
+                ai.flags.set(Flags.Flag.BACKING_OFF)
+            } else {
+                ai.flags.unset(Flags.Flag.BACKING_OFF)
+            }
+
+            // Reset backoff distance.
             if (!isBackingOff) {
                 backoffDistance = farAway
             }
@@ -163,10 +171,10 @@ class VentModule(private val ai: CustomShipAI) {
     }
 
     /** Decide if ships needs to back off due to high flux level */
-    private fun updateBackoffStatus() {
+    private fun updateBackoffStatus(): Boolean {
         val underFire = damageTracker.damage / ship.maxFlux > 0.2f
 
-        isBackingOff = when {
+        return when {
             ai.flags.has(Flags.Flag.DO_NOT_BACK_OFF) -> false
 
             // Enemy is routing, keep the pressure.
@@ -194,12 +202,6 @@ class VentModule(private val ai: CustomShipAI) {
 
             // Continue current backoff status.
             else -> isBackingOff
-        }
-
-        if (isBackingOff) {
-            ai.flags.set(Flags.Flag.BACKING_OFF)
-        } else {
-            ai.flags.unset(Flags.Flag.BACKING_OFF)
         }
     }
 

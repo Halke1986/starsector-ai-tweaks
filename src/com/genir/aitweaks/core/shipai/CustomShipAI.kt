@@ -473,10 +473,10 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
         // Avoid attacking bricks, especially Monitors.
         if (target.system?.id == "damper" && !target.root.isFrigate) {
-            evaluation += -1f
+            evaluation -= 1f
         }
         if (target.variant.hasHullMod("fluxshunt") && target.root.isFrigate) {
-            evaluation += -16f
+            evaluation -= 16f
         }
 
         // Assign higher priority to large targets for slow ships.
@@ -493,7 +493,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
         // Avoid attacking ships with no weapons (mostly station armor modules).
         if (target.allGroupedWeapons.isEmpty()) {
-            evaluation += -3f
+            evaluation -= 3f
         }
 
         // Finish helpless target.
@@ -517,7 +517,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
         // Do not attempt to attack occluded targets.
         if (obstacles.any { it.occludes(target) }) {
-            evaluation += -16f
+            evaluation -= 16f
         }
 
         return evaluation
