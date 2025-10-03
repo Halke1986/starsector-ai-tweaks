@@ -65,7 +65,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     private fun avoidManeuverTarget(dt: Float): Limit? {
         // Ship can approach the target when on an assignment on when backing off.
         when {
-            ai.ventModule.isBackingOff -> return null
+            ai.backoffModule.isBackingOff -> return null
 
             ai.assignment.eliminate != null -> return null
 
@@ -112,7 +112,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 }
 
                 // Allow tighter formations for backing off ships.
-                ai.ventModule.isBackingOff || obstacle.aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
+                ai.backoffModule.isBackingOff || obstacle.aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
                     0.9f
                 }
 
@@ -170,7 +170,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val target = ai.maneuverTarget
         if (target != null) {
             val toTarget = target.location - kinematics.location
-            if (!ai.ventModule.isBackingOff && (toTarget.facing - borderIntrusion.facing).length < 90f) {
+            if (!ai.backoffModule.isBackingOff && (toTarget.facing - borderIntrusion.facing).length < 90f) {
                 return null
             }
         }

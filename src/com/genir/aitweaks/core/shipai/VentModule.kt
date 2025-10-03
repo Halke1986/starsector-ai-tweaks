@@ -1,89 +1,55 @@
 package com.genir.aitweaks.core.shipai
 
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitBounds
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitShield
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
-import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
 import com.genir.aitweaks.core.shipai.threat.MissileThreat
 import com.genir.aitweaks.core.shipai.threat.WeaponThreat
 import com.genir.aitweaks.core.utils.defaultAIInterval
-import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
-import com.genir.aitweaks.core.shipai.Preset as AIPreset
 
 class VentModule(private val ai: ShipAI) {
     private val ship: ShipAPI = ai.ship
     private val damageTracker: DamageTracker = DamageTracker(ship)
     private val weaponThreat: WeaponThreat = WeaponThreat(ship)
     private val missileThreat: MissileThreat = MissileThreat(ship)
-    private val fluxTracker: FluxTracker = FluxTracker(ship, ventTrackingPeriod)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
-    var isBackingOff: Boolean = false
     var shouldFinishTarget: Boolean = false
 
     private var shouldInitVent: Boolean = false
     private var ventTrigger: Boolean = false
-    private var isSafe: Boolean = false
-    private var backoffDistance: Float = farAway
+    var isSafeToVent: Boolean = false
 
     private companion object Preset {
         const val idleVentThreshold = 0.30f
-        const val opportunisticVentThreshold = 0.5f
-        const val backoffUpperThreshold = 0.75f
-        const val backoffLowerThreshold = 0.1f
+        const val ventThreshold = 0.5f
+        const val ventLowerThreshold = 0.1f
 
-        const val ventTrackingPeriod = 4.3f
-        const val engageBeforeVentFinish = 1.5f
         const val ventTimeFlatModifierOptimistic = -1.0f
         const val ventTimeFlatModifierPessimistic = 0.5f
-
-        const val farAway = 1e8f
     }
 
     fun advance(dt: Float) {
-        debug()
-
         damageTracker.advance()
-        fluxTracker.advance()
 
         updateInterval.advance(dt)
         if (updateInterval.intervalElapsed()) {
-            shouldFinishTarget = shouldFinishTarget()
-            isBackingOff = updateBackoffStatus()
+//            shouldFinishTarget = shouldFinishTarget() // TODO
+            isSafeToVent = estimateIfSafe()
             shouldInitVent = shouldInitVent()
-
-            // Update the AI flag.
-            if (isBackingOff) {
-                ai.flags.set(Flags.Flag.BACKING_OFF)
-            } else {
-                ai.flags.unset(Flags.Flag.BACKING_OFF)
-            }
-
-            // Reset backoff distance.
-            if (!isBackingOff) {
-                backoffDistance = farAway
-            }
-
-            // isSafe status is required for backoff
-            // maneuver and for deciding if to vent.
-            if (isBackingOff || shouldInitVent) {
-                isSafe = isSafe()
-            }
 
             ventTrigger = when {
                 // Init vent operation.
-                shouldInitVent && isSafe -> true
+                shouldInitVent && isSafeToVent -> true
 
                 // Continue initiated vent operation, even if not feeling safe anymore.
                 // Otherwise, the ship could lose all opportunities to vent.
@@ -100,132 +66,21 @@ class VentModule(private val ai: ShipAI) {
         }
     }
 
-    private fun debug() {
-        if (ship.owner != 0) {
-            return
-        }
-
-//        missileThreat.threats(ship.fluxTracker.timeToVent).forEach {
-//            Debug.drawLine(ship.location, it.location, Color.YELLOW)
-//        }
-
-//        if (shouldFinishTarget && ship.fluxLevel > AIPreset.backoffUpperThreshold) {
-//            Debug.drawCircle(ship.location, ship.collisionRadius / 2, BLUE)
-//        }
-
-//        if (isBackingOff && !ship.fluxTracker.isVenting) {
-//            Debug.drawCircle(ship.location, ship.collisionRadius / 2, YELLOW)
-//
-//            weaponThreat.findDangerousWeapons(ship.fluxTracker.timeToVent * ventTimeFactor).forEach {
-//                Debug.drawLine(ship.location, it.location, RED)
-//            }
-//        }
-    }
-
-    /** Control the ship heading when backing off. */
-    fun overrideHeading(maneuverTarget: ShipAPI?): Destination? {
-        if (!isBackingOff) {
-            return null
-        }
-
-        val ai: CustomShipAI = (ai as? CustomShipAI)
-            ?: return null
-
-        // Update safe backoff distance.
-        when {
-            !isSafe -> backoffDistance = farAway
-
-            backoffDistance == farAway && maneuverTarget != null -> {
-                backoffDistance = (maneuverTarget.location - ship.location).length * 1.1f
-            }
-        }
-
-        // Calculate backoff heading.
-        return when {
-            isSafe -> when {
-                // Stop backing off when venting is close to finished.
-                // Otherwise, ship will start reversing course too late and back off too far.
-                ship.fluxTracker.isVenting && ship.fluxTracker.timeToVent < engageBeforeVentFinish -> {
-                    null
-                }
-
-                // Maintain const distance from the maneuver target.
-                maneuverTarget != null -> {
-                    val location = maneuverTarget.location - ai.threatVector.resized(backoffDistance)
-                    Destination(location, maneuverTarget.timeAdjustedVelocity)
-                }
-
-                else -> {
-                    null
-                }
-            }
-
-            // Move opposite to threat vector.
-            ai.threatVector.isNonZero -> {
-                val location = ship.location - ai.threatVector.resized(farAway)
-                Destination(location, Vector2f())
-            }
-
-            // Continue present course if no threat vector is available.
-            else -> {
-                Destination(ship.location, ship.velocity.resized(farAway))
-            }
-        }
-    }
-
-    /** Decide if ships needs to back off due to high flux level */
-    private fun updateBackoffStatus(): Boolean {
-        val underFire = damageTracker.damage / ship.maxFlux > 0.2f
-
-        return when {
-            ai.flags.has(Flags.Flag.DO_NOT_BACK_OFF) -> false
-
-            // Enemy is routing, keep the pressure.
-            Global.getCombatEngine().isEnemyInFullRetreat -> false
-
-            shouldFinishTarget -> false
-
-            // Ship with no shield backs off when it can't fire anymore.
-            ship.shield == null && ship.allWeapons.map { it.handle }.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft } -> true
-
-            // High flux.
-            ship.shield != null && ship.hardFluxLevel > backoffUpperThreshold -> true
-
-            // Flux is predicted to rapidly reach dangerous levels.
-            ship.shield != null && ship.fluxLevel + fluxTracker.delta() > AIPreset.holdFireThreshold -> true
-
-            // Shields down and received damage.
-            underFire && ship.shield != null && ship.shield.isOff -> true
-
-            // Started venting under fire.
-            underFire && ship.fluxTracker.isVenting -> true
-
-            // Stop backing off.
-            ship.fluxLevel <= backoffLowerThreshold -> false
-
-            // Continue current backoff status.
-            else -> isBackingOff
-        }
-    }
-
     private fun shouldInitVent(): Boolean {
         return when {
             // Can't vent right now.
             ship.fluxTracker.isOverloadedOrVenting -> false
 
             // No need to vent.
-            ship.FluxLevel < backoffLowerThreshold -> false
+            ship.FluxLevel < ventLowerThreshold -> false
 
             shouldFinishTarget -> false
-
-            // Vent if ship is backing off.
-            isBackingOff -> true
 
             // Don't interrupt ship system without necessity.
             ship.system?.isOn == true -> false
 
             // Flux is not critical, but still could use an opportunity to vent.
-            ship.FluxLevel >= opportunisticVentThreshold -> true
+            ship.FluxLevel >= ventThreshold -> true
 
             // Vent when the ship is idle.
             ship.FluxLevel >= idleVentThreshold && isIdle() -> true
@@ -235,7 +90,7 @@ class VentModule(private val ai: ShipAI) {
     }
 
     /** Decide if it's safe to vent. */
-    private fun isSafe(): Boolean {
+    private fun estimateIfSafe(): Boolean {
         // The Vent time modifier causes ships to start venting eagerly
         // and become more cautious once the vent is in progress.
         val modifier = if (ship.fluxTracker.isOverloadedOrVenting) {
@@ -340,46 +195,6 @@ class VentModule(private val ai: ShipAI) {
 
             damageBase * weight * deadEnemyBonus
         }
-    }
-
-    /** Determine if ship should forego venting and backing off
-     * to instead focus on finishing its target. */
-    private fun shouldFinishTarget(): Boolean {
-        val ai: CustomShipAI = (ai as? CustomShipAI) // TODO
-            ?: return false
-
-        val target: ShipAPI = ai.attackTarget as? ShipAPI
-            ?: return false
-
-        when {
-            target.isFighter -> {
-                return false
-            }
-
-            target.root.isFrigate -> {
-                return false
-            }
-
-            // Target is behind healthy shields.
-            target.shield?.isOn == true && target.fluxLevel < 0.8f -> {
-                return false
-            }
-
-            // Target is too far.
-            ai.currentEffectiveRange(target) > min(ai.attackingGroup.maxRange, 1.1f * ai.attackingGroup.effectiveRange) -> {
-                return false
-            }
-
-            // The ship is the victim, not the target.
-            target.hullLevel > ship.hullLevel -> {
-                return false
-            }
-        }
-
-        // The more damaged the target, the higher flux level
-        // the ship is willing to tolerate.
-        val damage = 1 - target.hullLevel
-        return ship.FluxLevel < damage * damage
     }
 
     private fun isIdle(): Boolean {

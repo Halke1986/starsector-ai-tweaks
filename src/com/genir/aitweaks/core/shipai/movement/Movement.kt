@@ -106,7 +106,7 @@ class Movement(val ai: CustomShipAI) {
 
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?) {
         val systemOverride: Destination? = ai.systemAI?.overrideHeading()
-        val backoffOverride: Destination? = ai.ventModule.overrideHeading(maneuverTarget)
+        val backoffOverride: Destination? = ai.backoffModule.overrideHeading(maneuverTarget)
         val navigateTo: Vector2f? = ai.assignment.navigateTo
         val speedLimits = collisionAvoidance.gatherSpeedLimits(dt)
 

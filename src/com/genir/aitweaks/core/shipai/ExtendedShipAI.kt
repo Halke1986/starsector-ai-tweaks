@@ -37,7 +37,8 @@ class ExtendedShipAI(override val ship: ShipAPI, override val globalAI: GlobalAI
         // Ensure AI Tweaks is in control of autofire management.
         AutofireManager.inject(ship, attackAI)
 
-        setPrivateField("ventModule", VentModuleWrapper(this), BasicShipAI::class.java);
+        // Inject custom vent module.
+        setPrivateField("ventModule", VentModuleWrapper(this), BasicShipAI::class.java)
     }
 
     override fun advance(dt: Float) {

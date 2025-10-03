@@ -14,7 +14,7 @@ class BurnDrive(ai: CustomShipAI) : SystemAI(ai) {
             ship.blockCommandForOneFrame(ShipCommand.USE_SYSTEM)
         }
 
-        if (ai.ventModule.isBackingOff) {
+        if (ai.backoffModule.isBackingOff) {
             ship.blockCommandForOneFrame(ShipCommand.USE_SYSTEM)
         }
     }

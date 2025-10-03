@@ -29,6 +29,7 @@ class CustomShipAI(override val ship: ShipAPI, override val globalAI: GlobalAI) 
     // Subsystems.
     val movement: Movement = Movement(this)
     val assignment: Assignment = Assignment(this)
+    val backoffModule: BackoffModule = BackoffModule(this)
     val ventModule: VentModule = VentModule(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
     val vanilla: VanillaModule = VanillaModule(ship, systemAI?.overrideVanillaSystemAI() == true)
@@ -90,6 +91,7 @@ class CustomShipAI(override val ship: ShipAPI, override val globalAI: GlobalAI) 
         // Advance subsystems.
         vanilla.advance(dt, attackTarget as? ShipAPI, movement.expectedVelocity, movement.expectedFacing)
         assignment.advance()
+        backoffModule.advance(dt)
         ventModule.advance(dt)
         systemAI?.advance(dt)
         movement.advance(dt)
@@ -284,7 +286,7 @@ class CustomShipAI(override val ship: ShipAPI, override val globalAI: GlobalAI) 
     private fun update1v1Status() {
         is1v1 = when {
             isAvoidingBorder -> false
-            ventModule.isBackingOff -> false
+            backoffModule.isBackingOff -> false
             attackTarget == null -> false
             attackTarget != maneuverTarget -> false
             (attackTarget as? ShipAPI)?.root?.isFrigate != ship.root.isFrigate -> false

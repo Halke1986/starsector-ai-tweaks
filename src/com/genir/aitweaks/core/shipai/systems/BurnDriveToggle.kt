@@ -75,7 +75,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
             burnVector.isZero -> false
 
-            ai.ventModule.isBackingOff -> false
+            ai.backoffModule.isBackingOff -> false
 
             // Don't burn if not facing the burn destination, as this may lead
             // to interrupting an attack. Frigates may be ignored.
