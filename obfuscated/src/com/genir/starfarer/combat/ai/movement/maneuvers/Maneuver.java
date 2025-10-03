@@ -6,4 +6,7 @@ import com.genir.starfarer.combat.collision.CombatEntity;
 public interface Maneuver {
     // OBFUSCATED
     CombatEntity maneuver_getTarget();
+
+    interface ManeuverParentAI {
+    }
 }

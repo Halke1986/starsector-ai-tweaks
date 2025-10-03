@@ -21,7 +21,7 @@ import kotlin.math.min
 import kotlin.math.pow
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
 
-class VentModule(private val ai: CustomShipAI) {
+class VentModule(private val ai: ShipAI) {
     private val ship: ShipAPI = ai.ship
     private val damageTracker: DamageTracker = DamageTracker(ship)
     private val weaponThreat: WeaponThreat = WeaponThreat(ship)
@@ -128,6 +128,9 @@ class VentModule(private val ai: CustomShipAI) {
             return null
         }
 
+        val ai: CustomShipAI = (ai as? CustomShipAI)
+            ?: return null
+
         // Update safe backoff distance.
         when {
             !isSafe -> backoffDistance = farAway
@@ -139,7 +142,7 @@ class VentModule(private val ai: CustomShipAI) {
 
         // Calculate backoff heading.
         return when {
-            ai.ventModule.isSafe -> when {
+            isSafe -> when {
                 // Stop backing off when venting is close to finished.
                 // Otherwise, ship will start reversing course too late and back off too far.
                 ship.fluxTracker.isVenting && ship.fluxTracker.timeToVent < engageBeforeVentFinish -> {
@@ -342,7 +345,11 @@ class VentModule(private val ai: CustomShipAI) {
     /** Determine if ship should forego venting and backing off
      * to instead focus on finishing its target. */
     private fun shouldFinishTarget(): Boolean {
-        val target: ShipAPI = ai.attackTarget as? ShipAPI ?: return false
+        val ai: CustomShipAI = (ai as? CustomShipAI) // TODO
+            ?: return false
+
+        val target: ShipAPI = ai.attackTarget as? ShipAPI
+            ?: return false
 
         when {
             target.isFighter -> {

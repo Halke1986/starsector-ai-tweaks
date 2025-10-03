@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.global.GlobalAI
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.Config
@@ -22,9 +23,11 @@ import com.genir.starfarer.combat.entities.Ship
 import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */
-class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : BasicShipAI(ship as Ship, config) {
+class ExtendedShipAI(override val ship: ShipAPI, override val globalAI: GlobalAI, config: ShipAIConfig) : BasicShipAI(ship as Ship, config), ShipAI {
     private val engineController: BasicEngineController = BasicEngineController(ship.kinematics)
     private val updateInterval: IntervalUtil = defaultAIInterval()
+
+    override val flags: Flags = Flags(ship.aiFlags)
 
     // Attack details.
     private var stats: ShipStats = ShipStats(ship)
@@ -33,6 +36,8 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : BasicShipAI(ship
     init {
         // Ensure AI Tweaks is in control of autofire management.
         AutofireManager.inject(ship, attackAI)
+
+        setPrivateField("ventModule", VentModuleWrapper(this), BasicShipAI::class.java);
     }
 
     override fun advance(dt: Float) {
@@ -109,5 +114,13 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : BasicShipAI(ship
         // Control the ship rotation.
         expectedFacing = weaponGroup.shipAttackFacing(target)
         engineController.facing(dt, expectedFacing!!, false)
+    }
+
+    inner class VentModuleWrapper(ai: ShipAI) : com.genir.starfarer.combat.ai.VentModule(ship as Ship, threatEvaluator, flockingAI, this, ship.aiFlags) {
+        private val ventModule: VentModule = VentModule(ai)
+
+        override fun ventModule_advance(dt: Float, target: Ship?) {
+            ventModule.advance(dt)
+        }
     }
 }

@@ -11,6 +11,7 @@ class SymbolsTest {
         assertEquals("com.fs.starfarer.combat.ai.movement.maneuvers.B", s.approachManeuver.name)
         assertEquals("com.fs.starfarer.combat.ai.attack.D", s.autofireManager.name)
         assertEquals("com.fs.starfarer.combat.ai.movement.maneuvers.M", s.maneuver.name)
+        assertEquals("com.fs.starfarer.combat.ai.movement.maneuvers.M\$o", s.maneuverParentAI.name)
         assertEquals("com.fs.starfarer.combat.entities.Ship\$Oo", s.shipCommandWrapper.name)
         assertEquals("com.fs.starfarer.combat.entities.Ship\$oo", s.shipCommand.name)
         assertEquals("com.fs.starfarer.combat.E.B", s.combatEntity.name)

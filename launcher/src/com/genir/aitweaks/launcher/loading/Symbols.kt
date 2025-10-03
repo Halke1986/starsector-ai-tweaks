@@ -42,6 +42,8 @@ class Symbols {
     val approachManeuver: Class<*> = findApproachManeuver()
     val autofireManager: Class<*> = attackAIModule.declaredFields.first { it.type.isInterface && it.type.methods.size == 1 }.type
     val maneuver: Class<*> = basicShipAI.getMethod("getCurrentManeuver").returnType
+    val maneuverParentAI: Class<*> = basicShipAI.interfaces[1]
+
     val shipCommandWrapper: Class<*> = ship.getMethod("getCommands").genericReturnType.typeArgument(0)
     val shipCommand: Class<*> = ship.getMethod("getBlockedCommands").genericReturnType.typeArgument(0)
     val combatEntity: Class<*> = ship.getMethod("getEntity").returnType

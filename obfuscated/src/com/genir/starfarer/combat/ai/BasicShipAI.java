@@ -10,7 +10,7 @@ import com.genir.starfarer.combat.ai.movement.maneuvers.Maneuver;
 import com.genir.starfarer.combat.entities.Ship;
 
 // UNOBFUSCATED
-public class BasicShipAI implements ShipAIPlugin, AI {
+public class BasicShipAI implements ShipAIPlugin, Maneuver.ManeuverParentAI, AI {
     public BasicShipAI(Ship ship, ShipAIConfig config) {
     }
 

@@ -97,7 +97,7 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
 
         // All ships with vanilla AI should receive ExtendedShipAI,
         // unless CustomShipAI was already assigned.
-        return PluginPick(ExtendedShipAI(ship, config), MOD_SPECIFIC)
+        return PluginPick(ExtendedShipAI(ship, globalAI, config), MOD_SPECIFIC)
     }
 
     /** Returns true is custom AI can control the given ship. */

@@ -21,6 +21,7 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("com.genir.starfarer.combat.ai.movement.maneuvers.ApproachManeuver", symbols.approachManeuver.name),
             Transformer.newTransform("com.genir.starfarer.combat.ai.attack.AutofireManager", symbols.autofireManager.name),
             Transformer.newTransform("com.genir.starfarer.combat.ai.movement.maneuvers.Maneuver", symbols.maneuver.name),
+            Transformer.newTransform("com.genir.starfarer.combat.ai.movement.maneuvers.Maneuver\$ManeuverParentAI", symbols.maneuverParentAI.name),
             Transformer.newTransform("com.genir.starfarer.combat.entities.Ship\$CommandWrapper", symbols.shipCommandWrapper.name),
             Transformer.newTransform("com.genir.starfarer.combat.entities.Ship\$Command", symbols.shipCommand.name),
             Transformer.newTransform("com.genir.starfarer.combat.collision.CombatEntity", symbols.combatEntity.name),
@@ -31,6 +32,7 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             Transformer.newTransform("com.genir.starfarer.combat.ai.FighterPullbackModule", symbols.fighterPullbackModule.name),
             Transformer.newTransform("com.genir.starfarer.combat.ai.system.SystemAI", symbols.systemAI.name),
             Transformer.newTransform("com.genir.starfarer.combat.ai.ShieldAI", symbols.shieldAI.name),
+            Transformer.newTransform("com.genir.starfarer.combat.ai.VentModule", symbols.ventModule.name),
             Transformer.newTransform("com.genir.starfarer.combat.ai.ThreatEvaluator", symbols.threatEvaluator.name),
             Transformer.newTransform("com.genir.starfarer.combat.ai.ThreatEvaluator\$ThreatResponseManeuver", symbols.threatResponseManeuver.name),
             Transformer.newTransform("com.genir.starfarer.combat.map.CombatMap", symbols.combatMap.name),
@@ -76,7 +78,7 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
             name.startsWith("com.genir.aitweaks.core") -> {
                 // Load and transform AI Tweaks core logic classes.
                 val classBuffer = Bytecode.readClassBuffer(this, name)
-                val obfuscated = obfuscator.apply(obfuscator.apply(classBuffer))
+                val obfuscated = obfuscator.apply(obfuscator.apply(obfuscator.apply(obfuscator.apply(classBuffer))))
                 defineClass(name, obfuscated, 0, obfuscated.size)
             }
 
