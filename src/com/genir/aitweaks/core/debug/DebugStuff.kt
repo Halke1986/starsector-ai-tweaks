@@ -29,11 +29,11 @@ internal fun debug(dt: Float) {
 //    }
 
         ships.forEach {
-
-
-//        Debug.drawCircle(it.location, it.collisionRadius * 1.4f, Color.CYAN)
+//            if (it != ship) {
+//                installAI(it) { MirrorTargetAI(it, ship) }
+//                Debug.drawEngineLines(it)
+//            }
 //        Debug.drawCollisionRadius(it, Color.CYAN)
-//        Debug.drawAccelerationLines(it)
 
 //        Debug.drawCircle(it.location, it.collisionRadius * 1.4f, CYAN)
         }
