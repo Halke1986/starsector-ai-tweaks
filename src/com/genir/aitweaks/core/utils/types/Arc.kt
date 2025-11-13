@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.utils.types
 
 import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.min
@@ -19,8 +20,12 @@ class Arc(angle: Float, val facing: Direction) {
         return Arc(angle, facing + rotation)
     }
 
-    fun extendedBy(degrees: Float): Arc {
+    fun addAngle(degrees: Float): Arc {
         return Arc((angle + degrees).coerceIn(0f, 360f), facing)
+    }
+
+    fun multiplyAngle(multiplier: Float): Arc {
+        return Arc((angle * multiplier).coerceIn(0f, 360f), facing)
     }
 
     fun overlaps(second: Arc, tolerance: Float = 0f): Boolean {
@@ -34,6 +39,15 @@ class Arc(angle: Float, val facing: Direction) {
 
     fun contains(v: Vector2f): Boolean {
         return contains(v.facing)
+    }
+
+    fun coerceVector(v: Vector2f): Vector2f {
+        val distance: Direction = distanceTo(v.facing)
+        if (distance == 0f.direction) {
+            return v
+        }
+
+        return v.rotated((-distance).rotationMatrix)
     }
 
     /** Distance from arc to direction.

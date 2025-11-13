@@ -58,7 +58,7 @@ private fun canHitAlly(weapon: WeaponHandle, target: CombatEntityAPI, ally: Ship
     )
 
     val spread = weapon.spec.maxSpread + 2f
-    return allyArc.extendedBy(spread).overlaps(enemyArc)
+    return allyArc.addAngle(spread).overlaps(enemyArc)
 }
 
 /** Calculates the time intervals between receiving a fire command

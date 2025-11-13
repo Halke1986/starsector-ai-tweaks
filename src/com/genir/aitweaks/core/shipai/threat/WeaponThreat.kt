@@ -109,7 +109,7 @@ class WeaponThreat(private val ship: ShipAPI) {
 
         // Check if the ship is out of weapons arc.
         val isGuidedFinisherMissile = weapon.isFinisherMissile && !weapon.isUnguidedMissile
-        val weaponArc = weapon.absoluteArc.extendedBy(duration * enemy.maxTurnRate)
+        val weaponArc = weapon.absoluteArc.addAngle(duration * enemy.maxTurnRate)
         if (!isGuidedFinisherMissile && !weaponArc.contains(toShip.facing)) {
             return false
         }

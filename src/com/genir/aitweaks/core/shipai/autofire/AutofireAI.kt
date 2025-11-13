@@ -18,6 +18,7 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.SHIELD
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
+import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
 import com.genir.aitweaks.core.utils.types.RotationMatrix
@@ -455,13 +456,21 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
 
         // Aim the hardpoint as if the ship was already rotated to the expected facing.
         // That way the correct weapon facing can be predicted.
-        val facingStash = ship.facing
-        val correction = (ship.facing.direction - expectedFacing).rotationMatrix
+        val actualFacing = ship.facing
+        val toActualFacing = ship.facing.direction - expectedFacing
         try {
             ship.facing = expectedFacing.degrees
-            return intercept(weapon, BallisticTarget.collisionRadius(target), currentParams()).rotated(correction)
+            val ballisticTarget: BallisticTarget = BallisticTarget.collisionRadius(target)
+            val totalAllowedArc: Arc = interceptArc(weapon, ballisticTarget, currentParams()).rotated(toActualFacing.degrees)
+
+            // Allow limited weapon freedom, constrained to the arc the target will
+            // occupy once the ship reaches its expected facing. This speeds up target
+            // acquisition without leaving the weapon misaligned after the ship finishes
+            // rotating.
+            val allowedArc: Arc = totalAllowedArc.multiplyAngle(0.75f)
+            return allowedArc.coerceVector(intercept)
         } finally {
-            ship.facing = facingStash
+            ship.facing = actualFacing
         }
     }
 
