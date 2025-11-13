@@ -87,11 +87,6 @@ class UpdateTarget(
                     return target
                 }
 
-                // Special case for hardpoints, which should target ship target even when it's out of range.
-                if (weapon.slot.isHardpoint && !weapon.ship.engineController.isFlamedOut && target == attackTarget) {
-                    return target
-                }
-
                 // Stash potential out of range target.
                 if (outOfRangeTarget == null) {
                     outOfRangeTarget = target

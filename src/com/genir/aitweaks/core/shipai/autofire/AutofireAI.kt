@@ -410,13 +410,11 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
             // Can't aim fixed weapons.
             weapon.slot.arc == 0f -> null
 
-            weapon.slot.isHardpoint -> aimHardpoint(target, intercept)
-
             // If the turret's rotation rate is slower than the ship's turn rate, aim
             // the weapon with the entire ship, similar to hardpoints. Otherwise, the
             // ship rotation could bring the weapon off target. If the weapon is attacking
             // a target other than the ship target, allow it to behave as a turret.
-            weapon.isSlowTurret && target == ship.attackTarget -> aimHardpoint(target, intercept)
+            weapon.isSlowRotating && target == ship.attackTarget -> aimHardpoint(target, intercept)
 
             else -> aimTurret(dt, intercept)
         }
@@ -461,19 +459,18 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         try {
             ship.facing = expectedFacing.degrees
             val ballisticTarget: BallisticTarget = BallisticTarget.collisionRadius(target)
-            val totalAllowedArc: Arc = interceptArc(weapon, ballisticTarget, currentParams()).rotated(toActualFacing.degrees)
+            val allowedArc: Arc = interceptArc(weapon, ballisticTarget, currentParams()).rotated(toActualFacing.degrees)
 
             // Allow limited weapon freedom, constrained to the arc the target will
             // occupy once the ship reaches its expected facing. This speeds up target
             // acquisition without leaving the weapon misaligned after the ship finishes
             // rotating.
-            val allowedArc: Arc = totalAllowedArc.multiplyAngle(0.75f)
             return allowedArc.coerceVector(intercept)
         } finally {
             ship.facing = actualFacing
         }
     }
 
-    private val WeaponHandle.isSlowTurret: Boolean
+    private val WeaponHandle.isSlowRotating: Boolean
         get() = turnRateWhileFiring < ship.baseTurnRate
 }
