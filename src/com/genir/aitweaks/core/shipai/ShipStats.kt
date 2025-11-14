@@ -95,10 +95,10 @@ class ShipStats(private val ship: ShipAPI) {
                 facing.length < halfArc -> listOf(0f.toDirection)
 
                 // Ship back is within weapon arc, return both angles.
-                180f - facing.length < halfArc -> listOf(facing - halfArc, facing + halfArc)
+                180f - facing.length < halfArc -> listOf(facing - halfArc.toDirection, facing + halfArc.toDirection)
 
                 // Return weapon arc boundary closer to ship front.
-                else -> listOf(facing - facing.sign * halfArc)
+                else -> listOf(facing - halfArc.toDirection * facing.sign)
             }
         }
 

@@ -39,8 +39,8 @@ object Debug {
     }
 
     fun drawArcArms(pos: Vector2f, r: Float, a: Arc, color: Color = Color.CYAN) {
-        debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + (a.facing - a.halfAngle).unitVector * r, color))
-        debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + (a.facing + a.halfAngle).unitVector * r, color))
+        debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + (a.facing - a.halfAngle.toDirection).unitVector * r, color))
+        debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + (a.facing + a.halfAngle.toDirection).unitVector * r, color))
     }
 
     fun drawLine(a: Vector2f, b: Vector2f, color: Color = Color.YELLOW) {
@@ -68,7 +68,7 @@ object Debug {
     fun drawAccelerationLines(ship: ShipAPI) {
         if (debugPlugin?.renderer == null) return
 
-        val r = (ship.facing.toDirection - 90f).rotationMatrix
+        val r = (ship.facing.toDirection - 90f.toDirection).rotationMatrix
         val engine = ship.engineController
 
         listOfNotNull(
@@ -84,7 +84,7 @@ object Debug {
     fun drawTurnLines(ship: ShipAPI) {
         if (debugPlugin?.renderer == null) return
 
-        val r = (ship.facing.toDirection - 90f).rotationMatrix
+        val r = (ship.facing.toDirection - 90f.toDirection).rotationMatrix
         val engine = ship.engineController
 
         listOfNotNull(

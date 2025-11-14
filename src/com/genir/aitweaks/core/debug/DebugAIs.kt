@@ -53,7 +53,7 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     private val controller = BasicEngineController(ship.kinematics)
 
     override fun advance(dt: Float) {
-        expectedFacing += df * dt
+        expectedFacing += df.toDirection * dt
 
         Debug.drawLine(ship.location, ship.location + expectedFacing.unitVector * 400f, Color.GREEN)
         Debug.drawLine(ship.location, ship.location + ship.facing.toDirection.unitVector * 400f, Color.BLUE)

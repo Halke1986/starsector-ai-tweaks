@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
@@ -279,8 +280,8 @@ class Movement(val ai: CustomShipAI) {
         val mergedArcs = Arc.mergeOverlapping(arcs)
         val obstacle = mergedArcs.firstOrNull { it.contains(toHeadingAngle) } ?: return null
 
-        val angle1 = obstacle.facing - obstacle.halfAngle
-        val angle2 = obstacle.facing + obstacle.halfAngle
+        val angle1 = obstacle.facing - obstacle.halfAngle.toDirection
+        val angle2 = obstacle.facing + obstacle.halfAngle.toDirection
 
         val toShipAngle = (kinematics.location - maneuverTarget.location).facing
         val offset1 = (angle1 - toShipAngle).length

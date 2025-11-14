@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.BaseCombatLayeredRenderingPlugin
 import com.fs.starfarer.api.combat.CombatEngineLayers
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.util.Misc
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lazywizard.lazylib.opengl.DrawUtils
 import org.lwjgl.opengl.GL11
 import org.lwjgl.util.vector.Vector2f
@@ -74,7 +75,7 @@ class Renderer : BaseCombatLayeredRenderingPlugin() {
                 it.pos.x,
                 it.pos.y,
                 it.r,
-                (it.a.facing - it.a.halfAngle).degrees,
+                (it.a.facing - it.a.halfAngle.toDirection).degrees,
                 it.a.angle,
                 64,
                 false,

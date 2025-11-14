@@ -14,10 +14,10 @@ class Arc(angle: Float, val facing: Direction) {
         get() = angle * 0.5f
 
     val arms: Pair<Direction, Direction>
-        get() = Pair(facing - halfAngle, facing + halfAngle)
+        get() = Pair(facing - halfAngle.toDirection, facing + halfAngle.toDirection)
 
     fun rotated(rotation: Float): Arc {
-        return Arc(angle, facing + rotation)
+        return Arc(angle, facing + rotation.toDirection)
     }
 
     fun addAngle(degrees: Float): Arc {
@@ -93,8 +93,8 @@ class Arc(angle: Float, val facing: Direction) {
         /** Merge two arcs. If the arcs do not overlap, returns
          * the smallest arc that contains both provided arcs. */
         fun union(a: Arc, b: Arc): Arc {
-            val offset = b.facing - a.facing
-            val angle = offset.length + a.halfAngle + b.halfAngle
+            val offset: Direction = b.facing - a.facing
+            val angle: Float = offset.length + a.halfAngle + b.halfAngle
 
             return when {
                 // Both arcs form a complete angle.
@@ -108,7 +108,7 @@ class Arc(angle: Float, val facing: Direction) {
 
                 else -> {
                     val sgn = offset.sign
-                    val facing = a.facing + (offset + sgn * b.halfAngle - sgn * a.halfAngle) / 2f
+                    val facing = a.facing + (offset + b.halfAngle.toDirection * sgn - a.halfAngle.toDirection * sgn) / 2f
                     Arc(angle, facing)
                 }
             }

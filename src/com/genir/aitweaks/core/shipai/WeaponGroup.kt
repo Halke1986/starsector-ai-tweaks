@@ -136,7 +136,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
         val subArcs: Sequence<DPSArc> = staticArcsInShipFrameOfReference(toTarget.length, target.radius)
 
         val offsetFromTarget = fun(arcFacing: Direction): Float {
-            return (toTarget.facing - (arcFacing + ship.facing)).length
+            return (toTarget.facing - (arcFacing + ship.facing.toDirection)).length
         }
 
         // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
@@ -180,7 +180,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
         val point2 = arm2 * dist2 + slotLocation
 
         val angle = (point2.facing - arc.facing).degrees - (point1.facing - arc.facing).degrees
-        return Arc(angle, point1.facing + angle / 2)
+        return Arc(angle, point1.facing + (angle / 2f).toDirection)
     }
 
     /** Splits a collection of potentially overlapping 2D arcs into non-overlapping sub-arcs.

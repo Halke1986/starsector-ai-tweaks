@@ -21,6 +21,7 @@ import com.genir.aitweaks.core.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Arc
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import kotlin.math.max
@@ -504,7 +505,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         // Try to stay on target.
         if (target == attackTarget) {
             val withinRange = currentEffectiveRange(target) <= weaponGroup.effectiveRange
-            val withinArc = (expectedFacing - ship.facing).length < 60f
+            val withinArc = (expectedFacing - ship.facing.toDirection).length < 60f
             if (withinRange && withinArc) {
                 evaluation += 1f
             }

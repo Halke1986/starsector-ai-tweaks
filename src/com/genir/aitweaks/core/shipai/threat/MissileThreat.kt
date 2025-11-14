@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.vectorProjectionLength
 import kotlin.math.min
 
@@ -83,7 +84,7 @@ class MissileThreat(val ship: ShipAPI) {
             return Float.MAX_VALUE
         }
 
-        val angle = (toTarget.facing - missile.facing).length
+        val angle = (toTarget.facing - missile.facing.toDirection).length
         val angleNormalized = (1f - angle / 180f)
 
         return dist / (angleNormalized * angleNormalized)

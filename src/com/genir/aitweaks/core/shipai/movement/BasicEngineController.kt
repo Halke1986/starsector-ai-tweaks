@@ -46,7 +46,7 @@ open class BasicEngineController(val kinematics: Kinematics) : Helm(kinematics.s
         // ship angular velocity, as linear acceleration is applied
         // by the game engine after rotation.
         val w = kinematics.angularVelocity * dt
-        val toShipFacing = -kinematics.facing - w + 90f
+        val toShipFacing = -(kinematics.facing + w.toDirection) + 90f.toDirection
         val r = toShipFacing.rotationMatrix
         val d = (heading - kinematics.location).rotated(r)
         val v = (kinematics.velocity).rotated(r) * dt

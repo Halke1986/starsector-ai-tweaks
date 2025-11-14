@@ -8,6 +8,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 
 /**
@@ -99,7 +100,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
             // Cap the angle offset, so that very large formations don't wrap
             // around the target, resulting in crossing heading vectors.
             val cappedOffset = (facingOffset + unit.angularSize / 2f).coerceIn(-130f, 130f)
-            val angle = formation.facing + cappedOffset
+            val angle = formation.facing + cappedOffset.toDirection
             val pos = target.location + angle.unitVector.resized(unit.attackRange)
 
             facingOffset += unit.angularSize
