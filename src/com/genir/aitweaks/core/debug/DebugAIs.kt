@@ -12,14 +12,14 @@ import com.genir.aitweaks.core.shipai.movement.BasicEngineController
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.angularVelocity
 import com.genir.aitweaks.core.utils.mousePosition
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.starfarer.combat.entities.Ship
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
-var expectedFacing = 90f.direction
+var expectedFacing = 90f.toDirection
 const val df = -1f * 60f
 
 class MirrorTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
@@ -30,7 +30,7 @@ class MirrorTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControl
         controller.clearCommands()
 
         controller.heading(dt, target.location + offset, target.velocity)
-        controller.facing(dt, target.facing.direction, target.angularVelocity)
+        controller.facing(dt, target.facing.toDirection, target.angularVelocity)
 
         controller.executeCommands()
     }
@@ -56,8 +56,8 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
         expectedFacing += df * dt
 
         Debug.drawLine(ship.location, ship.location + expectedFacing.unitVector * 400f, Color.GREEN)
-        Debug.drawLine(ship.location, ship.location + ship.facing.direction.unitVector * 400f, Color.BLUE)
-        Debug.print["f"] = (expectedFacing - ship.facing.direction).length
+        Debug.drawLine(ship.location, ship.location + ship.facing.toDirection.unitVector * 400f, Color.BLUE)
+        Debug.print["f"] = (expectedFacing - ship.facing.toDirection).length
 
         controller.facing(dt, expectedFacing, false)
     }
@@ -73,7 +73,7 @@ class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
 
         val toP = (p - ship.location)
         if (toP.length < ship.collisionRadius / 2f) {
-            controller.facing(dt, ship.facing.direction, 0f)
+            controller.facing(dt, ship.facing.toDirection, 0f)
         } else {
             val w: Float = angularVelocity(toP, v - ship.velocity)
             controller.facing(dt, toP.facing, w)

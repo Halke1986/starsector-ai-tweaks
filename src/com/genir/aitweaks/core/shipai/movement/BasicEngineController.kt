@@ -4,7 +4,7 @@ import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.sqrt
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import org.lwjgl.util.vector.Vector2f
@@ -23,7 +23,7 @@ import kotlin.random.Random
  * opposed to every frame combat plugin.
  */
 open class BasicEngineController(val kinematics: Kinematics) : Helm(kinematics.ship) {
-    private var prevFacing: Direction = 0f.direction
+    private var prevFacing: Direction = 0f.toDirection
 
     data class LimitedVelocity(val movementOverridden: Boolean, val velocity: Vector2f)
 

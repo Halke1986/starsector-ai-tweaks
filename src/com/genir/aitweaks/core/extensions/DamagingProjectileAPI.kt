@@ -1,7 +1,7 @@
 package com.genir.aitweaks.core.extensions
 
 import com.fs.starfarer.api.combat.DamagingProjectileAPI
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import org.lazywizard.lazylib.ext.isZeroVector
 import org.lwjgl.util.vector.Vector2f
@@ -12,7 +12,7 @@ val DamagingProjectileAPI.Velocity: Vector2f
         // zero vector in the frame the energy projectile was spawned.
         if (elapsed == 0f && velocity.isZeroVector()) {
             val shipVelocity = weapon?.ship?.velocity ?: Vector2f()
-            return shipVelocity + facing.direction.unitVector * moveSpeed
+            return shipVelocity + facing.toDirection.unitVector * moveSpeed
         }
 
         return velocity

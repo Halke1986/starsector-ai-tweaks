@@ -13,7 +13,7 @@ import com.genir.aitweaks.core.shipai.movement.Kinematics
 import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.solve
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import kotlin.math.max
 
@@ -115,7 +115,7 @@ class WeaponThreat(private val ship: ShipAPI) {
         }
 
         // Check if the weapon is busy firing at another target.
-        if ((weapon.currAngle.direction - toShip.facing).length > 30f && weapon.isInFiringCycle && !isGuidedFinisherMissile) {
+        if ((weapon.currAngle.toDirection - toShip.facing).length > 30f && weapon.isInFiringCycle && !isGuidedFinisherMissile) {
             return false
         }
 

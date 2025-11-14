@@ -5,7 +5,7 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.pointsOfTangency
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Arc
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import org.lwjgl.util.vector.Vector2f
 
@@ -71,7 +71,7 @@ fun canTrack(weapon: WeaponHandle, target: BallisticTarget, params: BallisticPar
 fun interceptArc(weapon: WeaponHandle, target: BallisticTarget, params: BallisticParams): Arc {
     val pv = targetMotion(weapon, target.linearMotion, params)
     val points = pointsOfTangency(pv.position, target.radius)
-        ?: return Arc(360f, 0f.direction)
+        ?: return Arc(360f, 0f.toDirection)
 
     val target1 = BallisticTarget(weapon.location + points.first, target.velocity, 0f, target.entity)
     val target2 = BallisticTarget(weapon.location + points.second, target.velocity, 0f, target.entity)

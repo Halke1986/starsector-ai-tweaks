@@ -15,7 +15,7 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
 import com.genir.aitweaks.core.shipai.autofire.ballistics.canTrack
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 
 class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
@@ -111,7 +111,7 @@ class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun minLidarWeaponRange(): Float {
-        return applyLidarRangeBonus { lidarWeapons.minOf { it.slot.rangeFromShipCenter(0f.direction, it.range) } } * weaponRangeFraction
+        return applyLidarRangeBonus { lidarWeapons.minOf { it.slot.rangeFromShipCenter(0f.toDirection, it.range) } } * weaponRangeFraction
     }
 
     private fun burstFluxRequired(): Float {

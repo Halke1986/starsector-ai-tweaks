@@ -9,7 +9,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.getShortestRotation
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
@@ -39,7 +39,7 @@ class SimulateMissile {
 
         fun missilePath(weapon: WeaponHandle): Sequence<Frame> {
             val dt: Float = Global.getCombatEngine().elapsedInLastFrame
-            return missilePath(dt, weapon, weapon.currAngle.direction, MissileStats(weapon))
+            return missilePath(dt, weapon, weapon.currAngle.toDirection, MissileStats(weapon))
         }
 
         /** Calculate the angular distance between missile path and
@@ -49,7 +49,7 @@ class SimulateMissile {
             val v: Vector2f = target.velocity * dt
 
             var minDist: Float = Float.MAX_VALUE
-            var rotation = 0f.direction
+            var rotation = 0f.toDirection
 
             path.forEachIndexed { idx, frame ->
                 val p = p0 + v * idx.toFloat()

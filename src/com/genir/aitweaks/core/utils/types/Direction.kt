@@ -33,31 +33,31 @@ value class Direction private constructor(val degrees: Float) {
         }
 
     operator fun plus(other: Direction): Direction {
-        return makeDirection(degrees + other.degrees)
+        return normalizeDirection(degrees + other.degrees)
     }
 
     operator fun plus(other: Float): Direction {
-        return makeDirection(degrees + other)
+        return normalizeDirection(degrees + other)
     }
 
     operator fun minus(other: Direction): Direction {
-        return makeDirection(degrees - other.degrees)
+        return normalizeDirection(degrees - other.degrees)
     }
 
     operator fun minus(other: Float): Direction {
-        return makeDirection(degrees - other)
+        return normalizeDirection(degrees - other)
     }
 
     operator fun div(f: Float): Direction {
-        return makeDirection(degrees / f)
+        return normalizeDirection(degrees / f)
     }
 
     operator fun times(f: Float): Direction {
-        return makeDirection(degrees * f)
+        return normalizeDirection(degrees * f)
     }
 
     operator fun unaryMinus(): Direction {
-        return makeDirection(-degrees)
+        return normalizeDirection(-degrees)
     }
 
     override fun toString(): String {
@@ -65,11 +65,11 @@ value class Direction private constructor(val degrees: Float) {
     }
 
     companion object {
-        private fun makeDirection(degrees: Float): Direction {
+        private fun normalizeDirection(degrees: Float): Direction {
             return Direction(degrees - round(degrees / 360) * 360)
         }
 
-        val Float.direction: Direction
-            get() = makeDirection(this)
+        val Float.toDirection: Direction
+            get() = normalizeDirection(this)
     }
 }

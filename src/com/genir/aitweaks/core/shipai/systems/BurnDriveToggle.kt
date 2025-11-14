@@ -12,7 +12,7 @@ import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
@@ -23,7 +23,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
     private var burnVector: Vector2f = Vector2f() // In ship frame of reference.
     private var shouldInitBurn: Boolean = false
-    private var prevAngleToDestination: Direction = 0f.direction
+    private var prevAngleToDestination: Direction = 0f.toDirection
 
     private val burnDriveFlatBonus: Float = 200f // Hardcoded vanilla value.
     private var maxBurnDist: Float = 0f
@@ -132,7 +132,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
         // Heading to assignment location takes priority.
         val assignment: Vector2f? = ai.assignment.navigateTo
         if (assignment != null) {
-            return (ship.facing.direction - (assignment - ship.location).facing).length <= maxAngleToTarget
+            return (ship.facing.toDirection - (assignment - ship.location).facing).length <= maxAngleToTarget
         }
 
         // Assume the maneuver target is the closest relevant enemy ship.
@@ -148,14 +148,14 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
             // Ship is approaching the nearest enemy. Continue,
             // even if the ship is not following the burn vector.
-            if ((ship.facing.direction - toTarget.facing).length <= maxAngleToTarget) {
+            if ((ship.facing.toDirection - toTarget.facing).length <= maxAngleToTarget) {
                 return true
             }
         }
 
         // Burn as long as the ship is following the burn vector.
         if (burnVector.isNonZero) {
-            return (ship.facing.direction - burnVector.facing).length <= maxAngleToTarget
+            return (ship.facing.toDirection - burnVector.facing).length <= maxAngleToTarget
         }
 
         // Keep burning if there's no target, as long as the battle isn't over.
@@ -164,8 +164,8 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
     }
 
     private fun angleToDestination(): Direction {
-        return if (burnVector.isZero) 180f.direction
-        else (ship.facing.direction - burnVector.facing)
+        return if (burnVector.isZero) 180f.toDirection
+        else (ship.facing.toDirection - burnVector.facing)
     }
 
     private fun findObstacles(center: Vector2f, radius: Float): Sequence<ShipAPI> {
@@ -205,7 +205,7 @@ class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
 
     private fun isCollisionImminent(): Boolean {
         val radius = maxBurnDist / 2
-        val position = ship.location + ship.facing.direction.unitVector * radius
+        val position = ship.location + ship.facing.toDirection.unitVector * radius
         val obstacles = findObstacles(position, radius)
 
         return timeToCollision(obstacles, ship.velocity) <= stopBeforeCollision

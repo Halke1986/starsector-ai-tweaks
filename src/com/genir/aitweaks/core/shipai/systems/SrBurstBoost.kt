@@ -11,7 +11,7 @@ import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
@@ -67,7 +67,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
         // may be stuck in warmup loop, so execute burst when backing off.
         if (!ai.ventModule.isBackingOff && hardpoints.any { it.isInFiringSequence }) return null
 
-        return ship.facing.direction + plan.angleToTarget()
+        return ship.facing.toDirection + plan.angleToTarget()
     }
 
     private fun canUseBurst(): Boolean {
@@ -194,7 +194,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
             Pair((d + r), setOf(ACCELERATE_BACKWARDS, STRAFE_RIGHT)),
         )
 
-        val toShipFacing = ship.facing.direction.rotationMatrix
+        val toShipFacing = ship.facing.toDirection.rotationMatrix
         return rawVectors.map { BurstVector(it.first, toShipFacing, it.second) }
     }
 
@@ -241,7 +241,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
         val time = solve(position, velocity, shield.radius)?.smallerNonNegative ?: return null
         val hitPoint = position + velocity * time
-        val willHitShield = Arc(shield.activeArc, shield.facing.direction).contains(hitPoint)
+        val willHitShield = Arc(shield.activeArc, shield.facing.toDirection).contains(hitPoint)
 
         return if (willHitShield) (velocity * time).length else null
     }

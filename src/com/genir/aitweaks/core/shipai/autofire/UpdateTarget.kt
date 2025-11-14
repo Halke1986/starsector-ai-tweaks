@@ -15,7 +15,7 @@ import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.angularVelocity
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
@@ -259,7 +259,7 @@ class UpdateTarget(
         val range = weapon.engagementRange
 
         // Evaluate the target based on angle from current weapon facing.
-        val angle = ((target.location - weapon.location).facing - weapon.currAngle.direction).radians
+        val angle = ((target.location - weapon.location).facing - weapon.currAngle.toDirection).radians
         val angleWeight = if (dist <= range) 0.75f else 0.25f // Lower angle weight for out of range targets.
         evaluation += abs(angle) * angleWeight
 

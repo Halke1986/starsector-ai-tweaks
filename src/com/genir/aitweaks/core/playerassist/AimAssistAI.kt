@@ -23,7 +23,7 @@ import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction
 import com.genir.aitweaks.core.utils.*
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.starfarer.combat.entities.Ship
 import com.genir.starfarer.combat.entities.ship.trackers.AimTracker
@@ -203,7 +203,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
             group.type == WeaponGroupType.ALTERNATING && weapon.equals(group.activeWeapon) -> true
 
             // Fire linked weapons if it's possible to hit the target.
-            group.type == WeaponGroupType.LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.currAngle.direction) -> true
+            group.type == WeaponGroupType.LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.currAngle.toDirection) -> true
 
             else -> false
         }

@@ -7,7 +7,7 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.types.Arc
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 
 /** Estimates whether a weapon attacking the given target might cause friendly fire on the specified ally.
  *
@@ -53,7 +53,7 @@ private fun canHitAlly(weapon: WeaponHandle, target: CombatEntityAPI, ally: Ship
 
     // Expected weapon facing towards the enemy at the end of burst.
     val enemyArc = Arc.fromTo(
-        weapon.currAngle.direction,
+        weapon.currAngle.toDirection,
         intercept(weapon, ballisticTarget, endParams).facing,
     )
 

@@ -20,7 +20,7 @@ import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
@@ -307,7 +307,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         }
 
         val arc = interceptArc(weapon, BallisticTarget.collisionRadius(target!!), currentParams())
-        val inaccuracy = (arc.facing - weapon.currAngle.direction).length
+        val inaccuracy = (arc.facing - weapon.currAngle.toDirection).length
         if (inaccuracy * 4f > arc.angle) return STABILIZE_ON_TARGET
 
         return null
@@ -340,7 +340,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
             !weapon.absoluteArc.contains(target.location - weapon.location) -> return false
         }
 
-        val r = (target.location - weapon.location).facing - weapon.currAngle.direction
+        val r = (target.location - weapon.location).facing - weapon.currAngle.toDirection
         val w = weapon.turnRateWhileFiring - interceptTracker.interceptVelocity * r.sign
 
         // The beam's turn rate is too low to track the target.
@@ -455,7 +455,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         // Aim the hardpoint as if the ship was already rotated to the expected facing.
         // That way the correct weapon facing can be predicted.
         val actualFacing = ship.facing
-        val toActualFacing = ship.facing.direction - expectedFacing
+        val toActualFacing = ship.facing.toDirection - expectedFacing
         try {
             ship.facing = expectedFacing.degrees
             val ballisticTarget: BallisticTarget = BallisticTarget.collisionRadius(target)

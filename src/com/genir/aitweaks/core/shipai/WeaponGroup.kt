@@ -14,7 +14,7 @@ import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 
 /** A group of weapons that should be able to fire along a single attack vector. */
@@ -70,9 +70,9 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
 
     private fun defaultAttackFacing(): Direction {
         val dpsArcs: Sequence<DPSArc> = staticArcsInShipFrameOfReference(1e5f, 0f)
-        val optimalArc: Arc = dpsArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -it.arc.distanceTo(0f.direction).length })?.arc
-            ?: return 0f.direction
-        return -optimalArc.distanceTo(0f.direction)
+        val optimalArc: Arc = dpsArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -it.arc.distanceTo(0f.toDirection).length })?.arc
+            ?: return 0f.toDirection
+        return -optimalArc.distanceTo(0f.toDirection)
     }
 
     /** Calculate ship facing that maximizes DPS delivered
@@ -119,7 +119,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
 
         val offsetFromCurrentFacing = fun(dpsArc: DPSArc): Float {
             val proposedFacing = directFacing + dpsArc.arc.facing
-            return (ship.facing.direction - proposedFacing).length
+            return (ship.facing.toDirection - proposedFacing).length
         }
 
         // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
@@ -141,9 +141,9 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
 
         // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
         val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromTarget(it.arc.facing) })
-            ?: return 0f.direction
+            ?: return 0f.toDirection
 
-        return -optimalArc.arc.distanceTo(0f.direction)
+        return -optimalArc.arc.distanceTo(0f.toDirection)
     }
 
     private fun staticArcsInShipFrameOfReference(range: Float, targetRadius: Float): Sequence<DPSArc> {
@@ -162,7 +162,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
      * from the ship's center. Because the weapon is offset from the center,
      * the visible arc differs from its actual firing arc. */
     private fun weaponArcInShipFrameOfReference(slotLocation: Vector2f, arc: Arc, range: Float): Arc {
-        val fullArc = Arc(360f, 180f.direction)
+        val fullArc = Arc(360f, 180f.toDirection)
         if (arc.angle == 360f) {
             return fullArc
         }
@@ -200,7 +200,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
             val angle = if (i + 1 < boundaries.size) end - start else 360f + end - start
             val facing = start + angle / 2
 
-            val subArc = Arc(angle, facing.direction)
+            val subArc = Arc(angle, facing.toDirection)
 
             val dps = arcs.filter { dpsArc -> dpsArc.arc.overlaps(subArc, tolerance = -0.1f) }.sumOf { it.dps }
             DPSArc(subArc, dps)

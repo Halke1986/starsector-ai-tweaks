@@ -4,7 +4,7 @@ import com.genir.aitweaks.core.utils.RADIANS_TO_DEGREES
 import com.genir.aitweaks.core.utils.atan2
 import com.genir.aitweaks.core.utils.sqrt
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 
 operator fun Vector2f.plus(b: Vector2f): Vector2f {
@@ -47,7 +47,7 @@ val Vector2f.copy: Vector2f
     get() = Vector2f(x, y)
 
 val Vector2f.facing: Direction
-    get() = (if (isZero) 0f else atan2(y, x) * RADIANS_TO_DEGREES).direction
+    get() = (if (isZero) 0f else atan2(y, x) * RADIANS_TO_DEGREES).toDirection
 
 val Vector2f.length: Float
     get() = sqrt(lengthSquared)

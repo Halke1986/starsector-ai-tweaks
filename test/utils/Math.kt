@@ -2,7 +2,7 @@ package utils
 
 import com.genir.aitweaks.core.utils.PI
 import com.genir.aitweaks.core.utils.atan
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.vectorProjection
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -22,20 +22,20 @@ class Math {
 
     @Test
     fun testDirection() {
-        Assertions.assertEquals(0f, 0f.direction.degrees)
-        Assertions.assertEquals(0f, (-0f).direction.degrees)
-        Assertions.assertEquals(180f, 180f.direction.degrees)
-        Assertions.assertEquals(-180f, (-180f).direction.degrees)
-        Assertions.assertEquals(10f, 10f.direction.degrees)
-        Assertions.assertEquals(-10f, (-10f).direction.degrees)
-        Assertions.assertEquals(-90f, 270f.direction.degrees)
-        Assertions.assertEquals(90f, (-270f).direction.degrees)
-        Assertions.assertEquals(-10f, 350f.direction.degrees)
-        Assertions.assertEquals(10f, (-350f).direction.degrees)
-        Assertions.assertEquals(0f, 360f.direction.degrees)
-        Assertions.assertEquals(0f, (-360f).direction.degrees)
-        Assertions.assertEquals(-80f, 1000f.direction.degrees)
-        Assertions.assertEquals(80f, (-1000f).direction.degrees)
+        Assertions.assertEquals(0f, 0f.toDirection.degrees)
+        Assertions.assertEquals(0f, (-0f).toDirection.degrees)
+        Assertions.assertEquals(180f, 180f.toDirection.degrees)
+        Assertions.assertEquals(-180f, (-180f).toDirection.degrees)
+        Assertions.assertEquals(10f, 10f.toDirection.degrees)
+        Assertions.assertEquals(-10f, (-10f).toDirection.degrees)
+        Assertions.assertEquals(-90f, 270f.toDirection.degrees)
+        Assertions.assertEquals(90f, (-270f).toDirection.degrees)
+        Assertions.assertEquals(-10f, 350f.toDirection.degrees)
+        Assertions.assertEquals(10f, (-350f).toDirection.degrees)
+        Assertions.assertEquals(0f, 360f.toDirection.degrees)
+        Assertions.assertEquals(0f, (-360f).toDirection.degrees)
+        Assertions.assertEquals(-80f, 1000f.toDirection.degrees)
+        Assertions.assertEquals(80f, (-1000f).toDirection.degrees)
     }
 
     @Test

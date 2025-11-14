@@ -5,7 +5,7 @@ import com.genir.aitweaks.core.extensions.lengthSquared
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.extensions.plus
 import com.genir.aitweaks.core.extensions.times
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import org.lwjgl.util.vector.Vector2f
@@ -23,7 +23,7 @@ object Bounds {
 
         // Rotate vector coordinates from target frame of
         // reference to target bounds frame of reference.
-        val r = (-target.facing.direction).rotationMatrix
+        val r = (-target.facing.toDirection).rotationMatrix
         val p = position.rotated(r)
         val v = velocity.rotated(r)
 
@@ -57,7 +57,7 @@ object Bounds {
     fun closestPoint(position: Vector2f, target: CombatEntityAPI): Vector2f {
         val bounds = target.exactBounds as? com.genir.starfarer.combat.collision.Bounds ?: return target.location
 
-        val r = (-target.facing.direction).rotationMatrix
+        val r = (-target.facing.toDirection).rotationMatrix
         val o = (position - target.location).rotated(r)
 
         val points = bounds.origSegments.asSequence().map { segment ->
@@ -78,7 +78,7 @@ object Bounds {
         // Check if there's a possibility of a collision.
         val bounds = target.exactBounds as? com.genir.starfarer.combat.collision.Bounds ?: return false
 
-        val r = (-target.facing.direction).rotationMatrix
+        val r = (-target.facing.toDirection).rotationMatrix
         val p = (position - target.location).rotated(r)
 
         // Count the number of segments below the point p.

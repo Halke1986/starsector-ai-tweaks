@@ -12,7 +12,7 @@ import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.starfarer.combat.ai.BasicShipAI
 import com.genir.starfarer.combat.ai.movement.maneuvers.ApproachManeuver
 import com.genir.starfarer.combat.ai.movement.maneuvers.EscortTargetManeuverV3
@@ -94,7 +94,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : BasicShipAI(ship
         }
 
         // Find a weapon group appropriate to attack the ship target.
-        val targetFacing: Direction = (target.location - ship.location).facing - ship.facing.direction
+        val targetFacing: Direction = (target.location - ship.location).facing - ship.facing.toDirection
         val weaponGroup = stats.weaponGroups.minWithOrNull(compareBy { (targetFacing - it.defaultFacing).length })!!
 
         // Aim ship only if the target is close to weapons range.

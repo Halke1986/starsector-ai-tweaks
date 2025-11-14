@@ -20,7 +20,7 @@ import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.starfarer.combat.entities.ship.weapons.BeamWeapon
 import com.genir.starfarer.combat.systems.Weapon
 import org.lwjgl.util.vector.Vector2f
@@ -110,13 +110,13 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
     }
 
     val isFrontFacing: Boolean
-        get() = isAngleInArc(0f.direction)
+        get() = isAngleInArc(0f.toDirection)
 
     val arc: Arc
         get() {
             val isMissileHardpoint = type == WeaponType.MISSILE && slot.isHardpoint
             val angle = if (isMissileHardpoint) 0f else weapon.arc
-            return Arc(angle, arcFacing.direction)
+            return Arc(angle, arcFacing.toDirection)
         }
 
     /** Weapon arc in absolute coordinates, instead of ship coordinates */
@@ -396,7 +396,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
      * method computes the expected weapon facing at the moment of firing. */
     val facingWhenFiringThisFrame: Direction
         get() {
-            val currAngle = currAngle.direction
+            val currAngle = currAngle.toDirection
 
             // Non-beam weapons fire *before* rotation.
             if (!isBeam) {

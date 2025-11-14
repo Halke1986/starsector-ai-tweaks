@@ -9,7 +9,7 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.starfarer.combat.ai.BasicShipAI
 import com.genir.starfarer.combat.entities.Ship
 import com.genir.starfarer.combat.tasks.CombatTaskManager
@@ -123,7 +123,7 @@ val ShipAPI.allGroupedWeapons: List<WeaponHandle>
 
 fun ShipAPI.shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Direction): Direction {
     val targetFacing = (target - location).facing
-    val weaponFacing = facing.direction + weaponGroupFacing
+    val weaponFacing = facing.toDirection + weaponGroupFacing
     return targetFacing - weaponFacing
 }
 
@@ -168,7 +168,7 @@ private fun ShipAPI.statWithoutMobilityBonuses(modifiedStat: MutableStat): Mutab
 }
 
 val ShipAPI.maxRange: Float
-    get() = allGroupedWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.direction, it.engagementRange) } ?: 0f
+    get() = allGroupedWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.toDirection, it.engagementRange) } ?: 0f
 
 val ShipAPI.AIPersonality: String
     get() = (ai as? BasicShipAI)?.config?.personalityOverride ?: (this as Ship).personality

@@ -3,7 +3,7 @@ package com.genir.aitweaks.core.shipai.movement
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.times
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 
 class Kinematics(val ship: ShipAPI) {
@@ -45,7 +45,7 @@ class Kinematics(val ship: ShipAPI) {
 
     // Angular velocity.
     val facing: Direction
-        get() = ship.facing.direction
+        get() = ship.facing.toDirection
 
     val angularVelocity: Float
         get() = ship.angularVelocity * timeMult

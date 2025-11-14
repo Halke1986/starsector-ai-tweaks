@@ -9,7 +9,7 @@ import com.genir.aitweaks.core.extensions.sumOf
 import com.genir.aitweaks.core.extensions.totalCollisionRadius
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import kotlin.math.max
 
 class ShipStats(private val ship: ShipAPI) {
@@ -20,7 +20,7 @@ class ShipStats(private val ship: ShipAPI) {
 
     private fun calculateThreatSearchRange(): Float {
         val rangeEnvelope = 1.5f
-        val totalMaxRange = significantWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.direction, it.engagementRange) } ?: 0f
+        val totalMaxRange = significantWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.toDirection, it.engagementRange) } ?: 0f
 
         return max(Preset.threatSearchRange, totalMaxRange * rangeEnvelope)
     }
@@ -84,7 +84,7 @@ class ShipStats(private val ship: ShipAPI) {
      * DPS for the provided weapon list.*/
     private fun attackAngles(weapons: List<WeaponHandle>): Map<Direction, Float> {
         val angles: List<Direction> = weapons.flatMap { weapon ->
-            val facing: Direction = weapon.arcFacing.direction
+            val facing: Direction = weapon.arcFacing.toDirection
             val arc = weapon.arc.angle
 
             when {
@@ -92,7 +92,7 @@ class ShipStats(private val ship: ShipAPI) {
                 weapon.slot.isHardpoint -> listOf(facing)
 
                 // Ship front is within weapon arc.
-                facing.length < arc / 2f -> listOf(0f.direction)
+                facing.length < arc / 2f -> listOf(0f.toDirection)
 
                 // Ship back is within weapon arc, return both angles.
                 180f - facing.length < arc / 2f -> listOf(facing - arc / 2f, facing + arc / 2f)

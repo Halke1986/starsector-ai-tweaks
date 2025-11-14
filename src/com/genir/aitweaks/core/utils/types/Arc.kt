@@ -1,7 +1,7 @@
 package com.genir.aitweaks.core.utils.types
 
 import com.genir.aitweaks.core.extensions.facing
-import com.genir.aitweaks.core.utils.types.Direction.Companion.direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
@@ -43,7 +43,7 @@ class Arc(angle: Float, val facing: Direction) {
 
     fun coerceVector(v: Vector2f): Vector2f {
         val distance: Direction = distanceTo(v.facing)
-        if (distance == 0f.direction) {
+        if (distance == 0f.toDirection) {
             return v
         }
 
@@ -54,7 +54,7 @@ class Arc(angle: Float, val facing: Direction) {
      * 0f if arc contains the direction. */
     fun distanceTo(d: Direction): Direction {
         if (contains(d)) {
-            return 0f.direction
+            return 0f.toDirection
         }
 
         val arms = arms
@@ -74,7 +74,7 @@ class Arc(angle: Float, val facing: Direction) {
          * Assumes that the list forms a single, unbroken arc.
          * If this assumption is violated, the result is undefined. */
         fun mergeOverlapping(arcsInput: List<Arc>): List<Arc> {
-            val toBeRemoved = Arc(0f, 0f.direction)
+            val toBeRemoved = Arc(0f, 0f.toDirection)
             val arcs: MutableList<Arc> = arcsInput.toMutableList()
 
             for (i in 0 until arcs.size) {
