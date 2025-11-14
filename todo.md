@@ -40,8 +40,6 @@ take a look at progressive staggered fire
 
 approach into missile range
 
-aurora not using plasma burn to chase targets
-
 shieldless ships should ignore all non-missile weapons when deciding if to vent 
 
 fire at support fighters when they're the primary target

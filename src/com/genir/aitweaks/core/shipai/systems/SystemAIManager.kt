@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.shipai.systems
 
 import com.genir.aitweaks.core.extensions.AIType
+import com.genir.aitweaks.core.extensions.Id
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.ShipSystemAIType
 import com.genir.aitweaks.core.utils.ShipSystemAIType.*
@@ -20,7 +21,11 @@ class SystemAIManager {
                 TEMPORAL_SHELL -> TemporalShell(ai)
 
                 MANEUVERING_JETS -> {
-                    if (ai.ship.hullSpec.hullId == "sr_melvillei") SrBurstBoost(ai) else null
+                    when (ai.ship.Id) {
+                        "sr_melvillei" -> SrBurstBoost(ai)
+
+                        else -> ManeuveringJets(ai)
+                    }
                 }
 
                 else -> null

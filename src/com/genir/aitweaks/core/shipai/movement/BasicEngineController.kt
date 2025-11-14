@@ -88,14 +88,14 @@ open class BasicEngineController(val kinematics: Kinematics) : Helm(kinematics.s
         val fr = +dv.x / al
         val fMax = max(max(ff, fb), max(fl, fr))
 
-        val overspeedX = vmx.sign == v.x.sign && abs(vmx) < abs(v.x)
-        val overspeedY = vmy.sign == v.y.sign && abs(vmy) < abs(v.y)
+        val overSpeedX = vmx.sign == v.x.sign && abs(vmx) < abs(v.x)
+        val overSpeedY = vmy.sign == v.y.sign && abs(vmy) < abs(v.y)
 
         // Give commands to achieve the calculated thrust.
-        if (shouldAccelerate(overspeedY, ff, fMax)) giveCommand(ACCELERATE)
-        if (shouldAccelerate(overspeedY, fb, fMax)) giveCommand(ACCELERATE_BACKWARDS)
-        if (shouldAccelerate(overspeedX, fl, fMax)) giveCommand(STRAFE_LEFT)
-        if (shouldAccelerate(overspeedX, fr, fMax)) giveCommand(STRAFE_RIGHT)
+        if (shouldAccelerate(overSpeedY, ff, fMax)) giveCommand(ACCELERATE)
+        if (shouldAccelerate(overSpeedY, fb, fMax)) giveCommand(ACCELERATE_BACKWARDS)
+        if (shouldAccelerate(overSpeedX, fl, fMax)) giveCommand(STRAFE_LEFT)
+        if (shouldAccelerate(overSpeedX, fr, fMax)) giveCommand(STRAFE_RIGHT)
 
         return ve.rotatedReverse(r) / dt
     }

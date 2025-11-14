@@ -1,4 +1,5 @@
 - Autofire AI: Improved aiming logic of slow rotating turrets. Now they can acquire target slightly faster.
+- Custom AI: Ships with plasma jets or maneuvering jets, such as Aurora, now activate these systems more aggressively. 
 
 Version v2.1.12
 
