@@ -10,11 +10,11 @@ import kotlin.math.min
 class Arc(angle: Float, val facing: Direction) {
     val angle = min(360f, abs(angle))
 
-    val half: Float
+    val halfAngle: Float
         get() = angle * 0.5f
 
     val arms: Pair<Direction, Direction>
-        get() = Pair(facing - half, facing + half)
+        get() = Pair(facing - halfAngle, facing + halfAngle)
 
     fun rotated(rotation: Float): Arc {
         return Arc(angle, facing + rotation)
@@ -30,11 +30,11 @@ class Arc(angle: Float, val facing: Direction) {
 
     fun overlaps(second: Arc, tolerance: Float = 0f): Boolean {
         val offset = (this.facing - second.facing).length
-        return offset <= half + second.half + tolerance
+        return offset <= halfAngle + second.halfAngle + tolerance
     }
 
     fun contains(facing: Direction, tolerance: Float = 0f): Boolean {
-        return (facing - this.facing).length <= half + tolerance
+        return (facing - this.facing).length <= halfAngle + tolerance
     }
 
     fun contains(v: Vector2f): Boolean {
@@ -94,21 +94,21 @@ class Arc(angle: Float, val facing: Direction) {
          * the smallest arc that contains both provided arcs. */
         fun union(a: Arc, b: Arc): Arc {
             val offset = b.facing - a.facing
-            val angle = offset.length + a.half + b.half
+            val angle = offset.length + a.halfAngle + b.halfAngle
 
             return when {
                 // Both arcs form a complete angle.
                 angle >= 360f -> return Arc(360f, a.facing)
 
                 // A is contained in B.
-                offset.length + a.half <= b.half -> return b
+                offset.length + a.halfAngle <= b.halfAngle -> return b
 
                 // B is contained in A.
-                offset.length + b.half <= a.half -> return a
+                offset.length + b.halfAngle <= a.halfAngle -> return a
 
                 else -> {
                     val sgn = offset.sign
-                    val facing = a.facing + (offset + sgn * b.half - sgn * a.half) / 2f
+                    val facing = a.facing + (offset + sgn * b.halfAngle - sgn * a.halfAngle) / 2f
                     Arc(angle, facing)
                 }
             }

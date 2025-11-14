@@ -85,20 +85,20 @@ class ShipStats(private val ship: ShipAPI) {
     private fun attackAngles(weapons: List<WeaponHandle>): Map<Direction, Float> {
         val angles: List<Direction> = weapons.flatMap { weapon ->
             val facing: Direction = weapon.arcFacing.toDirection
-            val arc = weapon.arc.angle
+            val halfArc = weapon.arc.halfAngle
 
             when {
                 // Assume hardpoints have no arc at all.
                 weapon.slot.isHardpoint -> listOf(facing)
 
                 // Ship front is within weapon arc.
-                facing.length < arc / 2f -> listOf(0f.toDirection)
+                facing.length < halfArc -> listOf(0f.toDirection)
 
                 // Ship back is within weapon arc, return both angles.
-                180f - facing.length < arc / 2f -> listOf(facing - arc / 2f, facing + arc / 2f)
+                180f - facing.length < halfArc -> listOf(facing - halfArc, facing + halfArc)
 
                 // Return weapon arc boundary closer to ship front.
-                else -> listOf(facing - facing.sign * (arc / 2f))
+                else -> listOf(facing - facing.sign * halfArc)
             }
         }
 

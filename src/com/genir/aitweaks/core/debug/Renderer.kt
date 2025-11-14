@@ -74,7 +74,7 @@ class Renderer : BaseCombatLayeredRenderingPlugin() {
                 it.pos.x,
                 it.pos.y,
                 it.r,
-                (it.a.facing - it.a.angle / 2f).degrees,
+                (it.a.facing - it.a.halfAngle).degrees,
                 it.a.angle,
                 64,
                 false,

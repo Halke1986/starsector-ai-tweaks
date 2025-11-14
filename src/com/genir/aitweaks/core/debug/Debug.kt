@@ -39,8 +39,8 @@ object Debug {
     }
 
     fun drawArcArms(pos: Vector2f, r: Float, a: Arc, color: Color = Color.CYAN) {
-        debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + (a.facing - a.half).unitVector * r, color))
-        debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + (a.facing + a.half).unitVector * r, color))
+        debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + (a.facing - a.halfAngle).unitVector * r, color))
+        debugPlugin?.renderer?.lines?.add(Renderer.Line(pos, pos + (a.facing + a.halfAngle).unitVector * r, color))
     }
 
     fun drawLine(a: Vector2f, b: Vector2f, color: Color = Color.YELLOW) {

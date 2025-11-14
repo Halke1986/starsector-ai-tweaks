@@ -279,8 +279,8 @@ class Movement(val ai: CustomShipAI) {
         val mergedArcs = Arc.mergeOverlapping(arcs)
         val obstacle = mergedArcs.firstOrNull { it.contains(toHeadingAngle) } ?: return null
 
-        val angle1 = obstacle.facing - (obstacle.angle / 2f)
-        val angle2 = obstacle.facing + (obstacle.angle / 2f)
+        val angle1 = obstacle.facing - obstacle.halfAngle
+        val angle2 = obstacle.facing + obstacle.halfAngle
 
         val toShipAngle = (kinematics.location - maneuverTarget.location).facing
         val offset1 = (angle1 - toShipAngle).length
