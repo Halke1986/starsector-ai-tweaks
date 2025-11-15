@@ -43,6 +43,7 @@ class VentModule(private val ai: CustomShipAI) {
         const val opportunisticVentThreshold = 0.5f
         const val backoffUpperThreshold = 0.75f
         const val backoffLowerThreshold = 0.1f
+        const val backoffLowerThresholdPassive = 0.22f
 
         const val ventTrackingPeriod = 4.3f
         const val engageBeforeVentFinish = 1.5f
@@ -238,7 +239,11 @@ class VentModule(private val ai: CustomShipAI) {
             // Started venting under fire.
             underFire && ship.fluxTracker.isVenting -> true
 
-            // Stop backing off.
+            // Safety Overriden ship dissipated most of its flux while in dangerous situation.
+            // Get back to fight instead of trying to bleed off the remaining flux.
+            !ship.canVentFlux && !isSafe && ship.fluxLevel <= backoffLowerThresholdPassive -> false
+
+            // Stop backing off when flux is mostly dissipated.
             ship.fluxLevel <= backoffLowerThreshold -> false
 
             // Continue current backoff status.
