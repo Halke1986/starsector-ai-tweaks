@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.extensions
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import org.lwjgl.util.vector.Vector2f
@@ -42,7 +43,7 @@ val CombatEntityAPI.isPDTarget: Boolean
     get() = isMissile || isFighter
 
 val CombatEntityAPI.timeAdjustedVelocity: Vector2f
-    get() = (this as? ShipAPI)?.timeAdjustedVelocity ?: velocity
+    get() = (this as? ShipAPI)?.movement?.velocity ?: velocity
 
 /** True if otherEntity is hostile towards this entity. */
 fun CombatEntityAPI.isHostile(otherEntity: CombatEntityAPI): Boolean {

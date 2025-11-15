@@ -170,7 +170,7 @@ class WeaponThreat(private val ship: ShipAPI) {
         // Target motion in weapon frame of reference. The projectile velocity
         // is not relevant in the following calculation, therefore the target
         // velocity is not normalized to the projectile speed.
-        val vAbs = target.velocity - weapon.ship.velocity
+        val vAbs = target.velocity - weapon.ship.movement.velocity
         val targetMotion = LinearMotion(
             position = target.location - weapon.location + vAbs * params.delay,
             velocity = vAbs,

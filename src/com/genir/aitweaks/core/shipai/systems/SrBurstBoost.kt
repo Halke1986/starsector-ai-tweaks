@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Arc
@@ -219,7 +220,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
 
         // Ship location and velocity in target frame of reference.
         val p = ship.location - target.location
-        val v = toIntercept.resized(burstSpeed) - target.velocity
+        val v = toIntercept.resized(burstSpeed) - target.movement.velocity
 
         val distance = shieldCollision(p, v, target) ?: boundsCollision(p, v, target) ?: return null
         return toIntercept.resized(distance)
@@ -228,7 +229,7 @@ class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
     private fun intercept(target: ShipAPI): Vector2f? {
         // Target location and velocity in ship frame of reference.
         val p = target.location - ship.location
-        val v = target.velocity
+        val v = target.movement.velocity
 
         val time = solve(p, v, 0f, burstSpeed, 0f, 0f)?.smallerNonNegative ?: return null
         return target.location + v * time

@@ -11,6 +11,7 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
 import com.genir.aitweaks.core.shipai.autofire.ballistics.intercept
 import com.genir.aitweaks.core.shipai.autofire.ballistics.interceptArc
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.types.Arc
 
@@ -33,7 +34,7 @@ class ObstacleList(private val weapon: WeaponHandle, radius: Float, private val 
         }
 
         val obstacles: Sequence<Obstacle> = ships.map { ship ->
-            val target = BallisticTarget(ship.location, ship.velocity, ship.boundsRadius * 0.8f, ship)
+            val target = BallisticTarget(ship.location, ship.movement.velocity, ship.boundsRadius * 0.8f, ship)
 
             return@map Obstacle(
                 arc = interceptArc(weapon, target, params),

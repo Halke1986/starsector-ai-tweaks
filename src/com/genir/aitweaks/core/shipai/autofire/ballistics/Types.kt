@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.shipai.autofire.ballistics
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.timeAdjustedVelocity
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import org.lwjgl.util.vector.Vector2f
 
@@ -31,7 +32,7 @@ data class BallisticTarget(
         fun shieldRadius(ship: ShipAPI): BallisticTarget {
             return BallisticTarget(
                 ship.shieldCenterEvenIfNoShield,
-                ship.timeAdjustedVelocity,
+                ship.movement.velocity,
                 ship.shieldRadiusEvenIfNoShield,
                 ship,
             )

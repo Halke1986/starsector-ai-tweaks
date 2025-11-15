@@ -98,11 +98,6 @@ val ShipAPI.isPhase: Boolean
 val ShipAPI.deploymentPoints: Float
     get() = max(0f, fleetMember?.unmodifiedDeploymentPointsCost ?: 0f)
 
-/** Calculates the effective ship velocity in the global frame
- * of reference, taking into account the ship's time flow. */
-val ShipAPI.timeAdjustedVelocity: Vector2f
-    get() = velocity * timeMult
-
 val ShipAPI.timeMult: Float
     get() = mutableStats.timeMult.modifiedValue
 

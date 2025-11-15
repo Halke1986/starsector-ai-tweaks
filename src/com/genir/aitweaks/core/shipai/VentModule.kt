@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitBounds
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitShield
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.shipai.threat.MissileThreat
 import com.genir.aitweaks.core.shipai.threat.WeaponThreat
 import com.genir.aitweaks.core.utils.defaultAIInterval
@@ -141,7 +142,7 @@ class VentModule(private val ai: CustomShipAI) {
                 // Maintain const distance from the maneuver target.
                 maneuverTarget != null -> {
                     val location = maneuverTarget.location - ai.threatVector.resized(backoffDistance)
-                    Destination(location, maneuverTarget.timeAdjustedVelocity)
+                    Destination(location, maneuverTarget.movement.velocity)
                 }
 
                 else -> {
