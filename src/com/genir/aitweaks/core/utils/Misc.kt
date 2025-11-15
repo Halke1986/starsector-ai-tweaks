@@ -181,3 +181,10 @@ fun sqrt(x: Float): Float {
 
     return result
 }
+
+fun approachSpeed(a: CombatEntityAPI, b: CombatEntityAPI): Float {
+    return -vectorProjectionLength(
+        a.timeAdjustedVelocity - b.timeAdjustedVelocity,
+        a.location - b.location
+    )
+}

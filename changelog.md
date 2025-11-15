@@ -1,14 +1,15 @@
 - Autofire AI: Improved aiming logic of slow rotating turrets. Now they can acquire target slightly faster.
-- Custom AI: Ships with plasma jets or maneuvering jets, such as Aurora, now activate these systems more aggressively. 
+- Custom AI: Ships with plasma jets or maneuvering jets, such as Aurora, now activate these systems more aggressively.
+- Custom AI: Ships that cannot vent flux now do not back off excessively to drop shields.
 
 Version v2.1.12
 
-- Autofire AI: Fixed a regression where the AI hesitated to use ballistic and energy weapons that fire missile-like projectiles. Reported by Dru. 
+- Autofire AI: Fixed a regression where the AI hesitated to use ballistic and energy weapons that fire missile-like projectiles. Reported by Dru.
 
 Version v2.1.11
 
 - Custom AI: Ships are now far less likely to vent when in range of Reapers or other dangerous missiles.
-- Fixed a NullPointerException that could occur when checking if an enemy entity was visible through the fog of war. Reported by Para. 
+- Fixed a NullPointerException that could occur when checking if an enemy entity was visible through the fog of war. Reported by Para.
 
 Version v2.1.10
 
@@ -48,7 +49,7 @@ Version v2.1.4
 - Autofire AI: Fixed a bug where Voidblaster was firing at targets beyond its effective range.
 - Autofire AI: Fixed a bug that prevented beam weapons from firing at very small PD targets in some situations.
 - Autofire AI: Improved target selection logic for obligatory anti-armor weapons like the Voidblaster. They are now better at identifying opportunities to bypass enemy ship shields.
-- Autofire AI: It's now possible to configure staggered fire cycle threshold via LunaLib settings. 
+- Autofire AI: It's now possible to configure staggered fire cycle threshold via LunaLib settings.
 - Fixed a bug where ships with the Search and Destroy hullmod could lose their initial assignment.
 - Fixed a NullPointerException caused by the Search and Destroy hullmod attempting to give orders to ships without an associated DeployedFleetMember object. Reported by tantananan.
 - Player Assist: Fixed a bug where Shield Assist attempted to control shields on certain phase ships, such as the RAT Gilgamesh. Reported by Æios the Catweeb.

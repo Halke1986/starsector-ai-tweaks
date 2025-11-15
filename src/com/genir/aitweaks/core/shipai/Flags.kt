@@ -9,6 +9,7 @@ class Flags(val vanillaFlags: ShipwideAIFlags) {
         // Input flags.
         DO_NOT_BACK_OFF(vanillaFlag = AIFlags.DO_NOT_BACK_OFF),
         MANEUVER_RANGE_FROM_TARGET(vanillaFlag = AIFlags.MANEUVER_RANGE_FROM_TARGET),
+        DO_NOT_USE_SHIELDS(vanillaFlag = AIFlags.DO_NOT_USE_SHIELDS),
 
         // Output flags.
         BACKING_OFF(vanillaFlag = AIFlags.BACKING_OFF),
