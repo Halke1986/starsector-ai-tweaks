@@ -439,7 +439,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     /** predictive aiming for hardpoints */
     private fun aimHardpoint(target: CombatEntityAPI, intercept: Vector2f): Vector2f {
         // Try to read expected facing from custom AI implementations.
-        val customAIFacing = ship.customShipAI?.movement?.expectedFacing
+        val customAIFacing = ship.customShipAI?.maneuver?.expectedFacing
         val wrapperAIFacing = (ship.ai as? ExtendedShipAI)?.expectedFacing
         val expectedFacing: Direction = customAIFacing ?: wrapperAIFacing ?: (target.location - ship.location).facing
 

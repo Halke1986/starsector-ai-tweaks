@@ -14,7 +14,7 @@ import com.genir.aitweaks.core.shipai.Preset.Companion.assaultShipApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.fullAssaultApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
 import com.genir.aitweaks.core.shipai.global.GlobalAI
-import com.genir.aitweaks.core.shipai.movement.Movement
+import com.genir.aitweaks.core.shipai.movement.Maneuver
 import com.genir.aitweaks.core.shipai.systems.BurnDriveToggle
 import com.genir.aitweaks.core.shipai.systems.SystemAI
 import com.genir.aitweaks.core.shipai.systems.SystemAIManager
@@ -29,7 +29,7 @@ import kotlin.math.max
 @Suppress("MemberVisibilityCanBePrivate")
 class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     // Subsystems.
-    val movement: Movement = Movement(this)
+    val maneuver: Maneuver = Maneuver(this)
     val assignment: Assignment = Assignment(this)
     val ventModule: VentModule = VentModule(this)
     val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
@@ -90,11 +90,11 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         }
 
         // Advance subsystems.
-        vanilla.advance(dt, attackTarget as? ShipAPI, movement.expectedVelocity, movement.expectedFacing)
+        vanilla.advance(dt, attackTarget as? ShipAPI, maneuver.expectedVelocity, maneuver.expectedFacing)
         assignment.advance()
         ventModule.advance(dt)
         systemAI?.advance(dt)
-        movement.advance(dt)
+        maneuver.advance(dt)
     }
 
     override fun getAIFlags(): ShipwideAIFlags {

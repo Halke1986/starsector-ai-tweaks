@@ -20,7 +20,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("MemberVisibilityCanBePrivate")
-class Movement(val ai: CustomShipAI) {
+class Maneuver(val ai: CustomShipAI) {
     private val kinematics: ShipKinematics = ai.ship.kinematics
     private val engineController: EngineController = EngineController(ai, kinematics)
     private val collisionAvoidance: CollisionAvoidance = CollisionAvoidance(ai)

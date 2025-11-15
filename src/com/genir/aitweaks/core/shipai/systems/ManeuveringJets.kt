@@ -30,12 +30,12 @@ class ManeuveringJets(ai: CustomShipAI) : SystemAI(ai) {
             }
 
             // Ship intends to move with maximum velocity.
-            ai.movement.expectedVelocity.length() >= ai.ship.kinematics.maxSpeed * 0.95f -> {
+            ai.maneuver.expectedVelocity.length() >= ai.ship.kinematics.maxSpeed * 0.95f -> {
                 ship.command(ShipCommand.USE_SYSTEM)
             }
 
             // Ship intends to make a hard turn.
-            (ai.movement.expectedFacing - ship.facing.toDirection).length >= 120f -> {
+            (ai.maneuver.expectedFacing - ship.facing.toDirection).length >= 120f -> {
                 ship.command(ShipCommand.USE_SYSTEM)
             }
         }

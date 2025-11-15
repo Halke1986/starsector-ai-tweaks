@@ -219,7 +219,7 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
     /** Calculate direction the ship should "slide" along the boundary to avoid an obstacle. */
     private fun slideDirection(bound: Bound): Float {
         // Default slide direction takes the ship closer to its intended destination.
-        val destination = (ai.movement.headingPoint - kinematics.location).rotated(bound.r)
+        val destination = (ai.maneuver.headingPoint - kinematics.location).rotated(bound.r)
         val defaultDirection = destination.y.sign
 
         // Do not yield to enemy or hulks.
@@ -230,7 +230,7 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
 
         // Obstacle movement parameters.
         val toObstacle = (obstacle.location - kinematics.location)
-        val obstacleCustomHeading = obstacle.ship.customShipAI?.movement?.headingPoint
+        val obstacleCustomHeading = obstacle.ship.customShipAI?.maneuver?.headingPoint
         val obstacleDirection = when {
             obstacleCustomHeading != null -> {
                 obstacleCustomHeading - obstacle.location
