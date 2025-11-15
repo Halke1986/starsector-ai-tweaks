@@ -9,8 +9,8 @@ import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
 import com.genir.aitweaks.core.shipai.autofire.ballistics.closestHitRange
-import com.genir.aitweaks.core.shipai.movement.Kinematics
-import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.ShipKinematics
+import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
@@ -87,7 +87,7 @@ class WeaponThreat(private val ship: ShipAPI) {
     }
 
     private fun canWeaponHitShip(duration: Float, weapon: WeaponHandle, obstacles: List<ShipAPI>): Boolean {
-        val enemy: Kinematics = weapon.ship.kinematics
+        val enemy: ShipKinematics = weapon.ship.kinematics
         val toShip = ship.location - weapon.location
         val distSqr = toShip.lengthSquared
 

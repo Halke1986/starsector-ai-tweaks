@@ -6,7 +6,7 @@ import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
-import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands

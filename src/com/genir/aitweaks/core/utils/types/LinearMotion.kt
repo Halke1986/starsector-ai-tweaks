@@ -22,11 +22,11 @@ data class LinearMotion(
     }
 
     companion object {
-        /** Find an intersection between two linear motions.
+        /**
+         * Find an intersection between two linear motions.
          * If intersection exists, returns (K,T) pair, such that
          *
          * a.position + K * a.velocity = b.position + T * b.velocity = point of intersection
-         *
          */
         fun intersection(a: LinearMotion, b: LinearMotion): Pair<Float, Float>? {
             val m = crossProductZ(a.velocity, b.velocity)

@@ -11,7 +11,7 @@ import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.*
-import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.angularVelocity

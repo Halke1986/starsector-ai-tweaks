@@ -22,7 +22,7 @@ import kotlin.random.Random
  * the controller works better when called from ship AI, as
  * opposed to every frame combat plugin.
  */
-open class BasicEngineController(val kinematics: Kinematics) : Helm(kinematics.ship) {
+open class BasicEngineController(val kinematics: ShipKinematics) : Helm(kinematics.ship) {
     private var prevFacing: Direction = 0f.toDirection
 
     data class LimitedVelocity(val movementOverridden: Boolean, val velocity: Vector2f)

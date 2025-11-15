@@ -5,7 +5,7 @@ import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.command
 import com.genir.aitweaks.core.extensions.isFlamedOut
 import com.genir.aitweaks.core.shipai.CustomShipAI
-import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lazywizard.lazylib.combat.AIUtils

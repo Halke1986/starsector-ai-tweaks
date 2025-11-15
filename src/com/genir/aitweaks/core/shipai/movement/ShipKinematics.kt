@@ -6,7 +6,11 @@ import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 
-class Kinematics(val ship: ShipAPI) {
+/**
+ * ShipKinematics describes ship movement in global frame of reference.
+ */
+@JvmInline
+value class ShipKinematics(val ship: ShipAPI) {
     // Linear velocity.
     val location: Vector2f
         get() = ship.location
@@ -64,7 +68,7 @@ class Kinematics(val ship: ShipAPI) {
         get() = ship.mutableStats.timeMult.modifiedValue
 
     companion object {
-        val ShipAPI.kinematics: Kinematics
-            get() = Kinematics(this)
+        val ShipAPI.kinematics: ShipKinematics
+            get() = ShipKinematics(this)
     }
 }

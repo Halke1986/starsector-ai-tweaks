@@ -8,7 +8,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
-import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
 import com.genir.aitweaks.core.utils.PI
 import com.genir.aitweaks.core.utils.distanceToOrigin
@@ -22,14 +22,14 @@ import kotlin.math.sign
 
 @Suppress("MemberVisibilityCanBePrivate")
 class CollisionAvoidance(val ai: CustomShipAI) {
-    private val kinematics: Kinematics = ai.ship.kinematics
+    private val kinematics: ShipKinematics = ai.ship.kinematics
 
     /** Limit allows to restrict velocity to not exceed
      * max speed in a direction along a given heading. */
     data class Limit(
         val direction: Direction,
         val speedLimit: Float,
-        val obstacle: Kinematics?,
+        val obstacle: ShipKinematics?,
     ) {
         /**
          * Clamp expectedSpeed to maximum speed in which ship can travel
@@ -184,7 +184,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     /** Calculate maximum velocity that will not lead to collision with an obstacle. */
-    fun vMaxToObstacle(dt: Float, obstacle: Kinematics, minDistance: Float): Limit? {
+    fun vMaxToObstacle(dt: Float, obstacle: ShipKinematics, minDistance: Float): Limit? {
         val toObstacle = obstacle.location - kinematics.location
         val toObstacleFacing = toObstacle.facing
         val r = (-toObstacleFacing).rotationMatrix

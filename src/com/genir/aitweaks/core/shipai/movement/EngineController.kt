@@ -21,13 +21,13 @@ import kotlin.math.min
 import kotlin.math.sign
 
 /** Engine Controller for AI piloted ships. */
-class EngineController(val ai: CustomShipAI, kinematics: Kinematics) : BasicEngineController(kinematics) {
+class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : BasicEngineController(kinematics) {
     data class Destination(val location: Vector2f, val velocity: Vector2f)
 
     private data class Bound(
         val r: RotationMatrix,
         val speedLimit: Float,
-        val obstacle: Kinematics?,
+        val obstacle: ShipKinematics?,
         val pMin: Float,
         val pMax: Float,
     )

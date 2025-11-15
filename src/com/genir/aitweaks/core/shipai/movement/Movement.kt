@@ -8,7 +8,7 @@ import com.genir.aitweaks.core.shipai.Assignment
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.global.AttackCoordinator
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
-import com.genir.aitweaks.core.shipai.movement.Kinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
@@ -21,7 +21,7 @@ import kotlin.math.min
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Movement(val ai: CustomShipAI) {
-    private val kinematics: Kinematics = ai.ship.kinematics
+    private val kinematics: ShipKinematics = ai.ship.kinematics
     private val engineController: EngineController = EngineController(ai, kinematics)
     private val collisionAvoidance: CollisionAvoidance = CollisionAvoidance(ai)
 
@@ -295,7 +295,7 @@ class Movement(val ai: CustomShipAI) {
 
     private fun approachTarget(
         dt: Float,
-        maneuverTarget: Kinematics,
+        maneuverTarget: ShipKinematics,
         attackLocation: Vector2f,
         speedLimits: List<CollisionAvoidance.Limit>,
     ): Destination {
@@ -332,7 +332,7 @@ class Movement(val ai: CustomShipAI) {
      * orbiting the maneuver target until it reaches the attack location. */
     private fun orbitTarget(
         dt: Float,
-        maneuverTarget: Kinematics,
+        maneuverTarget: ShipKinematics,
         attackLocation: Vector2f,
         speedLimits: List<CollisionAvoidance.Limit>,
     ): Destination {
