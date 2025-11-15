@@ -8,7 +8,7 @@ import com.genir.aitweaks.core.shipai.Assignment
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.global.AttackCoordinator
 import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
-import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
@@ -21,15 +21,15 @@ import kotlin.math.min
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ai: CustomShipAI) {
-    private val kinematics: ShipKinematics = ai.ship.kinematics
-    private val engineController: EngineController = EngineController(ai, kinematics)
+    private val movement: Movement = ai.ship.movement
+    private val engineController: EngineController = EngineController(ai, movement)
     private val collisionAvoidance: CollisionAvoidance = CollisionAvoidance(ai)
 
     private var prevFrameIdx = 0
 
     var headingPoint: Vector2f = Vector2f()
     var expectedVelocity: Vector2f = Vector2f()
-    var expectedFacing: Direction = kinematics.facing
+    var expectedFacing: Direction = movement.facing
 
     // Make strafe rotation direction random, but consistent for the given ship.
     private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 90f else -90f)
@@ -72,7 +72,7 @@ class Maneuver(val ai: CustomShipAI) {
                     ai.assignment.type == Assignment.Type.NAVIGATE_IN_FORMATION -> {
                         Vector2f(
                             navigateTo.x,
-                            kinematics.location.y + if (kinematics.ship.owner == 0) 1e3f else -1e3f
+                            movement.location.y + if (movement.ship.owner == 0) 1e3f else -1e3f
                         )
                     }
 
@@ -82,7 +82,7 @@ class Maneuver(val ai: CustomShipAI) {
                     }
                 }
 
-                (lookAt - kinematics.location).facing
+                (lookAt - movement.location).facing
             }
 
             // Face the attack target.
@@ -100,7 +100,7 @@ class Maneuver(val ai: CustomShipAI) {
         }
 
         val shouldStop = newExpectedFacing == null
-        expectedFacing = newExpectedFacing ?: kinematics.facing
+        expectedFacing = newExpectedFacing ?: movement.facing
 
         engineController.facing(dt, expectedFacing, shouldStop)
     }
@@ -137,7 +137,7 @@ class Maneuver(val ai: CustomShipAI) {
 
             // Nothing to do, stop the ship.
             else -> {
-                Destination(kinematics.location, Vector2f())
+                Destination(movement.location, Vector2f())
             }
         }
 
@@ -154,7 +154,7 @@ class Maneuver(val ai: CustomShipAI) {
 
         val targetRoot = maneuverTarget.root
         val isAttackingStation = targetRoot.isStation && maneuverTarget.isModule && targetRoot != maneuverTarget
-        val directApproach = kinematics.location - maneuverTarget.location
+        val directApproach = movement.location - maneuverTarget.location
 
         // Post-processing flags.
         var preferMapCenter = true
@@ -172,9 +172,9 @@ class Maneuver(val ai: CustomShipAI) {
             }
 
             // If the enemy is retreating, attempt to intercept and block its escape route.
-            Global.getCombatEngine().getFleetManager(kinematics.ship.owner xor 1).getTaskManager(false).isInFullRetreat -> {
+            Global.getCombatEngine().getFleetManager(movement.ship.owner xor 1).getTaskManager(false).isInFullRetreat -> {
                 preferMapCenter = false
-                when (kinematics.ship.owner) {
+                when (movement.ship.owner) {
                     0 -> Vector2f(0f, 1f)
                     else -> Vector2f(0f, -1f)
                 }
@@ -193,9 +193,9 @@ class Maneuver(val ai: CustomShipAI) {
             }
 
             ai.is1v1 -> {
-                val toShip = kinematics.location - maneuverTarget.location
+                val toShip = movement.location - maneuverTarget.location
                 // Chase the target, but only when it's attempting to escape and is faster than the ship.
-                if ((toShip.facing - maneuverTarget.velocity.facing).length > 90f && kinematics.maxSpeed < maneuverTarget.kinematics.maxSpeed) {
+                if ((toShip.facing - maneuverTarget.velocity.facing).length > 90f && movement.maxSpeed < maneuverTarget.movement.maxSpeed) {
                     directApproach
                 } else {
                     -ai.threatVector.rotated(strafeRotation)
@@ -218,7 +218,7 @@ class Maneuver(val ai: CustomShipAI) {
         attackLocation = attackLocation.resized(ai.attackRange) + maneuverTarget.location
 
         attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
-        return approachTarget(dt, maneuverTarget.kinematics, attackLocation, speedLimits)
+        return approachTarget(dt, maneuverTarget.movement, attackLocation, speedLimits)
     }
 
     /** Take into account other entities when planning ship attack location. */
@@ -242,10 +242,10 @@ class Maneuver(val ai: CustomShipAI) {
     /** Strafe away from map border, prefer the map center. */
     private fun preferMapCenter(approachVector: Vector2f): Vector2f {
         val engine = Global.getCombatEngine()
-        val borderDistX = (kinematics.location.x * kinematics.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
-        val borderDistY = (kinematics.location.y * kinematics.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
+        val borderDistX = (movement.location.x * movement.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
+        val borderDistY = (movement.location.y * movement.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
         val borderWeight = max(borderDistX, borderDistY) * 2f
-        return approachVector.resized(1f) - kinematics.location.resized(borderWeight)
+        return approachVector.resized(1f) - movement.location.resized(borderWeight)
     }
 
     /** Adjust the ship's heading to avoid positioning with hulks obstructing its target. */
@@ -270,7 +270,7 @@ class Maneuver(val ai: CustomShipAI) {
 
         val arcs: List<Arc> = hulks.map { hulk ->
             val toHulk: Vector2f = hulk.location - maneuverTarget.location
-            val shipSize = angularSize(toHulk.lengthSquared, kinematics.ship.collisionRadius)
+            val shipSize = angularSize(toHulk.lengthSquared, movement.ship.collisionRadius)
             val arc: Float = angularSize(toHulk.lengthSquared, hulk.collisionRadius + shipSize / 2f)
 
             val facing: Direction = toHulk.facing
@@ -283,7 +283,7 @@ class Maneuver(val ai: CustomShipAI) {
         val angle1 = obstacle.facing - obstacle.halfAngle.toDirection
         val angle2 = obstacle.facing + obstacle.halfAngle.toDirection
 
-        val toShipAngle = (kinematics.location - maneuverTarget.location).facing
+        val toShipAngle = (movement.location - maneuverTarget.location).facing
         val offset1 = (angle1 - toShipAngle).length
         val offset2 = (angle2 - toShipAngle).length
 
@@ -295,12 +295,12 @@ class Maneuver(val ai: CustomShipAI) {
 
     private fun approachTarget(
         dt: Float,
-        maneuverTarget: ShipKinematics,
+        maneuverTarget: Movement,
         attackLocation: Vector2f,
         speedLimits: List<CollisionAvoidance.Limit>,
     ): Destination {
         // Perform calculations in target frame of reference.
-        val toShip = kinematics.location - maneuverTarget.location
+        val toShip = movement.location - maneuverTarget.location
         val toAttackLocation = attackLocation - maneuverTarget.location
 
         // Ship is close enough to target to start orbiting it.
@@ -324,7 +324,7 @@ class Maneuver(val ai: CustomShipAI) {
         val point2Dir = (pointsOfTangency.second + toShip).facing - toAttackLocation.facing
 
         val tangentialAttackVector = if (point1Dir.length < point2Dir.length) pointsOfTangency.first else pointsOfTangency.second
-        return Destination(kinematics.location + tangentialAttackVector, maneuverTarget.velocity)
+        return Destination(movement.location + tangentialAttackVector, maneuverTarget.velocity)
     }
 
     /** Maintain distance to maneuver target while approaching the expected attackLocation.
@@ -332,12 +332,12 @@ class Maneuver(val ai: CustomShipAI) {
      * orbiting the maneuver target until it reaches the attack location. */
     private fun orbitTarget(
         dt: Float,
-        maneuverTarget: ShipKinematics,
+        maneuverTarget: Movement,
         attackLocation: Vector2f,
         speedLimits: List<CollisionAvoidance.Limit>,
     ): Destination {
         // Perform calculations in target frame of reference.
-        val toShip = kinematics.location - maneuverTarget.location
+        val toShip = movement.location - maneuverTarget.location
         val toAttackLocation = attackLocation - maneuverTarget.location
 
         // Calculate the orbit parameters.
@@ -347,11 +347,11 @@ class Maneuver(val ai: CustomShipAI) {
         // The ship tries to maintain distance from maneuver target.
         // If the maneuver target is slower than the ship, use the
         // remaining ship velocity to move around the orbit.
-        val maxSpeed = max(kinematics.maxSpeed, kinematics.velocity.length) + kinematics.acceleration * dt
+        val maxSpeed = max(movement.maxSpeed, movement.velocity.length) + movement.acceleration * dt
         val t = solve(maneuverTarget.velocity, orbitVelocityVector, maxSpeed)?.largerNonNegative
 
         val approximateOrbitLength = (attackLocation - closestLocationOnOrbit).length
-        val orbitSpeed = BasicEngineController.vMax(dt, approximateOrbitLength, kinematics.acceleration)
+        val orbitSpeed = BasicEngineController.vMax(dt, approximateOrbitLength, movement.acceleration)
         val cappedOrbitSpeed = t?.coerceAtMost(orbitSpeed) ?: 0f
 
         val expectedVelocity = maneuverTarget.velocity + orbitVelocityVector * cappedOrbitSpeed

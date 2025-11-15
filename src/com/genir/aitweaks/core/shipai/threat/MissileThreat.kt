@@ -4,7 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.vectorProjectionLength
 import kotlin.math.min
@@ -58,7 +58,7 @@ class MissileThreat(val ship: ShipAPI) {
         }
 
         val toMissile = missile.location - ship.location
-        val shipSpeedToMissile = vectorProjectionLength(ship.kinematics.velocity, toMissile)
+        val shipSpeedToMissile = vectorProjectionLength(ship.movement.velocity, toMissile)
         val approachSpeed = shipSpeedToMissile + missile.maxSpeed
 
         val timeLeft = min(duration, flightTimeLeft)

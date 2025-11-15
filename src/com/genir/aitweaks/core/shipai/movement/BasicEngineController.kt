@@ -22,7 +22,7 @@ import kotlin.random.Random
  * the controller works better when called from ship AI, as
  * opposed to every frame combat plugin.
  */
-open class BasicEngineController(val kinematics: ShipKinematics) : Helm(kinematics.ship) {
+open class BasicEngineController(val movement: Movement) : Helm(movement.ship) {
     private var prevFacing: Direction = 0f.toDirection
 
     data class LimitedVelocity(val movementOverridden: Boolean, val velocity: Vector2f)
@@ -37,19 +37,19 @@ open class BasicEngineController(val kinematics: ShipKinematics) : Helm(kinemati
     fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> LimitedVelocity?)? = null): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
-        val af = kinematics.acceleration * dt * dt
-        val ab = kinematics.deceleration * dt * dt
-        val al = kinematics.strafeAcceleration * dt * dt
-        val vMax = max(kinematics.maxSpeed, kinematics.velocity.length) * dt + af
+        val af = movement.acceleration * dt * dt
+        val ab = movement.deceleration * dt * dt
+        val al = movement.strafeAcceleration * dt * dt
+        val vMax = max(movement.maxSpeed, movement.velocity.length) * dt + af
 
         // Transform input into ship frame of reference. Account for
         // ship angular velocity, as linear acceleration is applied
         // by the game engine after rotation.
-        val w = kinematics.angularVelocity * dt
-        val toShipFacing = -(kinematics.facing + w.toDirection) + 90f.toDirection
+        val w = movement.angularVelocity * dt
+        val toShipFacing = -(movement.facing + w.toDirection) + 90f.toDirection
         val r = toShipFacing.rotationMatrix
-        val d = (heading - kinematics.location).rotated(r)
-        val v = (kinematics.velocity).rotated(r) * dt
+        val d = (heading - movement.location).rotated(r)
+        val v = (movement.velocity).rotated(r) * dt
         val vt = targetVelocity.rotated(r) * dt
 
         // Maximum velocity towards target for both axis of movement.
@@ -74,7 +74,7 @@ open class BasicEngineController(val kinematics: ShipKinematics) : Helm(kinemati
         // Stop if arrived at location, that is when expected velocity change
         // and location change is less than half of velocity change unit.
         if (ve.length < af / 2) {
-            if (kinematics.velocity.isNonZero) {
+            if (movement.velocity.isNonZero) {
                 giveCommand(DECELERATE)
             }
             return Vector2f()
@@ -112,15 +112,15 @@ open class BasicEngineController(val kinematics: ShipKinematics) : Helm(kinemati
     fun facing(dt: Float, facing: Direction, targetAngularVelocity: Float) {
         // Change unit of time from second to
         // animation frame duration (* dt).
-        val w = kinematics.angularVelocity * dt
-        val a = kinematics.turnAcceleration * dt * dt
-        val d = min(abs(w), kinematics.turnDeceleration * dt * dt) * -sign(w)
+        val w = movement.angularVelocity * dt
+        val a = movement.turnAcceleration * dt * dt
+        val d = min(abs(w), movement.turnDeceleration * dt * dt) * -sign(w)
 
         // Estimate target angular velocity.
         val wt = targetAngularVelocity * dt
 
         // Angular distance between expected facing and ship facing.
-        val r = facing - kinematics.facing
+        val r = facing - movement.facing
 
         // Expected velocity change.
         val we = r.sign * vMax(r.length, a) + wt
@@ -142,7 +142,7 @@ open class BasicEngineController(val kinematics: ShipKinematics) : Helm(kinemati
     /** Set ship facing using estimated target angular velocity. */
     fun facing(dt: Float, facing: Direction, shouldStop: Boolean) {
         if (shouldStop) {
-            return facing(dt, kinematics.facing, 0f)
+            return facing(dt, movement.facing, 0f)
         }
 
         // Estimate target angular velocity.

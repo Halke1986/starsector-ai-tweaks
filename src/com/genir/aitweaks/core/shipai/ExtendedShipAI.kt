@@ -6,7 +6,7 @@ import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
-import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.utils.VanillaShipCommand
 import com.genir.aitweaks.core.utils.clearVanillaCommands
@@ -23,7 +23,7 @@ import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */
 class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : BasicShipAI(ship as Ship, config) {
-    private val engineController: BasicEngineController = BasicEngineController(ship.kinematics)
+    private val engineController: BasicEngineController = BasicEngineController(ship.movement)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     // Attack details.

@@ -21,13 +21,13 @@ import kotlin.math.min
 import kotlin.math.sign
 
 /** Engine Controller for AI piloted ships. */
-class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : BasicEngineController(kinematics) {
+class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineController(movement) {
     data class Destination(val location: Vector2f, val velocity: Vector2f)
 
     private data class Bound(
         val r: RotationMatrix,
         val speedLimit: Float,
-        val obstacle: ShipKinematics?,
+        val obstacle: Movement?,
         val pMin: Float,
         val pMax: Float,
     )
@@ -42,11 +42,11 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
 
 //        limits.forEach { lim ->
 //            val obs = lim.obstacle?.let { "${it.velocity}" } ?: ""
-//            log("${ship.name} $lim V ${kinematics.velocity} E $expectedVelocity $obs")
+//            log("${ship.name} $lim V ${movement.velocity} E $expectedVelocity $obs")
 //        }
 
         // Discard speed limits with value too high to affect the ship movement.
-        val vLim = max(kinematics.velocity.length, expectedVelocity.length)
+        val vLim = max(movement.velocity.length, expectedVelocity.length)
         val relevantLimits = limits.filter { limit ->
             limit.speedLimit <= vLim
         }
@@ -58,7 +58,7 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
         val bounds: List<Bound> = buildBounds(relevantLimits)
         if (bounds.isEmpty()) {
             // In case of strongly contradicting speed limits, stop the ship.
-            if (kinematics.velocity.isNonZero) {
+            if (movement.velocity.isNonZero) {
                 giveCommand(DECELERATE)
             }
 
@@ -82,7 +82,7 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
     }
 
     private fun handleOngoingOverspeed(bounds: List<Bound>, rotationToShip: RotationMatrix): LimitedVelocity? {
-        val shipPriority = kinematics.ship.movementPriority
+        val shipPriority = movement.ship.movementPriority
         val deltaV = findSafeVelocityDV(bounds, calculateLimitedVelocityY = { bound ->
             // When ship has a higher priority than the obstacle, do not brake sharply.
             // Let the handleExpectedOverspeed method handle the collision gracefully.
@@ -91,7 +91,7 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
                 return@findSafeVelocityDV null
             }
 
-            val velocity = kinematics.velocity.rotated(bound.r)
+            val velocity = movement.velocity.rotated(bound.r)
             if (velocity.x <= bound.speedLimit) {
                 // Velocity does not exceed the bound.
                 return@findSafeVelocityDV null
@@ -115,23 +115,23 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
             if (dvs.x < 0) giveCommand(STRAFE_LEFT)
             if (dvs.x > 0) giveCommand(STRAFE_RIGHT)
 
-//            Debug.drawVector(kinematics.location, kinematics.velocity, GREEN)
-//            Debug.drawVector(kinematics.location, kinematics.velocity + deltaV, YELLOW)
-//            Debug.drawLine(kinematics.location, kinematics.ship.customShipAI!!.movement.headingPoint, MAGENTA)
+//            Debug.drawVector(movement.location, movement.velocity, GREEN)
+//            Debug.drawVector(movement.location, movement.velocity + deltaV, YELLOW)
+//            Debug.drawLine(movement.location, movement.ship.customShipAI!!.movement.headingPoint, MAGENTA)
 
-            return LimitedVelocity(movementOverridden = true, kinematics.velocity + deltaV)
+            return LimitedVelocity(movementOverridden = true, movement.velocity + deltaV)
         }
 
         return null
     }
 
     private fun handleExpectedOverspeed(bounds: List<Bound>, expectedVelocity: Vector2f): LimitedVelocity? {
-        val expectedVelocityCapped = expectedVelocity.clampLength(kinematics.maxSpeed)
+        val expectedVelocityCapped = expectedVelocity.clampLength(movement.maxSpeed)
 
         val deltaV = findSafeVelocityDV(bounds, calculateLimitedVelocityY = { bound ->
             // Avoiding collision with maneuver target is handled by Movement module.
             val obstacle = bound.obstacle
-            if (obstacle != null && obstacle.ship.isHostile(kinematics.ship)) {
+            if (obstacle != null && obstacle.ship.isHostile(movement.ship)) {
                 return@findSafeVelocityDV null
             }
 
@@ -147,10 +147,10 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
         })
 
         if (deltaV != null) {
-//            Debug.drawVector(kinematics.location, kinematics.velocity + deltaV, YELLOW)
-//            Debug.drawLine(kinematics.location, kinematics.ship.customShipAI!!.movement.headingPoint, MAGENTA)
+//            Debug.drawVector(movement.location, movement.velocity + deltaV, YELLOW)
+//            Debug.drawLine(movement.location, movement.ship.customShipAI!!.movement.headingPoint, MAGENTA)
 
-            return LimitedVelocity(movementOverridden = false, kinematics.velocity + deltaV)
+            return LimitedVelocity(movementOverridden = false, movement.velocity + deltaV)
         }
 
         return null
@@ -172,7 +172,7 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
                 limitedVelocityY.coerceIn(bound.pMin, bound.pMax),
             )
 
-            val dv = limitedVelocity.rotatedReverse(bound.r) - kinematics.velocity
+            val dv = limitedVelocity.rotatedReverse(bound.r) - movement.velocity
             if (lowestDeltaV == null || dv.lengthSquared < lowestDeltaV.lengthSquared) {
                 lowestDeltaV = dv
             }
@@ -219,17 +219,17 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
     /** Calculate direction the ship should "slide" along the boundary to avoid an obstacle. */
     private fun slideDirection(bound: Bound): Float {
         // Default slide direction takes the ship closer to its intended destination.
-        val destination = (ai.maneuver.headingPoint - kinematics.location).rotated(bound.r)
+        val destination = (ai.maneuver.headingPoint - movement.location).rotated(bound.r)
         val defaultDirection = destination.y.sign
 
         // Do not yield to enemy or hulks.
         val obstacle = bound.obstacle ?: return defaultDirection
-        if (kinematics.ship.owner != obstacle.ship.owner) {
+        if (movement.ship.owner != obstacle.ship.owner) {
             return defaultDirection
         }
 
         // Obstacle movement parameters.
-        val toObstacle = (obstacle.location - kinematics.location)
+        val toObstacle = (obstacle.location - movement.location)
         val obstacleCustomHeading = obstacle.ship.customShipAI?.maneuver?.headingPoint
         val obstacleDirection = when {
             obstacleCustomHeading != null -> {
@@ -250,7 +250,7 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
         // If the ship has a lower movement priority than the obstacle,
         // it must proactively yield right-of-way—even if their paths
         // only intersect further ahead.
-        val hasLowerPriority = kinematics.ship.movementPriority < obstacle.ship.movementPriority
+        val hasLowerPriority = movement.ship.movementPriority < obstacle.ship.movementPriority
         if (hasLowerPriority && k > 0f && t > 0f) {
             return -defaultDirection
         }
@@ -262,20 +262,20 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
 
         // If two ships' paths intersect, one should yield the right of way.
         val shouldYield = when {
-            kinematics.ship.movementPriority != obstacle.ship.movementPriority -> {
-                kinematics.ship.movementPriority < obstacle.ship.movementPriority
+            movement.ship.movementPriority != obstacle.ship.movementPriority -> {
+                movement.ship.movementPriority < obstacle.ship.movementPriority
             }
 
-            kinematics.acceleration != obstacle.acceleration -> {
-                kinematics.acceleration > obstacle.acceleration
+            movement.acceleration != obstacle.acceleration -> {
+                movement.acceleration > obstacle.acceleration
             }
 
-            kinematics.ship.mass != obstacle.ship.mass -> {
-                kinematics.ship.mass < obstacle.ship.mass
+            movement.ship.mass != obstacle.ship.mass -> {
+                movement.ship.mass < obstacle.ship.mass
             }
 
             else -> {
-                kinematics.ship.hashCode() < obstacle.ship.hashCode()
+                movement.ship.hashCode() < obstacle.ship.hashCode()
             }
         }
 
@@ -362,8 +362,8 @@ class EngineController(val ai: CustomShipAI, kinematics: ShipKinematics) : Basic
                 }
             }
 
-            val p1 = kinematics.location + Vector2f(bound.speedLimit, pMin).rotatedReverse(bound.r)
-            val p2 = kinematics.location + Vector2f(bound.speedLimit, pMax).rotatedReverse(bound.r)
+            val p1 = movement.location + Vector2f(bound.speedLimit, pMin).rotatedReverse(bound.r)
+            val p2 = movement.location + Vector2f(bound.speedLimit, pMax).rotatedReverse(bound.r)
             Debug.drawLine(p1, p2, BLUE)
         }
     }

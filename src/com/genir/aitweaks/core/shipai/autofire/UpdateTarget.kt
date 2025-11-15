@@ -11,7 +11,7 @@ import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.*
-import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.angularVelocity
@@ -284,12 +284,12 @@ class UpdateTarget(
     /** Estimate target angular velocity in weapon frame of reference.
      * Similar to InterceptTracker, but less precise. */
     private fun estimateAngularVelocity(target: CombatEntityAPI): Float {
-        val kinematics = weapon.ship.kinematics
+        val movement = weapon.ship.movement
 
         val p = target.location - weapon.location
-        val v = target.timeAdjustedVelocity - kinematics.velocity
+        val v = target.timeAdjustedVelocity - movement.velocity
 
         val targetW = angularVelocity(p, v)
-        return targetW - kinematics.angularVelocity
+        return targetW - movement.angularVelocity
     }
 }

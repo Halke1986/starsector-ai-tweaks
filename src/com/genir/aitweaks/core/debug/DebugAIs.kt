@@ -9,7 +9,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.SimulateMissile
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
-import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.angularVelocity
 import com.genir.aitweaks.core.utils.mousePosition
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
@@ -23,7 +23,7 @@ var expectedFacing = 90f.toDirection
 const val df = -1f * 60f
 
 class MirrorTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.kinematics)
+    private val controller = BasicEngineController(ship.movement)
     private val offset = Vector2f(200f, 200f)
 
     override fun advance(dt: Float) {
@@ -37,7 +37,7 @@ class MirrorTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControl
 }
 
 class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.kinematics)
+    private val controller = BasicEngineController(ship.movement)
 
     override fun advance(dt: Float) {
         val toTarget = target.location - ship.location
@@ -50,7 +50,7 @@ class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : Base
 }
 
 class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.kinematics)
+    private val controller = BasicEngineController(ship.movement)
 
     override fun advance(dt: Float) {
         expectedFacing += df.toDirection * dt
@@ -64,7 +64,7 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
 }
 
 class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.kinematics)
+    private val controller = BasicEngineController(ship.movement)
     private val prevP: Vector2f = Vector2f()
 
     override fun advance(dt: Float) {

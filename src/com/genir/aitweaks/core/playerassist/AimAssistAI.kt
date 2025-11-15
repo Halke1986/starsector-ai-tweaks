@@ -18,7 +18,7 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
 import com.genir.aitweaks.core.shipai.autofire.ballistics.intercept
 import com.genir.aitweaks.core.shipai.autofire.ballistics.interceptArc
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
-import com.genir.aitweaks.core.shipai.movement.ShipKinematics.Companion.kinematics
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction
@@ -71,7 +71,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         // Update engine controller if player ship changed.
         if (ship != prevPlayerShip) {
             prevPlayerShip = ship
-            engineController = BasicEngineController(ship.kinematics)
+            engineController = BasicEngineController(ship.movement)
         }
 
         engineController!!.clearCommands()
