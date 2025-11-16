@@ -18,7 +18,7 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
 
-class SrBurstBoost(ai: CustomShipAI) : SystemAI(ai) {
+class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
     private var burstVectors: List<BurstVector> = listOf()
     private var hardpoints: List<WeaponHandle> = listOf()
 

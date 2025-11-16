@@ -10,7 +10,7 @@ import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lazywizard.lazylib.combat.AIUtils
 
-class ManeuveringJets(ai: CustomShipAI) : SystemAI(ai) {
+class ManeuveringJets(ai: CustomShipAI) : CustomSystemAI(ai) {
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     override fun advance(dt: Float) {

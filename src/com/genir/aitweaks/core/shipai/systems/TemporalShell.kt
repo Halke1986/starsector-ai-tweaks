@@ -5,7 +5,7 @@ import com.genir.aitweaks.core.extensions.command
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 
-class TemporalShell(ai: CustomShipAI) : SystemAI(ai) {
+class TemporalShell(ai: CustomShipAI) : CustomSystemAI(ai) {
     override fun advance(dt: Float) {
         // Use temporal shell for backing off.
         if (ai.ventModule.isBackingOff && ship.canUseSystemThisFrame()) {

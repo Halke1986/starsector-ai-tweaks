@@ -8,7 +8,7 @@ import com.genir.aitweaks.core.utils.ShipSystemAIType.*
 
 class SystemAIManager {
     companion object {
-        fun overrideVanillaSystem(ai: CustomShipAI): SystemAI? {
+        fun overrideVanillaSystem(ai: CustomShipAI): CustomSystemAI? {
             val aiType: ShipSystemAIType = ai.ship.system?.specAPI?.AIType ?: return null
 
             return when (aiType) {

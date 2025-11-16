@@ -6,7 +6,7 @@ import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.EngineController
 import com.genir.aitweaks.core.utils.types.Direction
 
-abstract class SystemAI(val ai: CustomShipAI) {
+abstract class CustomSystemAI(val ai: CustomShipAI) {
     protected val ship: ShipAPI = ai.ship
     protected val system: ShipSystemAPI = ship.system
 

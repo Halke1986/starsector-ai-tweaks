@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.ACTIVE
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.IN
 import com.genir.aitweaks.core.shipai.CustomShipAI
 
-class BurnDrive(ai: CustomShipAI) : SystemAI(ai) {
+class BurnDrive(ai: CustomShipAI) : CustomSystemAI(ai) {
     override fun advance(dt: Float) {
         // Prevent vanilla AI from jumping closer to target with
         // BURN_DRIVE, if the target is already within weapons range.

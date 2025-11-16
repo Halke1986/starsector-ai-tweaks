@@ -18,7 +18,7 @@ import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lazywizard.lazylib.combat.AIUtils.canUseSystemThisFrame
 
-class LidarArray(ai: CustomShipAI) : SystemAI(ai) {
+class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
     private val updateInterval: IntervalUtil = defaultAIInterval()
     private var lidarWeapons: List<WeaponHandle> = listOf()
     private var zeroFluxBoostMode: Boolean = false

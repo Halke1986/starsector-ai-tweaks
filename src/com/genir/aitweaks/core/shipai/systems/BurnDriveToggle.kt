@@ -19,7 +19,7 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
 
 /** Burn Drive AI. It replaces the vanilla implementation for ships with custom AI. */
-class BurnDriveToggle(ai: CustomShipAI) : SystemAI(ai) {
+class BurnDriveToggle(ai: CustomShipAI) : CustomSystemAI(ai) {
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     private var burnVector: Vector2f = Vector2f() // In ship frame of reference.

@@ -16,7 +16,7 @@ import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
 import com.genir.aitweaks.core.shipai.global.GlobalAI
 import com.genir.aitweaks.core.shipai.movement.Maneuver
 import com.genir.aitweaks.core.shipai.systems.BurnDriveToggle
-import com.genir.aitweaks.core.shipai.systems.SystemAI
+import com.genir.aitweaks.core.shipai.systems.CustomSystemAI
 import com.genir.aitweaks.core.shipai.systems.SystemAIManager
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.utils.*
@@ -32,7 +32,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     val maneuver: Maneuver = Maneuver(this)
     val assignment: Assignment = Assignment(this)
     val ventModule: VentModule = VentModule(this)
-    val systemAI: SystemAI? = SystemAIManager.overrideVanillaSystem(this)
+    val systemAI: CustomSystemAI? = SystemAIManager.overrideVanillaSystem(this)
     val vanilla: VanillaModule = VanillaModule(ship, systemAI?.overrideVanillaSystemAI() == true)
     val flags: Flags = Flags(vanilla.basicShipAI.aiFlags)
 
