@@ -23,7 +23,7 @@ class BurnDrive(ai: CustomShipAI) : CustomSystemAI(ai) {
         return system.state == IN || system.state == ACTIVE
     }
 
-    override fun overrideVanillaSystemAI(): Boolean {
-        return false
+    override fun advanceVanillaSystemAI(): Boolean {
+        return !ai.ventModule.isBackingOff
     }
 }

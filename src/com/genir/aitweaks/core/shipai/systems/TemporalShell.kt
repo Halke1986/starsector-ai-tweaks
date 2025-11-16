@@ -13,7 +13,7 @@ class TemporalShell(ai: CustomShipAI) : CustomSystemAI(ai) {
         }
     }
 
-    override fun overrideVanillaSystemAI(): Boolean {
-        return false
+    override fun advanceVanillaSystemAI(): Boolean {
+        return true
     }
 }

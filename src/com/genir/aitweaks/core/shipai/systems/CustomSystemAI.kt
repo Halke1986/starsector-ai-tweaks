@@ -14,8 +14,8 @@ abstract class CustomSystemAI(val ai: CustomShipAI) {
 
     open fun holdTargets(): Boolean = false
 
-    /** Should custom system AI replace vanilla system AI. */
-    open fun overrideVanillaSystemAI(): Boolean = true
+    /** Should vanilla system AI be advanced this frame. */
+    open fun advanceVanillaSystemAI(): Boolean = false
 
     open fun overrideHeading(): EngineController.Destination? = null
 

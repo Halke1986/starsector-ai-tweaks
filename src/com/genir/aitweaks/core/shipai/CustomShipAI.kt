@@ -33,7 +33,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     val assignment: Assignment = Assignment(this)
     val ventModule: VentModule = VentModule(this)
     val systemAI: CustomSystemAI? = SystemAIManager.overrideVanillaSystem(this)
-    val vanilla: VanillaModule = VanillaModule(ship, systemAI?.overrideVanillaSystemAI() == true)
+    val vanilla: VanillaModule = VanillaModule(ship, systemAI)
     val flags: Flags = Flags(vanilla.basicShipAI.aiFlags)
 
     // Helper classes.

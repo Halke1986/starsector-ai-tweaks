@@ -40,4 +40,8 @@ class ManeuveringJets(ai: CustomShipAI) : CustomSystemAI(ai) {
             }
         }
     }
+
+    override fun advanceVanillaSystemAI(): Boolean {
+        return true
+    }
 }

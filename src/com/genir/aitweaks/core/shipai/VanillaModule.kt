@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.systems.CustomSystemAI
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.starfarer.combat.ai.BasicShipAI
 import com.genir.starfarer.combat.ai.FighterPullbackModule
@@ -16,7 +17,7 @@ import com.genir.starfarer.combat.entities.Ship
 import org.lwjgl.util.vector.Vector2f
 
 /** AI modules carried over from vanilla ship AI. */
-class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
+class VanillaModule(val ship: ShipAPI, private val customSystem: CustomSystemAI?) {
     val basicShipAI = Global.getSettings().createDefaultShipAI(ship, ShipAIConfig()) as BasicShipAI
     private val flags: ShipwideAIFlags = basicShipAI.aiFlags
 
@@ -24,7 +25,7 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
     private val flockingAI: FlockingAI = basicShipAI.flockingAI
     private val threatEvaluator: ThreatEvaluator = basicShipAI.threatEvaluator
     private val shieldAI: ShieldAI? = basicShipAI.shieldAI
-    private val systemAI = if (overrideVanillaSystem) null else basicShipAI.getPrivateField("systemAI") as? com.genir.starfarer.combat.ai.system.SystemAI
+    private val systemAI = basicShipAI.getPrivateField("systemAI") as? com.genir.starfarer.combat.ai.system.SystemAI
     private val fighterPullbackModule = basicShipAI.getPrivateField("fighterPullbackModule") as? FighterPullbackModule
     private val attackModule: AttackAIModule = basicShipAI.attackAI
     private val avoidMissiles = basicShipAI::class.java.getDeclaredMethod("avoidMissiles").also { it.setAccessible(true) }
@@ -64,7 +65,11 @@ class VanillaModule(val ship: ShipAPI, overrideVanillaSystem: Boolean) {
             ship.shipTarget = attackTarget // Vanilla AttackModule changes ship target. Switch it back to the proper one.
 
             shieldAI?.shieldAI_advance(dt, threatEvaluator, missileDangerDir, collisionDangerDir, target)
-            systemAI?.systemAI_advance(dt, missileDangerDir, collisionDangerDir, target)
+
+            val advanceSystem: Boolean = customSystem?.advanceVanillaSystemAI() ?: true
+            if (advanceSystem) {
+                systemAI?.systemAI_advance(dt, missileDangerDir, collisionDangerDir, target)
+            }
         }
 
         // Revert to the original captain personality.
