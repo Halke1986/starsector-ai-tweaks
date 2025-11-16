@@ -17,10 +17,14 @@ import com.genir.aitweaks.core.shipai.threat.MissileThreat
 import com.genir.aitweaks.core.shipai.threat.WeaponThreat
 import com.genir.aitweaks.core.utils.approachSpeed
 import com.genir.aitweaks.core.utils.defaultAIInterval
+import com.genir.aitweaks.core.utils.types.RotationMatrix
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
+import kotlin.math.sign
+import kotlin.random.Random
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
 
 class VentModule(private val ai: CustomShipAI) {
@@ -30,6 +34,7 @@ class VentModule(private val ai: CustomShipAI) {
     private val missileThreat: MissileThreat = MissileThreat(ship)
     private val fluxTracker: FluxTracker = FluxTracker(ship, ventTrackingPeriod)
     private val updateInterval: IntervalUtil = defaultAIInterval()
+    private val directionChangeInterval: IntervalUtil = IntervalUtil(2f, 4f)
 
     var isBackingOff: Boolean = false
     var shouldFinishTarget: Boolean = false
@@ -37,6 +42,7 @@ class VentModule(private val ai: CustomShipAI) {
     private var ventTrigger: Boolean = false
     private var isSafe: Boolean = false
     private var backoffDistance: Float = farAway
+    private var backoffDirectionOffset: RotationMatrix = RotationMatrix(0f)
 
     private companion object Preset {
         const val idleVentThreshold = 0.30f
@@ -50,7 +56,7 @@ class VentModule(private val ai: CustomShipAI) {
         const val ventTimeFlatModifierOptimistic = -1.0f
         const val ventTimeFlatModifierPessimistic = 0.5f
 
-        const val dropShieldSafetyPeriod = 2.0f
+        const val dropShieldSafetyPeriod = 2.1f
 
         const val farAway = 1e8f
     }
@@ -87,6 +93,15 @@ class VentModule(private val ai: CustomShipAI) {
         // every frame, to effectively force-off all burst weapons.
         if (ventTrigger && !waitForBursts()) {
             ship.command(ShipCommand.VENT_FLUX)
+        }
+
+        // Periodically change the backoff offset, so that the ship
+        // moves in an unpredictable manner instead of in straight line.
+        directionChangeInterval.advance(dt)
+        if (directionChangeInterval.intervalElapsed() && isBackingOff) {
+            val rand: Float = Random.nextFloat()
+            val offsetAngle: Float = (rand - 0.5f) * 40f + 20f * (rand - 0.5f).sign
+            backoffDirectionOffset = RotationMatrix(offsetAngle)
         }
     }
 
@@ -137,10 +152,6 @@ class VentModule(private val ai: CustomShipAI) {
         if (ship.owner != 0) {
             return
         }
-
-//        if (ai.flags.has(Flags.Flag.DO_NOT_USE_SHIELDS)) {
-//            Debug.drawCollisionRadius(ship, Color.RED)
-//        }
 
 //        missileThreat.threats(ship.fluxTracker.timeToVent).forEach {
 //            Debug.drawLine(ship.location, it.location, Color.YELLOW)
@@ -201,7 +212,7 @@ class VentModule(private val ai: CustomShipAI) {
 
             // Move opposite to threat vector.
             ai.threatVector.isNonZero -> {
-                val location = ship.location - ai.threatVector.resized(farAway)
+                val location = ship.location - ai.threatVector.rotated(backoffDirectionOffset).resized(farAway)
                 Destination(location, Vector2f())
             }
 
