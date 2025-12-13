@@ -208,8 +208,22 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     }
 
     protected open fun calculateShouldFire(): HoldFire? {
+        val shouldHoldFire = calculateShouldFireInner()
+
+        if (shouldHoldFire != fire && jitterBeamShutdown()) {
+            return fire
+        }
+
+        return shouldHoldFire
+    }
+
+    private fun calculateShouldFireInner(): HoldFire? {
         val target = target
         if (target == null || !target.isValidTarget) {
+            if (jitterBeamShutdown()) {
+                return fire
+            }
+
             return NO_TARGET
         }
 
@@ -259,6 +273,26 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         }
 
         return AttackRules(weapon, hit, ballisticParams).shouldHoldFire
+    }
+
+    /** PD beam weapons are updated each frame, which can cause many beams to shut down
+     * simultaneously, appearing abrupt and unnatural. This method extends beam firing
+     * by a short random duration to ensure a more gradual cessation.*/
+    private fun jitterBeamShutdown(): Boolean {
+        return when {
+            // Weapon already holding fire
+            shouldHoldFire != fire -> false
+
+            // Jitter applies only to normal beams.
+            !weapon.isPlainBeam -> false
+
+            // Only PD weapons are updated each frame.
+            !weapon.isPD -> false
+
+            shouldFireInterval.intervalElapsed() -> false
+
+            else -> true
+        }
     }
 
     protected fun holdFireIfOverfluxed(target: CombatEntityAPI): HoldFire? {
