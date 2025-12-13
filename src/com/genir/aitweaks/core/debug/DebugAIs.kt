@@ -22,6 +22,29 @@ import java.awt.Color
 var expectedFacing = 90f.toDirection
 const val df = -1f * 60f
 
+class ControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
+    private val controller = BasicEngineController(ship.movement)
+    private val RAD: Float = 300f;
+
+    override fun advance(dt: Float) {
+        val dir: Vector2f = mousePosition() - ship.location
+
+        Debug.drawCircle(ship.location, RAD, Color.cyan)
+        Debug.drawVector(ship.location, dir, Color.green)
+        Debug.drawEngineLines(ship)
+
+        val throttle: Float = (dir.length / RAD)//.coerceIn(0f, 1f)
+        val vel: Vector2f = dir.facing.unitVector * throttle * ship.movement.maxSpeed
+
+        controller.clearCommands()
+
+        controller.facing(dt, dir.facing, 0f)
+        controller.heading(dt, ship.location, vel)
+
+        controller.executeCommands()
+    }
+}
+
 class MirrorTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
     private val controller = BasicEngineController(ship.movement)
     private val offset = Vector2f(200f, 200f)
