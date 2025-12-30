@@ -87,11 +87,11 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 it.isModule -> false
                 it.isDrone -> false
 
-                // Ignore frigates. Let them move out of the way.
-                it.isFrigate -> false
-
                 // Large hulks.
                 it.owner == 100 && it.mass / movement.ship.mass > hulkSizeFactor -> true
+
+                // Ignore vanilla AI frigates. Let them move out of the way.
+                it.customShipAI == null && it.isFrigate -> false
 
                 // Allies
                 it.owner == movement.ship.owner -> true
@@ -207,55 +207,51 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     companion object {
-        val ShipAPI.movementPriority: Float
+        val ShipAPI.movementPriority: Int
             get() {
                 val ai = customShipAI
 
-                return when {
+                val basePriority: Int = when {
                     root.isStation -> {
-                        10f
+                        10
                     }
 
                     isHulk -> {
-                        10f
+                        10
                     }
 
                     engineController?.isFlamedOut == true -> {
-                        10f
-                    }
-
-                    this == Global.getCombatEngine().playerShip -> {
-                        10f
+                        10
                     }
 
                     this == Global.getCombatEngine().playerShip && isUnderManualControl -> {
-                        3f
-                    }
-
-                    root.isFrigate -> {
-                        -1f
+                        5
                     }
 
                     aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
-                        2f
+                        2
                     }
 
                     ai == null -> {
-                        0f
+                        0
                     }
 
                     ai.assignment.eliminate != null -> {
-                        1f
+                        1
                     }
 
                     ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> {
-                        1f
+                        1
                     }
 
                     else -> {
-                        0f
+                        0
                     }
                 }
+
+                val frigatePenalty = if (root.isFrigate) -3 else 0
+
+                return basePriority + frigatePenalty
             }
     }
 }

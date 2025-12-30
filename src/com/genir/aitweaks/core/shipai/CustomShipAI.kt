@@ -372,13 +372,15 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
         val targetedEnemies = allies.mapNotNull { it.attackTarget }.filter { it.isBig }.toSet()
 
+        val validThreats: List<ShipAPI> = threats.filter { it.isValidTarget }
+
         val opportunities = when {
-            maneuverTarget?.isFighter == true -> {
+            (validThreats.isEmpty() && ship.root.isFrigate) || maneuverTarget?.isFighter == true -> {
                 Grid.ships(ship.location, stats.threatSearchRange).filter { it.owner != ship.owner && it.isValidTarget }.toSet()
             }
 
             else -> {
-                threats.filter { it.isValidTarget }
+                validThreats
             }
         }
 
@@ -519,6 +521,11 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         // Do not attempt to attack occluded targets.
         if (obstacles.any { it.occludes(target) }) {
             evaluation += -16f
+        }
+
+        // Fighters have the lowest priority.
+        if (target.isFighter) {
+            evaluation += -20f
         }
 
         return evaluation

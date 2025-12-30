@@ -66,7 +66,7 @@ class SyncFire(private val weapon: WeaponHandle, var state: State?) {
         }
 
         // Do not attempt to sync a weapon with disrupted firing cycle,
-        // as this may lead corrupted synchronization state.
+        // as this may lead to corrupted synchronization state.
         if (weapon.isOutOfOrder) {
             isInSync = false
             return true
@@ -113,7 +113,7 @@ class SyncFire(private val weapon: WeaponHandle, var state: State?) {
 
             // Weapon finished its firing cycle. Assume it's not yet out of
             // sync and continue attack. NOTE: there's also an idle frame between shots in
-            // a burst, but that case if handled by 'if (weapon.isInFiringCycle)
+            // a burst, but that case is handled by 'if (weapon.isInFiringCycle)
             // return true' case.
             idleFrames == 1 && isInSync -> {
                 state.lastAttack = opportunity
