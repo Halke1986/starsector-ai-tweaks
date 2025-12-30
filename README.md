@@ -48,8 +48,8 @@ Ship AI Improvements
 ### 1. Custom ship AI ###
 
 A reworked ship AI, replacing a significant part of vanilla logic with custom implementation. It's still work in
-progress, and will probably remain so for a long time. The custom AI can be activated via a hullmod on selected ship
-types: non-phase, non-carrier destroyers, cruisers and capital ships.
+progress, and will probably remain so for a long time. The custom AI can be activated via a hullmod on all ship
+except phase and non combat carriers.
 
 ![custom_ship_ai](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/custom_ship_ai.png)
 

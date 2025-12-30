@@ -109,7 +109,6 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
             ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
             ship.isStation -> false
             ship.isModule -> false
-            ship.isFrigate -> false
             ship.isFighter -> false
 
             else -> true

@@ -1,3 +1,7 @@
+Version v2.2.0
+
+- Custom AI hullmod can now be installed on frigates.
+
 Version v2.1.13
 
 - Autofire AI: Improved aiming logic of slow rotating turrets. Now they can acquire target slightly faster.
