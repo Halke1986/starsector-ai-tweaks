@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CombatAssignmentType
 import com.fs.starfarer.api.combat.CombatAssignmentType.RETREAT
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.FogOfWarAPI
@@ -197,14 +198,15 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         val segmentation = globalAI.fleetSegmentation[ship.owner]
 
         // Prioritize the nearest segmentation target over primary targets if the ship is already in proximity to it.
-        val allTargets = segmentation.allTargets(ship.isFast).filter { isTargetVisible(it) }
+        // Skip ignored targets.
+        val allTargets = segmentation.allTargets(ship.isFast).filter { isTargetVisible(it) && !isIgnored(it) }
         val closestTarget: ShipAPI = closestEntity(allTargets, ship.location) ?: return null
         if (isCloseToEnemy(ship, closestTarget)) {
             return closestTarget
         }
 
-        // Follow the closest primary target.
-        val primaryTargets = segmentation.primaryTargets(ship.isFast).filter { isTargetVisible(it) }
+        // Follow the closest non-ignored primary target.
+        val primaryTargets = segmentation.primaryTargets(ship.isFast).filter { isTargetVisible(it) && !isIgnored(it) }
         return closestEntity(primaryTargets, ship.location)
     }
 
@@ -221,13 +223,13 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             }
         }
 
-        // Find the closest ship.
-        val target: ShipAPI? = closestEntity<ShipAPI>(targets.filter { !it.isFighter }, ship.location)
+        // Find the closest non-ignored ship.
+        val target: ShipAPI? = closestEntity<ShipAPI>(targets.filter { !it.isFighter && !isIgnored(it) }, ship.location)
         if (target != null) {
             return target
         }
 
-        // Fallback to finding a fighter.
+        // Fallback to finding a fighter or ignored ship.
         return closestEntity(targets, ship.location)
     }
 
@@ -300,7 +302,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     }
 
     private fun isThreat(target: ShipAPI): Boolean {
-        return target.owner != ship.owner && target.isAlive && !target.isFighter
+        return target.owner != ship.owner && target.isAlive && !target.isFighter && !isIgnored(target)
     }
 
     /** The threat vector should be updated every frame, as it is used
@@ -523,8 +525,12 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             evaluation += -16f
         }
 
-        // Fighters have the lowest priority.
+        // Fighters and ignored targets have the lowest priority.
         if (target.isFighter) {
+            evaluation += -20f
+        }
+
+        if(isIgnored(target)){
             evaluation += -20f
         }
 
@@ -599,5 +605,10 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
      * prioritize navigation over combat. */
     fun focusOnNavigating(): Boolean {
         return threatVector.isZero && assignment.navigateTo != null
+    }
+
+    fun isIgnored(target: ShipAPI): Boolean {
+        val playerTaskManager = Global.getCombatEngine().getFleetManager(0).getTaskManager(false)
+        return playerTaskManager.getAssignmentInfoForTarget(target.deployedFleetMember).type == CombatAssignmentType.IGNORE
     }
 }

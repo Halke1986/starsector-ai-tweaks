@@ -49,6 +49,7 @@ class Assignment(private val ai: CustomShipAI) {
                 MEDIUM_ESCORT,
                 HEAVY_ESCORT,
                 CONTROL,
+                IGNORE,
                 ENGAGE -> navigate(target, formation = false)
 
                 RALLY_TASK_FORCE,
