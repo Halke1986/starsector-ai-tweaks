@@ -7,7 +7,7 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
-import com.genir.aitweaks.core.shipai.Preset.Companion.hulkSizeFactor
+import com.genir.aitweaks.core.shipai.Preset.Companion.collisionSizeFactor
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
 import com.genir.aitweaks.core.utils.PI
@@ -55,25 +55,10 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
     fun gatherSpeedLimits(dt: Float): List<Limit> {
         // Calculate speed limits.
-        val targetLimit = avoidManeuverTarget(dt)
         val collisionLimits = avoidCollisions(dt)
         val borderLimit = avoidBorder()
 
-        return (listOf(targetLimit, borderLimit) + collisionLimits).filterNotNull()
-    }
-
-    private fun avoidManeuverTarget(dt: Float): Limit? {
-        // Ship can approach the target when on an assignment on when backing off.
-        when {
-            ai.ventModule.isBackingOff -> return null
-
-            ai.assignment.eliminate != null -> return null
-
-            ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> return null
-        }
-
-        val target: ShipAPI = ai.maneuverTarget ?: return null
-        return vMaxToObstacle(dt, target.movement, ai.attackRange * 0.9f)
+        return (listOf(borderLimit) + collisionLimits).filterNotNull()
     }
 
     private fun avoidCollisions(dt: Float): List<Limit?> {
@@ -87,24 +72,17 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 it.isModule -> false
                 it.isDrone -> false
 
-                // Large hulks.
-                it.owner == 100 && it.mass / movement.ship.mass > hulkSizeFactor -> true
+                // Large enemy ships or hulks.
+                it.owner != movement.ship.owner && it.mass / movement.ship.mass > collisionSizeFactor -> true
 
-                // Ignore vanilla AI frigates. Let them move out of the way.
-                it.customShipAI == null && it.isFrigate -> false
-
-                // Allies
+                // Allies.
                 it.owner == movement.ship.owner -> true
 
                 else -> false
             }
         }
 
-        val shipPriority = movement.ship.movementPriority
-
-        return obstacles.map { obstacle ->
-            val shipHasPriority = shipPriority > obstacle.movementPriority
-
+        return obstacles.map { obstacle: ShipAPI ->
             val distanceFactor = when {
                 // Hulks have big collision radii. Don't be afraid to get close.
                 obstacle.isHulk -> {
@@ -116,8 +94,18 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                     0.9f
                 }
 
+                // Do not respect enemy ships.
+                movement.ship.owner != obstacle.owner -> {
+                    0.9f
+                }
+
+                // Do not respect vanilla AI.
+                obstacle.root.isFrigate && obstacle.customShipAI == null -> {
+                    0.8f
+                }
+
                 // Allow priority ships to squeeze between allies in formation.
-                shipHasPriority -> {
+                movement.ship.movementPriority > obstacle.movementPriority -> {
                     0.9f
                 }
 

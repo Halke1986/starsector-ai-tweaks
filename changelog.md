@@ -1,3 +1,5 @@
+- Custom AI: Fixed an issue where backing off ships would collide with enemies.
+
 Version v2.2.0
 
 - Custom AI hullmod can now be installed on frigates.

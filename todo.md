@@ -42,6 +42,12 @@ approach into missile range
 
 shieldless ships should ignore all non-missile weapons when deciding if to vent 
 
+vent logic:
+  - calculate proper damage for dangerous weapons, remove finisherMissile flag
+  - properly handle non-guided missiles
+
+----------------------------------------------------------------
+
 fire at support fighters when they're the primary target
 
 cjy toybox shield modules issue Mykophobia
@@ -51,7 +57,3 @@ tempest flying backwards
 temporal shell messing up staggered fire 
 
 ----------------------------------------------------------------
-
-vent logic:
-  - calculate proper damage for dangerous weapons, remove finisherMissile flag
-  - properly handle non-guided missiles
