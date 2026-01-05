@@ -83,7 +83,7 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
 
     private fun handleOngoingOverspeed(bounds: List<Bound>, rotationToShip: RotationMatrix): LimitedVelocity? {
         val shipPriority = movement.ship.movementPriority
-        val deltaV = findSafeVelocityDV(bounds, calculateLimitedVelocityY = { bound ->
+        val deltaV: Vector2f? = findSafeVelocityDV(bounds, calculateVelocityParallelToBound = { bound ->
             // When ship has a higher priority than the obstacle, do not brake sharply.
             // Let the handleExpectedOverspeed method handle the collision gracefully.
             // This applies only to allies, which will cooperate with the ship.
@@ -129,7 +129,7 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
     private fun handleExpectedOverspeed(bounds: List<Bound>, expectedVelocity: Vector2f): LimitedVelocity? {
         val expectedVelocityCapped = expectedVelocity.clampLength(movement.maxSpeed)
 
-        val deltaV = findSafeVelocityDV(bounds, calculateLimitedVelocityY = { bound ->
+        val deltaV = findSafeVelocityDV(bounds, calculateVelocityParallelToBound = { bound ->
             // Velocity does not exceed the bound.
             val vx = expectedVelocity.rotatedX(bound.r)
             if (vx <= bound.speedLimit) {
@@ -154,13 +154,13 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
     /** If the ship's current velocity exceeds any speed limit, calculate
      * a new velocity vector that does not exceed the speed limit and can
      * be reached in the shortest possible time. */
-    private fun findSafeVelocityDV(bounds: List<Bound>, calculateLimitedVelocityY: (Bound) -> Float?): Vector2f? {
+    private fun findSafeVelocityDV(bounds: List<Bound>, calculateVelocityParallelToBound: (Bound) -> Float?): Vector2f? {
         var lowestDeltaV: Vector2f? = null
 
         // Find the closest point on the boundary relative to the velocity vector.
         // This point will be the new, limited velocity.
         for (bound in bounds) {
-            val limitedVelocityY = calculateLimitedVelocityY(bound) ?: continue
+            val limitedVelocityY = calculateVelocityParallelToBound(bound) ?: continue
 
             val limitedVelocity = Vector2f(
                 bound.speedLimit,
@@ -174,41 +174,6 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
         }
 
         return lowestDeltaV
-    }
-
-    private fun buildBounds(limits: List<CollisionAvoidance.Limit>): List<Bound> {
-        val rawBounds: List<Bound> = limits.map { limit ->
-            val r = (-limit.direction).rotationMatrix
-            Bound(r, limit.speedLimit, limit.obstacle, 0f, 0f)
-        }
-
-        val strictBounds = intersectBounds(rawBounds, 0f)
-        if (strictBounds.isNotEmpty()) {
-            return strictBounds
-        }
-
-        // If conflicting speed limits are detected, use a binary search
-        // algorithm to determine bounds that minimally violates them.
-        val minLimit = limits.minOf { it.speedLimit }
-        val span = 600f - minLimit
-
-        var step: Float = span / 2
-        var tolerance = span / 2
-        var relaxedBounds = listOf<Bound>()
-
-        for (i in 0..7) {
-            val newRelaxedBounds = intersectBounds(rawBounds, tolerance)
-
-            step /= 2
-            tolerance += if (newRelaxedBounds.isEmpty()) {
-                step
-            } else {
-                relaxedBounds = newRelaxedBounds
-                -step
-            }
-        }
-
-        return relaxedBounds
     }
 
     /** Calculate direction the ship should "slide" along the boundary to avoid an obstacle. */
@@ -279,6 +244,41 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
         }
 
         return defaultDirection
+    }
+
+    private fun buildBounds(limits: List<CollisionAvoidance.Limit>): List<Bound> {
+        val rawBounds: List<Bound> = limits.map { limit ->
+            val r = (-limit.direction).rotationMatrix
+            Bound(r, limit.speedLimit, limit.obstacle, 0f, 0f)
+        }
+
+        val strictBounds = intersectBounds(rawBounds, 0f)
+        if (strictBounds.isNotEmpty()) {
+            return strictBounds
+        }
+
+        // If conflicting speed limits are detected, use a binary search
+        // algorithm to determine bounds that minimally violates them.
+        val minLimit = limits.minOf { it.speedLimit }
+        val span = 600f - minLimit
+
+        var step: Float = span / 2
+        var tolerance = span / 2
+        var relaxedBounds = listOf<Bound>()
+
+        for (i in 0..7) {
+            val newRelaxedBounds = intersectBounds(rawBounds, tolerance)
+
+            step /= 2
+            tolerance += if (newRelaxedBounds.isEmpty()) {
+                step
+            } else {
+                relaxedBounds = newRelaxedBounds
+                -step
+            }
+        }
+
+        return relaxedBounds
     }
 
     private fun intersectBounds(rawBounds: List<Bound>, tolerance: Float): List<Bound> {
