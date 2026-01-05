@@ -63,7 +63,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidCollisions(dt: Float): List<Limit?> {
-        val obstacles: Sequence<ShipAPI> = findObstacles()
+        val obstacles: Sequence<ShipAPI> = findRelevantObstacles()
 
         return obstacles.map { obstacle: ShipAPI ->
             val distanceFactor = when {
@@ -105,7 +105,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }.toList()
     }
 
-    private fun findObstacles(): Sequence<ShipAPI> {
+    private fun findRelevantObstacles(): Sequence<ShipAPI> {
         return Global.getCombatEngine().ships.asSequence().filter {
             when {
                 it.root == movement.ship.root -> false

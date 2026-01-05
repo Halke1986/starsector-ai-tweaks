@@ -86,8 +86,9 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
         val deltaV = findSafeVelocityDV(bounds, calculateLimitedVelocityY = { bound ->
             // When ship has a higher priority than the obstacle, do not brake sharply.
             // Let the handleExpectedOverspeed method handle the collision gracefully.
+            // This applies only to allies, which will cooperate with the ship.
             val obstacle = bound.obstacle
-            if (obstacle != null && shipPriority > obstacle.ship.movementPriority) {
+            if (obstacle != null && obstacle.ship.owner == movement.ship.owner && shipPriority > obstacle.ship.movementPriority) {
                 return@findSafeVelocityDV null
             }
 
@@ -129,12 +130,6 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
         val expectedVelocityCapped = expectedVelocity.clampLength(movement.maxSpeed)
 
         val deltaV = findSafeVelocityDV(bounds, calculateLimitedVelocityY = { bound ->
-            // Avoiding collision with maneuver target is handled by Movement module.
-            val obstacle = bound.obstacle
-            if (obstacle != null && obstacle.ship.isHostile(movement.ship)) {
-                return@findSafeVelocityDV null
-            }
-
             // Velocity does not exceed the bound.
             val vx = expectedVelocity.rotatedX(bound.r)
             if (vx <= bound.speedLimit) {
@@ -222,7 +217,7 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
         val destination = (ai.maneuver.headingPoint - movement.location).rotated(bound.r)
         val defaultDirection = destination.y.sign
 
-        // Do not yield to enemy or hulks.
+        // Do not yield to enemy, hulks and abstract obstacles represented by null.
         val obstacle = bound.obstacle ?: return defaultDirection
         if (movement.ship.owner != obstacle.ship.owner) {
             return defaultDirection
@@ -245,7 +240,7 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
         val (k, t) = intersection(
             LinearMotion(Vector2f(), destination),
             LinearMotion(toObstacle.rotated(bound.r), obstacleDirection.rotated(bound.r)),
-        ) ?: return destination.y.sign
+        ) ?: return defaultDirection
 
         // If the ship has a lower movement priority than the obstacle,
         // it must proactively yield right-of-way—even if their paths
