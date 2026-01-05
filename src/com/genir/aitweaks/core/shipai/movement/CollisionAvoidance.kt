@@ -62,25 +62,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidCollisions(dt: Float): List<Limit?> {
-        val obstacles: List<ShipAPI> = Global.getCombatEngine().ships.filter {
-            when {
-                it.root == movement.ship.root -> false
-                it.collisionClass != CollisionClass.SHIP -> false
-
-                // Modules and drones count towards
-                // their parent collision radius.
-                it.isModule -> false
-                it.isDrone -> false
-
-                // Large enemy ships or hulks.
-                it.owner != movement.ship.owner && it.mass / movement.ship.mass > collisionSizeFactor -> true
-
-                // Allies.
-                it.owner == movement.ship.owner -> true
-
-                else -> false
-            }
-        }
+        val obstacles: Sequence<ShipAPI> = findObstacles()
 
         return obstacles.map { obstacle: ShipAPI ->
             val distanceFactor = when {
@@ -118,6 +100,28 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
             val minDistance = (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius) * distanceFactor
             vMaxToObstacle(dt, obstacle.movement, minDistance)
+        }.toList()
+    }
+
+    private fun findObstacles(): Sequence<ShipAPI> {
+        return Global.getCombatEngine().ships.asSequence().filter {
+            when {
+                it.root == movement.ship.root -> false
+                it.collisionClass != CollisionClass.SHIP -> false
+
+                // Modules and drones count towards
+                // their parent collision radius.
+                it.isModule -> false
+                it.isDrone -> false
+
+                // Large enemy ships or hulks.
+                it.owner != movement.ship.owner && it.mass / movement.ship.mass > collisionSizeFactor -> true
+
+                // Allies.
+                it.owner == movement.ship.owner -> true
+
+                else -> false
+            }
         }
     }
 
@@ -199,7 +203,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
             get() {
                 val ai = customShipAI
 
-                val basePriority: Int = when {
+                return when {
                     root.isStation -> {
                         10
                     }
@@ -236,10 +240,6 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                         0
                     }
                 }
-
-                val frigatePenalty = if (root.isFrigate) -3 else 0
-
-                return basePriority + frigatePenalty
             }
     }
 }
