@@ -13,6 +13,7 @@ import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
 import com.genir.aitweaks.core.utils.PI
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.LinearMotion
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
@@ -99,7 +100,8 @@ class CollisionAvoidance(val ai: CustomShipAI) {
             }
 
             val minDistance = (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius) * distanceFactor
-            vMaxToObstacle(dt, obstacle.movement, minDistance)
+
+            return@map vMaxToObstacle(dt, obstacle.movement.linearMotion, minDistance, obstacle)
         }.toList()
     }
 
@@ -176,13 +178,13 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     /** Calculate maximum velocity that will not lead to collision with an obstacle. */
-    fun vMaxToObstacle(dt: Float, obstacle: Movement, minDistance: Float): Limit? {
-        val toObstacle = obstacle.location - movement.location
+    fun vMaxToObstacle(dt: Float, obstacleMotion: LinearMotion, minDistance: Float, obstacle: ShipAPI?): Limit? {
+        val toObstacle = obstacleMotion.position - movement.location
         val toObstacleFacing = toObstacle.facing
         val r = (-toObstacleFacing).rotationMatrix
 
         // If the ships maintain their current course, they will not collide.
-        val predictedMinDistance = distanceToOrigin(toObstacle, obstacle.velocity - movement.velocity)
+        val predictedMinDistance = distanceToOrigin(toObstacle, obstacleMotion.velocity - movement.velocity)
         if (predictedMinDistance > minDistance * 1.5f) {
             return null
         }
@@ -192,10 +194,10 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
         val decelShip = movement.collisionDeceleration(toObstacleFacing)
         val vMax = BasicEngineController.vMax(dt, abs(distanceLeft), decelShip) * distanceLeft.sign
-        val vObstacle = obstacle.velocity.rotatedX(r)
+        val vObstacle = obstacleMotion.velocity.rotatedX(r)
         val speedLimit = vMax + vObstacle
 
-        return Limit(toObstacleFacing, speedLimit, obstacle)
+        return Limit(toObstacleFacing, speedLimit, obstacle?.movement)
     }
 
     companion object {
