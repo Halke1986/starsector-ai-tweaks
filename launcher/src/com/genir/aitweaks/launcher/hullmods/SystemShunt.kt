@@ -11,6 +11,18 @@ class SystemShunt : BaseHullMod() {
         return enableHullmods()
     }
 
+    override fun isApplicableToShip(ship: ShipAPI): Boolean {
+        return ship.system != null
+    }
+
+    override fun getUnapplicableReason(ship: ShipAPI): String? {
+        return when {
+            ship.system == null -> "Can not be installed on ships with no system."
+
+            else -> null
+        }
+    }
+
     override fun advanceInCombat(ship: ShipAPI, dt: Float) {
         if (ship != Global.getCombatEngine().playerShip || !Global.getCombatEngine().isUIAutopilotOn) {
             ship.blockCommandForOneFrame(ShipCommand.USE_SYSTEM)

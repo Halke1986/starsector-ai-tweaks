@@ -7,6 +7,7 @@ import com.fs.starfarer.api.campaign.CampaignPlugin.PickPriority.MOD_SPECIFIC
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipHullSpecAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
 import com.fs.starfarer.api.fleet.FleetMemberAPI
@@ -103,15 +104,33 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
     /** Returns true is custom AI can control the given ship. */
     override fun canHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
-            ship.owner == 0 && Global.getSettings().modManager.isModEnabled("aitweaksunlock") -> true
-
             ship.isPhase -> false
+
             ship.hullSpec.hints.contains(CARRIER) && !ship.hullSpec.hints.contains(COMBAT) -> false
+
             ship.isStation -> false
+
             ship.isModule -> false
+
             ship.isFighter -> false
 
             else -> true
+        }
+    }
+
+    override fun getUnapplicableReason(ship: ShipAPI): String? {
+        return when {
+            ship.isPhase -> "Can not be installed on phase ships."
+
+            ship.hullSpec.hints.contains(ShipHullSpecAPI.ShipTypeHints.CARRIER) && !ship.hullSpec.hints.contains(ShipHullSpecAPI.ShipTypeHints.COMBAT) -> "Can not be installed on non-combat carriers."
+
+            ship.isStation -> "Can not be installed on stations."
+
+            ship.isModule -> "Can not be installed on modules."
+
+            ship.isFighter -> "Can not be installed on fighters."
+
+            else -> null
         }
     }
 

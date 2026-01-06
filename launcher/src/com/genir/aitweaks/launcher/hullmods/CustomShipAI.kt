@@ -9,9 +9,17 @@ import com.genir.aitweaks.launcher.loading.CoreLoaderManager.instantiate
 class CustomShipAI : BaseHullMod() {
     private val shipAIPicker: ShipAIPicker = coreLoader.loadClass("com.genir.aitweaks.core.shipai.ShipAIPicker").instantiate()
 
-    /** Returns true if custom AI can control the given ship. */
     override fun showInRefitScreenModPickerFor(ship: ShipAPI): Boolean {
-        return enableHullmods() && shipAIPicker.canHaveCustomAI(ship)
+        return enableHullmods()
+    }
+
+    /** Returns true if custom AI can control the given ship. */
+    override fun isApplicableToShip(ship: ShipAPI): Boolean {
+        return shipAIPicker.canHaveCustomAI(ship)
+    }
+
+    override fun getUnapplicableReason(ship: ShipAPI): String? {
+        return shipAIPicker.getUnapplicableReason(ship)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? = when (index) {
