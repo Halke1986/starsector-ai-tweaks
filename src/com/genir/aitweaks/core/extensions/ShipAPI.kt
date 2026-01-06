@@ -195,3 +195,6 @@ val ShipAPI.offlineTimeRemaining: Float
 /** Some ships, e.g. ones with Safety Overrides can not vent. */
 val ShipAPI.canVentFlux: Boolean
     get() = mutableStats.ventRateMult.getModifiedValue() > 0f
+
+val ShipAPI.isAlwaysSearchDestroy: Boolean
+    get() = customShipAI != null || variant.hasHullMod("aitweaks_search_and_destroy")

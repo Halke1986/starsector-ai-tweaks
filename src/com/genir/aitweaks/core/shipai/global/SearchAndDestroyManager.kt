@@ -31,7 +31,7 @@ class SearchAndDestroyManager(private val globalAI: GlobalAI) : BaseEveryFrameCo
             when {
                 ship.isUnderManualControl -> false
 
-                !ship.variant.hasHullMod("aitweaks_search_and_destroy") -> false
+                !ship.isAlwaysSearchDestroy -> false
 
                 else -> true
             }

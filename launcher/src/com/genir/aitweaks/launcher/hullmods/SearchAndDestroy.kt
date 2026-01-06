@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 
 class SearchAndDestroy : BaseHullMod() {
     override fun showInRefitScreenModPickerFor(ship: ShipAPI): Boolean {
-        return enableHullmods()
+        // This hullmod id DEPRECATED.
+        return false
     }
 }

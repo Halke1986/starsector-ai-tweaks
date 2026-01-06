@@ -15,6 +15,8 @@ Plays like a mix between aggressive and reckless personality. Ships avoid being 
 
 Custom AI treats orders as high-priority commands, executing them in an RTS-like manner. Some orders, such as Avoid, are not yet implemented.
 
+The ship defaults to %s order. The ship will not be automatically assigned to Assault, Eliminate or any other tasks. Player can manually assign the ship to any tasks.
+
 You can report any feats of stupidity accomplished by the AI on Discord or the forums.",,,,,,graphics/hullmods/custom_ship_ai.png
 Search and Destroy,aitweaks_search_and_destroy,0,,AI Tweaks,special,Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.SearchAndDestroy,,,,,"The ship defaults to Search and Destroy order. The ship will not be automatically assigned to Assault, Eliminate or any other tasks. Player can manually assign the ship to any tasks.
 

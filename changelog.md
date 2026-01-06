@@ -1,4 +1,5 @@
 - Custom AI: Fixed an issue where backing off ships would collide with enemies.
+- DEPRECATED the Search and Destroy hullmod. Now ships with Custom AI hullmod will default to Search and Destroy order.
 
 Version v2.2.0
 

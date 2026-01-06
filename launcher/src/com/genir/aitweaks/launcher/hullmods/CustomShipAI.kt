@@ -16,6 +16,7 @@ class CustomShipAI : BaseHullMod() {
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? = when (index) {
         0 -> "Work In Progress"
+        1 -> "Search and Destroy"
         else -> null
     }
 }

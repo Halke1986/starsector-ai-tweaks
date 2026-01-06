@@ -101,11 +101,11 @@ class FleetCohesionAI(private val side: Int, private val globalAI: GlobalAI) : B
         val currentAssignmentType: CombatAssignmentType? = ship.assignment?.type
         if (currentAssignmentType != null) {
             when {
-                ship.variant.hasHullMod("aitweaks_search_and_destroy") && currentAssignmentType != CombatAssignmentType.SEARCH_AND_DESTROY -> {
+                ship.isAlwaysSearchDestroy && currentAssignmentType != CombatAssignmentType.SEARCH_AND_DESTROY -> {
                     return
                 }
 
-                !ship.variant.hasHullMod("aitweaks_search_and_destroy") -> {
+                !ship.isAlwaysSearchDestroy -> {
                     return
                 }
             }

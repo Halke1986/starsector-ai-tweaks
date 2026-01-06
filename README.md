@@ -51,6 +51,9 @@ A reworked ship AI, replacing a significant part of vanilla logic with custom im
 progress, and will probably remain so for a long time. The custom AI can be activated via a hullmod on all ship
 except phase and non combat carriers.
 
+As an addition, custom AI makes the ship default to Search and Destroy order. The ship will not be automatically 
+assigned to Assault, Eliminate or any other tasks. Player can manually assign the ship to any tasks.
+
 ![custom_ship_ai](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/custom_ship_ai.png)
 
 ### 2. Ships rotate to aim hardpoints and correctly handle broadside builds ###
@@ -305,15 +308,7 @@ System Shunt prevents AI from using the ship system:
 ordered by the fleet's first-in-command. Note: This protocol may be activated if the system's usage is deemed
 detrimental to the ship's performance in combat."
 
-### 4. Search and Destroy hullmod ###
-
-"The ship defaults to Search and Destroy order. The ship will not be automatically assigned to Assault, Eliminate or
-any other tasks. Player can manually assign the ship to any tasks.
-The hullmod is suppressed during initial deployment, to allow for easy objective capping.""
-
-![search and destroy](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/search_and_destroy.png)
-
-### 5. Skirmisher hullmod ###
+### 4. Skirmisher hullmod ###
 
 "This ship will operate on the outskirts of the battlefield, engaging targets of opportunity. While it may still join the 
 main battle line, it will not prioritize doing so. On ships without Custom AI, this hullmod disables the Fleet Cohesion AI, 
