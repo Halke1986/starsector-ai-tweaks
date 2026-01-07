@@ -1,6 +1,6 @@
 - Custom AI: Fixed an issue where backing off ships would collide with enemies.
 - Custom AI: Frigates are more likely to attack fighters if there are no nearby enemy ships.
-- DEPRECATED the Search and Destroy hullmod. Now ships with Custom AI hullmod will default to Search and Destroy order.
+- Custom AI: Ships will always default to Search and Destroy order, even without Search and Destroy hullmod.
 - Added descriptions explaining why hullmods can not be installed on given ships.
 - AI Tweaks hullmods can not be S-modded.
 
