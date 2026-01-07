@@ -13,6 +13,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset.Companion.assaultShipApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.fullAssaultApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
+import com.genir.aitweaks.core.shipai.Preset.Companion.threatSearchRange
 import com.genir.aitweaks.core.shipai.global.GlobalAI
 import com.genir.aitweaks.core.shipai.movement.Maneuver
 import com.genir.aitweaks.core.shipai.systems.BurnDriveToggle
@@ -296,7 +297,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     }
 
     private fun updateThreats() {
-        threats = Grid.ships(ship.location, stats.threatSearchRange).filter { isThreat(it) }.toSet()
+        threats = Grid.ships(ship.location, threatSearchRange).filter { isThreat(it) }.toSet()
     }
 
     private fun isThreat(target: ShipAPI): Boolean {
@@ -307,7 +308,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
      * in movement calculations. Values involved in these calculations
      * should change smoothly to avoid erratic velocity changes. */
     private fun updateThreatVector() {
-        val maxThreatDistSqr = stats.threatSearchRange * stats.threatSearchRange
+        val maxThreatDistSqr = threatSearchRange * threatSearchRange
         threatVector = threats.fold(Vector2f()) { sum, threat ->
             // Count modular ships just once.
             if (threat.isModule) return@fold sum
@@ -370,24 +371,32 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             it != ship && it.owner == ship.owner && !it.isFighter && !it.isFrigate
         }
 
+        val maneuverTarget = this.maneuverTarget
         val targetedEnemies = allies.mapNotNull { it.attackTarget }.filter { it.isBig }.toSet()
 
-        val validThreats: List<ShipAPI> = threats.filter { it.isValidTarget }
+        val allShips: Sequence<ShipAPI> = Grid.ships(ship.location, stats.attackTargetSearchRange)
+        val allTargets = allShips.filter { it.owner != ship.owner && it.isValidTarget }.toList()
+        val allShipTargets = allTargets.filter { !it.isFighter }.toList()
 
-        val opportunities = when {
-            (validThreats.isEmpty() && ship.root.isFrigate) || maneuverTarget?.isFighter == true -> {
-                Grid.ships(ship.location, stats.threatSearchRange).filter { it.owner != ship.owner && it.isValidTarget }.toSet()
-            }
+        // With vanilla balance, the optimal strategy is to ignore fighters and focus on enemy ships.
+        // The AI attacks fighters only when no other targets are available.
+        // For frigates, which can retarget quickly, fighters may be attacked if no nearby ship targets exist.
+        val shouldAttackFighters = if (ship.isFrigate) {
+            allShipTargets.isEmpty() && (maneuverTarget == null || currentEffectiveRange(maneuverTarget) > stats.attackTargetSearchRange)
+        } else {
+            maneuverTarget?.isFighter == true
+        }
 
-            else -> {
-                validThreats
-            }
+        val opportunities = if (shouldAttackFighters) {
+            allTargets
+        } else {
+            allShipTargets
         }
 
         // Find best attack opportunity for each weapon group.
         val weaponGroupTargets: Map<WeaponGroup, Map.Entry<ShipAPI, Float>> = stats.weaponGroups.associateWith { weaponGroup ->
             val obstacles = getObstacles(weaponGroup)
-            val groupOpportunities = opportunities.asSequence().filter { currentEffectiveRange(it) < weaponGroup.maxRange }
+            val groupOpportunities = opportunities.filter { currentEffectiveRange(it) < weaponGroup.maxRange }
             val evaluatedOpportunities: Map<ShipAPI, Float> = groupOpportunities.associateWith {
                 evaluateTarget(it, weaponGroup, obstacles, targetedEnemies)
             }
@@ -417,42 +426,6 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         }
 
         return Pair(stats.weaponGroups[0], altTarget)
-    }
-
-    private inner class Obstacle(val arc: Arc, val dist: Float) {
-        fun occludes(target: ShipAPI): Boolean {
-            val toTarget = target.location - ship.location
-            return arc.contains(toTarget.facing) && dist < toTarget.length
-        }
-    }
-
-    private fun getObstacles(weaponGroup: WeaponGroup): List<Obstacle> {
-        val obstacles = Grid.ships(ship.location, weaponGroup.maxRange).filter { obstacle ->
-            when {
-                // Same ship.
-                obstacle.root == ship.root -> false
-
-                obstacle.isFighter -> false
-
-                // Don't consider enemy ships as obstacles. Try to shoot
-                // through them, as long as they're possible to damage.
-                !obstacle.isHullDamageable -> true
-                obstacle.isHostile(ship) -> false
-
-                obstacle.isFast -> false
-
-                else -> true
-            }
-        }
-
-        // Use simple approximate calculations instead of ballistics for simplicity.
-        return obstacles.map { obstacle ->
-            val toObstacle = obstacle.location - ship.location
-            val dist = toObstacle.length
-            val arc = Arc(angularSize(dist * dist, obstacle.boundsRadius * 0.8f), toObstacle.facing)
-
-            Obstacle(arc, dist)
-        }.toList()
     }
 
     /** Evaluate if target is worth attacking. The higher the score, the better the target. */
@@ -523,12 +496,43 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             evaluation += -16f
         }
 
-        // Fighters have the lowest priority.
-        if (target.isFighter) {
-            evaluation += -20f
+        return evaluation
+    }
+
+    private inner class Obstacle(val arc: Arc, val dist: Float) {
+        fun occludes(target: ShipAPI): Boolean {
+            val toTarget = target.location - ship.location
+            return arc.contains(toTarget.facing) && dist < toTarget.length
+        }
+    }
+
+    private fun getObstacles(weaponGroup: WeaponGroup): List<Obstacle> {
+        val obstacles = Grid.ships(ship.location, weaponGroup.maxRange).filter { obstacle ->
+            when {
+                // Same ship.
+                obstacle.root == ship.root -> false
+
+                obstacle.isFighter -> false
+
+                // Don't consider enemy ships as obstacles. Try to shoot
+                // through them, as long as they're possible to damage.
+                !obstacle.isHullDamageable -> true
+                obstacle.isHostile(ship) -> false
+
+                obstacle.isFast -> false
+
+                else -> true
+            }
         }
 
-        return evaluation
+        // Use simple approximate calculations instead of ballistics for simplicity.
+        return obstacles.map { obstacle ->
+            val toObstacle = obstacle.location - ship.location
+            val dist = toObstacle.length
+            val arc = Arc(angularSize(dist * dist, obstacle.boundsRadius * 0.8f), toObstacle.facing)
+
+            Obstacle(arc, dist)
+        }.toList()
     }
 
     /** Range from which ship should attack its target. */

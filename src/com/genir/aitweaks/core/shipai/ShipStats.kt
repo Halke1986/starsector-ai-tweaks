@@ -10,19 +10,18 @@ import com.genir.aitweaks.core.extensions.totalCollisionRadius
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
-import kotlin.math.max
 
 class ShipStats(private val ship: ShipAPI) {
     val significantWeapons: List<WeaponHandle> = findSignificantWeapons()
-    val threatSearchRange: Float = calculateThreatSearchRange()
+    val attackTargetSearchRange: Float = calculateAttackTargetSearchRange()
     val totalCollisionRadius: Float = ship.totalCollisionRadius
     val weaponGroups: List<WeaponGroup> = findWeaponGroups()
 
-    private fun calculateThreatSearchRange(): Float {
+    private fun calculateAttackTargetSearchRange(): Float {
         val rangeEnvelope = 1.5f
         val totalMaxRange = significantWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.toDirection, it.engagementRange) } ?: 0f
 
-        return max(Preset.threatSearchRange, totalMaxRange * rangeEnvelope)
+        return totalMaxRange * rangeEnvelope
     }
 
     /** Weapons that can be used by the ship to conduct attacks, as opposed to PD, decoratives, etc. */
