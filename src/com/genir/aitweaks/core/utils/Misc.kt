@@ -124,11 +124,11 @@ fun mousePosition(): Vector2f {
 }
 
 inline fun <reified T> closestEntity(entities: Collection<CombatEntityAPI>, p: Vector2f): T? {
-    return entities.minByOrNull { (it.location - p).lengthSquared - it.boundsRadius } as? T
+    return entities.minByOrNull { (it.location - p).length - it.boundsRadius } as? T
 }
 
 inline fun <reified T> closestEntity(entities: Sequence<CombatEntityAPI>, p: Vector2f): T? {
-    return entities.minByOrNull { (it.location - p).lengthSquared - it.boundsRadius } as? T
+    return entities.minByOrNull { (it.location - p).length - it.boundsRadius } as? T
 }
 
 /**

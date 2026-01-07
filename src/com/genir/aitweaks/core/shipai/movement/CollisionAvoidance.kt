@@ -58,8 +58,9 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         // Calculate speed limits.
         val collisionLimits = avoidCollisions(dt)
         val borderLimit = avoidBorder()
+        val targetLimit = avoidManeuverTarget(dt)
 
-        return (listOf(borderLimit) + collisionLimits).filterNotNull()
+        return (listOf(borderLimit, targetLimit) + collisionLimits).filterNotNull()
     }
 
     private fun avoidCollisions(dt: Float): List<Limit?> {
@@ -74,11 +75,6 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
                 // Allow tighter formations for backing off ships.
                 ai.ventModule.isBackingOff || obstacle.aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
-                    0.9f
-                }
-
-                // Do not respect enemy ships.
-                movement.ship.owner != obstacle.owner -> {
                     0.9f
                 }
 
@@ -116,8 +112,8 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 it.isModule -> false
                 it.isDrone -> false
 
-                // Large enemy ships or hulks.
-                it.owner != movement.ship.owner && it.mass / movement.ship.mass > collisionSizeFactor -> true
+                // Large hulks.
+                it.isHulk && it.mass / movement.ship.mass > collisionSizeFactor -> true
 
                 // Allies.
                 it.owner == movement.ship.owner -> true
@@ -125,6 +121,20 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 else -> false
             }
         }
+    }
+
+    private fun avoidManeuverTarget(dt: Float): Limit? {
+        // Ship can approach the target when on an assignment on when backing off.
+        when {
+            ai.ventModule.isBackingOff -> return null
+
+            ai.assignment.eliminate != null -> return null
+
+            ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> return null
+        }
+
+        val target: ShipAPI = ai.maneuverTarget ?: return null
+        return vMaxToObstacle(dt, target.movement.linearMotion, ai.attackRange * 0.85f, target)
     }
 
     private fun avoidBorder(): Limit? {
