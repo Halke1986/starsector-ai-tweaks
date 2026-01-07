@@ -45,6 +45,19 @@ class ControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     }
 }
 
+class RamTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
+    private val controller = BasicEngineController(ship.movement)
+
+    override fun advance(dt: Float) {
+        controller.clearCommands()
+
+        controller.heading(dt, target.location, (target.location - ship.location).resized(1000f))
+        controller.facing(dt, (target.location - ship.location).facing, 0f)
+
+        controller.executeCommands()
+    }
+}
+
 class MirrorTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
     private val controller = BasicEngineController(ship.movement)
     private val offset = Vector2f(200f, 200f)
