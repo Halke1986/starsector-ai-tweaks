@@ -4,6 +4,7 @@
 - Ships with Custom AI hullmod will always default to Search and Destroy order, even without Search and Destroy hullmod.
 - Added descriptions explaining why hullmods can not be installed on given ships.
 - AI Tweaks hullmods can not be S-modded.
+- Added LunaLib setting to show AI Tweaks hullmods only in AI Tweaks tab.
 
 Version v2.2.0
 
