@@ -12,7 +12,7 @@ import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.ExtendedShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
-import com.genir.aitweaks.core.shipai.autofire.UpdateTarget.Companion.TARGET_SEARCH_MULT
+import com.genir.aitweaks.core.shipai.autofire.SelectTarget.Companion.TARGET_SEARCH_MULT
 import com.genir.aitweaks.core.shipai.autofire.ballistics.*
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.SHIELD
@@ -191,7 +191,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
 
     private fun updateTarget(dt: Float) {
         val previousTarget = target
-        target = UpdateTarget(weapon, target, ship.attackTarget, currentParams()).target()
+        target = SelectTarget(weapon, target, ship.attackTarget, currentParams()).target()
 
         // Nothing changed, return early.
         if (target == previousTarget) {

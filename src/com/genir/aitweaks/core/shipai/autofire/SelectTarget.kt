@@ -19,7 +19,7 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
-class UpdateTarget(
+class SelectTarget(
     private val weapon: WeaponHandle,
     private val current: CombatEntityAPI?,
     private val attackTarget: ShipAPI?,

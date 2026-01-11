@@ -24,7 +24,7 @@ const val df = -1f * 60f
 
 class ControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     private val controller = BasicEngineController(ship.movement)
-    private val RAD: Float = 300f;
+    private val RAD: Float = 300f
 
     override fun advance(dt: Float) {
         val dir: Vector2f = mousePosition() - ship.location
