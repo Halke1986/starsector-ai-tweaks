@@ -64,10 +64,14 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
     val knownSegmentationTargets: MutableSet<ShipAPI> = mutableSetOf()
 
+    init {
+        updateInterval.forceIntervalElapsed()
+    }
+
     override fun advance(dt: Float) {
         debug()
 
-        // Cede the control to vanilla AI when the ship is retreating.
+        // Cede control to vanilla AI when the ship is retreating.
         if (ship.assignment?.type == RETREAT) {
             vanilla.advanceBasicShipAI(dt)
             return

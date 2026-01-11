@@ -23,7 +23,7 @@ import kotlin.random.Random
  * opposed to every frame combat plugin.
  */
 open class BasicEngineController(val movement: Movement) : Helm(movement.ship) {
-    private var prevFacing: Direction = 0f.toDirection
+    private var prevFacing: Direction = movement.facing
 
     data class LimitedVelocity(val movementOverridden: Boolean, val velocity: Vector2f)
 
