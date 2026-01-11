@@ -109,7 +109,9 @@ class SyncFire(private val weapon: WeaponHandle, var state: State?) {
             }
 
             // Another weapon seized the attack opportunity.
-            cycles == 0f -> false
+            cycles == 0f -> {
+                false
+            }
 
             // Weapon finished its firing cycle. Assume it's not yet out of
             // sync and continue attack. NOTE: there's also an idle frame between shots in
@@ -126,7 +128,9 @@ class SyncFire(private val weapon: WeaponHandle, var state: State?) {
                 true
             }
 
-            else -> false
+            else -> {
+                false
+            }
         }
 
         return isInSync

@@ -52,6 +52,4 @@ cjy toybox shield modules issue Mykophobia
 
 tempest flying backwards
 
-temporal shell messing up staggered fire 
-
 ----------------------------------------------------------------

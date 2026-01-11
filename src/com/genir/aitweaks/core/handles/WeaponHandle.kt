@@ -8,10 +8,7 @@ import com.fs.starfarer.api.loading.ProjectileSpawnType.BALLISTIC_AS_BEAM
 import com.fs.starfarer.api.loading.ProjectileSpawnType.BEAM
 import com.fs.starfarer.api.loading.ProjectileSpecAPI
 import com.fs.starfarer.api.loading.ProjectileWeaponSpecAPI
-import com.genir.aitweaks.core.extensions.div
-import com.genir.aitweaks.core.extensions.facing
-import com.genir.aitweaks.core.extensions.minus
-import com.genir.aitweaks.core.extensions.plus
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.wrappers.WeaponWrapper
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
@@ -374,19 +371,27 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
         get() = turnRateWhileIdle / 5
 
     val rofMultiplier: Float
-        get() = when (type) {
-            WeaponType.BALLISTIC -> ship.mutableStats.ballisticRoFMult.modifiedValue
-            WeaponType.ENERGY -> ship.mutableStats.energyRoFMult.modifiedValue
-            WeaponType.MISSILE -> ship.mutableStats.missileRoFMult.modifiedValue
-            else -> 1f
+        get(): Float {
+            val base: Float = when (type) {
+                WeaponType.BALLISTIC -> ship.mutableStats.ballisticRoFMult.modifiedValue
+                WeaponType.ENERGY -> ship.mutableStats.energyRoFMult.modifiedValue
+                WeaponType.MISSILE -> ship.mutableStats.missileRoFMult.modifiedValue
+                else -> 1f
+            }
+
+            return base * weapon.ship.timeMult
         }
 
     val ammoRegenMultiplier: Float
-        get() = when (type) {
-            WeaponType.BALLISTIC -> ship.mutableStats.ballisticAmmoRegenMult.modifiedValue
-            WeaponType.ENERGY -> ship.mutableStats.energyAmmoRegenMult.modifiedValue
-            WeaponType.MISSILE -> ship.mutableStats.missileAmmoRegenMult.modifiedValue
-            else -> 1f
+        get(): Float {
+            val base: Float = when (type) {
+                WeaponType.BALLISTIC -> ship.mutableStats.ballisticAmmoRegenMult.modifiedValue
+                WeaponType.ENERGY -> ship.mutableStats.energyAmmoRegenMult.modifiedValue
+                WeaponType.MISSILE -> ship.mutableStats.missileAmmoRegenMult.modifiedValue
+                else -> 1f
+            }
+
+            return base * weapon.ship.timeMult
         }
 
     /** Ballistic calculations are performed before the game engine updates weapon states.
