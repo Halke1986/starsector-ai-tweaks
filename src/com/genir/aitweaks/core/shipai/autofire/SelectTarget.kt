@@ -29,8 +29,8 @@ class SelectTarget(
         const val TARGET_SEARCH_MULT = 1.5f
     }
 
-    // Search within twice weapon.totalRange to account for projectile flight time,
-    // allowing attacks to start before the target enters maximum range.
+    // Search within TARGET_SEARCH_MULT weapon.totalRange to account for projectile
+    // flight time, allowing attacks to start before the target enters maximum range.
     private val targetSearchRange = weapon.engagementRange * TARGET_SEARCH_MULT
 
     private val obstacleList by lazy {
@@ -51,7 +51,7 @@ class SelectTarget(
         }
 
         val selectNonSupportFighter = fun(): CombatEntityAPI? {
-            return selectShip { it.isFighter && !it.isSupportFighter }
+            return selectShip { it.isFighter && (!it.isSupportFighter || it == attackTarget) }
         }
 
         return when {
@@ -66,7 +66,8 @@ class SelectTarget(
             weapon.isAntiFighter -> selectShipOrFighter()
             weapon.hasAIHint(STRIKE) || weapon.isFinisherBeam -> selectShip()
 
-            // Default main weapon.
+            // Default main weapon. Do not fire at support fighters, as this risks wasting weapon
+            // burst immediately before the fighters’ mothership enters weapon range.
             else -> combineSelectors(selectShip, selectNonSupportFighter)
         }
     }

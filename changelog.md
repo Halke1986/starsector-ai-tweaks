@@ -1,6 +1,7 @@
 - Custom AI: Fixed an issue where backing off ships would collide with enemies.
 - Custom AI: Fixed an issue where ships would get too close the enemies when the battle space was crowded.
 - Custom AI: Frigates are more likely to attack fighters if there are no nearby enemy ships.
+- Autofire AI: Non-PD weapons will fire at support fighters when the fighters are the ships' main target.
 - Ships with Custom AI hullmod will always default to Search and Destroy order, even without Search and Destroy hullmod.
 - Added descriptions explaining why hullmods can not be installed on given ships.
 - AI Tweaks hullmods can not be S-modded.

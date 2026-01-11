@@ -48,8 +48,6 @@ vent logic:
 
 ----------------------------------------------------------------
 
-fire at support fighters when they're the primary target
-
 cjy toybox shield modules issue Mykophobia
 
 tempest flying backwards
