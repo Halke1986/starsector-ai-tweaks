@@ -18,8 +18,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 check Lidar on faster ships - destroyer : ass pinetree, frigate DEX Catapult
 
-- why SO ships backing off so far away
-
 - tahlan shipworks hel hound module has speed 0
 
 SUGGESTED by Hyperkayak:
@@ -48,8 +46,6 @@ vent logic:
 
 ----------------------------------------------------------------
 
-cjy toybox shield modules issue Mykophobia
 
-tempest flying backwards
 
 ----------------------------------------------------------------

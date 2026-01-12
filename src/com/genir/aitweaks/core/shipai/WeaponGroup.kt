@@ -72,6 +72,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
         val dpsArcs: Sequence<DPSArc> = staticArcsInShipFrameOfReference(1e5f, 0f)
         val optimalArc: Arc = dpsArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -it.arc.distanceTo(0f.toDirection).length })?.arc
             ?: return 0f.toDirection
+
         return -optimalArc.distanceTo(0f.toDirection)
     }
 
@@ -97,22 +98,23 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
 
         // Calculate offset angle between default facing and intercept arc for each weapon.
         val facingStash = ship.facing
-        val solutions: List<DPSArc> = try {
-            // Aim the weapon as if the ship was facing the target directly.
-            // This allows to eliminate velocity and location translation errors.
-            ship.facing = directFacing.degrees
+        val solutions: List<DPSArc> =
+            try {
+                // Aim the weapon as if the ship was facing the target directly.
+                // This allows to eliminate velocity and location translation errors.
+                ship.facing = directFacing.degrees
 
-            weapons.map { weapon ->
-                val weaponCoarseFacing: Direction = (target.location - weapon.location).facing
-                val outOfArcCorrection = weapon.absoluteArc.distanceTo(weaponCoarseFacing)
-                val interceptArc = interceptArc(weapon, ballisticTarget, defaultBallisticParams)
-                val offset = interceptArc.facing - weaponCoarseFacing + outOfArcCorrection
+                weapons.map { weapon ->
+                    val weaponCoarseFacing: Direction = (target.location - weapon.location).facing
+                    val outOfArcCorrection = weapon.absoluteArc.distanceTo(weaponCoarseFacing)
+                    val interceptArc = interceptArc(weapon, ballisticTarget, defaultBallisticParams)
+                    val offset = interceptArc.facing - weaponCoarseFacing + outOfArcCorrection
 
-                DPSArc(Arc(interceptArc.angle, offset), effectivePeakDPS(weapon))
+                    DPSArc(Arc(interceptArc.angle, offset), effectivePeakDPS(weapon))
+                }
+            } finally {
+                ship.facing = facingStash
             }
-        } finally {
-            ship.facing = facingStash
-        }
 
         // DPS sum of all weapons capable of firing in the given sub-arc.
         val subArcs: Sequence<DPSArc> = splitArcs(solutions)
@@ -122,8 +124,10 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
             return (ship.facing.toDirection - proposedFacing).length
         }
 
-        // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
-        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromCurrentFacing(it) })
+        // Find the firing arc with the best DPS. If there are multiple,
+        // select the one with the least facing change required.
+        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }
+            .thenBy { -offsetFromCurrentFacing(it) })
             ?: return directFacing
 
         return directFacing + optimalArc.arc.facing
@@ -135,12 +139,10 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
         val toTarget = (target.location - ship.location)
         val subArcs: Sequence<DPSArc> = staticArcsInShipFrameOfReference(toTarget.length, target.radius)
 
-        val offsetFromTarget = fun(arcFacing: Direction): Float {
-            return (toTarget.facing - (arcFacing + ship.facing.toDirection)).length
-        }
-
-        // Find the firing arc with the best DPS. If there are multiple, select the one with the least facing change required.
-        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -offsetFromTarget(it.arc.facing) })
+        // Find the firing arc with the best DPS. If there are multiple,
+        // select the one closest to front facing.
+        val optimalArc: DPSArc = subArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }
+            .thenBy { -it.arc.distanceTo(0f.toDirection).length })
             ?: return 0f.toDirection
 
         return -optimalArc.arc.distanceTo(0f.toDirection)

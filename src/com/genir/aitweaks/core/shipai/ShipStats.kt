@@ -53,14 +53,14 @@ class ShipStats(private val ship: ShipAPI) {
         val attackAngles: Map<Direction, Float> = attackAngles(significantWeapons)
 
         // Assign lower weight to arcs more distant from the ship front.
-        val weightedAngles = attackAngles.mapValues { (direction, dps) ->
+        val weightedAngles: Map<Direction, Float> = attackAngles.mapValues { (direction, dps) ->
             val weight = if (direction.length <= 90f) 1f else 0.66f
             dps * weight
         }
 
         // Ignore firing arcs that are close to or fall outside front shield arc.
         val shield = ship.shield
-        val validAngles = if (shield?.type == ShieldAPI.ShieldType.FRONT) {
+        val validAngles: Map<Direction, Float> = if (shield?.type == ShieldAPI.ShieldType.FRONT) {
             val limit = shield.arc / 3
             weightedAngles.filter { it.key.length < limit }
         } else {
@@ -80,7 +80,7 @@ class ShipStats(private val ship: ShipAPI) {
 
     /** Find firing arc angles closest to ship front for each weapon,
      * or 0f for front facing weapons. Associate the angles with total
-     * DPS for the provided weapon list.*/
+     * DPS for the provided weapon list. */
     private fun attackAngles(weapons: List<WeaponHandle>): Map<Direction, Float> {
         val angles: List<Direction> = weapons.flatMap { weapon ->
             val facing: Direction = weapon.arcFacing.toDirection

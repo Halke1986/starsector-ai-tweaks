@@ -1,5 +1,6 @@
 - Custom AI: Fixed an issue where backing off ships would collide with enemies.
 - Custom AI: Fixed an issue where ships would get too close the enemies when the battle space was crowded.
+- Custom AI: Fixed an issue where Tempest would attack while flying backwards. Reported by MegaPenguin.
 - Custom AI: Frigates are more likely to attack fighters if there are no nearby enemy ships.
 - Autofire AI: Non-PD weapons will fire at support fighters when the fighters are the ships' main target.
 - Autofire AI: Fixed an issue where staggered fire logic would not account for time flow multiplier and reduce weapon rate of fire. Reported by Samael Gray.

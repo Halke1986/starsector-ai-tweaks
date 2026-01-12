@@ -16,6 +16,7 @@ import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
 import com.genir.aitweaks.core.shipai.Preset.Companion.threatSearchRange
 import com.genir.aitweaks.core.shipai.global.GlobalAI
 import com.genir.aitweaks.core.shipai.movement.Maneuver
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.shipai.systems.BurnDriveToggle
 import com.genir.aitweaks.core.shipai.systems.CustomSystemAI
 import com.genir.aitweaks.core.shipai.systems.SystemAIManager
@@ -294,7 +295,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             ventModule.isBackingOff -> false
             attackTarget == null -> false
             attackTarget != maneuverTarget -> false
-            (attackTarget as? ShipAPI)?.root?.isFrigate != ship.root.isFrigate -> false
+            (attackTarget as? ShipAPI)?.root?.movement?.maxSpeed?.let { it > ship.movement.maxSpeed } == true -> false // peak Kotlin
             threats.size > 1 -> false
             else -> true
         }
