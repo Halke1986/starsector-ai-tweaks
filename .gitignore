@@ -2,10 +2,4 @@
 out/
 jars/aitweaks*
 
-.idea/workspace.xml
-.idea/uiDesigner.xml
-.idea/csv-editor.xml
-
 *.zip
-
-example.md

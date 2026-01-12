@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="aitweaks-core:jar" />
+      <artifact name="aitweaks-launcher:jar" />
+    </artifacts-to-build>
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d626a3c1-fad9-42cf-bd6c-220e82773ed9" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+        <option value="Kotlin Class" />
+        <option value="Kotlin Enum" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="2z9WQwaTUTM63QC0MDmDukaoa7N" />
+  <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Starsector.executor": "Debug",
+    "Application.StarsectorFR.executor": "Debug",
+    "JUnit.Math.testOffset.executor": "Debug",
+    "JUnit.Mods.mods.executor": "Run",
+    "JUnit.SymbolsTest.symbols.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Program Files (x86)/Fractal Softworks/Starsector98/mods/CjyToyBox",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.29770115",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="\\wsl$\Ubuntu\home\mwojcik\starfarer\starsector98\mods\starsector-ai-tweaks\.run" />
+      <recent name="\\wsl$\Ubuntu\home\mwojcik\starfarer\starsector98\mods\starsector-ai-tweaks\data\weapons" />
+      <recent name="\\wsl$\Ubuntu\home\mwojcik\starfarer\starsector98\mods\starsector-ai-tweaks" />
+      <recent name="\\wsl$\Ubuntu\home\mwojcik\starfarer\starsector98\mods\starsector-ai-tweaks\graphics\hullmods" />
+    </key>
+    <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
+      <recent name="com.genir.aitweaks.core.shipai.systems" />
+      <recent name="com.genir.aitweaks.core.shipai" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.Starsector">
+    <configuration name="Unnamed" type="Application" factoryName="Application" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="azul-17" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <extension name="net.ashald.envfile">
+        <option name="IS_ENABLED" value="false" />
+        <option name="IS_SUBST" value="false" />
+        <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+        <option name="IS_IGNORE_MISSING_FILES" value="false" />
+        <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+        <ENTRIES>
+          <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+        </ENTRIES>
+      </extension>
+      <method v="2" />
+    </configuration>
+    <configuration name="Math.testOffset" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="starsector-ai-tweaks" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="utils.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="utils" />
+      <option name="MAIN_CLASS_NAME" value="utils.Math" />
+      <option name="METHOD_NAME" value="testOffset" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Mods.mods" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="starsector-ai-tweaks" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="utils.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="utils" />
+      <option name="MAIN_CLASS_NAME" value="utils.Mods" />
+      <option name="METHOD_NAME" value="mods" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SymbolsTest.symbols" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="launcher" />
+      <extension name="net.ashald.envfile">
+        <option name="IS_ENABLED" value="false" />
+        <option name="IS_SUBST" value="false" />
+        <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+        <option name="IS_IGNORE_MISSING_FILES" value="false" />
+        <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+        <ENTRIES>
+          <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+        </ENTRIES>
+      </extension>
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="SymbolsTest" />
+      <option name="METHOD_NAME" value="symbols" />
+      <option name="TEST_OBJECT" value="method" />
+      <option name="VM_PARAMETERS" value="-ea -noverify" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.StarsectorFR" />
+      <item itemvalue="Application.Starsector" />
+      <item itemvalue="Application.Unnamed" />
+      <item itemvalue="JUnit.Mods.mods" />
+      <item itemvalue="JUnit.SymbolsTest.symbols" />
+      <item itemvalue="JUnit.Math.testOffset" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.Mods.mods" />
+        <item itemvalue="JUnit.SymbolsTest.symbols" />
+        <item itemvalue="JUnit.Math.testOffset" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d626a3c1-fad9-42cf-bd6c-220e82773ed9" name="Changes" comment="" />
+      <created>1751143759869</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1751143759869</updated>
+      <workItem from="1751143763144" duration="684000" />
+      <workItem from="1751146318190" duration="2012000" />
+      <workItem from="1751156134973" duration="2370000" />
+      <workItem from="1751204179837" duration="269000" />
+      <workItem from="1751231056681" duration="3419000" />
+      <workItem from="1751239363373" duration="228000" />
+      <workItem from="1751298825140" duration="99000" />
+      <workItem from="1751317793999" duration="2516000" />
+      <workItem from="1751402674372" duration="598000" />
+      <workItem from="1751500721353" duration="35000" />
+      <workItem from="1751531613577" duration="640000" />
+      <workItem from="1751570780296" duration="9000" />
+      <workItem from="1751639060305" duration="643000" />
+      <workItem from="1751755381088" duration="1785000" />
+      <workItem from="1751810238388" duration="3016000" />
+      <workItem from="1751835054284" duration="918000" />
+      <workItem from="1751844978236" duration="1291000" />
+      <workItem from="1751901596557" duration="598000" />
+      <workItem from="1752158725784" duration="862000" />
+      <workItem from="1752270266068" duration="99000" />
+      <workItem from="1752348452765" duration="25000" />
+      <workItem from="1752876079898" duration="5446000" />
+      <workItem from="1753648111795" duration="2775000" />
+      <workItem from="1753651638183" duration="22000" />
+      <workItem from="1754091322927" duration="660000" />
+      <workItem from="1754258854570" duration="820000" />
+      <workItem from="1754489274702" duration="116000" />
+      <workItem from="1754497600438" duration="27000" />
+      <workItem from="1754615754024" duration="3194000" />
+      <workItem from="1754661120774" duration="192000" />
+      <workItem from="1754661392427" duration="1472000" />
+      <workItem from="1754665505839" duration="2195000" />
+      <workItem from="1754686624411" duration="13141000" />
+      <workItem from="1754700431145" duration="1943000" />
+      <workItem from="1754750483758" duration="1710000" />
+      <workItem from="1754779616347" duration="2041000" />
+      <workItem from="1754926409814" duration="2603000" />
+      <workItem from="1754943932002" duration="601000" />
+      <workItem from="1755131229371" duration="195000" />
+      <workItem from="1755159264867" duration="3820000" />
+      <workItem from="1755186671592" duration="21000" />
+      <workItem from="1755265803616" duration="1367000" />
+      <workItem from="1755293078349" duration="271000" />
+      <workItem from="1755304111898" duration="2088000" />
+      <workItem from="1755311348887" duration="8000" />
+      <workItem from="1755364838894" duration="41000" />
+      <workItem from="1755383567833" duration="1056000" />
+      <workItem from="1755471428437" duration="1799000" />
+      <workItem from="1755533433099" duration="624000" />
+      <workItem from="1755621025504" duration="1374000" />
+      <workItem from="1755633901686" duration="11000" />
+      <workItem from="1755730674815" duration="739000" />
+      <workItem from="1756243078791" duration="5491000" />
+      <workItem from="1756251952719" duration="1244000" />
+      <workItem from="1756413206054" duration="62000" />
+      <workItem from="1756758451597" duration="2844000" />
+      <workItem from="1756849281341" duration="177000" />
+      <workItem from="1756849591589" duration="755000" />
+      <workItem from="1756907265542" duration="82000" />
+      <workItem from="1757072589328" duration="1617000" />
+      <workItem from="1757537439039" duration="2952000" />
+      <workItem from="1757544540993" duration="718000" />
+      <workItem from="1757593869600" duration="5962000" />
+      <workItem from="1757625621151" duration="4024000" />
+      <workItem from="1757710149582" duration="2039000" />
+      <workItem from="1757767572067" duration="7884000" />
+      <workItem from="1757796085148" duration="8308000" />
+      <workItem from="1757854890929" duration="384000" />
+      <workItem from="1757971689253" duration="2953000" />
+      <workItem from="1758061045049" duration="311000" />
+      <workItem from="1758400344703" duration="3546000" />
+      <workItem from="1758490589161" duration="3221000" />
+      <workItem from="1758541323181" duration="372000" />
+      <workItem from="1758545854145" duration="9000" />
+      <workItem from="1759409234484" duration="4740000" />
+      <workItem from="1759445208447" duration="4732000" />
+      <workItem from="1759491301045" duration="1186000" />
+      <workItem from="1759526496168" duration="5988000" />
+      <workItem from="1759613309186" duration="681000" />
+      <workItem from="1759614627225" duration="150000" />
+      <workItem from="1759615219252" duration="618000" />
+      <workItem from="1759780491293" duration="1931000" />
+      <workItem from="1759839813363" duration="57000" />
+      <workItem from="1760191309506" duration="721000" />
+      <workItem from="1760214105844" duration="2532000" />
+      <workItem from="1760390037014" duration="2550000" />
+      <workItem from="1760448278239" duration="91000" />
+      <workItem from="1760544715353" duration="115000" />
+      <workItem from="1760707150648" duration="680000" />
+      <workItem from="1760969513256" duration="307000" />
+      <workItem from="1760973455498" duration="36000" />
+      <workItem from="1760977180285" duration="302000" />
+      <workItem from="1761001532539" duration="734000" />
+      <workItem from="1761055663181" duration="70000" />
+      <workItem from="1761170184657" duration="1373000" />
+      <workItem from="1761690136361" duration="997000" />
+      <workItem from="1762123848238" duration="236000" />
+      <workItem from="1762215048788" duration="872000" />
+      <workItem from="1762800441069" duration="1501000" />
+      <workItem from="1762813012707" duration="53000" />
+      <workItem from="1762827273102" duration="1316000" />
+      <workItem from="1762992649690" duration="3063000" />
+      <workItem from="1763048800012" duration="2262000" />
+      <workItem from="1763056685162" duration="598000" />
+      <workItem from="1763074863124" duration="9420000" />
+      <workItem from="1763131936543" duration="9749000" />
+      <workItem from="1763158810556" duration="11466000" />
+      <workItem from="1763221031483" duration="4688000" />
+      <workItem from="1763245210023" duration="3505000" />
+      <workItem from="1763309229391" duration="5214000" />
+      <workItem from="1763330733104" duration="1543000" />
+      <workItem from="1763409061862" duration="1468000" />
+      <workItem from="1763657574882" duration="13000" />
+      <workItem from="1764118116912" duration="2215000" />
+      <workItem from="1764165126596" duration="21000" />
+      <workItem from="1764278892882" duration="1506000" />
+      <workItem from="1764294034776" duration="98000" />
+      <workItem from="1764444493926" duration="482000" />
+      <workItem from="1764545208485" duration="2170000" />
+      <workItem from="1764776441676" duration="71000" />
+      <workItem from="1764777272906" duration="1717000" />
+      <workItem from="1764783527439" duration="660000" />
+      <workItem from="1764888058726" duration="2466000" />
+      <workItem from="1764946625005" duration="1759000" />
+      <workItem from="1765054412516" duration="3741000" />
+      <workItem from="1765495668346" duration="3091000" />
+      <workItem from="1765639513195" duration="1162000" />
+      <workItem from="1765643428688" duration="862000" />
+      <workItem from="1765666440258" duration="4948000" />
+      <workItem from="1765728183736" duration="85000" />
+      <workItem from="1765820637925" duration="630000" />
+      <workItem from="1765895360422" duration="598000" />
+      <workItem from="1765921456512" duration="254000" />
+      <workItem from="1766006665939" duration="1213000" />
+      <workItem from="1766080815577" duration="551000" />
+      <workItem from="1766101655586" duration="792000" />
+      <workItem from="1766187688013" duration="567000" />
+      <workItem from="1766326846624" duration="1795000" />
+      <workItem from="1767136221214" duration="2556000" />
+      <workItem from="1767194361964" duration="43000" />
+      <workItem from="1767231114483" duration="1902000" />
+      <workItem from="1767281964286" duration="98000" />
+      <workItem from="1767304233934" duration="506000" />
+      <workItem from="1767314416683" duration="2152000" />
+      <workItem from="1767568078828" duration="10374000" />
+      <workItem from="1767624967510" duration="3753000" />
+      <workItem from="1767650418071" duration="7412000" />
+      <workItem from="1767715641080" duration="806000" />
+      <workItem from="1767734435379" duration="18736000" />
+      <workItem from="1767800645924" duration="7886000" />
+      <workItem from="1767904947395" duration="1958000" />
+      <workItem from="1767921792800" duration="4005000" />
+      <workItem from="1768000682757" duration="9148000" />
+      <workItem from="1768059493657" duration="2427000" />
+      <workItem from="1768082998765" duration="8114000" />
+      <workItem from="1768144642296" duration="4144000" />
+      <workItem from="1768167763592" duration="8863000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
