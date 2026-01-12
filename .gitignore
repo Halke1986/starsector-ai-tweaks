@@ -2,4 +2,6 @@
 out/
 jars/aitweaks*
 
+.idea/workspace.xml
+
 *.zip
