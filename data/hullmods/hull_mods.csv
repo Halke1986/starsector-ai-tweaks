@@ -23,6 +23,4 @@ Search and Destroy,aitweaks_search_and_destroy,0,,AI Tweaks,"special,no_build_in
 The hullmod is suppressed during initial deployment, to allow for easy objective capping.",,,,,,graphics/warroom/taskicons/icon_search_and_destroy.png
 Role: Skirmisher,aitweaks_skirmisher,0,,AI Tweaks,"special,no_build_in",Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.Skirmisher,,,,,"This ship will operate on the outskirts of the battlefield, engaging targets of opportunity. While it may still join the main battle line, it will not prioritize doing so.
 
-On ships without Custom AI, this hullmod disables the Fleet Cohesion AI, allowing them to revert to vanilla behavior of chasing enemy frigates to the edge of the map.
-
-This hullmod cannot be installed on %s as they are inherently considered skirmishers.",,,,,,graphics/icons/campaign/hostile_activity3.png
+On ships without Custom AI, this hullmod disables the Fleet Cohesion AI, allowing them to revert to vanilla behavior of chasing enemy frigates to the edge of the map.",,,,,,graphics/icons/campaign/hostile_activity3.png
