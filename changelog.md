@@ -1,3 +1,5 @@
+Version v2.2.1
+
 - Custom AI: Fixed an issue where backing off ships would collide with enemies.
 - Custom AI: Fixed an issue where ships would get too close the enemies when the battle space was crowded.
 - Custom AI: Fixed an issue where Tempest would attack while flying backwards. Reported by MegaPenguin.
