@@ -68,7 +68,7 @@ open class BasicEngineController(val movement: Movement) : Helm(movement.ship) {
         }
 
         // Expected velocity change.
-        val ve = limitedVelocity?.velocity ?: (vtt + vt).clampLength(vMax)
+        val ve = limitedVelocity?.velocity ?: (vtt + vt).clampedLength(vMax)
         val dv = ve - v
 
         // Stop if arrived at location, that is when expected velocity change

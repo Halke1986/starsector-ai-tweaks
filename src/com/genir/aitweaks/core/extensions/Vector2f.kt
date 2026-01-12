@@ -35,7 +35,7 @@ fun Vector2f.resized(length: Float): Vector2f {
     }
 }
 
-fun Vector2f.clampLength(maxLength: Float): Vector2f {
+fun Vector2f.clampedLength(maxLength: Float): Vector2f {
     return if (lengthSquared > maxLength * maxLength) {
         resized(maxLength)
     } else {

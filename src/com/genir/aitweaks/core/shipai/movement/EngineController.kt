@@ -127,7 +127,7 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
     }
 
     private fun handleExpectedOverspeed(bounds: List<Bound>, expectedVelocity: Vector2f): LimitedVelocity? {
-        val expectedVelocityCapped = expectedVelocity.clampLength(movement.maxSpeed)
+        val expectedVelocityCapped = expectedVelocity.clampedLength(movement.maxSpeed)
 
         val deltaV = findSafeVelocityDV(bounds, calculateVelocityParallelToBound = { bound ->
             // Velocity does not exceed the bound.
