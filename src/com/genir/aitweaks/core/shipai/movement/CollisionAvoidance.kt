@@ -7,7 +7,8 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
-import com.genir.aitweaks.core.shipai.Preset.Companion.collisionSizeFactor
+import com.genir.aitweaks.core.shipai.Preset.Companion.enemyCollisionSizeFactor
+import com.genir.aitweaks.core.shipai.Preset.Companion.hulkCollisionSizeFactor
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
 import com.genir.aitweaks.core.utils.PI
@@ -113,7 +114,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 it.isDrone -> false
 
                 // Large hulks.
-                it.isHulk && it.mass / movement.ship.mass > collisionSizeFactor -> true
+                it.isHulk && (it.mass * hulkCollisionSizeFactor > movement.ship.mass) -> true
 
                 // Allies.
                 it.owner == movement.ship.owner -> true
@@ -124,16 +125,33 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidManeuverTarget(dt: Float): Limit? {
+        val target: ShipAPI = ai.maneuverTarget ?: return null
+
         // Ship can approach the target when on an assignment on when backing off.
-        when {
-            ai.ventModule.isBackingOff -> return null
+        val ignore: Boolean = when {
+            // Target is too large to ignore.
+            target.mass * enemyCollisionSizeFactor > movement.ship.mass -> {
+                false
+            }
 
-            ai.assignment.eliminate != null -> return null
+            ai.ventModule.isBackingOff -> {
+                true
+            }
 
-            ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> return null
+            ai.assignment.eliminate != null -> {
+                true
+            }
+
+            ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> {
+                true
+            }
+
+            else -> {
+                false
+            }
         }
 
-        val target: ShipAPI = ai.maneuverTarget ?: return null
+
         return vMaxToObstacle(dt, target.movement.linearMotion, ai.attackRange * 0.85f, target)
     }
 
