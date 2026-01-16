@@ -21,8 +21,8 @@ class Preset {
         const val borderHardNoGoZone = borderNoGoZone / 2f
 
         // Collision avoidance
-        const val collisionBuffer = 0f
-        const val collisionSizeFactor = 0.85f
+        const val hulkCollisionSizeFactor = 0.85f
+        const val enemyCollisionSizeFactor = 2f
 
         // Targeting & Weapon groups
         const val validWeaponGroupDPSThreshold = 0.9f
