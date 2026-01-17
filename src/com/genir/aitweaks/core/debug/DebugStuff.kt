@@ -21,7 +21,7 @@ import com.fs.starfarer.api.Global
 
 internal fun debug(dt: Float) {
     try {
-        val ship = Global.getCombatEngine().playerShip ?: return
+        val playerShip = Global.getCombatEngine().playerShip ?: return
         val ships = Global.getCombatEngine().ships
 
 //    if (!Global.getCombatEngine().isPaused){

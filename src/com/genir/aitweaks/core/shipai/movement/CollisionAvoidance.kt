@@ -69,6 +69,12 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
         return obstacles.map { obstacle: ShipAPI ->
             val distanceFactor = when {
+                // Don't get near stations, to account for their
+                // complicated shape with multiple collision hazards.
+                obstacle.isStation -> {
+                    1.1f
+                }
+
                 // Hulks have big collision radii. Don't be afraid to get close.
                 obstacle.isHulk -> {
                     0.8f
