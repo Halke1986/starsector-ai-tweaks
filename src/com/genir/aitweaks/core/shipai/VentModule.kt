@@ -230,9 +230,6 @@ class VentModule(private val ai: CustomShipAI) {
         return when {
             ai.flags.has(Flags.Flag.DO_NOT_BACK_OFF) -> false
 
-            // Enemy is routing, keep the pressure.
-            Global.getCombatEngine().isEnemyInFullRetreat -> false
-
             shouldFinishTarget -> false
 
             // Ship with no shield backs off when it can't fire anymore.
