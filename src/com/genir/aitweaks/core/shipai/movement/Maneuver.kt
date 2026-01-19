@@ -28,6 +28,7 @@ class Maneuver(val ai: CustomShipAI) {
     private var prevFrameIdx = 0
 
     var headingPoint: Vector2f = Vector2f()
+    var attackPoint: Vector2f? = null // May be different from immediate heading point when ship is orbiting the target.
     var expectedVelocity: Vector2f = Vector2f()
     var expectedFacing: Direction = movement.facing
 
@@ -110,6 +111,8 @@ class Maneuver(val ai: CustomShipAI) {
         val backoffOverride: Destination? = ai.ventModule.overrideHeading(maneuverTarget)
         val navigateTo: Vector2f? = ai.assignment.navigateTo
         val speedLimits = collisionAvoidance.gatherSpeedLimits(dt)
+
+        attackPoint = null
 
         val destination: Destination = when {
             // Let movement system determine ship heading.
@@ -218,11 +221,13 @@ class Maneuver(val ai: CustomShipAI) {
         attackLocation = attackLocation.resized(ai.attackRange) + maneuverTarget.location
 
         attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
+        this.attackPoint = attackLocation
+
         return approachTarget(dt, maneuverTarget.movement, attackLocation, speedLimits)
     }
 
     /** Take into account other entities when planning ship attack location. */
-    fun coordinateAttackLocation(maneuverTarget: ShipAPI, attackLocation: Vector2f): Vector2f {
+    private fun coordinateAttackLocation(maneuverTarget: ShipAPI, attackLocation: Vector2f): Vector2f {
         // Coordinate the attack with allied ships.
         val coordinator: AttackCoordinator = ai.globalAI.maneuverCoordinator
         val (coordinatedAttackLocation, taskForceSize) = coordinator.coordinateAttack(ai, maneuverTarget, attackLocation)

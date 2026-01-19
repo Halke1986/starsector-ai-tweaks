@@ -1,3 +1,5 @@
+- Custom AI: Number of improvements to collision avoidance logic. Ships are now less likely to bump into allies. 
+
 Version v2.2.1
 
 - Custom AI: Fixed an issue where backing off ships would collide with enemies.

@@ -68,41 +68,44 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val obstacles: Sequence<ShipAPI> = findRelevantObstacles()
 
         return obstacles.map { obstacle: ShipAPI ->
-            val distanceFactor = when {
+            val collisionDistance: Float = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius
+            val shieldDistance: Float = ai.ship.shieldRadiusEvenIfNoShield + obstacle.shieldRadiusEvenIfNoShield
+
+            val minDistance: Float = when {
                 // Don't get near stations, to account for their
                 // complicated shape with multiple collision hazards.
                 obstacle.isStation -> {
-                    1.1f
+                    1.1f * collisionDistance
                 }
 
                 // Hulks have big collision radii. Don't be afraid to get close.
                 obstacle.isHulk -> {
-                    0.8f
+                    0.8f * collisionDistance
                 }
 
                 // Allow tighter formations for backing off ships.
-                ai.ventModule.isBackingOff || obstacle.aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
-                    0.9f
+                // NOTE: This condition is asymmetric. Backing off ship should approach other
+                // ships beyond their collision avoidance range, forcing them to make way.
+                ai.ventModule.isBackingOff -> {
+                    10f + shieldDistance
                 }
 
-                // Do not respect vanilla AI.
+                // Do not respect vanilla AI frigates.
                 obstacle.root.isFrigate && obstacle.customShipAI == null -> {
-                    0.8f
+                    shieldDistance
                 }
 
                 // Allow priority ships to squeeze between allies in formation.
                 movement.ship.movementPriority > obstacle.movementPriority -> {
-                    0.9f
+                    10f + shieldDistance
                 }
 
                 // Leave some space between ships. This prevents blocking
                 // line of fire and allows for formation flexibility.
                 else -> {
-                    1.4f
+                    1.4f * collisionDistance
                 }
             }
-
-            val minDistance = (ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius) * distanceFactor
 
             return@map vMaxToObstacle(dt, obstacle.movement.linearMotion, minDistance, obstacle)
         }.toList()
@@ -133,7 +136,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     private fun avoidManeuverTarget(dt: Float): Limit? {
         val target: ShipAPI = ai.maneuverTarget ?: return null
 
-        // Ship can approach the target when on an assignment on when backing off.
+        // Ship can approach the target when on an assignment or when backing off.
         val ignore: Boolean = when {
             // Target is too large to ignore.
             target.mass * enemyCollisionSizeFactor > movement.ship.mass -> {
@@ -217,14 +220,16 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val toObstacleFacing = toObstacle.facing
         val r = (-toObstacleFacing).rotationMatrix
 
-        // If the ships maintain their current course, they will not collide.
-        val predictedMinDistance = distanceToOrigin(toObstacle, obstacleMotion.velocity - movement.velocity)
-        if (predictedMinDistance > minDistance * 1.5f) {
-            return null
-        }
-
         val distance = toObstacle.rotatedX(r)
         val distanceLeft = distance - minDistance
+
+        // If the ships maintain their current course, they will not collide.
+        if (distanceLeft > 0) {
+            val predictedMinDistance = distanceToOrigin(toObstacle, obstacleMotion.velocity - movement.velocity)
+            if (predictedMinDistance > minDistance * 1.5f) {
+                return null
+            }
+        }
 
         val decelShip = movement.collisionDeceleration(toObstacleFacing)
         val vMax = BasicEngineController.vMax(dt, abs(distanceLeft), decelShip) * distanceLeft.sign

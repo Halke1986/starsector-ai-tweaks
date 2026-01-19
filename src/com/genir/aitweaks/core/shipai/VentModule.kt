@@ -1,6 +1,5 @@
 package com.genir.aitweaks.core.shipai
 
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
@@ -181,33 +180,24 @@ class VentModule(private val ai: CustomShipAI) {
             !isSafe -> backoffDistance = farAway
 
             backoffDistance == farAway && maneuverTarget != null -> {
-                backoffDistance = (maneuverTarget.location - ship.location).length * 1.1f
+                backoffDistance = max(
+                    ai.attackingGroup.maxRange + maneuverTarget.totalCollisionRadius, // Move far enough to stop attacking, so the flux can drop.
+                    1.1f * (maneuverTarget.location - ship.location).length
+                )
             }
         }
 
         // Calculate backoff heading.
         return when {
-            ai.ventModule.isSafe -> when {
-                // Stop backing off when venting is close to finished.
-                // Otherwise, ship will start reversing course too late and back off too far.
-                ship.fluxTracker.isVenting && ship.fluxTracker.timeToVent < engageBeforeVentFinish -> {
-                    null
-                }
+            // Maintain const distance from the maneuver target.
+            isSafe && maneuverTarget != null -> {
+                val location = maneuverTarget.location - ai.threatVector.resized(backoffDistance)
+                Destination(location, maneuverTarget.movement.velocity)
+            }
 
-                // Stop backing off when passive dissipation is close to finished.
-                ai.flags.has(Flags.Flag.DO_NOT_USE_SHIELDS) && ship.passiveDissipationTime < engageBeforeVentFinish -> {
-                    null
-                }
-
-                // Maintain const distance from the maneuver target.
-                maneuverTarget != null -> {
-                    val location = maneuverTarget.location - ai.threatVector.resized(backoffDistance)
-                    Destination(location, maneuverTarget.movement.velocity)
-                }
-
-                else -> {
-                    null
-                }
+            // Undefined situation: no danger, and no maneuver target.
+            isSafe && maneuverTarget == null -> {
+                null
             }
 
             // Move opposite to threat vector.
@@ -228,34 +218,81 @@ class VentModule(private val ai: CustomShipAI) {
         val underFire = damageTracker.damage / ship.maxFlux > 0.2f
 
         return when {
-            ai.flags.has(Flags.Flag.DO_NOT_BACK_OFF) -> false
+            ai.flags.has(Flags.Flag.DO_NOT_BACK_OFF) -> {
+                false
+            }
 
-            shouldFinishTarget -> false
+            shouldFinishTarget -> {
+                false
+            }
 
-            // Ship with no shield backs off when it can't fire anymore.
-            ship.shield == null && ship.allWeapons.map { it.handle }.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft } -> true
+            // Trigger backing off.
+            !isBackingOff -> when {
+                // Ship with no shield backs off when it can't fire anymore.
+                ship.shield == null && ship.allWeapons.map { it.handle }.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft } -> {
+                    true
+                }
 
-            // High flux.
-            ship.shield != null && ship.hardFluxLevel > backoffUpperThreshold -> true
+                // High flux.
+                ship.shield != null && ship.hardFluxLevel > backoffUpperThreshold -> {
+                    true
+                }
 
-            // Flux is predicted to rapidly reach dangerous levels.
-            ship.shield != null && ship.fluxLevel + fluxTracker.delta() > AIPreset.holdFireThreshold -> true
+                // Flux is predicted to rapidly reach dangerous levels.
+                ship.shield != null && ship.fluxLevel + fluxTracker.delta() > AIPreset.holdFireThreshold -> {
+                    true
+                }
 
-            // Shields down and received damage.
-            underFire && ship.shield != null && ship.shield.isOff -> true
+                // Shields down and received damage.
+                underFire && ship.shield != null && ship.shield.isOff -> {
+                    true
+                }
 
-            // Started venting under fire.
-            underFire && ship.fluxTracker.isVenting -> true
+                // Started venting under fire.
+                underFire && ship.fluxTracker.isVenting -> {
+                    true
+                }
 
-            // Safety Overriden ship dissipated most of its flux while in dangerous situation.
-            // Get back to fight instead of trying to bleed off the remaining flux.
-            !ship.canVentFlux && !isSafe && ship.fluxLevel <= backoffLowerThresholdPassive -> false
+                // No reason found to start backing off.
+                else -> {
+                    false
+                }
+            }
 
-            // Stop backing off when flux is mostly dissipated.
-            ship.fluxLevel <= backoffLowerThreshold -> false
+            // Finish backing off.
+            isBackingOff -> when {
+                // Safety Overriden ship dissipated most of its flux while in dangerous situation.
+                // Get back to fight instead of trying to bleed off the remaining flux.
+                !isSafe && !ship.canVentFlux && ship.fluxLevel <= backoffLowerThresholdPassive -> {
+                    false
+                }
+
+                // Stop backing off when flux is mostly dissipated.
+                ship.fluxLevel <= backoffLowerThreshold -> {
+                    false
+                }
+
+                // Stop backing off when venting is close to finished.
+                // Otherwise, ship will start reversing course too late and back off too far.
+                isSafe && ship.fluxTracker.isVenting && ship.fluxTracker.timeToVent < engageBeforeVentFinish -> {
+                    false
+                }
+
+                // Stop backing off when passive dissipation is close to finished.
+                isSafe && ai.flags.has(Flags.Flag.DO_NOT_USE_SHIELDS) && ship.passiveDissipationTime < engageBeforeVentFinish -> {
+                    false
+                }
+
+                // No reason found to stop backing off.
+                else -> {
+                    true
+                }
+            }
 
             // Continue current backoff status.
-            else -> isBackingOff
+            else -> {
+                isBackingOff
+            }
         }
     }
 

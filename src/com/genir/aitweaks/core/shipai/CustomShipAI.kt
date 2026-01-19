@@ -131,7 +131,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 //        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
 //        Debug.drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 
-//        Debug.drawLine(ship.location, movement.headingPoint, Color.MAGENTA)
+//        Debug.drawLine(ship.location, maneuver.attackPoint ?: maneuver.headingPoint, Color.CYAN)
 
 //        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location + movement.expectedFacing.unitVector * 600f, Color.YELLOW)
@@ -141,6 +141,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 //        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing + attackingGroup.facing) * 600f, Color.BLUE)
 //        Debug.drawLine(ship.location, ship.location + movement.expectedVelocity, Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
+//        Debug.drawVector(ship.location, ship.movement.velocity, Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
 
 //        if (maneuverTarget != null) {
