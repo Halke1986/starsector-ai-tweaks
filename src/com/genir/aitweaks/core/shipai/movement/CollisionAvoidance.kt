@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
+import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.*
@@ -60,8 +61,9 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val collisionLimits = avoidCollisions(dt)
         val borderLimit = avoidBorder()
         val targetLimit = avoidManeuverTarget(dt)
+        val missileLimits = avoidMissiles(dt)
 
-        return (listOf(borderLimit, targetLimit) + collisionLimits).filterNotNull()
+        return (listOf(borderLimit, targetLimit) + collisionLimits + missileLimits).filterNotNull()
     }
 
     private fun avoidCollisions(dt: Float): List<Limit?> {
@@ -131,6 +133,27 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 else -> false
             }
         }
+    }
+
+    private fun avoidMissiles(dt: Float): List<Limit?> {
+        val allMissiles: Sequence<MissileAPI> = Global.getCombatEngine().missiles.asSequence()
+
+        val relevantMissiles: Sequence<MissileAPI> = allMissiles.filter { missile: MissileAPI ->
+            when {
+                // Avoid mines only.
+                !missile.isMine -> false
+
+                !missile.isValidTarget -> false
+
+                else -> true
+            }
+        }
+
+        return relevantMissiles.map { missile: MissileAPI ->
+            val minDistance = ai.stats.totalCollisionRadius + missile.mineExplosionRange + 30f
+
+            return@map vMaxToObstacle(dt, LinearMotion(missile.location, missile.velocity), minDistance, null)
+        }.toList()
     }
 
     private fun avoidManeuverTarget(dt: Float): Limit? {
