@@ -136,30 +136,10 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     private fun avoidManeuverTarget(dt: Float): Limit? {
         val target: ShipAPI = ai.maneuverTarget ?: return null
 
-        // Ship can approach the target when on an assignment or when backing off.
-        val ignore: Boolean = when {
-            // Target is too large to ignore.
-            target.mass * enemyCollisionSizeFactor > movement.ship.mass -> {
-                false
-            }
-
-            ai.ventModule.isBackingOff -> {
-                true
-            }
-
-            ai.assignment.eliminate != null -> {
-                true
-            }
-
-            ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> {
-                true
-            }
-
-            else -> {
-                false
-            }
+        // Ship can approach the target when backing off, unless the target is too large.
+        if (ai.ventModule.isBackingOff && target.mass * enemyCollisionSizeFactor < movement.ship.mass) {
+            return null
         }
-
 
         return vMaxToObstacle(dt, target.movement.linearMotion, ai.attackRange * 0.85f, target)
     }
