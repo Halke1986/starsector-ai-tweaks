@@ -47,8 +47,8 @@ class VentModule(private val ai: CustomShipAI) {
         const val idleVentThreshold = 0.30f
         const val opportunisticVentThreshold = 0.5f
         const val backoffUpperThreshold = 0.75f
-        const val backoffLowerThreshold = 0.1f
-        const val backoffLowerThresholdPassive = 0.22f
+        const val backoffLowerThreshold = 0.05f
+        const val backoffLowerThresholdPassive = 0.20f
 
         const val ventTrackingPeriod = 4.3f
         const val engageBeforeVentFinish = 1.5f
@@ -138,12 +138,12 @@ class VentModule(private val ai: CustomShipAI) {
     private fun handleShipsWithNoVent() {
         if (isBackingOff) {
             isSafe = isSafeAssumeNoBackoff(dropShieldSafetyPeriod)
-        }
 
-        if (isBackingOff && isSafe) {
-            ai.flags.set(Flags.Flag.DO_NOT_USE_SHIELDS)
-        } else {
-            ai.flags.unset(Flags.Flag.DO_NOT_USE_SHIELDS)
+            if (isSafe && ship.fluxLevel > 0f) {
+                ai.flags.set(Flags.Flag.DO_NOT_USE_SHIELDS)
+            } else {
+                ai.flags.unset(Flags.Flag.DO_NOT_USE_SHIELDS)
+            }
         }
     }
 
@@ -262,7 +262,8 @@ class VentModule(private val ai: CustomShipAI) {
             // Finish backing off.
             isBackingOff -> when {
                 // Safety Overriden ship dissipated most of its flux while in dangerous situation.
-                // Get back to fight instead of trying to bleed off the remaining flux.
+                // Get back to fight instead of trying to bleed off the remaining flux, to avoid
+                // infinite loop of flux dissipation and flux buildup because of e.g. PD weapon activity.
                 !isSafe && !ship.canVentFlux && ship.fluxLevel <= backoffLowerThresholdPassive -> {
                     false
                 }
@@ -275,11 +276,6 @@ class VentModule(private val ai: CustomShipAI) {
                 // Stop backing off when venting is close to finished.
                 // Otherwise, ship will start reversing course too late and back off too far.
                 isSafe && ship.fluxTracker.isVenting && ship.fluxTracker.timeToVent < engageBeforeVentFinish -> {
-                    false
-                }
-
-                // Stop backing off when passive dissipation is close to finished.
-                isSafe && ai.flags.has(Flags.Flag.DO_NOT_USE_SHIELDS) && ship.passiveDissipationTime < engageBeforeVentFinish -> {
                     false
                 }
 
