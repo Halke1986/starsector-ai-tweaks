@@ -13,6 +13,7 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
 import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeAllyHit
 import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeHit
+import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.starfarer.combat.entities.Ship
 import org.json.JSONObject
@@ -173,7 +174,7 @@ fun isCloseToEnemy(ship: ShipAPI, enemy: ShipAPI): Boolean {
 fun sqrt(x: Float): Float {
     val result = kotlin.math.sqrt(x)
 
-    if (result.isNaN()) {
+    if (config.devMode && result.isNaN()) {
         Debug.print["NaN"] = "NaN"
         val e = Exception("NaN")
         Global.getLogger(Log::class.java).error(e, e)
