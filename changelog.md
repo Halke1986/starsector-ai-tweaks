@@ -1,5 +1,5 @@
 - Custom AI: Number of improvements to collision avoidance logic. Ships are now less likely to bump into allies.
-- Custom AI: Ships not avoid flying into mines.
+- Custom AI: Ships now avoid mines.
 - Fixed log spam when calculations result in Not a Number. Suggested by Oddish.
 
 Version v2.2.1
