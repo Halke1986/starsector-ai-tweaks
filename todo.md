@@ -63,6 +63,4 @@ The IQ of most gunboats has increased, but it will affect the AI of the monitor 
 
 Take DEMs into account.
 
-Access ASM.
-
 ----------------------------------------------------------------
