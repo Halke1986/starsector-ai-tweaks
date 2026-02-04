@@ -50,9 +50,6 @@ Seekers:
 @Vicegrip @Genir pinging both cuz idk if its an AI tweaks (not custom AI) thing or a hints issue (and if its a hints issue maybe u wanna foolproof it anyways genir) , but Orthrus DEM Torpedo has both GUIDED POOR and DIRECT AIM hints so the Stonefish TW, which is a ship that has missile hardpoints that aim to the side with a narrow arc with a front facing large energy hardpoint, will actually never fire the missiles despite the DO NOT CONSERVE and guided tags since the arcs will never converge even if everything is linked to the same weapon group. Using with a harpoon makes it behave as normal.
 Another issue is with plasma darts, its a small energy homing weapon that has DIRECT AIM and DO NOT AIM hints, this results in AI tweaks (non custom AI) trying to aim with it so it does weird broadside or jank movements as it tries to aim the plasma darts despite not needing to since its a homing weapon. 
 
-https://fractalsoftworks.com/forum/index.php?topic=28428.msg509149#msg509149
-https://fractalsoftworks.com/forum/index.php?topic=28428.msg509549#msg509549
-
 https://fractalsoftworks.com/forum/index.php?topic=28428.msg507806#msg507806
 
 https://fractalsoftworks.com/forum/index.php?topic=28428.msg507813#msg507813

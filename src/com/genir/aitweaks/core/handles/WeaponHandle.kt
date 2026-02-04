@@ -153,7 +153,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
         get() {
             return when {
                 // Missiles may cause damage beyond the weapon engagement range.
-                isMissile -> projectileSpeed * (weapon.spec.projectileSpec as MissileSpecAPI).maxFlightTime
+                spec.projectileSpec is MissileSpecAPI -> projectileSpeed * (spec.projectileSpec as MissileSpecAPI).maxFlightTime
 
                 else -> engagementRange
             }
@@ -175,7 +175,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
 
     val isNonInterruptibleBurstWeapon: Boolean
         get() = when {
-            weapon.spec.isInterruptibleBurst -> false
+            spec.isInterruptibleBurst -> false
 
             // Exclude "continuous" burst beams like the IR Autolance.
             isBeam && spec.burstDuration > 0f && cooldown == 0f -> false
@@ -322,7 +322,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
 
             is MissileSpecAPI -> {
                 val engineSpec: ShipHullSpecAPI.EngineSpecAPI = spec.hullSpec.engineSpec
-                val shipStats: MutableShipStatsAPI = weapon.ship.mutableStats
+                val shipStats: MutableShipStatsAPI = ship.mutableStats
                 val maxSpeedStat = MutableStat(engineSpec.maxSpeed)
 
                 maxSpeedStat.applyMods(shipStats.missileMaxSpeedBonus)

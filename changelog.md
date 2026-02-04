@@ -1,7 +1,8 @@
 - Custom AI: Number of improvements to collision avoidance logic. Ships are now less likely to bump into allies.
 - Custom AI: Ships now avoid mines.
 - Fixed log spam when calculations result in Not a Number. Suggested by Oddish.
-- Removed mod_info.json link to ASM library to avoid conflicts with other mods that depend on different ASM versions. The library is now loaded with a custom loader. Suggested by andylizi.  
+- Removed mod_info.json link to ASM library to avoid conflicts with other mods that depend on different ASM versions. The library is now loaded with a custom loader. Suggested by andylizi.
+- Fixed a ClassCastException crash when calculating threat from a missile weapons firing non-missile projectiles. Reported by carbineaction and Goldendragonfinn.  
 
 Version v2.2.1
 
