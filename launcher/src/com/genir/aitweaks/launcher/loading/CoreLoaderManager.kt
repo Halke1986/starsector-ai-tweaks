@@ -6,20 +6,7 @@ import java.net.URLClassLoader
 
 /** CoreLoaderManager contains the class loader for latest AI Tweaks core jar. */
 object CoreLoaderManager {
-    private val coreLoaderClass = run {
-        // The bootstrap loader is used to lift reflection and file access restrictions
-        // and to load the ASM library dynamically. The ASM library could be declared
-        // statically in mod_info.json, but doing so may cause conflicts with other mods
-        // that depend on different ASM versions.
-        val urLs: Array<URL> = (this::class.java.classLoader as URLClassLoader).urLs
-        val launcherURL = urLs.first { it.path.contains("aitweaks-launcher.jar") }
-        val asmURL = URL(launcherURL.toString().replace("aitweaks-launcher.jar", "asm-9.1.jar"))
-        val bootstrapLoader = URLClassLoader(urLs + asmURL)
-
-        bootstrapLoader.loadClass("com.genir.aitweaks.launcher.loading.CoreLoader")
-    }
-
-    var coreLoader: URLClassLoader = coreLoaderClass.instantiate()
+    var coreLoader: URLClassLoader = BootstrapLoader().loadClass("com.genir.aitweaks.launcher.loading.CoreLoader").instantiate()
 
     /** Update AI Tweaks core loader to point at the latest core jar. */
     fun updateLoader() {
@@ -27,7 +14,7 @@ object CoreLoaderManager {
             return
         }
 
-        val newLoader: URLClassLoader = coreLoaderClass.instantiate()
+        val newLoader: URLClassLoader = coreLoader::class.java.instantiate()
         if (!coreLoader.urLs.contentEquals(newLoader.urLs)) {
             coreLoader = newLoader
         }
@@ -35,5 +22,29 @@ object CoreLoaderManager {
 
     fun <T> Class<*>.instantiate(): T {
         return newInstance() as T
+    }
+
+    /** The bootstrap loader is used to lift reflection and file access restrictions
+     * and to load the ASM library dynamically. The ASM library could be declared
+     * statically in mod_info.json, but doing so may cause conflicts with other mods
+     * that depend on different ASM versions. */
+    private class BootstrapLoader() : URLClassLoader((this::class.java.classLoader as URLClassLoader).urLs) {
+        private val asmLoader = run {
+            val launcherURL = super.getURLs().first { it.path.contains("aitweaks-launcher.jar") }
+            val asmURL = URL(launcherURL.toString().replace("aitweaks-launcher.jar", "asm-9.1.jar"))
+
+            return@run URLClassLoader(arrayOf(asmURL))
+        }
+
+        override fun loadClass(name: String?, resolve: Boolean): Class<*> {
+            // Try loading AI Tweaks specific ASM version.
+            // This avoids loading ASM added by other mods.
+            try {
+                return asmLoader.loadClass(name)
+            } catch (_: ClassNotFoundException) {
+            }
+
+            return super.loadClass(name, resolve)
+        }
     }
 }
