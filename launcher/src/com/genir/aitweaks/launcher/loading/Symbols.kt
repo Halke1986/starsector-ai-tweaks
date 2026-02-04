@@ -10,7 +10,6 @@ import com.fs.starfarer.combat.ai.attack.AttackAIModule
 import com.fs.starfarer.combat.entities.Ship
 import com.fs.starfarer.loading.LoadingUtils
 import com.fs.starfarer.title.TitleScreenState
-import com.genir.aitweaks.launcher.loading.Bytecode.classPath
 import org.json.JSONObject
 import org.lwjgl.util.vector.Vector2f
 import org.objectweb.asm.ClassReader
@@ -85,8 +84,8 @@ class Symbols {
     val flockingAI_setDesiredFacing: Method = flockingAI.methods.first { it.name == flockingAISetterNames(2) && it.hasParameters(Float::class.java) }
     val flockingAI_setDesiredSpeed: Method = flockingAI.methods.first { it.name == flockingAISetterNames(4) && it.hasParameters(Float::class.java) }
     val flockingAI_advanceCollisionAnalysisModule: Method = flockingAI.methods.first { it.name == flockingAISetterNames(3) && it.hasParameters(Float::class.java) }
-    val flockingAI_getMissileDangerDir: Method = flockingAI.methods.first { it.name == Bytecode.getMethodsInOrder(flockingAI).first { it.desc == "()Lorg/lwjgl/util/vector/Vector2f;" }.name && it.returnType == Vector2f::class.java && it.hasParameters() }
-    val flockingAI_getCollisionDangerDir: Method = flockingAI.methods.first { it.name == Bytecode.getMethodsInOrder(flockingAI).filter { it.desc == "()Lorg/lwjgl/util/vector/Vector2f;" }[1].name && it.returnType == Vector2f::class.java && it.hasParameters() }
+    val flockingAI_getMissileDangerDir: Method = flockingAI.methods.first { it.name == getMethodsInOrder(flockingAI).first { header: MethodHeader -> header.desc == "()Lorg/lwjgl/util/vector/Vector2f;" }.name && it.returnType == Vector2f::class.java && it.hasParameters() }
+    val flockingAI_getCollisionDangerDir: Method = flockingAI.methods.first { it.name == getMethodsInOrder(flockingAI).filter { header: MethodHeader -> header.desc == "()Lorg/lwjgl/util/vector/Vector2f;" }[1].name && it.returnType == Vector2f::class.java && it.hasParameters() }
     val combatMap_getPluginContainers: Method = combatMap.methods.first { it.hasParameters() && it.returnType == List::class.java }
     val missionDefinitionPluginContainer_getEveryFrameCombatPlugin: Method = missionDefinitionPluginContainer.methods.first { it.returnType == EveryFrameCombatPlugin::class.java }
     val loadingUtils_loadSpec: Method = loadingUtils.methods.first { it.returnType == JSONObject::class.java && it.hasParameters(String::class.java, Set::class.java) }
@@ -137,12 +136,12 @@ class Symbols {
     }
 
     private fun findKeymapIsKeyDown(): Method {
-        val isKeyDownName = Bytecode.getMethodsInOrder(keymap).first { it.desc == "(L${playerAction.classPath};)Z" }
+        val isKeyDownName = getMethodsInOrder(keymap).first { it.desc == "(L${playerAction.classPath};)Z" }
         return keymap.methods.first { it.name == isKeyDownName.name && it.parameterTypes.contentEquals(arrayOf(playerAction)) }
     }
 
     private fun flockingAISetterNames(idx: Int): String {
-        val bytecodeMethods: List<Bytecode.Method> = Bytecode.getMethodsInOrder(flockingAI)
+        val bytecodeMethods: List<MethodHeader> = getMethodsInOrder(flockingAI)
         return bytecodeMethods.filter { it.desc == "(F)V" }[idx].name
     }
 
@@ -239,6 +238,25 @@ class Symbols {
     }
 
     private fun newClassReader(classPath: String): ClassReader {
-        return ClassReader(Bytecode.readClassBuffer(classLoader, classPath))
+        return ClassReader(Transformer.readClassBuffer(classLoader, classPath))
     }
+
+    data class MethodHeader(val name: String, val desc: String)
+
+    /** Read method names in same order as defined in class bytecode. */
+    private fun getMethodsInOrder(c: Class<*>): List<MethodHeader> {
+        val methods: MutableList<MethodHeader> = mutableListOf()
+
+        ClassReader(Transformer.readClassBuffer(c.classLoader, c.name)).accept(object : ClassVisitor(Opcodes.ASM7) {
+            override fun visitMethod(access: Int, name: String, desc: String, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
+                methods.add(MethodHeader(name, desc))
+                return null
+            }
+        }, 0)
+
+        return methods
+    }
+
+    val Class<*>.classPath: String
+        get() = this.name.replace('.', '/')
 }

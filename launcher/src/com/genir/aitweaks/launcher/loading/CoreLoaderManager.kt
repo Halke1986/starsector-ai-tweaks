@@ -5,8 +5,12 @@ import java.net.URLClassLoader
 
 /** CoreLoaderManager contains the class loader for latest AI Tweaks core jar. */
 object CoreLoaderManager {
-    private val bootstrapLoader = URLClassLoader((this::class.java.classLoader as URLClassLoader).urLs)
-    private val coreLoaderClass = bootstrapLoader.loadClass("com.genir.aitweaks.launcher.loading.CoreLoader")
+    private val coreLoaderClass = run {
+        val bootstrapLoader = URLClassLoader((this::class.java.classLoader as URLClassLoader).urLs)
+
+        bootstrapLoader.loadClass("com.genir.aitweaks.launcher.loading.CoreLoader")
+    }
+
     var coreLoader: URLClassLoader = coreLoaderClass.instantiate()
 
     /** Update AI Tweaks core loader to point at the latest core jar. */
