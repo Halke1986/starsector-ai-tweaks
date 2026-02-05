@@ -109,11 +109,25 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
     val isFrontFacing: Boolean
         get() = isAngleInArc(0f.toDirection)
 
+    /** Effective weapon attack arc. **/
     val arc: Arc
         get() {
-            val isMissileHardpoint = type == WeaponType.MISSILE && slot.isHardpoint
-            val angle = if (isMissileHardpoint) 0f else weapon.arc
-            return Arc(angle, arcFacing.toDirection)
+            return when {
+                // Assume guided missile and special guided weapon like the Voltaic Discharge
+                // can attack in full arc, regardless of slot arc.
+                hasAIHint(WeaponAPI.AIHints.GUIDED_POOR) || hasAIHint(WeaponAPI.AIHints.DO_NOT_AIM) -> {
+                    Arc(360f, arcFacing.toDirection)
+                }
+
+                // Missile hardpoints can't move at all, even if weapon slot has non-zero arc.
+                isMissile && slot.isHardpoint -> {
+                    Arc(0f, arcFacing.toDirection)
+                }
+
+                else -> {
+                    Arc(weapon.arc, arcFacing.toDirection)
+                }
+            }
         }
 
     /** Weapon arc in absolute coordinates, instead of ship coordinates */

@@ -2,7 +2,8 @@
 - Custom AI: Ships now avoid mines.
 - Fixed log spam when calculations result in Not a Number. Suggested by Oddish.
 - Removed mod_info.json link to ASM library to avoid conflicts with other mods that depend on different ASM versions. The library is now loaded with a custom loader. Suggested by andylizi.
-- Fixed a ClassCastException crash when calculating threat from a missile weapons firing non-missile projectiles. Reported by carbineaction and Goldendragonfinn.  
+- Fixed a ClassCastException crash when calculating threat from a missile weapons firing non-missile projectiles. Reported by carbineaction and Goldendragonfinn.
+- Custom AI: Ships no longer rotate to aim weapons with DO_NOT_AIM hint, like the Voltaic Discharge. Reported by Seekers.
 
 Version v2.2.1
 

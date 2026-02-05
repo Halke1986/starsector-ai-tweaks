@@ -24,7 +24,7 @@ class AutofireAIPicker : com.genir.aitweaks.launcher.AutofireAIPicker {
                 null
             }
 
-            weapon.type == WeaponAPI.WeaponType.MISSILE -> {
+            weapon.isMissile -> {
                 null
             }
 
@@ -35,6 +35,11 @@ class AutofireAIPicker : com.genir.aitweaks.launcher.AutofireAIPicker {
 
             // Unusual no-aim weapons, like the Voltaic Discharge.
             weapon.hasAIHint(WeaponAPI.AIHints.DO_NOT_AIM) -> {
+                null
+            }
+
+            // Decoratives, fake weapons, etc.
+            weapon.derivedStats.dps == 0f -> {
                 null
             }
 

@@ -2,7 +2,6 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.extensions.rangeFromShipCenter
 import com.genir.aitweaks.core.extensions.sumOf
@@ -28,8 +27,10 @@ class ShipStats(private val ship: ShipAPI) {
     private fun findSignificantWeapons(): List<WeaponHandle> {
         val weapons = ship.allGroupedWeapons.filter { weapon ->
             when {
-                weapon.type == WeaponAPI.WeaponType.MISSILE -> false
+                weapon.isMissile -> false
+
                 weapon.derivedStats.dps == 0f -> false
+
                 else -> true
             }
         }
