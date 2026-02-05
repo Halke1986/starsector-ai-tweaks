@@ -2,6 +2,9 @@ fieldID,,,,fieldName,,fieldType,defaultValue,secondaryValue,,,fieldDescription,,
 
 aitweaks_enable_fleet_cohesion_ai,,,,Enable Fleet Cohesion AI,,Boolean,true,,,,"Should the AI attempt to maintain fleet cohesion by auto-assigning move commands to cruisers and capitals that stray off from the rest of the fleet.",,,,,Ship AI
 aitweaks_ai_core_personality,,,,Player Fleet AI Core Personality,,Radio,Aggressive,"Timid, Cautious, Steady, Aggressive, Reckless, Vanilla",,,"Override the personality of AI cores piloting ships in the player fleet. In vanilla, automated ships piloted by AI cores (except carriers) are locked to fearless personality. Ships with AI personality overridden by a mod other than AI Tweaks will remain unaffected.",,,,,Ship AI
+aitweaks_fleetwide_search_destroy,,,,Enable Fleetwide Search & Destroy,,Boolean,false,,,,"All player ships default to the Search & Destroy assignment. Ships are not automatically assigned to Assault, Eliminate, or other tasks. Players may manually assign ships to any task.
+
+If this setting is disabled, individual ships can still be configured to default to Search & Destroy via a hullmod.",,,,,Ship AI
 
 aitweaks_staggered_fire_threshold,,,,Staggered Firing Mode Cycle Threshold,,Double,4.5,,,,"If a ship’s autofire weapon has a firing cycle shorter than this threshold, it will fire in staggered mode. In this mode, all weapons of the same type fire at evenly spaced intervals rather than all at once. Setting this value to 0 disables staggered fire. (For reference: Plasma Cannon has a 2-second firing cycle; Light Needler has a 5-second cycle.)",,,0,10,Autofire AI
 aitweaks_enable_needler_fix,,,,Enable Anti Shield Burst Weapon AI,,Boolean,true,,,,"Adjusts all ammo-based kinetic weapons, as well as the vanilla Light and Medium Needlers, to attack enemy ships only when their shields are raised. This optimizes flux usage and burst effectiveness for breaking through shields.",,,,,Autofire AI

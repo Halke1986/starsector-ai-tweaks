@@ -8,6 +8,7 @@ import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.starfarer.combat.ai.BasicShipAI
@@ -197,4 +198,4 @@ val ShipAPI.canVentFlux: Boolean
     get() = mutableStats.ventRateMult.getModifiedValue() > 0f
 
 val ShipAPI.isAlwaysSearchDestroy: Boolean
-    get() = customShipAI != null || variant.hasHullMod("aitweaks_search_and_destroy")
+    get() = config.fleetwideSearchAndDestroy || variant.hasHullMod("aitweaks_search_and_destroy")

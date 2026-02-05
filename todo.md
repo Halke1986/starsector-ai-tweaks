@@ -46,8 +46,6 @@ vent logic:
 
 ----------------------------------------------------------------
 
-https://fractalsoftworks.com/forum/index.php?topic=28428.msg507806#msg507806
-
 https://fractalsoftworks.com/forum/index.php?topic=28428.msg507813#msg507813
 
 Fossic:

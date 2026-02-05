@@ -15,6 +15,7 @@ class Config {
     // Ship AI
     val enableFleetCohesion: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_enable_fleet_cohesion_ai")!!
     val aiPersonality: String? = LunaSettings.getString("aitweaks", "aitweaks_ai_core_personality")
+    val fleetwideSearchAndDestroy: Boolean = LunaSettings.getBoolean("aitweaks", "aitweaks_fleetwide_search_destroy")!!
 
     // Autofire AI
     val staggeredFireThreshold: Float = LunaSettings.getFloat("aitweaks", "aitweaks_staggered_fire_threshold")!!

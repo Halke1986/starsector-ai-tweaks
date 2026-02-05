@@ -18,7 +18,7 @@ Custom AI treats orders as high-priority commands, executing them in an RTS-like
 The ship defaults to %s order. The ship will not be automatically assigned to Assault, Eliminate or any other tasks. Player can manually assign the ship to any tasks.
 
 You can report any feats of stupidity accomplished by the AI on Discord or the forums.",,,,,,graphics/hullmods/custom_ship_ai.png
-Search and Destroy,aitweaks_search_and_destroy,0,,AI Tweaks,"special,no_build_in",Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.SearchAndDestroy,,,,,"The ship defaults to Search and Destroy order. The ship will not be automatically assigned to Assault, Eliminate or any other tasks. Player can manually assign the ship to any tasks.
+Search and Destroy,aitweaks_search_and_destroy,0,,AI Tweaks,"special,no_build_in",Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.SearchAndDestroy,,,,,"The ship defaults to Search and Destroy assignment. The ship will not be automatically assigned to Assault, Eliminate or any other tasks. Player can manually assign the ship to any tasks.
 
 The hullmod is suppressed during initial deployment, to allow for easy objective capping.",,,,,,graphics/warroom/taskicons/icon_search_and_destroy.png
 Role: Skirmisher,aitweaks_skirmisher,0,,AI Tweaks,"special,no_build_in",Special,,TRUE,FALSE,,0,0,0,0,,com.genir.aitweaks.launcher.hullmods.Skirmisher,,,,,"This ship will operate on the outskirts of the battlefield, engaging targets of opportunity. While it may still join the main battle line, it will not prioritize doing so.
