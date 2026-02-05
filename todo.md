@@ -53,5 +53,11 @@ Can the monitor be kept on F?
 The IQ of most gunboats has increased, but it will affect the AI of the monitor and prevent the monitor from developing skills. 
 
 Take DEMs into account.
+Lelboihi
+ — 
+18/01/2026, 16:49
+@Genir 
+this isnt the ai tweaks prerelease channel but uhhh
+local odyssey (IX) decides to drop shields and vent infront of 10 dragonfires fired by strike pegasus, fucking dies
 
 ----------------------------------------------------------------
