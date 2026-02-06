@@ -34,7 +34,9 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
         weapons.forEach {
             val dps = it.effectiveDPS
             all += dps
-            if (it.rangeInGroup >= range) inRange += dps
+            if (it.rangeInGroup >= range) {
+                inRange += dps
+            }
         }
 
         return if (all != 0f) inRange / all else 0f
@@ -69,7 +71,10 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
         get() = rangeMap[this]!!
 
     private fun defaultAttackFacing(): Direction {
-        val dpsArcs: Sequence<DPSArc> = staticArcsInShipFrameOfReference(1e5f, 0f)
+        val dpsArcs: Sequence<DPSArc> = weapons.asSequence().map { weapon ->
+            DPSArc(weapon.arc, effectivePeakDPS(weapon))
+        }
+
         val optimalArc: Arc = dpsArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -it.arc.distanceTo(0f.toDirection).length })?.arc
             ?: return 0f.toDirection
 

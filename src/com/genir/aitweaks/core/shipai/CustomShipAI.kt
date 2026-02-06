@@ -437,6 +437,10 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     private fun evaluateTarget(target: ShipAPI, weaponGroup: WeaponGroup, obstacles: List<Obstacle>, targetedEnemies: Set<ShipAPI>): Float {
         var evaluation = 0f
 
+        // Apply a tolerance to the range comparison to avoid rapid value
+        // oscillation when the ship is hovering at the weapon range limit.
+        val rangeTolerance = 10f
+
         // Prioritize targets closer to ship facing.
         val angle = ship.shortestRotationToTarget(target.location, weaponGroup.defaultFacing).length / ship.maxTurnRate
         val angleWeight = 0.2f
@@ -444,7 +448,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
         // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
         val dist = currentEffectiveRange(target)
-        val distWeight = 1f / weaponGroup.dpsFractionAtRange(dist)
+        val distWeight = 1f / weaponGroup.dpsFractionAtRange(dist - rangeTolerance)
         evaluation -= (dist / weaponGroup.maxRange) * distWeight
 
         // Prioritize targets high on flux. Avoid hunting low flux phase ships.
@@ -484,7 +488,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
         // Try to stay on target.
         if (target == attackTarget) {
-            val withinRange = currentEffectiveRange(target) <= weaponGroup.effectiveRange
+            val withinRange = currentEffectiveRange(target) - rangeTolerance <= weaponGroup.effectiveRange
             val withinArc = (expectedFacing - ship.facing.toDirection).length < 60f
             if (withinRange && withinArc) {
                 evaluation += 1f

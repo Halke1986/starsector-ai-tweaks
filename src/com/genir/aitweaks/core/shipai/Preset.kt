@@ -25,7 +25,7 @@ class Preset {
         const val enemyCollisionSizeFactor = 2f
 
         // Targeting & Weapon groups
-        const val validWeaponGroupDPSThreshold = 0.9f
+        const val weaponGroupPerformanceThreshold = 0.93f
         const val noWeaponsAttackRange = 2000f
         const val effectiveDpsThreshold = 0.80f
         const val targetThickness = 60f

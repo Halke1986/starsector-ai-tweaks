@@ -68,14 +68,14 @@ class ShipStats(private val ship: ShipAPI) {
             weightedAngles
         }
 
-        // Find weapon group with the best DPS. If no such group exists, return front facing group.
-        val bestWeaponGroup = validAngles.maxWithOrNull(compareBy { it.value })
+        // Find attack angles with acceptable DPS.
+        val bestDPS: Float = validAngles.maxWithOrNull(compareBy { it.value })?.value
             ?: return listOf(WeaponGroup(ship, listOf()))
+        val validDPSAngles: Map<Direction, Float> = validAngles.filter { it.value >= bestDPS * Preset.weaponGroupPerformanceThreshold }
 
-        // Find all weapon groups with acceptable DPS.
-        val validWeaponGroups = validAngles.filter { it.value >= bestWeaponGroup.value * Preset.validWeaponGroupDPSThreshold }
-        return validWeaponGroups.map { (angle, _) ->
-            WeaponGroup(ship, significantWeapons.filter { it.isAngleInArc(angle) })
+        // Build weapon groups.
+        return validDPSAngles.map { (direction, _) ->
+            WeaponGroup(ship, significantWeapons.filter { it.isAngleInArc(direction) })
         }
     }
 

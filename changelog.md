@@ -5,6 +5,7 @@
 - Fixed a ClassCastException crash when calculating threat from a missile weapons firing non-missile projectiles. Reported by carbineaction and Goldendragonfinn.
 - Custom AI: Ships no longer rotate to aim weapons with DO_NOT_AIM hint, like the Voltaic Discharge. Reported by Seekers.
 - Added LunaLib setting for fleetwide Search & Destroy assignment. Suggested by lchronosl.
+- Improved broadside selection logic. Ships like the Intrepid from Emergent Threats-IX Revival will now broadside only when you put very powerful weapons in side mounts. Issue reported by Chaosmoose.
 
 Version v2.2.1
 

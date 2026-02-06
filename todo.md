@@ -46,8 +46,6 @@ vent logic:
 
 ----------------------------------------------------------------
 
-https://fractalsoftworks.com/forum/index.php?topic=28428.msg507813#msg507813
-
 Fossic:
 Can the monitor be kept on F?
 The IQ of most gunboats has increased, but it will affect the AI of the monitor and prevent the monitor from developing skills. 
