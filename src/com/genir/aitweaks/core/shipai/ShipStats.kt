@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.extensions.rangeFromShipCenter
 import com.genir.aitweaks.core.extensions.sumOf
@@ -25,7 +26,7 @@ class ShipStats(private val ship: ShipAPI) {
 
     /** Weapons that can be used by the ship to conduct attacks, as opposed to PD, decoratives, etc. */
     private fun findSignificantWeapons(): List<WeaponHandle> {
-        val weapons = ship.allGroupedWeapons.filter { weapon ->
+        val allWeapons: List<WeaponHandle> = ship.allGroupedWeapons.filter { weapon ->
             when {
                 weapon.isMissile -> false
 
@@ -36,13 +37,27 @@ class ShipStats(private val ship: ShipAPI) {
         }
 
         // Filter out PD weapons, but only if there are non PD weapons available.
-        val attackWeapons = weapons.filter { !it.isPD || it.slot.isHardpoint }.ifEmpty { weapons }
+        val attackWeapons: List<WeaponHandle> = allWeapons.filter {
+            when {
+                // PD hardpoints are considered attack weapons
+                it.slot.isHardpoint -> true
+
+                // PD_ALSO are considered attack weapons
+                it.hasAIHint(WeaponAPI.AIHints.PD_ALSO) -> true
+
+                it.isPD -> false
+
+                else -> true
+            }
+        }.ifEmpty { allWeapons }
 
         // Return active weapons.
         return attackWeapons.filter { weapon ->
             when {
                 weapon.isDisabled -> false
+
                 weapon.isPermanentlyDisabled -> false
+
                 else -> true
             }
         }
