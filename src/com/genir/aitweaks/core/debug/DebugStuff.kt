@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
+import com.genir.aitweaks.core.extensions.Id
 
 /**
  *
@@ -28,7 +29,7 @@ internal fun debug(dt: Float) {
 //        log("***********************************************")
 //    }
 
-        ships.forEach {
+        ships.forEach {ship ->
 //            if (it != ship) {
 //                installAI(it) { MirrorTargetAI(it, ship) }
 //                Debug.drawEngineLines(it)
@@ -36,6 +37,8 @@ internal fun debug(dt: Float) {
 //        Debug.drawCollisionRadius(it, Color.CYAN)
 
 //        Debug.drawCircle(it.location, it.collisionRadius * 1.4f, CYAN)
+
+//            Debug.print[ship] = "${ship.Id} ${ship.name}"
         }
 
 //    removeAsteroids()

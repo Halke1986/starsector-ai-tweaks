@@ -81,6 +81,12 @@ class Assignment(private val ai: CustomShipAI) {
 
     /** Navigate to the assignment location and stay close to it. */
     private fun navigate(target: AssignmentTargetAPI, formation: Boolean) {
+        // For now, don't respect vanilla Admiral AI capture
+        // assignments, as this leads to suicide charges.
+        if (ship.owner != 0 || ship.isAlly) {
+            return
+        }
+
         // When the assignment is near the map centerline, the ships should form line abreast.
         type = if (formation && target.isNearMapCenterline) {
             NAVIGATE_IN_FORMATION
@@ -102,6 +108,12 @@ class Assignment(private val ai: CustomShipAI) {
 
     /** Take control of battle objective by unconditionally moving on top of it. */
     private fun takeControl(target: AssignmentTargetAPI) {
+        // For now, don't respect vanilla Admiral AI capture
+        // assignments, as this leads to suicide charges.
+        if (ship.owner != 0 || ship.isAlly) {
+            return
+        }
+
         navigateTo = target.location
         arrivedAt = false
         type = NAVIGATE

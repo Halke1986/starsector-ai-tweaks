@@ -152,6 +152,7 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
             // Non-player ships can have custom AI by default, without the hullmod.
             ship.owner == 1 || ship.isAlly -> when {
                 ship.hullSpec.hullId.startsWith("guardian") -> true
+                ship.hullSpec.hullId.startsWith("rampart") -> true
                 ship.hullSpec.hullId.startsWith("sr_melvillei") -> true
                 ship.hullSpec.shipSystemId == "lidararray" -> true
 
