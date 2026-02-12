@@ -46,6 +46,12 @@ vent logic:
 
 ----------------------------------------------------------------
 
+Levidos
+ — 
+02:32
+except for aleste II Which loves to melee, not complaining but i'd prefer them not to die in every engagement xD
+i have to constantly repair the dmods
+
 Fossic:
 Can the monitor be kept on F?
 The IQ of most gunboats has increased, but it will affect the AI of the monitor and prevent the monitor from developing skills. 

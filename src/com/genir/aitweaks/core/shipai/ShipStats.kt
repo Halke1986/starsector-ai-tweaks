@@ -77,7 +77,7 @@ class ShipStats(private val ship: ShipAPI) {
         // Ignore firing arcs that are close to or fall outside front shield arc.
         val shield = ship.shield
         val validAngles: Map<Direction, Float> = if (shield?.type == ShieldAPI.ShieldType.FRONT) {
-            val limit = shield.arc / 3
+            val limit: Float = (shield.arc / 3).coerceAtLeast(20f)
             weightedAngles.filter { it.key.length < limit }
         } else {
             weightedAngles
