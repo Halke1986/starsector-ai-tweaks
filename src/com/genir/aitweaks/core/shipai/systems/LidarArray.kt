@@ -43,7 +43,7 @@ class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
             ai.flags.set(Flags.Flag.MANEUVER_RANGE_FROM_TARGET, minLidarWeaponRange())
 
             // Check if ship has other flux drains except lidar weapons.
-            zeroFluxBoostMode = lidarWeapons.size == ai.stats.significantWeapons.size && ship.shield == null
+            zeroFluxBoostMode = lidarWeapons.size == ai.stats.primaryWeapons.size && ship.shield == null
 
             when {
                 shouldForceVent() -> ship.command(ShipCommand.VENT_FLUX)
@@ -137,7 +137,7 @@ class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
     }
 
     private fun getLidarWeapons(): List<WeaponHandle> {
-        return ai.stats.significantWeapons.filter { it.isLidarWeapon }
+        return ai.stats.primaryWeapons.filter { it.isLidarWeapon }
     }
 
     private val WeaponHandle.isLidarWeapon: Boolean

@@ -2,30 +2,31 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.extensions.rangeFromShipCenter
 import com.genir.aitweaks.core.extensions.sumOf
 import com.genir.aitweaks.core.extensions.totalCollisionRadius
 import com.genir.aitweaks.core.handles.WeaponHandle
+import com.genir.aitweaks.core.shipai.autofire.Tag
+import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 
 class ShipStats(private val ship: ShipAPI) {
-    val significantWeapons: List<WeaponHandle> = findSignificantWeapons()
+    val primaryWeapons: List<WeaponHandle> = findPrimaryWeapons()
     val attackTargetSearchRange: Float = calculateAttackTargetSearchRange()
     val totalCollisionRadius: Float = ship.totalCollisionRadius
     val weaponGroups: List<WeaponGroup> = findWeaponGroups()
 
     private fun calculateAttackTargetSearchRange(): Float {
         val rangeEnvelope = 1.5f
-        val totalMaxRange = significantWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.toDirection, it.engagementRange) } ?: 0f
+        val totalMaxRange = primaryWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.toDirection, it.engagementRange) } ?: 0f
 
         return totalMaxRange * rangeEnvelope
     }
 
     /** Weapons that can be used by the ship to conduct attacks, as opposed to PD, decoratives, etc. */
-    private fun findSignificantWeapons(): List<WeaponHandle> {
+    private fun findPrimaryWeapons(): List<WeaponHandle> {
         val allWeapons: List<WeaponHandle> = ship.allGroupedWeapons.filter { weapon ->
             when {
                 weapon.isMissile -> false
@@ -42,8 +43,7 @@ class ShipStats(private val ship: ShipAPI) {
                 // PD hardpoints are considered attack weapons
                 it.slot.isHardpoint -> true
 
-                // PD_ALSO are considered attack weapons
-                it.hasAIHint(WeaponAPI.AIHints.PD_ALSO) -> true
+                it.hasAITag(Tag.PRIMARY_WEAPON) -> true
 
                 it.isPD -> false
 
@@ -66,7 +66,7 @@ class ShipStats(private val ship: ShipAPI) {
     /** A ship can have multiple valid weapon groups. */
     private fun findWeaponGroups(): List<WeaponGroup> {
         // Find dps for each possible firing arc.
-        val attackAngles: Map<Direction, Float> = attackAngles(significantWeapons)
+        val attackAngles: Map<Direction, Float> = attackAngles(primaryWeapons)
 
         // Assign lower weight to arcs more distant from the ship front.
         val weightedAngles: Map<Direction, Float> = attackAngles.mapValues { (direction, dps) ->
@@ -90,7 +90,7 @@ class ShipStats(private val ship: ShipAPI) {
 
         // Build weapon groups.
         return validDPSAngles.map { (direction, _) ->
-            WeaponGroup(ship, significantWeapons.filter { it.isAngleInArc(direction) })
+            WeaponGroup(ship, primaryWeapons.filter { it.isAngleInArc(direction) })
         }
     }
 

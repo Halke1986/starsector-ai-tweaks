@@ -1,3 +1,5 @@
+- Custom AI: Ships will approach enemies within range of weapons with PD_ALSO AI tag. This applies only to vanilla weapons: devastaror, heavy_adjudicator, heavymg and rift_lightning.
+
 Version v2.2.2
 
 - Custom AI: Number of improvements to collision avoidance logic. Ships are now less likely to bump into allies.
