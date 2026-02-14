@@ -64,4 +64,12 @@ Lelboihi
 this isnt the ai tweaks prerelease channel but uhhh
 local odyssey (IX) decides to drop shields and vent infront of 10 dragonfires fired by strike pegasus, fucking dies
 
+
+Seekers
+ — 
+01:50
+Venting in the face works for cruisers not so much for squishy high tech frigs lmao
+But even the silly amb omen sometimes vents in the face when its at like 30% flux
+And it really could backpedal a bit more before venting
+
 ----------------------------------------------------------------
