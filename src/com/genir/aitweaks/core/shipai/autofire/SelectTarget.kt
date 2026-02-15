@@ -160,7 +160,9 @@ class SelectTarget(
                     target == attackTarget
                 }
 
-                !weapon.ballistics.canTrack(BallisticTarget.collisionRadius(target), params, range) -> false
+                !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
+
+                !canTrack(target) -> false
 
                 // Allow tracking main attack target even if it's occluded.
                 // This helps the ship to stay focused on finishing a single target.
@@ -186,7 +188,11 @@ class SelectTarget(
 
                 target.isFlare && weapon.ignoresFlares -> false
 
-                !weapon.ballistics.canTrack(BallisticTarget.collisionRadius(target), params, range) -> false
+                !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
+
+                // Beams exhibit rapid on/off behavior when attempting
+                // to track targets with too high angular velocity.
+                !canTrack(target) -> false
 
                 obstacleList.isOccluded(target) -> false
 
@@ -216,7 +222,9 @@ class SelectTarget(
 
                 !target.isValidTarget -> false
 
-                !weapon.ballistics.canTrack(BallisticTarget.collisionRadius(target), params, range) -> false
+                !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
+
+                !canTrack(target) -> false
 
                 !inViewport(target.location) -> false
 
@@ -275,14 +283,16 @@ class SelectTarget(
             evaluation += outOfRangePenalty
         }
 
-        // Beams exhibit rapid on/off behavior when attempting
-        // to track targets with too high angular velocity.
-        if (weapon.isPlainBeam && estimateAngularVelocity(target) > weapon.turnRateWhileFiring) {
-            val unableToTrackPenalty = 1e3f
-            evaluation += unableToTrackPenalty
+        return Pair(target, evaluation)
+    }
+
+    private fun canTrack(target: CombatEntityAPI): Boolean {
+        if (target == weapon.ship.attackTarget) {
+            // Assume the ship is turning towards the attack target.
+            return true
         }
 
-        return Pair(target, evaluation)
+        return estimateAngularVelocity(target) <= weapon.turnRateWhileFiring
     }
 
     /** Estimate target angular velocity in weapon frame of reference.

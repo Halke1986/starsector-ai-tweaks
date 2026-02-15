@@ -35,7 +35,7 @@ class Beam(private val weapon: WeaponHandle) : Ballistics {
     }
 
     /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
-    override fun canTrack(target: BallisticTarget, params: BallisticParams, rangeOverride: Float?): Boolean {
+    override fun canEngage(target: BallisticTarget, params: BallisticParams, rangeOverride: Float?): Boolean {
         val closestHit = closestHitRange(target, params)
         if (closestHit > (rangeOverride ?: weapon.engagementRange)) {
             return false

@@ -33,7 +33,7 @@ interface Ballistics {
     fun closestHitRange(target: BallisticTarget, params: BallisticParams): Float
 
     /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
-    fun canTrack(target: BallisticTarget, params: BallisticParams, rangeOverride: Float? = null): Boolean
+    fun canEngage(target: BallisticTarget, params: BallisticParams, rangeOverride: Float? = null): Boolean
 
     /** Closest possible range at which the projectile fired by the weapon can collide
      * with the target circumference, for any weapon facing.

@@ -84,7 +84,7 @@ class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
 
     private fun weaponsOnTarget(target: ShipAPI): Boolean {
         return lidarWeapons.firstOrNull { weapon ->
-            !weapon.ballistics.canTrack(
+            !weapon.ballistics.canEngage(
                 BallisticTarget.collisionRadius(target),
                 defaultBallisticParams,
                 weapon.engagementRange * weaponRangeFraction
