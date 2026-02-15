@@ -16,24 +16,24 @@ import org.lwjgl.util.vector.Vector2f
  */
 
 interface Ballistics {
-    /** Closest possible range at which the projectile fired by the weapon can collide
-     * with the target circumference, for any weapon facing. */
-    fun closestHitRange(target: BallisticTarget, params: BallisticParams): Float
-
     /** Weapon aim location required to hit center point of a moving target.
      * When the target's speed approaches the speed of the projectile, the intercept
      * time and location approach infinity. In such cases, the function assumes an
      * arbitrary long time period to approximate the target location. */
     fun intercept(target: BallisticTarget, params: BallisticParams): Vector2f
 
-    /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
-    fun canTrack(target: BallisticTarget, params: BallisticParams, rangeOverride: Float? = null): Boolean
-
     /** Calculates the target intercept arc. If weapon facing is within this arc,
      * the weapon projectile will collide with the target circumference.
      * Similar to intercept point, but not restricted to target center point.
      * For simplicity, the barrel offset is omitted. */
     fun interceptArc(target: BallisticTarget, params: BallisticParams): Arc
+
+    /** Closest possible range at which the projectile fired by the weapon can collide
+     * with the target circumference, for any weapon facing. */
+    fun closestHitRange(target: BallisticTarget, params: BallisticParams): Float
+
+    /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
+    fun canTrack(target: BallisticTarget, params: BallisticParams, rangeOverride: Float? = null): Boolean
 
     /** Closest possible range at which the projectile fired by the weapon can collide
      * with the target circumference, for any weapon facing.

@@ -9,36 +9,10 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import org.lwjgl.util.vector.Vector2f
 
-/**
- * All functions in this file take into account target velocity
- * when calculating hit location. Target acceleration is ignored.
- *
- * All functions in this file assume a perfectly accurate weapon,
- * shooting projectiles with zero collision radius.
- *
- * All functions in this file return the result in weapon frame
- * of reference, unless stated otherwise.
- */
-
 private const val cos180 = -1f
 private const val approachesInfinity = 1e7f
 
 class Projectile(private val weapon: WeaponHandle) : Ballistics {
-    /** Closest possible range at which the projectile fired by the weapon can collide
-     * with the target circumference, for any weapon facing. */
-    override fun closestHitRange(target: BallisticTarget, params: BallisticParams): Float {
-        val pv = targetMotion(target.linearMotion, params)
-        if (targetAboveWeapon(pv.position, weapon, target)) {
-            return 0f
-        }
-
-        val projectileOffset = weapon.projectileSpawnOffset
-        val projectileFlightDistance = solve(pv, projectileOffset, 1f, target.radius, cos180)?.smallerNonNegative
-            ?: return Float.POSITIVE_INFINITY
-
-        return projectileOffset + projectileFlightDistance
-    }
-
     /** Weapon aim location required to hit center point of a moving target.
      * When the target's speed approaches the speed of the projectile, the intercept
      * time and location approach infinity. In such cases, the function assumes an
@@ -52,17 +26,6 @@ class Projectile(private val weapon: WeaponHandle) : Ballistics {
         val projectileFlightDistance = solve(pv, weapon.projectileSpawnOffset, 1f, 0f, 0f)?.smallerNonNegative
 
         return pv.positionAfter(projectileFlightDistance ?: approachesInfinity)
-    }
-
-    /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
-    override fun canTrack(target: BallisticTarget, params: BallisticParams, rangeOverride: Float?): Boolean {
-        val closestHit = closestHitRange(target, params)
-        if (closestHit > (rangeOverride ?: weapon.engagementRange)) {
-            return false
-        }
-
-        val interceptArc = interceptArc(target, params)
-        return weapon.absoluteArc.overlaps(interceptArc)
     }
 
     /** Calculates the target intercept arc. If weapon facing is within this arc,
@@ -84,6 +47,32 @@ class Projectile(private val weapon: WeaponHandle) : Ballistics {
             intercept(target1, noDelayParams).facing,
             intercept(target2, noDelayParams).facing,
         )
+    }
+
+    /** Closest possible range at which the projectile fired by the weapon can collide
+     * with the target circumference, for any weapon facing. */
+    override fun closestHitRange(target: BallisticTarget, params: BallisticParams): Float {
+        val pv = targetMotion(target.linearMotion, params)
+        if (targetAboveWeapon(pv.position, weapon, target)) {
+            return 0f
+        }
+
+        val projectileOffset = weapon.projectileSpawnOffset
+        val projectileFlightDistance = solve(pv, projectileOffset, 1f, target.radius, cos180)?.smallerNonNegative
+            ?: return Float.POSITIVE_INFINITY
+
+        return projectileOffset + projectileFlightDistance
+    }
+
+    /** Does the weapon have sufficient range and can rotate in its slot to aim at the target. */
+    override fun canTrack(target: BallisticTarget, params: BallisticParams, rangeOverride: Float?): Boolean {
+        val closestHit = closestHitRange(target, params)
+        if (closestHit > (rangeOverride ?: weapon.engagementRange)) {
+            return false
+        }
+
+        val interceptArc = interceptArc(target, params)
+        return weapon.absoluteArc.overlaps(interceptArc)
     }
 
     /** Closest possible range at which the projectile fired by the weapon can collide

@@ -13,6 +13,7 @@ import com.genir.aitweaks.core.handles.wrappers.WeaponWrapper
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Ballistics
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Beam
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Projectile
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.autofire.hasAITag
@@ -33,7 +34,11 @@ import kotlin.math.floor
  */
 class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
     val ballistics: Ballistics
-        get() = Projectile(this)
+        get() = when {
+            isBeam -> Beam(this)
+
+            else -> Projectile(this)
+        }
 
     val api: WeaponAPI
         get() = weapon
