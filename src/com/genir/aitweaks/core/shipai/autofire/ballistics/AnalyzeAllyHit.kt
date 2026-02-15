@@ -30,7 +30,7 @@ fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipAPI,
         }
 
         else -> {
-            Hit(ally, closestHitRange(weapon, BallisticTarget.shieldRadius(ally), params), Hit.Type.ALLY)
+            Hit(ally, weapon.ballistics.closestHitRange(BallisticTarget.shieldRadius(ally), params), Hit.Type.ALLY)
         }
     }
 }
@@ -47,14 +47,14 @@ private fun canHitAlly(weapon: WeaponHandle, target: CombatEntityAPI, ally: Ship
 
     // Arc occupied by the ally during the duration of the weapon burst.
     val allyArc = Arc.union(
-        interceptArc(weapon, ballisticAlly, startParams),
-        interceptArc(weapon, ballisticAlly, endParams),
+        weapon.ballistics.interceptArc(ballisticAlly, startParams),
+        weapon.ballistics.interceptArc(ballisticAlly, endParams),
     )
 
     // Expected weapon facing towards the enemy at the end of burst.
     val enemyArc = Arc.fromTo(
         weapon.currAngle.toDirection,
-        intercept(weapon, ballisticTarget, endParams).facing,
+        weapon.ballistics.intercept(ballisticTarget, endParams).facing,
     )
 
     val spread = weapon.spec.maxSpread + 2f

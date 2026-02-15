@@ -10,7 +10,10 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.shipai.autofire.ballistics.*
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.estimateIdealHit
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Grid
@@ -80,7 +83,7 @@ class SelectTarget(
 
             if (target != null) {
                 val ballisticTarget = BallisticTarget.collisionRadius(target)
-                val dist = closestHitRange(weapon, ballisticTarget, params)
+                val dist = weapon.ballistics.closestHitRange(ballisticTarget, params)
                 val range = weapon.engagementRange
 
                 // New in-range target found.
@@ -157,7 +160,7 @@ class SelectTarget(
                     target == attackTarget
                 }
 
-                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, range) -> false
+                !weapon.ballistics.canTrack(BallisticTarget.collisionRadius(target), params, range) -> false
 
                 // Allow tracking main attack target even if it's occluded.
                 // This helps the ship to stay focused on finishing a single target.
@@ -183,7 +186,7 @@ class SelectTarget(
 
                 target.isFlare && weapon.ignoresFlares -> false
 
-                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, range) -> false
+                !weapon.ballistics.canTrack(BallisticTarget.collisionRadius(target), params, range) -> false
 
                 obstacleList.isOccluded(target) -> false
 
@@ -213,7 +216,7 @@ class SelectTarget(
 
                 !target.isValidTarget -> false
 
-                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, range) -> false
+                !weapon.ballistics.canTrack(BallisticTarget.collisionRadius(target), params, range) -> false
 
                 !inViewport(target.location) -> false
 
@@ -256,7 +259,7 @@ class SelectTarget(
     private fun evaluateTarget(target: CombatEntityAPI): Pair<CombatEntityAPI, Float> {
         var evaluation = 0f
         val ballisticTarget = BallisticTarget.collisionRadius(target)
-        val dist = intercept(weapon, ballisticTarget, params).length
+        val dist = weapon.ballistics.intercept(ballisticTarget, params).length
         val range = weapon.engagementRange
 
         // Evaluate the target based on angle from current weapon facing.

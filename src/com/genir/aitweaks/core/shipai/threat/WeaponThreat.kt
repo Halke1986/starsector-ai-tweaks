@@ -8,7 +8,6 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.ballistics.closestHitRange
 import com.genir.aitweaks.core.shipai.movement.Movement
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.distanceToOrigin
@@ -151,7 +150,7 @@ class WeaponThreat(private val ship: ShipAPI) {
             return 0f
         }
 
-        val currentRange = closestHitRange(weapon, target, params)
+        val currentRange = weapon.ballistics.closestHitRange(target, params)
 
         when {
             // Already in range. Assume weapon fires immediately
