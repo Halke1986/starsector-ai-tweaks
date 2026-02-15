@@ -12,7 +12,6 @@ import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Flags
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.ballistics.canTrack
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
@@ -84,12 +83,11 @@ class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
     }
 
     private fun weaponsOnTarget(target: ShipAPI): Boolean {
-        return lidarWeapons.firstOrNull {
-            !canTrack(
-                it,
+        return lidarWeapons.firstOrNull { weapon ->
+            !weapon.ballistics.canEngage(
                 BallisticTarget.collisionRadius(target),
                 defaultBallisticParams,
-                it.engagementRange * weaponRangeFraction
+                weapon.engagementRange * weaponRangeFraction
             )
         } == null
     }

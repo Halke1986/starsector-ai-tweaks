@@ -10,7 +10,10 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.shipai.autofire.ballistics.*
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.estimateIdealHit
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Grid
@@ -80,7 +83,7 @@ class SelectTarget(
 
             if (target != null) {
                 val ballisticTarget = BallisticTarget.collisionRadius(target)
-                val dist = closestHitRange(weapon, ballisticTarget, params)
+                val dist = weapon.ballistics.closestHitRange(ballisticTarget, params)
                 val range = weapon.engagementRange
 
                 // New in-range target found.
@@ -157,7 +160,9 @@ class SelectTarget(
                     target == attackTarget
                 }
 
-                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, range) -> false
+                !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
+
+                !canTrack(target) -> false
 
                 // Allow tracking main attack target even if it's occluded.
                 // This helps the ship to stay focused on finishing a single target.
@@ -183,7 +188,11 @@ class SelectTarget(
 
                 target.isFlare && weapon.ignoresFlares -> false
 
-                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, range) -> false
+                !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
+
+                // Beams exhibit rapid on/off behavior when attempting
+                // to track targets with too high angular velocity.
+                !canTrack(target) -> false
 
                 obstacleList.isOccluded(target) -> false
 
@@ -213,7 +222,9 @@ class SelectTarget(
 
                 !target.isValidTarget -> false
 
-                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, range) -> false
+                !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
+
+                !canTrack(target) -> false
 
                 !inViewport(target.location) -> false
 
@@ -256,7 +267,7 @@ class SelectTarget(
     private fun evaluateTarget(target: CombatEntityAPI): Pair<CombatEntityAPI, Float> {
         var evaluation = 0f
         val ballisticTarget = BallisticTarget.collisionRadius(target)
-        val dist = intercept(weapon, ballisticTarget, params).length
+        val dist = weapon.ballistics.intercept(ballisticTarget, params).length
         val range = weapon.engagementRange
 
         // Evaluate the target based on angle from current weapon facing.
@@ -272,14 +283,16 @@ class SelectTarget(
             evaluation += outOfRangePenalty
         }
 
-        // Beams exhibit rapid on/off behavior when attempting
-        // to track targets with too high angular velocity.
-        if (weapon.isPlainBeam && estimateAngularVelocity(target) > weapon.turnRateWhileFiring) {
-            val unableToTrackPenalty = 1e3f
-            evaluation += unableToTrackPenalty
+        return Pair(target, evaluation)
+    }
+
+    private fun canTrack(target: CombatEntityAPI): Boolean {
+        if (target == weapon.ship.attackTarget) {
+            // Assume the ship is turning towards the attack target.
+            return true
         }
 
-        return Pair(target, evaluation)
+        return estimateAngularVelocity(target) <= weapon.turnRateWhileFiring
     }
 
     /** Estimate target angular velocity in weapon frame of reference.

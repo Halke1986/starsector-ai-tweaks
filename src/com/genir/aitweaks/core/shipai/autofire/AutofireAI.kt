@@ -13,9 +13,12 @@ import com.genir.aitweaks.core.shipai.ExtendedShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.shipai.autofire.SelectTarget.Companion.TARGET_SEARCH_MULT
-import com.genir.aitweaks.core.shipai.autofire.ballistics.*
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.SHIELD
+import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeHit
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.types.Arc
@@ -154,7 +157,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
 
             // Weapon can no longer track the target. Use double the weapon.totalRange to allow
             // tracking potential targets when there are no targets within the actual firing range.
-            !canTrack(weapon, BallisticTarget.collisionRadius(target), currentParams(), weapon.engagementRange * TARGET_SEARCH_MULT) -> true
+            !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), currentParams(), weapon.engagementRange * TARGET_SEARCH_MULT) -> true
 
             else -> false
         }
@@ -238,7 +241,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
 
         // Mock an expected hit for beams that should keep firing when in transition between targets.
         if (expectedHit == null && shouldSweepBeam(target)) {
-            val range = intercept(weapon, BallisticTarget.collisionRadius(target), currentParams()).length
+            val range = weapon.ballistics.intercept(BallisticTarget.collisionRadius(target), currentParams()).length
             expectedHit = Hit(target, range, ROTATE_BEAM)
         }
 
@@ -340,7 +343,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
             onTargetTime >= min(2f, weapon.firingCycle.duration) -> return null
         }
 
-        val arc = interceptArc(weapon, BallisticTarget.collisionRadius(target!!), currentParams())
+        val arc = weapon.ballistics.interceptArc(BallisticTarget.collisionRadius(target!!), currentParams())
         val inaccuracy = (arc.facing - weapon.currAngle.toDirection).length
         if (inaccuracy * 4f > arc.angle) return STABILIZE_ON_TARGET
 
@@ -436,7 +439,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         aimPoint = null
 
         val target = this.target ?: return
-        val intercept = intercept(weapon, BallisticTarget.collisionRadius(target), currentParams())
+        val intercept = weapon.ballistics.intercept(BallisticTarget.collisionRadius(target), currentParams())
 
         interceptTracker.advance(dt, intercept)
 
@@ -493,7 +496,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         try {
             ship.facing = expectedFacing.degrees
             val ballisticTarget: BallisticTarget = BallisticTarget.collisionRadius(target)
-            val allowedArc: Arc = interceptArc(weapon, ballisticTarget, currentParams()).rotated(toActualFacing.degrees)
+            val allowedArc: Arc = weapon.ballistics.interceptArc(ballisticTarget, currentParams()).rotated(toActualFacing.degrees)
 
             // Allow limited weapon freedom, constrained to the arc the target will
             // occupy once the ship reaches its expected facing. This speeds up target

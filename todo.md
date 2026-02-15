@@ -72,4 +72,6 @@ Venting in the face works for cruisers not so much for squishy high tech frigs l
 But even the silly amb omen sometimes vents in the face when its at like 30% flux
 And it really could backpedal a bit more before venting
 
+coordination between cruisers and frigates, do not back off cruisers from frigates 
+
 ----------------------------------------------------------------

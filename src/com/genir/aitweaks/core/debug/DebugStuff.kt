@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
-import com.genir.aitweaks.core.extensions.Id
 
 /**
  *
@@ -29,7 +28,7 @@ internal fun debug(dt: Float) {
 //        log("***********************************************")
 //    }
 
-        ships.forEach {ship ->
+        ships.forEach { ship ->
 //            if (it != ship) {
 //                installAI(it) { MirrorTargetAI(it, ship) }
 //                Debug.drawEngineLines(it)

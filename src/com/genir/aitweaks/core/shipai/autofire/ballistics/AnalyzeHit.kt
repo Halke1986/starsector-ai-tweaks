@@ -3,7 +3,10 @@ package com.genir.aitweaks.core.shipai.autofire.ballistics
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.extensions.hasShield
+import com.genir.aitweaks.core.extensions.isHit
+import com.genir.aitweaks.core.extensions.isShip
+import com.genir.aitweaks.core.extensions.linearMotion
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.solve
@@ -12,7 +15,7 @@ import com.genir.aitweaks.core.utils.types.LinearMotion
 /** Analyze the potential collision between a perfectly accurate projectile fired from the weapon and the target.
  * Null if no collision. */
 fun analyzeHit(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit? {
-    val projectileMotion = predictProjectileMotion(weapon, target.linearMotion, params)
+    val projectileMotion = weapon.ballistics.projectileMotionInTargetFoR(target.linearMotion, params)
 
     val hit = analyzeHit(projectileMotion, target)
         ?: return null
@@ -35,7 +38,7 @@ fun analyzeHit(projectile: DamagingProjectileAPI, target: CombatEntityAPI): Hit?
 /** Calculates if a perfectly accurate projectile fired from the weapon will collide with the target circumference.
  * Collision range is returned; null if no collision. */
 fun willHitCircumference(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Float? {
-    val projectileMotion = predictProjectileMotion(weapon, target.linearMotion, params)
+    val projectileMotion = weapon.ballistics.projectileMotionInTargetFoR(target.linearMotion, params)
     val ballisticTarget = BallisticTarget.collisionRadius(target)
 
     return willHitCircumference(projectileMotion, ballisticTarget)?.let { range ->
@@ -56,7 +59,7 @@ fun willHitCircumference(projectile: DamagingProjectileAPI, target: CombatEntity
  * Will not detect hits to inside of shield.
  * Collision range is returned; null if no collision. */
 fun willHitShield(weapon: WeaponHandle, target: ShipAPI, params: BallisticParams): Float? {
-    val projectileMotion = predictProjectileMotion(weapon, target.linearMotion, params)
+    val projectileMotion = weapon.ballistics.projectileMotionInTargetFoR(target.linearMotion, params)
 
     return willHitShield(projectileMotion, target)?.let { range ->
         range + weapon.projectileSpawnOffset
@@ -74,7 +77,7 @@ fun willHitShield(projectile: DamagingProjectileAPI, target: CombatEntityAPI): F
 /** Calculates if a perfectly accurate projectile fired from the weapon will collide with the target bounds.
  * Collision range is returned; null if no collision. */
 fun willHitBounds(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Float? {
-    val projectileMotion = predictProjectileMotion(weapon, target.linearMotion, params)
+    val projectileMotion = weapon.ballistics.projectileMotionInTargetFoR(target.linearMotion, params)
 
     return willHitBounds(projectileMotion, target)?.let { range ->
         range + weapon.projectileSpawnOffset
@@ -142,23 +145,9 @@ private fun willHitBounds(projectileMotion: LinearMotion, target: CombatEntityAP
     return Bounds.collision(projectileMotion.position, projectileMotion.velocity, target)
 }
 
-/** Predicted projectile location and velocity in target frame of reference.
- * Assumes a perfectly accurate weapon.
- * weapon.projectileSpeed is used as the unit of velocity.*/
-private fun predictProjectileMotion(weapon: WeaponHandle, target: LinearMotion, params: BallisticParams): LinearMotion {
-    val vAbs = weapon.ship.velocity - target.velocity
-    val pAbs = weapon.location - target.position
-    val vProj = weapon.facingWhenFiringThisFrame.unitVector
-
-    return LinearMotion(
-        position = pAbs + vAbs * params.delay + vProj * weapon.projectileSpawnOffset,
-        velocity = vProj + vAbs / (weapon.projectileSpeed * params.accuracy)
-    )
-}
-
 fun estimateIdealHit(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit {
     val ballisticTarget = BallisticTarget.shieldRadius(target as ShipAPI)
-    val (hitPoint, range) = closestHitInTargetFrameOfReference(weapon, ballisticTarget, params)
+    val (hitPoint, range) = weapon.ballistics.closestHitInTargetFoR(ballisticTarget, params)
 
     val shieldHit = target.hasShield && target.shield.isHit(hitPoint)
     val hitType = if (shieldHit) Hit.Type.SHIELD else Hit.Type.HULL

@@ -7,7 +7,6 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.Tag
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.ballistics.interceptArc
 import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.types.Arc
@@ -106,7 +105,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
 
             // Calculate offset angle between weapon arc and intercept arc for each weapon.
             weapons.forEach { weapon ->
-                val interceptArc: Arc = interceptArc(weapon, ballisticTarget, defaultBallisticParams)
+                val interceptArc: Arc = weapon.ballistics.interceptArc(ballisticTarget, defaultBallisticParams)
                 val weaponArc: Arc = weapon.absoluteArc
 
                 // Ships attempt to orient themselves so all weapons
