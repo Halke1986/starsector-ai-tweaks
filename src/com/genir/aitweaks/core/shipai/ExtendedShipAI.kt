@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.shipai.autofire.AutofireManager
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.state.Config

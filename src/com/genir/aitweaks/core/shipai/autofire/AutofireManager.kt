@@ -1,4 +1,4 @@
-package com.genir.aitweaks.core.shipai
+package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.weapons
-import com.genir.aitweaks.core.shipai.autofire.SyncFire
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.starfarer.combat.ai.ThreatEvaluator
 import com.genir.starfarer.combat.ai.attack.AttackAIModule
@@ -34,8 +33,6 @@ class AutofireManager(val ship: ShipAPI) : com.genir.starfarer.combat.ai.attack.
 
     private fun ensureAutofire(): Int {
         return ship.weaponGroupsCopy.count { group: WeaponGroupAPI ->
-            val weapons = group.weapons
-
             val shouldAutofire = shouldAutofire(group)
             if (shouldAutofire) {
                 // Deselect group that should be auto-firing.
