@@ -91,10 +91,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
         get() = type == WeaponType.MISSILE
 
     val isUnguidedMissile: Boolean
-        get() {
-            val spec = spec.projectileSpec as? MissileSpecAPI ?: return false
-            return spec.maneuverabilityDisplayName == "None"
-        }
+        get() = (spec.projectileSpec as? MissileSpecAPI)?.typeString == "ROCKET"
 
     val isPlainBeam: Boolean
         get() = isBeam && !conserveAmmo

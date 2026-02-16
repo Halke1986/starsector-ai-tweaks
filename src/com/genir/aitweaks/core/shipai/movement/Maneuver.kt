@@ -198,7 +198,7 @@ class Maneuver(val ai: CustomShipAI) {
             ai.is1v1 -> {
                 val toShip = movement.location - maneuverTarget.location
                 // Chase the target, but only when it's attempting to escape and is faster than the ship.
-                if ((toShip.facing - maneuverTarget.velocity.facing).length > 90f && movement.maxSpeed < maneuverTarget.movement.maxSpeed) {
+                if ((toShip.facing - maneuverTarget.velocity.facing).length > 90f && movement.velocity.length > maneuverTarget.movement.maxSpeed * 0.7f) {
                     directApproach
                 } else {
                     -ai.threatVector.rotated(strafeRotation)

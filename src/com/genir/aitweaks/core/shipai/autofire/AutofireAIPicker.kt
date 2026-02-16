@@ -5,6 +5,7 @@ import com.fs.starfarer.api.campaign.CampaignPlugin.PickPriority.MOD_GENERAL
 import com.fs.starfarer.api.combat.AutofireAIPlugin
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
+import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.state.Config.Companion.config
 
@@ -13,37 +14,7 @@ class AutofireAIPicker : com.genir.aitweaks.launcher.AutofireAIPicker {
         val weapon = weaponAPI.handle
 
         return when {
-            config.useVanillaAI -> {
-                null
-            }
-
-            // Vanilla Eval AI creates fake weapons internally.
-            // They can be recognized by null specs. Perhaps
-            // there are other sources of fake weapons as well.
-            weapon.spec == null -> {
-                null
-            }
-
-            weapon.isMissile -> {
-                null
-            }
-
-            // Missile weapons pretending to be ballistics.
-            weapon.spec.projectileSpec is MissileSpecAPI -> {
-                null
-            }
-
-            // Unusual no-aim weapons, like the Voltaic Discharge.
-            weapon.hasAIHint(WeaponAPI.AIHints.DO_NOT_AIM) -> {
-                null
-            }
-
-            // Decoratives, fake weapons, etc.
-            weapon.derivedStats.dps == 0f -> {
-                null
-            }
-
-            weapon.hasAITag(Tag.NO_MODDED_AI) -> {
+            !shouldHaveCustomAI(weapon) -> {
                 null
             }
 
@@ -53,6 +24,49 @@ class AutofireAIPicker : com.genir.aitweaks.launcher.AutofireAIPicker {
 
             else -> {
                 PluginPick(AutofireAI(weapon), MOD_GENERAL)
+            }
+        }
+    }
+
+    private fun shouldHaveCustomAI(weapon: WeaponHandle): Boolean {
+        return when {
+            config.useVanillaAI -> {
+                false
+            }
+
+            weapon.ship.owner != 0 -> {
+                false
+            }
+
+            // Vanilla Eval AI creates fake weapons internally.
+            // They can be recognized by null specs. Perhaps
+            // there are other sources of fake weapons as well.
+            weapon.spec == null -> {
+                false
+            }
+
+            // Unusual no-aim weapons, like the Voltaic Discharge.
+            weapon.hasAIHint(WeaponAPI.AIHints.DO_NOT_AIM) -> {
+                false
+            }
+
+            // Decoratives, fake weapons, etc.
+            weapon.derivedStats.dps == 0f -> {
+                false
+            }
+
+            weapon.hasAITag(Tag.NO_MODDED_AI) -> {
+                false
+            }
+
+            // Missile weapons
+            weapon.isMissile || weapon.spec.projectileSpec is MissileSpecAPI -> {
+//                weapon.isUnguidedMissile && weapon.hasAIHint(WeaponAPI.AIHints.DO_NOT_CONSERVE)
+                false
+            }
+
+            else -> {
+                true
             }
         }
     }

@@ -133,7 +133,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
 //        Debug.drawLine(ship.location, maneuver.attackPoint ?: maneuver.headingPoint, Color.CYAN)
 
-//        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, Color.GREEN)
+//        Debug.drawLine(ship.location, ship.location + ship.facing.toDirection.unitVector * 600f, Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location + movement.expectedFacing.unitVector * 600f, Color.YELLOW)
 
 //        ship.facing = movement.expectedFacing.degrees
@@ -291,13 +291,33 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     /** Is ship engaged in 1v1 duel with the target. */
     private fun update1v1Status() {
         is1v1 = when {
-            isAvoidingBorder -> false
-            ventModule.isBackingOff -> false
-            attackTarget == null -> false
-            attackTarget != maneuverTarget -> false
-            (attackTarget as? ShipAPI)?.root?.movement?.maxSpeed?.let { it > ship.movement.maxSpeed } == true -> false // peak Kotlin
-            threats.size > 1 -> false
-            else -> true
+            isAvoidingBorder -> {
+                false
+            }
+
+            ventModule.isBackingOff -> {
+                false
+            }
+
+            attackTarget == null -> {
+                false
+            }
+
+            attackTarget != maneuverTarget -> {
+                false
+            }
+
+            (attackTarget as? ShipAPI)?.root?.movement?.maxSpeed?.let { it > ship.movement.maxSpeed } == true -> { // peak Kotlin
+                false
+            }
+
+            threats.size > 1 -> {
+                false
+            }
+
+            else -> {
+                true
+            }
         }
     }
 
