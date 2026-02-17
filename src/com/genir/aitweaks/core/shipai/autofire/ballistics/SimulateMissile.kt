@@ -7,7 +7,6 @@ import com.fs.starfarer.api.combat.ShipHullSpecAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.utils.getShortestRotation
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
@@ -28,11 +27,8 @@ class SimulateMissile {
             val missileStats = MissileStats(weapon)
             var facing: Direction = (target.location - weapon.location).facing
 
-            for (i in 0..3) {
-                val path: Sequence<Frame> = missilePath(dt, weapon, facing, missileStats)
-                val error: Direction = angularDistanceToPath(dt, weapon, target, path)
-                facing += error
-            }
+            facing -= angularDistanceToPath(dt, weapon, facing, target, missileStats)
+            facing -= angularDistanceToPath(dt, weapon, facing, target, missileStats)
 
             return facing.unitVector * (target.location - weapon.location).length
         }
@@ -40,28 +36,6 @@ class SimulateMissile {
         fun missilePath(weapon: WeaponHandle): Sequence<Frame> {
             val dt: Float = Global.getCombatEngine().elapsedInLastFrame
             return missilePath(dt, weapon, weapon.currAngle.toDirection, MissileStats(weapon))
-        }
-
-        /** Calculate the angular distance between missile path and
-         * target location at the point where the two are the closest. */
-        private fun angularDistanceToPath(dt: Float, weapon: WeaponHandle, target: BallisticTarget, path: Sequence<Frame>): Direction {
-            val p0: Vector2f = target.location
-            val v: Vector2f = target.velocity * dt
-
-            var minDist: Float = Float.MAX_VALUE
-            var rotation = 0f.toDirection
-
-            path.forEachIndexed { idx, frame ->
-                val p = p0 + v * idx.toFloat()
-                val dist = (p - frame.location).lengthSquared
-
-                if (dist < minDist) {
-                    minDist = dist
-                    rotation = getShortestRotation(frame.location, weapon.location, p)
-                }
-            }
-
-            return rotation
         }
 
         /** Predict the entire path of a missile, given weapon facing,
@@ -82,6 +56,58 @@ class SimulateMissile {
                     it.location + it.velocity,
                 )
             }.take((missileStats.maxFlightTime / dt).toInt())
+        }
+
+        /** Calculate the angular distance between missile path and
+         * target location at the point where the two are the closest. */
+        private fun angularDistanceToPath(dt: Float, weapon: WeaponHandle, weaponFacing: Direction, target: BallisticTarget, missileStats: MissileStats): Direction {
+            val vMax: Float = missileStats.maxSpeed * dt
+            val decel: Float = max(missileStats.acceleration, missileStats.deceleration) * 2f * dt * dt
+            val steps: Int = (missileStats.maxFlightTime / dt).toInt()
+            val a: Vector2f = weaponFacing.unitVector * missileStats.acceleration * dt * dt
+
+            val pZero: Vector2f = weapon.location + weapon.barrelOffset(weaponFacing)
+
+            val pTarget: Vector2f = target.location - pZero
+            val vTarget: Vector2f = target.velocity * dt
+
+            val pMissile: Vector2f = Vector2f()
+            val vMissile: Vector2f = (weapon.ship.velocity + weaponFacing.unitVector * missileStats.launchSpeed) * dt
+
+            val offset: Vector2f = Vector2f()
+            var minDist: Float = offset.lengthSquared
+
+            for (i in 0..steps) {
+                offset.x = pTarget.x - pMissile.x
+                offset.y = pTarget.y - pMissile.y
+
+                val dist: Float = offset.lengthSquared
+                if (dist <= minDist) {
+                    minDist = dist
+                } else {
+                    return pMissile.facing - pTarget.facing
+                }
+
+                vMissile.x += a.x
+                vMissile.y += a.y
+
+                val speed: Float = vMissile.length
+                if (speed > vMax) {
+                    val cappedSpeed: Float = max(vMax, speed - decel)
+                    val scale: Float = cappedSpeed / speed
+
+                    vMissile.x *= scale
+                    vMissile.y *= scale
+                }
+
+                pMissile.x += vMissile.x
+                pMissile.y += vMissile.y
+
+                pTarget.x += vTarget.x
+                pTarget.y += vTarget.y
+            }
+
+            return pMissile.facing - pTarget.facing
         }
 
         /** Calculate the barrel offset for the weapon, given weapon facing.
