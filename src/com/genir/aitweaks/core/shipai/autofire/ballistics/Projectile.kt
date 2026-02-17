@@ -12,16 +12,12 @@ import org.lwjgl.util.vector.Vector2f
 private const val cos180 = -1f
 private const val approachesInfinity = 1e7f
 
-class Projectile(private val weapon: WeaponHandle) : Ballistics {
+open class Projectile(private val weapon: WeaponHandle) : Ballistics {
     /** Weapon aim location required to hit center point of a moving target.
      * When the target's speed approaches the speed of the projectile, the intercept
      * time and location approach infinity. In such cases, the function assumes an
      * arbitrary long time period to approximate the target location. */
     override fun intercept(target: BallisticTarget, params: BallisticParams): Vector2f {
-        if (weapon.isUnguidedMissile) {
-            return SimulateMissile.missileIntercept(weapon, target)
-        }
-
         val pv = targetMotion(target.linearMotion, params)
         val projectileFlightDistance = solve(pv, weapon.projectileSpawnOffset, 1f, 0f, 0f)?.smallerNonNegative
 

@@ -6,8 +6,6 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
-import com.genir.aitweaks.core.shipai.autofire.ballistics.SimulateMissile
 import com.genir.aitweaks.core.shipai.movement.BasicEngineController
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.angularVelocity
@@ -121,25 +119,6 @@ class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
 
         prevP.set(p)
     }
-}
-
-var trail: Sequence<SimulateMissile.Frame>? = null
-
-fun debugMissilePath(dt: Float) {
-    val ship = Global.getCombatEngine().playerShip ?: return
-    val weapon = ship.allWeapons.firstOrNull()?.handle ?: return
-
-    if (trail != null) {
-        var prev = trail!!.firstOrNull()!!.location
-        trail?.forEach { frame ->
-            Debug.drawLine(prev, frame.location, Color.BLUE)
-            prev = frame.location
-        }
-    }
-
-    if (Global.getCombatEngine().missiles.isNotEmpty()) return
-
-    trail = SimulateMissile.missilePath(weapon)
 }
 
 fun removeAsteroids() {

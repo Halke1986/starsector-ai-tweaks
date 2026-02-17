@@ -14,6 +14,7 @@ import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Ballistics
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Beam
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Missile
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Projectile
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.autofire.hasAITag
@@ -36,6 +37,8 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
     val ballistics: Ballistics
         get() = when {
             isBeam -> Beam(this)
+
+            isUnguidedMissile -> Missile(this)
 
             else -> Projectile(this)
         }
