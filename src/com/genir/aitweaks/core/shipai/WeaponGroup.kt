@@ -179,7 +179,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
             var angle: Float = end.facing - start.facing
 
             // Handle wrap around.
-            if (i + 1 < boundaries.size) {
+            if (i + 1 >= boundaries.size) {
                 angle += 360f
             }
 

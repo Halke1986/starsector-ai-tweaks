@@ -46,10 +46,6 @@ vent logic:
 
 ----------------------------------------------------------------
 
-Fossic:
-Can the monitor be kept on F?
-The IQ of most gunboats has increased, but it will affect the AI of the monitor and prevent the monitor from developing skills. 
-
 Take DEMs into account.
 Lelboihi
  — 
