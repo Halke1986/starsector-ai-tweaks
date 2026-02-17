@@ -5,7 +5,6 @@ import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.CollisionAvoidance.Companion.movementPriority
-import com.genir.aitweaks.core.utils.sqrt
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import com.genir.aitweaks.core.utils.types.LinearMotion.Companion.intersection
@@ -15,10 +14,7 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedRever
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color.BLUE
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sign
+import kotlin.math.*
 
 /** Engine Controller for AI piloted ships. */
 class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineController(movement) {

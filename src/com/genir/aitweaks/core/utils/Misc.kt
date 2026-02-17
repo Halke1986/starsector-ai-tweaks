@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.Preset
@@ -13,7 +12,6 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
 import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeAllyHit
 import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeHit
-import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.starfarer.combat.entities.Ship
 import org.json.JSONObject
@@ -169,18 +167,6 @@ enum class VanillaShipCommand {
 fun isCloseToEnemy(ship: ShipAPI, enemy: ShipAPI): Boolean {
     val maxRange = max(max(Preset.threatSearchRange, ship.maxRange * 2f), enemy.maxRange)
     return (ship.location - enemy.location).lengthSquared <= maxRange * maxRange
-}
-
-fun sqrt(x: Float): Float {
-    val result = kotlin.math.sqrt(x)
-
-    if (config.devMode && result.isNaN()) {
-        Debug.print["NaN"] = "NaN"
-        val e = Exception("NaN")
-        Global.getLogger(Log::class.java).error(e, e)
-    }
-
-    return result
 }
 
 fun approachSpeed(a: CombatEntityAPI, b: CombatEntityAPI): Float {

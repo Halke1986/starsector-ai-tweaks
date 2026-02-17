@@ -4,6 +4,7 @@ import com.genir.aitweaks.core.utils.types.LinearMotion
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 data class QuadSolution(val x1: Float, val x2: Float) {
     val smallerNonNegative: Float?
