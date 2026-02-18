@@ -20,10 +20,15 @@ class Missile(private val weapon: WeaponHandle) : Projectile(weapon) {
         // make sure not to use ship-specific time rate.
         val dt: Float = Global.getCombatEngine().elapsedInLastFrame
         val missileStats = MissileStats(weapon)
-        var facing: Direction = (target.location - weapon.location).facing
 
-        facing -= angularDistanceToPath(dt, facing, target, missileStats)
-        facing -= angularDistanceToPath(dt, facing, target, missileStats)
+        var facing: Direction = super.intercept(target, params).facing
+        for (i in 0..5) {
+            val error: Direction = angularDistanceToPath(dt, facing, target, missileStats)
+            facing -= error
+            if (error.length < 1f) {
+                break
+            }
+        }
 
         return facing.unitVector * (target.location - weapon.location).length
     }
@@ -44,17 +49,21 @@ class Missile(private val weapon: WeaponHandle) : Projectile(weapon) {
         val pMissile: Vector2f = Vector2f()
         val vMissile: Vector2f = (weapon.ship.velocity + weaponFacing.unitVector * missileStats.launchSpeed) * dt
 
-        val offset: Vector2f = Vector2f()
-        var minDist: Float = Float.MAX_VALUE
+        val offset: Vector2f = pTarget - pMissile
+        var minDist: Float = offset.lengthSquared
+
+        var wasDistanceClosing = false;
 
         for (i in 0..steps) {
             offset.x = pTarget.x - pMissile.x
             offset.y = pTarget.y - pMissile.y
 
             val dist: Float = offset.lengthSquared
-            if (dist <= minDist) {
+            if (dist < minDist) {
                 minDist = dist
-            } else {
+                wasDistanceClosing = true
+            } else if (wasDistanceClosing) {
+                // Reached the minimum distance.
                 return pMissile.facing - pTarget.facing
             }
 
