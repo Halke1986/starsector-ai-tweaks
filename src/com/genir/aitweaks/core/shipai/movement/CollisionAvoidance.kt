@@ -11,52 +11,18 @@ import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.Preset.Companion.enemyCollisionSizeFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkCollisionSizeFactor
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
-import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
-import com.genir.aitweaks.core.utils.PI
 import com.genir.aitweaks.core.utils.distanceToOrigin
-import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sign
 
 @Suppress("MemberVisibilityCanBePrivate")
 class CollisionAvoidance(val ai: CustomShipAI) {
     private val movement: Movement = ai.ship.movement
 
-    /** Limit allows to restrict velocity to not exceed
-     * max speed in a direction along a given heading. */
-    data class Limit(
-        val direction: Direction,
-        val speedLimit: Float,
-        val obstacle: Movement?,
-    ) {
-        /**
-         * Clamp expectedSpeed to maximum speed in which ship can travel
-         * along the expectedHeading and not break the Limit.
-         *
-         * From right triangle, the equation for max speed is:
-         * maxSpeed = speedLimit / cos( abs(limitFacing - velocityFacing) )
-         *
-         * To avoid using trigonometric functions, f(x) = 1/cos(x) is approximated as
-         * g(t) = 1/t(x) + t(x)/5 where t(x) = PI/2 - x
-         */
-        fun clampSpeed(expectedHeading: Direction, expectedSpeed: Float): Float {
-            val angleFromLimit = (expectedHeading - direction).length
-            if (angleFromLimit >= 90f) {
-                return expectedSpeed
-            }
-
-            val t = PI / 2f - angleFromLimit * DEGREES_TO_RADIANS
-            val e = speedLimit * (1f / t + t / 5f)
-            return min(max(0f, e), expectedSpeed)
-        }
-    }
-
-    fun gatherSpeedLimits(dt: Float): List<Limit> {
+    fun gatherSpeedLimits(dt: Float): List<SpeedLimit> {
         // Calculate speed limits.
         val collisionLimits = avoidCollisions(dt)
         val borderLimit = avoidBorder()
@@ -66,7 +32,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         return (listOf(borderLimit, targetLimit) + collisionLimits + missileLimits).filterNotNull()
     }
 
-    private fun avoidCollisions(dt: Float): List<Limit?> {
+    private fun avoidCollisions(dt: Float): List<SpeedLimit?> {
         val obstacles: Sequence<ShipAPI> = findRelevantObstacles()
 
         return obstacles.map { obstacle: ShipAPI ->
@@ -135,7 +101,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }
     }
 
-    private fun avoidMissiles(dt: Float): List<Limit?> {
+    private fun avoidMissiles(dt: Float): List<SpeedLimit?> {
         val allMissiles: Sequence<MissileAPI> = Global.getCombatEngine().missiles.asSequence()
 
         val relevantMissiles: Sequence<MissileAPI> = allMissiles.filter { missile: MissileAPI ->
@@ -156,7 +122,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }.toList()
     }
 
-    private fun avoidManeuverTarget(dt: Float): Limit? {
+    private fun avoidManeuverTarget(dt: Float): SpeedLimit? {
         val target: ShipAPI = ai.maneuverTarget ?: return null
 
         // Ship can approach the target when backing off, unless the target is too large.
@@ -167,7 +133,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         return vMaxToObstacle(dt, target.movement.linearMotion, ai.attackRange * 0.85f, target)
     }
 
-    private fun avoidBorder(): Limit? {
+    private fun avoidBorder(): SpeedLimit? {
         ai.isAvoidingBorder = false
 
         val mapH = Global.getCombatEngine().mapHeight / 2f
@@ -214,11 +180,11 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         // The closer the ship is to map edge, the stronger
         // the heading transformation away from the border.
         val avoidForce = (d / (Preset.borderNoGoZone - Preset.borderHardNoGoZone)).coerceAtMost(1f)
-        return Limit(borderIntrusion.facing, movement.maxSpeed * (1f - avoidForce), null)
+        return SpeedLimit(borderIntrusion.facing, movement.maxSpeed * (1f - avoidForce), null)
     }
 
     /** Calculate maximum velocity that will not lead to collision with an obstacle. */
-    fun vMaxToObstacle(dt: Float, obstacleMotion: LinearMotion, minDistance: Float, obstacle: ShipAPI?): Limit? {
+    fun vMaxToObstacle(dt: Float, obstacleMotion: LinearMotion, minDistance: Float, obstacle: ShipAPI?): SpeedLimit? {
         val toObstacle = obstacleMotion.position - movement.location
         val toObstacleFacing = toObstacle.facing
         val r = (-toObstacleFacing).rotationMatrix
@@ -239,7 +205,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val vObstacle = obstacleMotion.velocity.rotatedX(r)
         val speedLimit = vMax + vObstacle
 
-        return Limit(toObstacleFacing, speedLimit, obstacle?.movement)
+        return SpeedLimit(toObstacleFacing, speedLimit, obstacle?.movement)
     }
 
     companion object {

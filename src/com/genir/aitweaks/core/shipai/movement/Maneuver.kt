@@ -148,7 +148,7 @@ class Maneuver(val ai: CustomShipAI) {
         expectedVelocity = engineController.heading(dt, destination, speedLimits)
     }
 
-    private fun calculateAttackLocation(dt: Float, maneuverTarget: ShipAPI, speedLimits: List<CollisionAvoidance.Limit>): Destination {
+    private fun calculateAttackLocation(dt: Float, maneuverTarget: ShipAPI, speedLimits: List<SpeedLimit>): Destination {
         // If the ship is near the navigation objective, it should
         // position itself between the objective and the target.
         ai.assignment.navigateTo?.let {
@@ -302,7 +302,7 @@ class Maneuver(val ai: CustomShipAI) {
         dt: Float,
         maneuverTarget: Movement,
         attackLocation: Vector2f,
-        speedLimits: List<CollisionAvoidance.Limit>,
+        speedLimits: List<SpeedLimit>,
     ): Destination {
         // Perform calculations in target frame of reference.
         val toShip = movement.location - maneuverTarget.location
@@ -339,7 +339,7 @@ class Maneuver(val ai: CustomShipAI) {
         dt: Float,
         maneuverTarget: Movement,
         attackLocation: Vector2f,
-        speedLimits: List<CollisionAvoidance.Limit>,
+        speedLimits: List<SpeedLimit>,
     ): Destination {
         // Perform calculations in target frame of reference.
         val toShip = movement.location - maneuverTarget.location

@@ -28,11 +28,11 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
         val pMax: Float,
     )
 
-    fun heading(dt: Float, destination: Destination, limits: List<CollisionAvoidance.Limit> = listOf()): Vector2f {
+    fun heading(dt: Float, destination: Destination, limits: List<SpeedLimit> = listOf()): Vector2f {
         return heading(dt, destination.location, destination.velocity) { toShipFacing, ve -> limitVelocity(dt, toShipFacing, ve, limits) }
     }
 
-    private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<CollisionAvoidance.Limit>): LimitedVelocity? {
+    private fun limitVelocity(dt: Float, toShipFacing: Direction, expectedVelocityRaw: Vector2f, limits: List<SpeedLimit>): LimitedVelocity? {
         val rotationToShip = toShipFacing.rotationMatrix
         val expectedVelocity = (expectedVelocityRaw.rotatedReverse(rotationToShip) / dt).clampedLength(movement.maxSpeed)
 
@@ -274,7 +274,7 @@ class EngineController(val ai: CustomShipAI, movement: Movement) : BasicEngineCo
         return defaultDirection
     }
 
-    private fun buildBounds(limits: List<CollisionAvoidance.Limit>): List<Bound> {
+    private fun buildBounds(limits: List<SpeedLimit>): List<Bound> {
         val rawBounds: List<Bound> = limits.map { limit ->
             val r = (-limit.direction).rotationMatrix
             Bound(r, limit.speedLimit, limit.obstacle, 0f, 0f)
