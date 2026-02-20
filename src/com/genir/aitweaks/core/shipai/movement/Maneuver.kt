@@ -7,7 +7,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Assignment
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.global.AttackCoordinator
-import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
+import com.genir.aitweaks.core.shipai.movement.CollisionAwareEngineController.Destination
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Arc
@@ -22,7 +22,7 @@ import kotlin.math.min
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ai: CustomShipAI) {
     private val movement: Movement = ai.ship.movement
-    private val engineController: EngineController = EngineController(ai, movement)
+    private val engineController: CollisionAwareEngineController = CollisionAwareEngineController(ai, movement)
     private val collisionAvoidance: CollisionAvoidance = CollisionAvoidance(ai)
 
     private var prevFrameIdx = 0
@@ -356,7 +356,7 @@ class Maneuver(val ai: CustomShipAI) {
         val t = solve(maneuverTarget.velocity, orbitVelocityVector, maxSpeed)?.largerNonNegative
 
         val approximateOrbitLength = (attackLocation - closestLocationOnOrbit).length
-        val orbitSpeed = BasicEngineController.vMax(dt, approximateOrbitLength, movement.acceleration)
+        val orbitSpeed = EngineController.vMax(dt, approximateOrbitLength, movement.acceleration)
         val cappedOrbitSpeed = t?.coerceAtMost(orbitSpeed) ?: 0f
 
         val expectedVelocity = maneuverTarget.velocity + orbitVelocityVector * cappedOrbitSpeed

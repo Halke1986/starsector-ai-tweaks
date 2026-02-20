@@ -15,7 +15,7 @@ import com.genir.aitweaks.core.shipai.WeaponGroup
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
-import com.genir.aitweaks.core.shipai.movement.BasicEngineController
+import com.genir.aitweaks.core.shipai.movement.EngineController
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.state.VanillaKeymap
@@ -30,7 +30,7 @@ import java.awt.Color
 
 class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     private var prevPlayerShip: ShipAPI? = null
-    private var engineController: BasicEngineController? = null
+    private var engineController: EngineController? = null
 
     private var currentTarget: CombatEntityAPI? = null
     private var currentAlternatingWeapon: WeaponHandle? = null
@@ -69,7 +69,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         // Update engine controller if player ship changed.
         if (ship != prevPlayerShip) {
             prevPlayerShip = ship
-            engineController = BasicEngineController(ship.movement)
+            engineController = EngineController(ship.movement)
         }
 
         engineController!!.clearCommands()

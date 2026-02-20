@@ -201,7 +201,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }
 
         val decelShip = movement.collisionDeceleration(toObstacleFacing)
-        val vMax = BasicEngineController.vMax(dt, abs(distanceLeft), decelShip) * distanceLeft.sign
+        val vMax = EngineController.vMax(dt, abs(distanceLeft), decelShip) * distanceLeft.sign
         val vObstacle = obstacleMotion.velocity.rotatedX(r)
         val speedLimit = vMax + vObstacle
 
