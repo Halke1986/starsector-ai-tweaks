@@ -10,7 +10,7 @@ import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitBounds
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitShield
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
-import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
+import com.genir.aitweaks.core.shipai.movement.CollisionAwareEngineController.Destination
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.shipai.threat.MissileThreat
 import com.genir.aitweaks.core.shipai.threat.WeaponThreat

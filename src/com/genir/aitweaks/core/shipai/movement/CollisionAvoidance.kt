@@ -192,16 +192,16 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val distance = toObstacle.rotatedX(r)
         val distanceLeft = distance - minDistance
 
-        // If the ships maintain their current course, they will not collide.
-        if (distanceLeft > 0) {
-            val predictedMinDistance = distanceToOrigin(toObstacle, obstacleMotion.velocity - movement.velocity)
-            if (predictedMinDistance > minDistance * 1.5f) {
-                return null
-            }
+        // Obstacle is moving towards the ship. If the obstacle is a friendly,
+        // non flamed out ship, assume both ship will try to avoid the collision.
+        val decelObstacle = if (obstacle?.owner == ai.ship.owner && !obstacle.engineController.isFlamedOut) {
+            movement.collisionDeceleration(-toObstacleFacing)
+        } else {
+            0f
         }
 
         val decelShip = movement.collisionDeceleration(toObstacleFacing)
-        val vMax = EngineController.vMax(dt, abs(distanceLeft), decelShip) * distanceLeft.sign
+        val vMax = EngineController.vMax(dt, abs(distanceLeft), decelShip + decelObstacle) * distanceLeft.sign
         val vObstacle = obstacleMotion.velocity.rotatedX(r)
         val speedLimit = vMax + vObstacle
 

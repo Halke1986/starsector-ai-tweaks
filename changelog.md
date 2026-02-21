@@ -1,5 +1,6 @@
 - Custom AI: Ships will approach enemies within range of weapons with PD_ALSO AI tag. This applies only to vanilla weapons: devastaror, heavy_adjudicator, heavymg and rift_lightning.
-- Custom AI: Fixed an issue where certain ships would not close to weapon range. Reported by Levidos.
+- Custom AI: Fixed an issue where certain modded ships would not close to weapon range. Reported by Levidos.
+- Custom AI: Fixed an issue preventing ships from closing to weapon range when operating alongside faster, short-range allies.
 
 Version v2.2.2
 
