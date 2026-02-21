@@ -65,6 +65,9 @@ class Missile(private val weapon: WeaponHandle) : Projectile(weapon) {
             } else if (wasDistanceClosing) {
                 // Reached the minimum distance.
                 return pMissile.facing - pTarget.facing
+            } else {
+                // While the missile is still accelerating, its distance to the target can increase.
+                // Do not treat this as divergence; wait until the distance begins decreasing.
             }
 
             vMissile.x += a.x

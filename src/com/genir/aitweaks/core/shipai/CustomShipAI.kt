@@ -14,6 +14,7 @@ import com.genir.aitweaks.core.shipai.Preset.Companion.assaultShipApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.fullAssaultApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
 import com.genir.aitweaks.core.shipai.Preset.Companion.threatSearchRange
+import com.genir.aitweaks.core.shipai.global.FleetSegmentation
 import com.genir.aitweaks.core.shipai.global.GlobalAI
 import com.genir.aitweaks.core.shipai.movement.Maneuver
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
@@ -200,7 +201,8 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
     /** Find a new maneuver target using enemy fleet segmentation. */
     private fun findClosestSegmentationTarget(): ShipAPI? {
-        val segmentation = globalAI.fleetSegmentation[ship.owner]
+        val segmentation: FleetSegmentation = globalAI.fleetSegmentation.getOrNull(ship.owner)
+            ?: return null
 
         // Prioritize the nearest segmentation target over primary targets if the ship is already in proximity to it.
         val allTargets = segmentation.allTargets(ship.isFast).filter { isTargetVisible(it) }
