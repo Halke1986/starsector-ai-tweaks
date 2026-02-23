@@ -62,7 +62,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
 //        debugDrawBounds(bounds)
 
         val limitedVelocity = HandleOngoingOverspeed().getLimitedVelocity(bounds, rotationToShip)
-            ?: handleExpectedOverspeed(bounds, expectedVelocity)
+            ?: HandleExpectedOverspeed(expectedVelocity).getLimitedVelocity(bounds)
 
         // Translate the limited velocity to ship frame of reference.
         if (limitedVelocity != null) {
@@ -198,32 +198,33 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         }
     }
 
+    data class VelocityEval(var velocity: Vector2f?, var score: Float)
+
     /** If the ship's expected velocity exceeds a speed limit, compute a new
      * velocity vector that respects the limit while moving the ship as efficiently
      * as possible toward its destination. */
-    private fun handleExpectedOverspeed(bounds: List<Bound>, expectedVelocity: Vector2f): LimitedVelocity? {
-        val limitedVelocity: Vector2f? = HandleExpectedOverspeed(bounds, expectedVelocity).v
+    private inner class HandleExpectedOverspeed(val expectedVelocity: Vector2f) {
+        val expectedSpeed: Float = expectedVelocity.length
 
-        if (limitedVelocity != null) {
+        fun getLimitedVelocity(bounds: List<Bound>): LimitedVelocity? {
+            val limitedVelocity: Vector2f? = findSafeVelocity(bounds)
+
+            if (limitedVelocity != null) {
 //            Debug.drawVector(movement.location, expectedVelocity, MAGENTA)
 //            Debug.drawVector(movement.location, limitedVelocity, YELLOW)
 
-            return LimitedVelocity(absoluteOverride = false, limitedVelocity)
+                return LimitedVelocity(absoluteOverride = false, limitedVelocity)
+            }
+
+            return null
         }
 
-        return null
-    }
-
-    private inner class HandleExpectedOverspeed(bounds: List<Bound>, val expectedVelocity: Vector2f) {
-        val expectedSpeed: Float = expectedVelocity.length
-
-        var v: Vector2f? = null
-        var score: Float = 0f
-
-        init {
+        private fun findSafeVelocity(bounds: List<Bound>): Vector2f? {
             // Find a velocity vector that respect the bounds, while allowing
             // the ship to travel the fastest and with direction aligned with
             // the expected velocity.
+            val accumulator: VelocityEval = VelocityEval(null, 0f)
+
             for (bound: Bound in bounds) {
                 val expected: Vector2f = expectedVelocity.rotated(bound.r)
 
@@ -237,15 +238,17 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
                 // vector exists, evaluate the vector that violates the bound the least.
                 if (expectedSpeed >= abs(bound.speedLimit)) {
                     val yOffset = sqrt(expectedSpeed * expectedSpeed - bound.speedLimit * bound.speedLimit)
-                    evaluate(-yOffset, bound)
-                    evaluate(+yOffset, bound)
+                    evaluateVelocity(accumulator, -yOffset, bound)
+                    evaluateVelocity(accumulator, +yOffset, bound)
                 } else {
-                    evaluate(0f, bound)
+                    evaluateVelocity(accumulator, 0f, bound)
                 }
             }
+
+            return accumulator.velocity
         }
 
-        private fun evaluate(yOffset: Float, bound: Bound) {
+        private fun evaluateVelocity(accumulator: VelocityEval, yOffset: Float, bound: Bound) {
             val y: Float = yOffset.coerceIn(bound.pMin, bound.pMax)
             val v: Vector2f = Vector2f(bound.speedLimit, y).clampedLength(expectedSpeed).rotatedReverse(bound.r)
 
@@ -257,9 +260,9 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             // Strongly prefer directions aligned with the expected velocity vector.
             val score = v.length * angleSquared
 
-            if (this.v == null || score > this.score) {
-                this.v = v
-                this.score = score
+            if (accumulator.velocity == null || score > accumulator.score) {
+                accumulator.velocity = v
+                accumulator.score = score
             }
         }
     }
