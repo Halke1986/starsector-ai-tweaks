@@ -61,7 +61,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
 
 //        debugDrawBounds(bounds)
 
-        val limitedVelocity = handleOngoingOverspeed(bounds, rotationToShip)
+        val limitedVelocity = HandleOngoingOverspeed().getLimitedVelocity(bounds, rotationToShip)
             ?: handleExpectedOverspeed(bounds, expectedVelocity)
 
         // Translate the limited velocity to ship frame of reference.
@@ -75,28 +75,127 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         return null
     }
 
-    private fun handleOngoingOverspeed(bounds: List<Bound>, rotationToShip: RotationMatrix): LimitedVelocity? {
-        val deltaV: Vector2f? = findSafeVelocityDV(bounds)
+    private inner class HandleOngoingOverspeed {
+        fun getLimitedVelocity(bounds: List<Bound>, rotationToShip: RotationMatrix): LimitedVelocity? {
+            val deltaV: Vector2f? = findSafeVelocityDV(bounds)
 
-        if (deltaV != null) {
-            // Use the two ship thrust vectors that form the quadrant containing
-            // the velocity delta (DV) vector, rather than applying proportional
-            // thrust aligned exactly with the DV vector. This approach achieves
-            // the required DV in the shortest possible time and intentionally
-            // applies an additional perpendicular thrust component, allowing the
-            // ship to "slide" past obstacles naturally.
-            val dvs = deltaV.rotated(rotationToShip)
-            if (dvs.y > 0) giveCommand(ACCELERATE)
-            if (dvs.y < 0) giveCommand(ACCELERATE_BACKWARDS)
-            if (dvs.x < 0) giveCommand(STRAFE_LEFT)
-            if (dvs.x > 0) giveCommand(STRAFE_RIGHT)
+            if (deltaV != null) {
+                // Use the two ship thrust vectors that form the quadrant containing
+                // the velocity delta (DV) vector, rather than applying proportional
+                // thrust aligned exactly with the DV vector. This approach achieves
+                // the required DV in the shortest possible time and intentionally
+                // applies an additional perpendicular thrust component, allowing the
+                // ship to "slide" past obstacles naturally.
+                val dvs = deltaV.rotated(rotationToShip)
+                if (dvs.y > 0) giveCommand(ACCELERATE)
+                if (dvs.y < 0) giveCommand(ACCELERATE_BACKWARDS)
+                if (dvs.x < 0) giveCommand(STRAFE_LEFT)
+                if (dvs.x > 0) giveCommand(STRAFE_RIGHT)
 
-//            Debug.drawVector(movement.location, movement.velocity + deltaV, RED)
+//                Debug.drawVector(movement.location, movement.velocity + deltaV, RED)
 
-            return LimitedVelocity(absoluteOverride = true, movement.velocity + deltaV)
+                return LimitedVelocity(absoluteOverride = true, movement.velocity + deltaV)
+            }
+
+            return null
         }
 
-        return null
+        /** If the ship's current velocity exceeds any speed limit, calculate
+         * a new velocity vector that does not exceed the speed limit and can
+         * be reached in the shortest possible time. */
+        private fun findSafeVelocityDV(bounds: List<Bound>): Vector2f? {
+            var lowestDeltaV: Vector2f? = null
+
+            // Find the closest point on the boundary relative to the velocity vector.
+            // This point will be the new, limited velocity.
+            for (bound in bounds) {
+                val limitedVelocityY = calculateVelocityParallelToBound(bound) ?: continue
+
+                val limitedVelocity = Vector2f(
+                    bound.speedLimit,
+                    limitedVelocityY.coerceIn(bound.pMin, bound.pMax),
+                )
+
+                val dv = limitedVelocity.rotatedReverse(bound.r) - movement.velocity
+                if (lowestDeltaV == null || dv.lengthSquared < lowestDeltaV.lengthSquared) {
+                    lowestDeltaV = dv
+                }
+            }
+
+            return lowestDeltaV
+        }
+
+        private fun calculateVelocityParallelToBound(bound: Bound): Float? {
+            // When ship has a higher priority than the obstacle, do not brake sharply.
+            // Let the handleExpectedOverspeed method handle the collision gracefully.
+            // This applies only to allies, which will cooperate with the ship.
+            val obstacle = bound.obstacle
+            if (obstacle != null && obstacle.ship.owner == movement.ship.owner && movement.ship.movementPriority > obstacle.ship.movementPriority) {
+                return null
+            }
+
+            val velocity = movement.velocity.rotated(bound.r)
+            if (velocity.x <= bound.speedLimit) {
+                // Velocity does not exceed the bound.
+                return null
+            }
+
+            val slideMagnitude = abs(bound.speedLimit - velocity.x)
+
+            return velocity.y + slideMagnitude * slideDirection(bound)
+        }
+
+        /** Calculate direction the ship should "slide" along the boundary to avoid an obstacle. */
+        private fun slideDirection(bound: Bound): Float {
+            // Default slide direction takes the ship closer to its intended destination.
+            val destination = (ai.maneuver.headingPoint - movement.location).rotated(bound.r)
+            val defaultDirection = destination.y.sign
+
+            // Do not yield to enemy, hulks and abstract obstacles represented by null.
+            val obstacle = bound.obstacle ?: return defaultDirection
+            if (movement.ship.owner != obstacle.ship.owner) {
+                return defaultDirection
+            }
+
+            // Obstacle movement parameters.
+            val toObstacle = (obstacle.location - movement.location)
+            val obstacleCustomHeading = obstacle.ship.customShipAI?.maneuver?.headingPoint
+            val obstacleDirection = when {
+                obstacleCustomHeading != null -> {
+                    obstacleCustomHeading - obstacle.location
+                }
+
+                else -> {
+                    obstacle.velocity * 1000f
+                }
+            }
+
+            // Check if ship intends to cross obstacle velocity vector.
+            val (k, t) = intersection(
+                LinearMotion(Vector2f(), destination),
+                LinearMotion(toObstacle.rotated(bound.r), obstacleDirection.rotated(bound.r)),
+            ) ?: return defaultDirection
+
+            // If the ship has a lower movement priority than the obstacle,
+            // it must proactively yield right-of-way—even if their paths
+            // only intersect further ahead.
+            val hasLowerPriority = movement.ship.movementPriority < obstacle.ship.movementPriority
+            if (hasLowerPriority && k > 0f && t > 0f) {
+                return -defaultDirection
+            }
+
+            // Ship does not intend to cross the obstacle velocity vector.
+            if (k < 0f || k > 0.99f || t < 0f || t > 0.99f) {
+                return defaultDirection
+            }
+
+            // If two ships' paths intersect, one should yield the right of way.
+            if (shouldYield(obstacle)) {
+                return -defaultDirection
+            }
+
+            return defaultDirection
+        }
     }
 
     /** If the ship's expected velocity exceeds a speed limit, compute a new
@@ -113,51 +212,6 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         }
 
         return null
-    }
-
-    /** If the ship's current velocity exceeds any speed limit, calculate
-     * a new velocity vector that does not exceed the speed limit and can
-     * be reached in the shortest possible time. */
-    private fun findSafeVelocityDV(bounds: List<Bound>): Vector2f? {
-        var lowestDeltaV: Vector2f? = null
-
-        // Find the closest point on the boundary relative to the velocity vector.
-        // This point will be the new, limited velocity.
-        for (bound in bounds) {
-            val limitedVelocityY = calculateVelocityParallelToBound(bound) ?: continue
-
-            val limitedVelocity = Vector2f(
-                bound.speedLimit,
-                limitedVelocityY.coerceIn(bound.pMin, bound.pMax),
-            )
-
-            val dv = limitedVelocity.rotatedReverse(bound.r) - movement.velocity
-            if (lowestDeltaV == null || dv.lengthSquared < lowestDeltaV.lengthSquared) {
-                lowestDeltaV = dv
-            }
-        }
-
-        return lowestDeltaV
-    }
-
-    private fun calculateVelocityParallelToBound(bound: Bound): Float? {
-        // When ship has a higher priority than the obstacle, do not brake sharply.
-        // Let the handleExpectedOverspeed method handle the collision gracefully.
-        // This applies only to allies, which will cooperate with the ship.
-        val obstacle = bound.obstacle
-        if (obstacle != null && obstacle.ship.owner == movement.ship.owner && movement.ship.movementPriority > obstacle.ship.movementPriority) {
-            return null
-        }
-
-        val velocity = movement.velocity.rotated(bound.r)
-        if (velocity.x <= bound.speedLimit) {
-            // Velocity does not exceed the bound.
-            return null
-        }
-
-        val slideMagnitude = abs(bound.speedLimit - velocity.x)
-
-        return velocity.y + slideMagnitude * slideDirection(bound)
     }
 
     private inner class HandleExpectedOverspeed(bounds: List<Bound>, val expectedVelocity: Vector2f) {
@@ -208,58 +262,6 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
                 this.score = score
             }
         }
-    }
-
-    /** Calculate direction the ship should "slide" along the boundary to avoid an obstacle. */
-    private fun slideDirection(bound: Bound): Float {
-        // Default slide direction takes the ship closer to its intended destination.
-        val destination = (ai.maneuver.headingPoint - movement.location).rotated(bound.r)
-        val defaultDirection = destination.y.sign
-
-        // Do not yield to enemy, hulks and abstract obstacles represented by null.
-        val obstacle = bound.obstacle ?: return defaultDirection
-        if (movement.ship.owner != obstacle.ship.owner) {
-            return defaultDirection
-        }
-
-        // Obstacle movement parameters.
-        val toObstacle = (obstacle.location - movement.location)
-        val obstacleCustomHeading = obstacle.ship.customShipAI?.maneuver?.headingPoint
-        val obstacleDirection = when {
-            obstacleCustomHeading != null -> {
-                obstacleCustomHeading - obstacle.location
-            }
-
-            else -> {
-                obstacle.velocity * 1000f
-            }
-        }
-
-        // Check if ship intends to cross obstacle velocity vector.
-        val (k, t) = intersection(
-            LinearMotion(Vector2f(), destination),
-            LinearMotion(toObstacle.rotated(bound.r), obstacleDirection.rotated(bound.r)),
-        ) ?: return defaultDirection
-
-        // If the ship has a lower movement priority than the obstacle,
-        // it must proactively yield right-of-way—even if their paths
-        // only intersect further ahead.
-        val hasLowerPriority = movement.ship.movementPriority < obstacle.ship.movementPriority
-        if (hasLowerPriority && k > 0f && t > 0f) {
-            return -defaultDirection
-        }
-
-        // Ship does not intend to cross the obstacle velocity vector.
-        if (k < 0f || k > 0.99f || t < 0f || t > 0.99f) {
-            return defaultDirection
-        }
-
-        // If two ships' paths intersect, one should yield the right of way.
-        if (shouldYield(obstacle)) {
-            return -defaultDirection
-        }
-
-        return defaultDirection
     }
 
     private fun shouldYield(obstacle: Movement): Boolean {
