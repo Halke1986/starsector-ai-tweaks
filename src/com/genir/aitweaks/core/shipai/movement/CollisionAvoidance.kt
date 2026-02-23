@@ -11,7 +11,6 @@ import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.Preset.Companion.enemyCollisionSizeFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkCollisionSizeFactor
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
-import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f

@@ -54,11 +54,8 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
 
         val bounds: List<Bound> = buildBounds(relevantLimits)
         if (bounds.isEmpty()) {
-            // In case of strongly contradicting speed limits, stop the ship.
-            if (movement.velocity.isNonZero) {
-                giveCommand(DECELERATE)
-            }
-
+            // Leave the behavior undefined in the unusual case
+            // of strongly contradicting speed limits.
             return null
         }
 
@@ -70,7 +67,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         // Translate the limited velocity to ship frame of reference.
         if (limitedVelocity != null) {
             return LimitedVelocity(
-                limitedVelocity.movementOverridden,
+                limitedVelocity.absoluteOverride,
                 limitedVelocity.velocity.rotated(rotationToShip) * dt,
             )
         }
@@ -96,7 +93,23 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
 
 //            Debug.drawVector(movement.location, movement.velocity + deltaV, RED)
 
-            return LimitedVelocity(movementOverridden = true, movement.velocity + deltaV)
+            return LimitedVelocity(absoluteOverride = true, movement.velocity + deltaV)
+        }
+
+        return null
+    }
+
+    /** If the ship's expected velocity exceeds a speed limit, compute a new
+     * velocity vector that respects the limit while moving the ship as efficiently
+     * as possible toward its destination. */
+    private fun handleExpectedOverspeed(bounds: List<Bound>, expectedVelocity: Vector2f): LimitedVelocity? {
+        val limitedVelocity: Vector2f? = HandleExpectedOverspeed(bounds, expectedVelocity).v
+
+        if (limitedVelocity != null) {
+//            Debug.drawVector(movement.location, expectedVelocity, MAGENTA)
+//            Debug.drawVector(movement.location, limitedVelocity, YELLOW)
+
+            return LimitedVelocity(absoluteOverride = false, limitedVelocity)
         }
 
         return null
@@ -147,22 +160,6 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         return velocity.y + slideMagnitude * slideDirection(bound)
     }
 
-    /** If the ship's expected velocity exceeds a speed limit, compute a new
-     * velocity vector that respects the limit while moving the ship as efficiently
-     * as possible toward its destination. */
-    private fun handleExpectedOverspeed(bounds: List<Bound>, expectedVelocity: Vector2f): LimitedVelocity? {
-        val limitedVelocity: Vector2f? = HandleExpectedOverspeed(bounds, expectedVelocity).v
-
-        if (limitedVelocity != null) {
-//            Debug.drawVector(movement.location, expectedVelocity, MAGENTA)
-//            Debug.drawVector(movement.location, limitedVelocity, YELLOW)
-
-            return LimitedVelocity(movementOverridden = false, limitedVelocity)
-        }
-
-        return null
-    }
-
     private inner class HandleExpectedOverspeed(bounds: List<Bound>, val expectedVelocity: Vector2f) {
         val expectedSpeed: Float = expectedVelocity.length
 
@@ -170,6 +167,9 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         var score: Float = 0f
 
         init {
+            // Find a velocity vector that respect the bounds, while allowing
+            // the ship to travel the fastest and with direction aligned with
+            // the expected velocity.
             for (bound: Bound in bounds) {
                 val expected: Vector2f = expectedVelocity.rotated(bound.r)
 
@@ -255,7 +255,20 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         }
 
         // If two ships' paths intersect, one should yield the right of way.
-        val shouldYield = when {
+        if (shouldYield(obstacle)) {
+            return -defaultDirection
+        }
+
+        return defaultDirection
+    }
+
+    private fun shouldYield(obstacle: Movement): Boolean {
+        return when {
+            // Do not yield to enemy and hulks.
+            movement.ship.owner != obstacle.ship.owner -> {
+                false
+            }
+
             movement.ship.movementPriority != obstacle.ship.movementPriority -> {
                 movement.ship.movementPriority < obstacle.ship.movementPriority
             }
@@ -272,12 +285,6 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
                 movement.ship.hashCode() < obstacle.ship.hashCode()
             }
         }
-
-        if (shouldYield) {
-            return -defaultDirection
-        }
-
-        return defaultDirection
     }
 
     private fun buildBounds(limits: List<SpeedLimit>): List<Bound> {

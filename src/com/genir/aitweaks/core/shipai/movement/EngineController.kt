@@ -21,7 +21,7 @@ import kotlin.random.Random
 open class EngineController(val movement: Movement) : Helm(movement.ship) {
     private var prevFacing: Direction = movement.facing
 
-    data class LimitedVelocity(val movementOverridden: Boolean, val velocity: Vector2f)
+    data class LimitedVelocity(val absoluteOverride: Boolean, val velocity: Vector2f)
 
     /**
      * Set ship heading towards selected location. Appropriate target
@@ -59,7 +59,7 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
 
         // Allow velocity limiting logic to handle the ship movement, if required.
         val limitedVelocity = limitVelocity?.invoke(toShipFacing, vtt + vt)
-        if (limitedVelocity?.movementOverridden == true) {
+        if (limitedVelocity?.absoluteOverride == true) {
             return limitedVelocity.velocity.rotatedReverse(r) / dt
         }
 
