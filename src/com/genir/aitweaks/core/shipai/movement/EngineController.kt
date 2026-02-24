@@ -21,8 +21,6 @@ import kotlin.random.Random
 open class EngineController(val movement: Movement) : Helm(movement.ship) {
     private var prevFacing: Direction = movement.facing
 
-    data class LimitedVelocity(val absoluteOverride: Boolean, val velocity: Vector2f)
-
     /**
      * Set ship heading towards selected location. Appropriate target
      * leading is calculated based on provided target velocity. If the ship
@@ -30,7 +28,7 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
      * `limitVelocity` lambda is used to restrict the velocity, e.g. for
      * collision avoidance purposes. Returns the calculated expected velocity.
      */
-    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> LimitedVelocity?)? = null): Vector2f {
+    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> Vector2f?)? = null): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val af = movement.acceleration * dt * dt
@@ -58,13 +56,11 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
         else d * min(vmx / d.x, vmy / d.y)
 
         // Allow velocity limiting logic to handle the ship movement, if required.
-        val limitedVelocity = limitVelocity?.invoke(toShipFacing, vtt + vt)
-        if (limitedVelocity?.absoluteOverride == true) {
-            return limitedVelocity.velocity.rotatedReverse(r) / dt
-        }
+        val vi = (vtt + vt).clampedLength(vMax)
+        val limitedVelocity = limitVelocity?.invoke(toShipFacing, vi)
 
         // Expected velocity change.
-        val ve = limitedVelocity?.velocity ?: (vtt + vt).clampedLength(vMax)
+        val ve = limitedVelocity?.clampedLength(vMax) ?: vi
         val dv = ve - v
 
         // Stop if arrived at location, that is when expected velocity change
