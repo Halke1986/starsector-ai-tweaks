@@ -105,12 +105,14 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
         val relevantMissiles: Sequence<MissileAPI> = allMissiles.filter { missile: MissileAPI ->
             when {
-                // Avoid mines only.
-                !missile.isMine -> false
-
                 !missile.isValidTarget -> false
 
-                else -> true
+                // Always avoid mines.
+                missile.isMine -> true
+
+                movement.ship.root.isFrigate && ai.ventModule.isBackingOff -> true
+
+                else -> false
             }
         }
 
