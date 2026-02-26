@@ -176,14 +176,32 @@ class VentModule(private val ai: CustomShipAI) {
         }
 
         // Update safe backoff distance.
-        when {
-            !isSafe -> backoffDistance = farAway
+        backoffDistance = when {
+            // It's dangerous, move away.
+            !isSafe -> {
+                farAway
+            }
 
+            // Just reached safe distance. Move just far enough
+            // to stop attacking, so the flux can drop.
             backoffDistance == farAway && maneuverTarget != null -> {
-                backoffDistance = max(
-                    ai.attackingGroup.maxRange + maneuverTarget.totalCollisionRadius, // Move far enough to stop attacking, so the flux can drop.
+                max(
+                    ai.attackingGroup.maxRange + maneuverTarget.totalCollisionRadius,
                     1.1f * (maneuverTarget.location - ship.location).length
                 )
+            }
+
+            // Any achieved standoff distance becomes the new baseline;
+            // do not approach again.
+            maneuverTarget != null -> {
+                max(
+                    backoffDistance,
+                    (maneuverTarget.location - ship.location).length
+                )
+            }
+
+            else -> {
+                backoffDistance
             }
         }
 
