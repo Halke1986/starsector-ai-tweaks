@@ -118,32 +118,28 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         }
 
 //        if (ventModule.isBackingOff) {
-//            Debug.drawCollisionRadius(ship, RED)
+//            Debug.drawCollisionRadius(ship, Color.RED)
 //        }
-
+//
 //        Debug.drawTurnLines(ship)
-//        Debug.drawCircle(movement.headingPoint, ship.collisionRadius)
-
-//        Debug.drawCircle(ship.location, stats.threatSearchRange)
-
-//        Debug.drawCircle(ship.location, ship.collisionRadius * 1.4f, Color.CYAN)
-
+//        Debug.drawCircle(maneuver.headingPoint, ship.collisionRadius * 1.4f, Color.CYAN)
+//
+//        Debug.drawCircle(ship.location, stats.attackTargetSearchRange)
+//
 //        Debug.drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
-//        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
+//        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.GREEN)
 //        Debug.drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
-
-//        Debug.drawLine(ship.location, maneuver.attackPoint ?: maneuver.headingPoint, Color.CYAN)
-
+//
+//        Debug.drawLine(ship.location, maneuver.attackPoint ?: ship.location, Color.CYAN)
+//        Debug.drawLine(ship.location, maneuver.headingPoint, Color.GRAY)
+//
 //        Debug.drawLine(ship.location, ship.location + ship.facing.toDirection.unitVector * 600f, Color.GREEN)
-//        Debug.drawLine(ship.location, ship.location + movement.expectedFacing.unitVector * 600f, Color.YELLOW)
-
-//        ship.facing = movement.expectedFacing.degrees
-
-//        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing + attackingGroup.facing) * 600f, Color.BLUE)
-//        Debug.drawLine(ship.location, ship.location + movement.expectedVelocity, Color.GREEN)
+//        Debug.drawLine(ship.location, ship.location + maneuver.expectedFacing.unitVector * 600f, Color.YELLOW)
+//
+//        Debug.drawVector(ship.location, maneuver.expectedVelocity, Color.GRAY)
 //        Debug.drawVector(ship.location, ship.movement.velocity, Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
-
+//
 //        if (maneuverTarget != null) {
 //            Debug.drawCircle(ship.location, attackingGroup.minRange, Color.BLUE)
 //            Debug.drawCircle(maneuverTarget!!.location, effectiveTargetRadius(maneuverTarget!!))
