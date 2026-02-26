@@ -1,3 +1,5 @@
+- Custom AI: Frigates and destroyers now avoid all enemy missiles when backing off. 
+
 Version v2.2.3
 
 - Custom AI: Ships will approach enemies within range of weapons with PD_ALSO AI tag. This applies only to vanilla weapons: devastaror, heavy_adjudicator, heavymg and rift_lightning.

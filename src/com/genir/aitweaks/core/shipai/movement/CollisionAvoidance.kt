@@ -107,10 +107,12 @@ class CollisionAvoidance(val ai: CustomShipAI) {
             when {
                 !missile.isValidTarget -> false
 
+                missile.owner != ai.ship.owner -> false
+
                 // Always avoid mines.
                 missile.isMine -> true
 
-                movement.ship.root.isFrigate && ai.ventModule.isBackingOff -> true
+                (movement.ship.root.isFrigate || movement.ship.root.isDestroyer) && ai.ventModule.isBackingOff -> true
 
                 else -> false
             }
@@ -171,7 +173,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val target = ai.maneuverTarget
         if (target != null) {
             val toTarget = target.location - movement.location
-            if (!ai.ventModule.isBackingOff && (toTarget.facing - borderIntrusion.facing).length < 90f) {
+            if (!ai.ventModule.isBackingOff && (toTarget.facing - borderIntrusion.facing).length < 135f) {
                 return null
             }
         }
