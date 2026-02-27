@@ -38,8 +38,6 @@ take a look at progressive staggered fire
 
 approach into missile range
 
-shieldless ships should ignore all non-missile weapons when deciding if to vent 
-
 vent logic:
   - calculate proper damage for dangerous weapons, remove finisherMissile flag
   - properly handle non-guided missiles
@@ -70,3 +68,4 @@ The Rift Lance could probably get the Finisher Beam Protocol treatment given tha
 The Antimatter SRM Launcher should probably have its DO_NOT_CONSERVE tag removed since the AI tends to waste them all against shield immediately, which is both harmful to its own flux grid at 1000 flux per missile and leaves it rather unimpressive at a 1000 damage missile every 20 seconds. It gets even worse if EMR and/or Missile Specialization are involved as the AI will just immediately flux itself out opening by spending 9000 flux at long range. Their primary role is also mysteriously listed as "Anti Small Craft" when they are more like an Atropos or Harpoon in their effective use-case.
 
 ----------------------------------------------------------------
+ 

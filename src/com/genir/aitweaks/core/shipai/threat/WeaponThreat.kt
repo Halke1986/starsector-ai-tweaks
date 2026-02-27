@@ -3,6 +3,8 @@ package com.genir.aitweaks.core.shipai.threat
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
@@ -18,28 +20,28 @@ import kotlin.math.max
 
 class WeaponThreat(private val ship: ShipAPI) {
     data class Damage(
-        val finisherMissileDanger: Boolean,
         val damage: Float,
+        val isFinisherMissile: Boolean,
+        val weapon: WeaponHandle,
     )
 
-    fun potentialDamage(duration: Float): Damage {
-        val dangerousWeapons = findDangerousWeapons(duration)
+    fun potentialDamage(duration: Float, missileOnly: Boolean): List<Damage> {
+        val dangerousWeapons: List<WeaponHandle> = findDangerousWeapons(duration, missileOnly)
 
-        return Damage(
-            finisherMissileDanger = dangerousWeapons.any { weapon ->
-                weapon.isFinisherMissile
-            },
-
-            damage = dangerousWeapons.sumOf { weapon ->
-                potentialDamage(duration, weapon)
-            }
-        )
+        return dangerousWeapons.map { weapon ->
+            Damage(
+                damage = potentialDamage(duration, weapon),
+                isFinisherMissile = weapon.isFinisherMissile,
+                weapon = weapon,
+            )
+        }
     }
 
-    private fun findDangerousWeapons(duration: Float): List<WeaponHandle> {
+    private fun findDangerousWeapons(duration: Float, missileOnly: Boolean): List<WeaponHandle> {
         val enemies: MutableList<ShipAPI> = mutableListOf()
         val obstacles: MutableList<ShipAPI> = mutableListOf()
 
+        // Find relevant enemy and allied ships.
         Global.getCombatEngine().ships.asSequence().forEach { entity ->
             if (entity.root == ship.root) {
                 return@forEach
@@ -63,7 +65,9 @@ class WeaponThreat(private val ship: ShipAPI) {
 
         // Take all weapons into account, not just the grouped ones.
         // Otherwise, system weapons like the Shrouded Eye beam will be ignored.
-        val allEnemyWeapons = enemies.flatMap { it.allWeapons.map { weaponAPI -> weaponAPI.handle } }
+        val allEnemyWeapons = enemies.flatMap { ship ->
+            ship.allWeapons.map { weaponAPI -> weaponAPI.handle }
+        }
 
         return allEnemyWeapons.filter { weapon ->
             when {
@@ -77,6 +81,8 @@ class WeaponThreat(private val ship: ShipAPI) {
                 // Assume the ship can recognize an empty
                 // missile launcher, same as the player can.
                 weapon.isMissile && weapon.isPermanentlyOutOfAmmo -> false
+
+                missileOnly && weapon.spec.projectileSpec !is MissileSpecAPI -> false
 
                 !canWeaponHitShip(duration, weapon, obstacles) -> false
 
@@ -213,5 +219,15 @@ class WeaponThreat(private val ship: ShipAPI) {
     }
 
     private val WeaponHandle.isFinisherMissile: Boolean
-        get() = isMissile && damageType == DamageType.HIGH_EXPLOSIVE
+        get() = when {
+            !isMissile -> false
+
+            damageType != DamageType.HIGH_EXPLOSIVE -> false
+
+            hasAIHint(WeaponAPI.AIHints.DO_NOT_CONSERVE) -> false
+
+            hasAIHint(WeaponAPI.AIHints.CONSERVE_1) -> false
+
+            else -> true
+        }
 }

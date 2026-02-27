@@ -1,4 +1,5 @@
 - Custom AI: Frigates and destroyers now avoid all enemy missiles when backing off. 
+- Custom AI: Shieldless ships now ignore non-missile weapons when deciding whether to vent.
 
 Version v2.2.3
 

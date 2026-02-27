@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.util.IntervalUtil
+import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitBounds
@@ -151,6 +152,18 @@ class VentModule(private val ai: CustomShipAI) {
         if (ship.owner != 0) {
             return
         }
+
+//        val duration = if (ship.canVentFlux) {
+//            max(0f, ship.fluxTracker.timeToVent + ventTimeFlatModifierOptimistic)
+//        } else {
+//            dropShieldSafetyPeriod
+//        }
+//        val weaponDamage: List<WeaponThreat.Damage> = weaponThreat.potentialDamage(duration, false)
+//        weaponDamage.forEach {
+//            if (it.isFinisherMissile) {
+//                Debug.drawLine(ship.location, it.weapon.location)
+//            }
+//        }
 
 //        missileThreat.threats(ship.fluxTracker.timeToVent).forEach {
 //            Debug.drawLine(ship.location, it.location, Color.YELLOW)
@@ -365,13 +378,14 @@ class VentModule(private val ai: CustomShipAI) {
     /** Estimate if the ship is safe when continuing the present course
      * during the given time duration. */
     private fun isSafe(duration: Float): Boolean {
-        val (finisherMissileDanger, weaponDamage) = weaponThreat.potentialDamage(duration)
+        // If the ship has no shields, venting does not affect incoming projectiles.
+        val missilesOnly = !ship.hasShield
+        val weaponDamage: List<WeaponThreat.Damage> = weaponThreat.potentialDamage(duration, missilesOnly)
 
         // Don't get hit by a finisher missile.
-        if (finisherMissileDanger) {
+        if (weaponDamage.any { it.isFinisherMissile }) {
             return false
         }
-
         val allProjectiles = ai.globalAI.projectileTracker.threats(ship)
         val projectiles = filterRelevantProjectiles(allProjectiles)
         val projectileDamage = effectiveDamage(projectiles)
@@ -393,7 +407,7 @@ class VentModule(private val ai: CustomShipAI) {
 
             // Attempt to tank a limited amount of damage. 0.1f may seem like a large fraction,
             // but potential damage calculation is the absolute worst case scenario.
-            projectileDamage + missileDamage + weaponDamage > effectiveHP * 0.1f -> {
+            projectileDamage + missileDamage + (weaponDamage.sumOf { it.damage }) > effectiveHP * 0.1f -> {
                 false
             }
 
