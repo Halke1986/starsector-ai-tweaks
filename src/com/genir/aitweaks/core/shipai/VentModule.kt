@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitBounds
@@ -545,7 +544,4 @@ class VentModule(private val ai: CustomShipAI) {
 
         return true
     }
-
-    private val ShipAPI.passiveDissipationTime: Float
-        get() = ship.fluxTracker.currFlux / ship.mutableStats.fluxDissipation.getModifiedValue()
 }

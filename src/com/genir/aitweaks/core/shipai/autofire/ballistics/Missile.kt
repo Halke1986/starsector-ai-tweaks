@@ -52,7 +52,7 @@ class Missile(private val weapon: WeaponHandle) : Projectile(weapon) {
         val offset: Vector2f = pTarget - pMissile
         var minDist: Float = offset.lengthSquared
 
-        var wasDistanceClosing = false;
+        var wasDistanceClosing = false
 
         for (i in 0..steps) {
             offset.x = pTarget.x - pMissile.x
