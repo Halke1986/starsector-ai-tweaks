@@ -50,19 +50,19 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                     0.8f * collisionDistance
                 }
 
-                // Allow tighter formations for backing off ships.
-                // NOTE: This condition is asymmetric. Backing off ship should approach other
-                // ships beyond their collision avoidance range, forcing them to make way.
-                ai.ventModule.isBackingOff -> {
-                    10f + shieldDistance
-                }
-
                 // Do not respect vanilla AI frigates.
                 obstacle.root.isFrigate && obstacle.customShipAI == null -> {
                     shieldDistance
                 }
 
+                // Allow tighter formations for backing off ships.
+                ai.ventModule.isBackingOff -> {
+                    10f + shieldDistance
+                }
+
                 // Allow priority ships to squeeze between allies in formation.
+                // NOTE: This condition is asymmetric. Priority ship should approach other
+                // ships beyond their collision avoidance range, forcing them to make way.
                 movement.ship.movementPriority > obstacle.movementPriority -> {
                     10f + shieldDistance
                 }
@@ -107,7 +107,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
             when {
                 !missile.isValidTarget -> false
 
-                missile.owner != ai.ship.owner -> false
+                missile.owner == ai.ship.owner -> false
 
                 // Always avoid mines.
                 missile.isMine -> true
@@ -217,28 +217,16 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 val ai = customShipAI
 
                 return when {
-                    root.isStation -> {
-                        10
-                    }
-
-                    isHulk -> {
-                        10
-                    }
-
-                    engineController?.isFlamedOut == true -> {
-                        10
-                    }
-
-                    this == Global.getCombatEngine().playerShip && isUnderManualControl -> {
-                        5
-                    }
-
                     aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
-                        2
+                        10
                     }
 
                     ai == null -> {
                         0
+                    }
+
+                    root.isFrigate -> {
+                        1
                     }
 
                     ai.assignment.eliminate != null -> {

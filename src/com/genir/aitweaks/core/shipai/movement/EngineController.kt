@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.ShipCommand.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
+import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import org.lwjgl.util.vector.Vector2f
@@ -28,7 +29,7 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
      * `limitVelocity` lambda is used to restrict the velocity, e.g. for
      * collision avoidance purposes. Returns the calculated expected velocity.
      */
-    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Direction, Vector2f) -> Vector2f?)? = null): Vector2f {
+    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Vector2f, RotationMatrix) -> Vector2f?)? = null): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val af = movement.acceleration * dt * dt
@@ -55,13 +56,15 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
         val vtt = if (vmx == 0f || vmy == 0f) Vector2f(vmx, vmy)
         else d * min(vmx / d.x, vmy / d.y)
 
-        // Allow velocity limiting logic to handle the ship movement, if required.
-        val vi = (vtt + vt).clampedLength(vMax)
-        val limitedVelocity = limitVelocity?.invoke(toShipFacing, vi)
-
         // Expected velocity change.
-        val ve = limitedVelocity?.clampedLength(vMax) ?: vi
+        val ve = (vtt + vt).clampedLength(vMax)
         val dv = ve - v
+
+        // Allow velocity limiting logic to handle the ship movement, if required.
+        val limitedVelocity = limitVelocity?.invoke(ve.rotatedReverse(r) / dt, r)
+        if (limitedVelocity != null) {
+            return limitedVelocity
+        }
 
         // Stop if arrived at location, that is when expected velocity change
         // and location change is less than half of velocity change unit.
