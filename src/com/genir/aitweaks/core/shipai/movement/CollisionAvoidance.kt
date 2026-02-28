@@ -1,10 +1,7 @@
 package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.CollisionClass
-import com.fs.starfarer.api.combat.MissileAPI
-import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipwideAIFlags
+import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
@@ -121,7 +118,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         return relevantMissiles.map { missile: MissileAPI ->
             val minDistance = ai.stats.totalCollisionRadius + missile.mineExplosionRange + 30f
 
-            return@map vMaxToObstacle(dt, LinearMotion(missile.location, missile.velocity), minDistance, null)
+            return@map vMaxToObstacle(dt, LinearMotion(missile.location, missile.velocity), minDistance, missile)
         }.toList()
     }
 
@@ -187,7 +184,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     /** Calculate maximum velocity that will not lead to collision with an obstacle. */
-    fun vMaxToObstacle(dt: Float, obstacleMotion: LinearMotion, minDistance: Float, obstacle: ShipAPI?): SpeedLimit {
+    fun vMaxToObstacle(dt: Float, obstacleMotion: LinearMotion, minDistance: Float, obstacle: CombatEntityAPI?): SpeedLimit {
         val toObstacle = obstacleMotion.position - movement.location
         val toObstacleFacing = toObstacle.facing
         val r = (-toObstacleFacing).rotationMatrix
@@ -195,9 +192,9 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val distance = toObstacle.rotatedX(r)
         val distanceLeft = distance - minDistance
 
-        // Obstacle is moving towards the ship. If the obstacle is a friendly,
-        // non flamed out ship, assume both ship will try to avoid the collision.
-        val decelObstacle = if (obstacle?.owner == ai.ship.owner && !obstacle.engineController.isFlamedOut) {
+        // Obstacle is moving towards the ship. If the obstacle is an ally,
+        // assume both ships will try to avoid the collision.
+        val decelObstacle = if (obstacle?.owner == ai.ship.owner) {
             movement.collisionDeceleration(-toObstacleFacing)
         } else {
             0f
@@ -208,7 +205,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val vObstacle = obstacleMotion.velocity.rotatedX(r)
         val speedLimit = vMax + vObstacle
 
-        return SpeedLimit(toObstacleFacing, speedLimit, obstacle?.movement)
+        return SpeedLimit(toObstacleFacing, speedLimit, obstacle)
     }
 
     companion object {

@@ -1,5 +1,6 @@
 package com.genir.aitweaks.core.shipai.movement
 
+import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
 import com.genir.aitweaks.core.utils.PI
 import com.genir.aitweaks.core.utils.types.Direction
@@ -11,7 +12,7 @@ import kotlin.math.min
 data class SpeedLimit(
     val direction: Direction,
     val speedLimit: Float,
-    val obstacle: Movement?,
+    val obstacle: CombatEntityAPI?,
 ) {
     /**
      * Clamp expectedSpeed to maximum speed in which ship can travel
