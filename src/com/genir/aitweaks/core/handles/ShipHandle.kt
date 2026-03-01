@@ -2,9 +2,8 @@ package com.genir.aitweaks.core.handles
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.handles.wrappers.ShipWrapper
-import com.genir.starfarer.combat.entities.Ship
 
-class ShipHandle(shipAPI: ShipAPI) : ShipWrapper(shipAPI as Ship) {
+class ShipHandle(shipAPI: ShipAPI) : ShipWrapper(shipAPI) {
     val api: ShipAPI
         get() = ship
 

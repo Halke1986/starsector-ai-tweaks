@@ -22,6 +22,7 @@ import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
+import com.genir.starfarer.combat.entities.ship.trackers.AimTracker
 import com.genir.starfarer.combat.entities.ship.weapons.BeamWeapon
 import com.genir.starfarer.combat.systems.Weapon
 import org.lwjgl.util.vector.Vector2f
@@ -33,7 +34,7 @@ import kotlin.math.floor
  * - additional methods extending the WeaponAPI interface
  * - unobfuscated methods from the underlying Weapon engine object
  */
-class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
+class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI) {
     val api: WeaponAPI
         get() = weapon
 
@@ -464,4 +465,7 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
                 currAngle
             }
         }
+
+    val aimTracker: AimTracker
+        get() = (weapon as Weapon).aimTracker
 }

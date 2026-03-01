@@ -6,7 +6,6 @@ import com.fs.starfarer.api.combat.listeners.CombatListenerManagerAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.loading.WeaponSlotAPI;
-import com.genir.starfarer.combat.entities.Ship;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.*;
@@ -20,9 +19,9 @@ import java.util.Set;
  * This prevents accidentally passing a ShipHandle (which inherits from ShipWrapper) to the game engine.
  */
 public class ShipWrapper {
-    protected final Ship ship;
+    protected final ShipAPI ship;
 
-    public ShipWrapper(Ship ship) {
+    public ShipWrapper(ShipAPI ship) {
         this.ship = ship;
     }
 

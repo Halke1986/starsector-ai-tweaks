@@ -6,8 +6,6 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.loading.MuzzleFlashSpec;
 import com.fs.starfarer.api.loading.WeaponSlotAPI;
 import com.fs.starfarer.api.loading.WeaponSpecAPI;
-import com.genir.starfarer.combat.entities.ship.trackers.AimTracker;
-import com.genir.starfarer.combat.systems.Weapon;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.*;
@@ -17,10 +15,10 @@ import java.util.List;
  * WeaponWrapper exposes all methods of the Weapon class without implementing the WeaponAPI interface.
  * This prevents accidentally passing a WeaponHandle (which inherits from WeaponWrapper) to the game engine.
  */
-public class WeaponWrapper {
-    protected final Weapon weapon;
+public class WeaponWrapper implements WeaponAPI {
+    protected final WeaponAPI weapon;
 
-    public WeaponWrapper(Weapon weapon) {
+    public WeaponWrapper(WeaponAPI weapon) {
         this.weapon = weapon;
     }
 
@@ -406,9 +404,5 @@ public class WeaponWrapper {
 
     public void setForceNoFireOneFrame(boolean p0) {
         this.weapon.setForceNoFireOneFrame(p0);
-    }
-
-    public AimTracker getAimTracker() {
-        return this.weapon.getAimTracker();
     }
 }
