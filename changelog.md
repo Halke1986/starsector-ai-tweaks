@@ -2,10 +2,11 @@
 - Custom AI: Shieldless ships now ignore non-missile weapons when deciding whether to vent.
 - Custom AI: Frigates and other low hit point ship are now more cautious when deciding whether to vent. Suggested by Seekers.
 - Custom AI: Ships now avoid collisions with large asteroids. Suggested by GeboGlima.
+- Rift Lance is now controlled by the Finisher Beam Protocol hullmod. Suggested by Cherman0.
 
 Version v2.2.3
 
-- Custom AI: Ships will approach enemies within range of weapons with PD_ALSO AI tag. This applies only to vanilla weapons: devastaror, heavy_adjudicator, heavymg and rift_lightning.
+- Custom AI: Ships will approach enemies within range of weapons with PD_ALSO AI tag. This applies only to vanilla weapons: devastator, heavy_adjudicator, heavymg and rift_lightning.
 - Custom AI: Fixed an issue where certain modded ships would not close to weapon range. Reported by Levidos.
 - Custom AI: Fixed an issue preventing ships from closing to weapon range when operating alongside faster, short-range allies.
 - Custom AI: Fixed a java.lang.ArrayIndexOutOfBoundsException crash when an active ship is assigned to a neutral faction (owner == 100). The crash may still occur if the ship has fighter bays. Reported by wad78. 
