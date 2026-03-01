@@ -4,10 +4,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - attack enemy ships that are inflicting damage
 
-- area targeting for devastator
-
-- avoid blocking burn vector via collision avoidance
-
 - revisit hiding behind allies to vent
 
 - extract vanilla missile decisioning
@@ -42,6 +38,14 @@ vent logic:
   - calculate proper damage for dangerous weapons, remove finisherMissile flag
   - properly handle non-guided missiles
 
+
+Wish Dragon
+ — 
+00:14
+ah see, I play with a relatively even or slightly advantaged field, because the normal game is too easy. Ships have a random chance to have a mod that gives them significantly more power, so some ships are dramatically more dangerous than others, which I think is why it doesn't work
+they require more focused fire
+and can't be hard rushed
+
 ----------------------------------------------------------------
 
 Take DEMs into account.
@@ -53,23 +57,12 @@ this isnt the ai tweaks prerelease channel but uhhh
 local odyssey (IX) decides to drop shields and vent infront of 10 dragonfires fired by strike pegasus, fucking dies
 
 
-Seekers
- — 
-01:50
-Venting in the face works for cruisers not so much for squishy high tech frigs lmao
-But even the silly amb omen sometimes vents in the face when its at like 30% flux
-And it really could backpedal a bit more before venting
-
-coordination between cruisers and frigates, do not back off cruisers from frigates 
+coordination between cruisers and frigates
 
 Cherman0 
 Also, unsure if the scope of the mod extends to specific weapons but two things I have noticed:
 The Rift Lance could probably get the Finisher Beam Protocol treatment given that it's basically just a Phase Lance in a small slot.
 The Antimatter SRM Launcher should probably have its DO_NOT_CONSERVE tag removed since the AI tends to waste them all against shield immediately, which is both harmful to its own flux grid at 1000 flux per missile and leaves it rather unimpressive at a 1000 damage missile every 20 seconds. It gets even worse if EMR and/or Missile Specialization are involved as the AI will just immediately flux itself out opening by spending 9000 flux at long range. Their primary role is also mysteriously listed as "Anti Small Craft" when they are more like an Atropos or Harpoon in their effective use-case.
-
-
-
-avoid huge asteroids!
 
 ----------------------------------------------------------------
  

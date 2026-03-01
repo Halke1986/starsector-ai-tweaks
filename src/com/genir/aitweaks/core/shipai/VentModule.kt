@@ -58,6 +58,7 @@ class VentModule(private val ai: CustomShipAI) {
         const val dropShieldSafetyPeriod = 2.1f
 
         const val farAway = 1e8f
+        const val hitPointSafetyThreshold = 1700f
     }
 
     fun advance(dt: Float) {
@@ -379,12 +380,18 @@ class VentModule(private val ai: CustomShipAI) {
     private fun isSafe(duration: Float): Boolean {
         // If the ship has no shields, venting does not affect incoming projectiles.
         val missilesOnly = !ship.hasShield
-        val weaponDamage: List<WeaponThreat.Damage> = weaponThreat.potentialDamage(duration, missilesOnly)
+        val weaponDamageList: List<WeaponThreat.Damage> = weaponThreat.potentialDamage(duration, missilesOnly)
 
-        // Don't get hit by a finisher missile.
-        if (weaponDamage.any { it.isFinisherMissile }) {
-            return false
+        var weaponDamage = 0f
+        weaponDamageList.forEach { damage ->
+            // Don't get hit by a finisher missile.
+            if (damage.isFinisherMissile) {
+                return false
+            }
+
+            weaponDamage += damage.damage
         }
+
         val allProjectiles = ai.globalAI.projectileTracker.threats(ship)
         val projectiles = filterRelevantProjectiles(allProjectiles)
         val projectileDamage = effectiveDamage(projectiles)
@@ -392,7 +399,12 @@ class VentModule(private val ai: CustomShipAI) {
         val missiles = missileThreat.threats(duration)
         val missileDamage = effectiveDamage(missiles)
 
-        val effectiveHP: Float = ship.hitpoints * ship.hullLevel.let { it * it * it * it }
+        val effectiveHP: Float = if (ship.hitpoints * ship.hullLevel < hitPointSafetyThreshold) {
+            // Frigates and larger, but damaged ships should be very careful.
+            0f
+        } else {
+            ship.hitpoints * ship.hullLevel.let { it * it * it * it }
+        }
 
         return when {
             projectileDamage + missileDamage > effectiveHP * 0.095f -> {
@@ -406,7 +418,7 @@ class VentModule(private val ai: CustomShipAI) {
 
             // Attempt to tank a limited amount of damage. 0.1f may seem like a large fraction,
             // but potential damage calculation is the absolute worst case scenario.
-            projectileDamage + missileDamage + (weaponDamage.sumOf { it.damage }) > effectiveHP * 0.1f -> {
+            projectileDamage + missileDamage + weaponDamage > effectiveHP * 0.1f -> {
                 false
             }
 
