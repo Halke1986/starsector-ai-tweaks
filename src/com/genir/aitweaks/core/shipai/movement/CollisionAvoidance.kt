@@ -8,6 +8,7 @@ import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.Preset.Companion.enemyCollisionSizeFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.hulkCollisionSizeFactor
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
+import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
@@ -20,16 +21,17 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
     fun gatherSpeedLimits(dt: Float): List<SpeedLimit> {
         // Calculate speed limits.
-        val collisionLimits = avoidCollisions(dt)
+        val shipLimits = avoidShips(dt)
         val borderLimit = avoidBorder()
         val targetLimit = avoidManeuverTarget(dt)
         val missileLimits = avoidMissiles(dt)
+        val asteroidLimits = avoidAsteroids(dt)
 
-        return (listOf(borderLimit, targetLimit) + collisionLimits + missileLimits).filterNotNull()
+        return (listOf(borderLimit, targetLimit) + shipLimits + missileLimits + asteroidLimits).filterNotNull()
     }
 
-    private fun avoidCollisions(dt: Float): List<SpeedLimit?> {
-        val obstacles: Sequence<ShipAPI> = findRelevantObstacles()
+    private fun avoidShips(dt: Float): List<SpeedLimit?> {
+        val obstacles: Sequence<ShipAPI> = findRelevantShips()
 
         return obstacles.map { obstacle: ShipAPI ->
             val collisionDistance: Float = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius
@@ -75,7 +77,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }.toList()
     }
 
-    private fun findRelevantObstacles(): Sequence<ShipAPI> {
+    private fun findRelevantShips(): Sequence<ShipAPI> {
         return Global.getCombatEngine().ships.asSequence().filter {
             when {
                 it.root == movement.ship.root -> false
@@ -97,9 +99,39 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }
     }
 
+    private val ShipAPI.movementPriority: Int
+        get() {
+            val ai = customShipAI
+
+            return when {
+                aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
+                    10
+                }
+
+                ai == null -> {
+                    0
+                }
+
+                root.isFrigate -> {
+                    1
+                }
+
+                ai.assignment.eliminate != null -> {
+                    1
+                }
+
+                ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> {
+                    1
+                }
+
+                else -> {
+                    0
+                }
+            }
+        }
+
     private fun avoidMissiles(dt: Float): List<SpeedLimit?> {
         val allMissiles: Sequence<MissileAPI> = Global.getCombatEngine().missiles.asSequence()
-
         val relevantMissiles: Sequence<MissileAPI> = allMissiles.filter { missile: MissileAPI ->
             when {
                 !missile.isValidTarget -> false
@@ -115,10 +147,36 @@ class CollisionAvoidance(val ai: CustomShipAI) {
             }
         }
 
-        return relevantMissiles.map { missile: MissileAPI ->
+        val speedThreshold = movement.maxSpeed
+        return relevantMissiles.mapNotNull { missile: MissileAPI ->
+            val missileMotion = LinearMotion(missile.location, missile.velocity)
             val minDistance = ai.stats.totalCollisionRadius + missile.mineExplosionRange + 30f
 
-            return@map vMaxToObstacle(dt, LinearMotion(missile.location, missile.velocity), minDistance, missile)
+            val vMax = vMaxToObstacle(dt, missileMotion, minDistance, null)
+            if (vMax.speedLimit > speedThreshold) {
+                return@mapNotNull null
+            }
+
+            return@mapNotNull vMax
+        }.toList()
+    }
+
+    private fun avoidAsteroids(dt: Float): List<SpeedLimit?> {
+        val speedThreshold = movement.maxSpeed
+        val massThreshold = movement.ship.mass * 1.5f
+        return Global.getCombatEngine().asteroids.asSequence().mapNotNull { asteroid ->
+            if (asteroid.mass < massThreshold) {
+                return@mapNotNull null
+            }
+
+            val asteroidMotion = LinearMotion(asteroid.location, asteroid.velocity)
+            val minDistance = movement.ship.shieldRadiusEvenIfNoShield + asteroid.collisionRadius + 30f
+            val vMax = vMaxToObstacle(dt, asteroidMotion, minDistance, asteroid)
+            if (vMax.speedLimit > speedThreshold) {
+                return@mapNotNull null
+            }
+
+            return@mapNotNull vMax
         }.toList()
     }
 
@@ -184,7 +242,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     /** Calculate maximum velocity that will not lead to collision with an obstacle. */
-    fun vMaxToObstacle(dt: Float, obstacleMotion: LinearMotion, minDistance: Float, obstacle: CombatEntityAPI?): SpeedLimit {
+    private fun vMaxToObstacle(dt: Float, obstacleMotion: LinearMotion, minDistance: Float, obstacle: CombatEntityAPI?): SpeedLimit {
         val toObstacle = obstacleMotion.position - movement.location
         val toObstacleFacing = toObstacle.facing
         val r = (-toObstacleFacing).rotationMatrix
@@ -195,12 +253,12 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         // Obstacle is moving towards the ship. If the obstacle is an ally,
         // assume both ships will try to avoid the collision.
         val decelObstacle = if (obstacle?.owner == ai.ship.owner) {
-            movement.collisionDeceleration(-toObstacleFacing)
+            collisionDeceleration(movement, -toObstacleFacing)
         } else {
             0f
         }
 
-        val decelShip = movement.collisionDeceleration(toObstacleFacing)
+        val decelShip = collisionDeceleration(movement, toObstacleFacing)
         val vMax = EngineController.vMax(dt, abs(distanceLeft), decelShip + decelObstacle) * distanceLeft.sign
         val vObstacle = obstacleMotion.velocity.rotatedX(r)
         val speedLimit = vMax + vObstacle
@@ -208,36 +266,23 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         return SpeedLimit(toObstacleFacing, speedLimit, obstacle)
     }
 
-    companion object {
-        val ShipAPI.movementPriority: Int
-            get() {
-                val ai = customShipAI
+    /** Ship deceleration for collision avoidance purposes. */
+    fun collisionDeceleration(movement: Movement, collisionFacing: Direction): Float {
+        val angleFromBow = (collisionFacing - movement.facing).length
 
-                return when {
-                    aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF) -> {
-                        10
-                    }
-
-                    ai == null -> {
-                        0
-                    }
-
-                    root.isFrigate -> {
-                        1
-                    }
-
-                    ai.assignment.eliminate != null -> {
-                        1
-                    }
-
-                    ai.assignment.navigateTo != null && !ai.assignment.arrivedAt -> {
-                        1
-                    }
-
-                    else -> {
-                        0
-                    }
-                }
-            }
+        // The returned value is not the true effective deceleration.
+        // True effective deceleration would be the sum of all thrust vector projections
+        // onto the collision vector. Instead, this method returns a weighted and capped
+        // aggregate to prevent abrupt changes, which could otherwise cause unstable
+        // anti-collision behavior.
+        if (angleFromBow < 90f) {
+            val decelWeight = 90f - angleFromBow
+            val strafeWeight = angleFromBow
+            return (movement.deceleration * decelWeight + strafeWeight * movement.strafeAcceleration) / 90f
+        } else {
+            val accelWeight = angleFromBow - 90f
+            val strafeWeight = 180f - angleFromBow
+            return (movement.acceleration * accelWeight + strafeWeight * movement.strafeAcceleration) / 90f
+        }
     }
 }

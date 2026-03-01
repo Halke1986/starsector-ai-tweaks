@@ -1,6 +1,7 @@
 - Custom AI: Frigates and destroyers now avoid all enemy missiles when backing off. 
 - Custom AI: Shieldless ships now ignore non-missile weapons when deciding whether to vent.
 - Custom AI: Frigates and other low hit point ship are now more cautious when deciding whether to vent. Suggested by Seekers.
+- Custom AI: Ships now avoid collisions with large asteroids. Suggested by GeboGlima.
 
 Version v2.2.3
 

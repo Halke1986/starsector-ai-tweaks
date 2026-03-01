@@ -38,16 +38,6 @@ value class Movement(val ship: ShipAPI) {
             else -> 1.0f
         }
 
-    /** Ship deceleration for collision avoidance purposes. */
-    fun collisionDeceleration(collisionFacing: Direction): Float {
-        val angleFromBow = (collisionFacing - facing).length
-        return when {
-            angleFromBow < 30f -> deceleration
-            angleFromBow < 150f -> strafeAcceleration
-            else -> acceleration
-        }
-    }
-
     // Angular velocity.
     val facing: Direction
         get() = ship.facing.toDirection
