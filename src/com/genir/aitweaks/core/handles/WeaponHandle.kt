@@ -34,6 +34,24 @@ import kotlin.math.floor
  * - unobfuscated methods from the underlying Weapon engine object
  */
 class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
+    val api: WeaponAPI
+        get() = weapon
+
+    override fun equals(other: Any?): Boolean {
+        val otherWeapon: Any? = (other as? WeaponHandle)?.weapon ?: other
+
+        return weapon.equals(otherWeapon)
+    }
+
+    override fun hashCode(): Int {
+        return weapon.hashCode()
+    }
+
+    companion object {
+        val WeaponAPI.handle: WeaponHandle
+            get() = WeaponHandle(this)
+    }
+
     val ballistics: Ballistics
         get() = when {
             isBeam -> Beam(this)
@@ -42,9 +60,6 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
 
             else -> Projectile(this)
         }
-
-    val api: WeaponAPI
-        get() = weapon
 
     val isAntiFighter: Boolean
         get() = hasAITag(Tag.ANTI_FIGHTER) || hasAIHint(WeaponAPI.AIHints.ANTI_FTR)
@@ -449,19 +464,4 @@ class WeaponHandle(weaponAPI: WeaponAPI) : WeaponWrapper(weaponAPI as Weapon) {
                 currAngle
             }
         }
-
-    override fun equals(other: Any?): Boolean {
-        val otherWeapon: Any? = (other as? WeaponHandle)?.weapon ?: other
-
-        return weapon.equals(otherWeapon)
-    }
-
-    override fun hashCode(): Int {
-        return weapon.hashCode()
-    }
-
-    companion object {
-        val WeaponAPI.handle: WeaponHandle
-            get() = WeaponHandle(this)
-    }
 }
