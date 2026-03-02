@@ -2,6 +2,7 @@
 - Custom AI: Shieldless ships now ignore non-missile weapons when deciding whether to vent.
 - Custom AI: Frigates and other low hit point ship are now more cautious when deciding whether to vent. Suggested by Seekers.
 - Custom AI: Ships now avoid collisions with large asteroids. Suggested by GeboGlima.
+- Custom AI: Fixed a bug where ships were pushed toward the map border after a drone-equipped station was destroyed. Reported by Seekers.
 - Rift Lance is now controlled by the Finisher Beam Protocol hullmod. Suggested by Cherman0.
 
 Version v2.2.3

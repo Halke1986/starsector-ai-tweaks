@@ -127,7 +127,7 @@ fun ShipAPI.shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Direct
 val ShipAPI.totalCollisionRadius: Float
     get() {
         val modules = childModulesCopy.filter { it.isModule } // Make sure the module is still attached.
-        val drones = deployedDrones?.filter { it.collisionClass == CollisionClass.SHIP }
+        val drones = deployedDrones?.filter { it.collisionClass == CollisionClass.SHIP && it.isValidTarget }
 
         val withModules = modules.maxOfOrNull { (location - it.location).length + it.collisionRadius } ?: 0f
         val withDrones = drones?.maxOfOrNull { (location - it.location).length + it.collisionRadius } ?: 0f
