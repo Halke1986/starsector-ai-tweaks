@@ -60,7 +60,7 @@ class AutofireAIPicker : com.genir.aitweaks.launcher.AutofireAIPicker {
             }
 
             // Missile weapons
-            weapon.isMissile || weapon.spec.projectileSpec is MissileSpecAPI -> {
+            weapon.isMissile || weapon.spec?.projectileSpec is MissileSpecAPI -> {
 //                weapon.isUnguidedMissile && weapon.hasAIHint(WeaponAPI.AIHints.DO_NOT_CONSERVE)
                 false
             }
