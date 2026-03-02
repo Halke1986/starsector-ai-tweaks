@@ -399,8 +399,8 @@ class VentModule(private val ai: CustomShipAI) {
         val missiles = missileThreat.threats(duration)
         val missileDamage = effectiveDamage(missiles)
 
-        val effectiveHP: Float = if (ship.hitpoints * ship.hullLevel < hitPointSafetyThreshold) {
-            // Frigates and larger, but damaged ships should be very careful.
+        val effectiveHP: Float = if (ship.hitpoints * ship.hullLevel < hitPointSafetyThreshold && ship.canVentFlux) {
+            // Frigates and larger, but damaged ships should be very careful when venting.
             0f
         } else {
             ship.hitpoints * ship.hullLevel.let { it * it * it * it }
