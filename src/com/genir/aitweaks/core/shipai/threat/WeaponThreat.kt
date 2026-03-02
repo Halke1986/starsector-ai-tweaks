@@ -82,7 +82,7 @@ class WeaponThreat(private val ship: ShipAPI) {
                 // missile launcher, same as the player can.
                 weapon.isMissile && weapon.isPermanentlyOutOfAmmo -> false
 
-                missileOnly && weapon.spec.projectileSpec !is MissileSpecAPI -> false
+                missileOnly && weapon.spec?.projectileSpec !is MissileSpecAPI -> false
 
                 !canWeaponHitShip(duration, weapon, obstacles) -> false
 

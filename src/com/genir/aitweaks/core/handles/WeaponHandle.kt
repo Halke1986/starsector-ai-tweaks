@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.handles
 import com.fs.starfarer.api.AnimationAPI
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.WeaponAPI.AIHints
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.fs.starfarer.api.graphics.SpriteAPI
 import com.fs.starfarer.api.loading.*
@@ -51,7 +52,7 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
         }
 
     val isAntiFighter: Boolean
-        get() = hasAITag(Tag.ANTI_FIGHTER) || hasAIHint(WeaponAPI.AIHints.ANTI_FTR)
+        get() = hasAITag(Tag.ANTI_FIGHTER) || hasAIHint(AIHints.ANTI_FTR)
 
     val isStrictlyAntiShield: Boolean
         get() = when {
@@ -66,7 +67,7 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
 
     val isStrictlyAntiArmor: Boolean
         get() = when {
-            hasAIHint(WeaponAPI.AIHints.USE_LESS_VS_SHIELDS) -> true
+            hasAIHint(AIHints.USE_LESS_VS_SHIELDS) -> true
 
             hasAITag(Tag.USE_LESS_VS_SHIELDS) -> true
 
@@ -77,7 +78,7 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
 
     val isFinisherBeam
         get() = when {
-            !spec.isBeam -> false
+            spec?.isBeam != true -> false
 
             !hasAITag(Tag.FINISHER_BEAM) -> false
 
@@ -87,18 +88,18 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
         }
 
     val isPD: Boolean
-        get() = hasAIHint(WeaponAPI.AIHints.PD) || hasAIHint(WeaponAPI.AIHints.PD_ONLY)
+        get() = hasAIHint(AIHints.PD) || hasAIHint(AIHints.PD_ONLY)
 
     /** Same as WeaponAPI.isPD, except it will ignore weapons that
      * were modified into PD by S-modded Integrated Point Defense AI. */
     val isPDSpec: Boolean
-        get() = spec.aiHints.contains(WeaponAPI.AIHints.PD) || spec.aiHints.contains(WeaponAPI.AIHints.PD_ONLY)
+        get() = spec?.aiHints?.contains(AIHints.PD) == true || spec?.aiHints?.contains(AIHints.PD_ONLY) == true
 
     val isMissile: Boolean
         get() = type == WeaponType.MISSILE
 
     val isUnguidedMissile: Boolean
-        get() = (spec.projectileSpec as? MissileSpecAPI)?.typeString == "ROCKET"
+        get() = (spec?.projectileSpec as? MissileSpecAPI)?.typeString == "ROCKET"
 
     val isPlainBeam: Boolean
         get() = isBeam && !conserveAmmo
@@ -110,10 +111,10 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
         get() = !usesAmmo() || ammoTracker.let { it.ammoPerSecond > 0 && (it.ammo + it.reloadSize > it.maxAmmo) }
 
     val hasBestTargetLeading: Boolean
-        get() = isPD && !hasAIHint(WeaponAPI.AIHints.STRIKE) && ship.mutableStats.dynamic.getValue("pd_best_target_leading", 0f) >= 1f
+        get() = isPD && !hasAIHint(AIHints.STRIKE) && ship.mutableStats.dynamic.getValue("pd_best_target_leading", 0f) >= 1f
 
     val ignoresFlares: Boolean
-        get() = hasAIHint(WeaponAPI.AIHints.IGNORES_FLARES) || ship.mutableStats.dynamic.getValue("pd_ignores_flares", 0f) >= 1f
+        get() = hasAIHint(AIHints.IGNORES_FLARES) || ship.mutableStats.dynamic.getValue("pd_ignores_flares", 0f) >= 1f
 
     /** Is angle in weapon arc in SHIP COORDINATES. */
     fun isAngleInArc(angle: Direction): Boolean {
@@ -129,7 +130,7 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
             return when {
                 // Assume guided missile and special guided weapon like the Voltaic Discharge
                 // can attack in full arc, regardless of slot arc.
-                hasAIHint(WeaponAPI.AIHints.GUIDED_POOR) || hasAIHint(WeaponAPI.AIHints.DO_NOT_AIM) -> {
+                hasAIHint(AIHints.GUIDED_POOR) || hasAIHint(AIHints.DO_NOT_AIM) -> {
                     Arc(360f, arcFacing.toDirection)
                 }
 
@@ -153,6 +154,7 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
         get() {
             // For beam and missile weapons delegate
             // the range calculation to vanilla.
+            val spec: WeaponSpecAPI = spec ?: return 0f
             if (spec.projectileSpec == null || type == WeaponType.MISSILE) {
                 return weaponAPI.range
             }
@@ -180,6 +182,7 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
 
     val threatRange: Float
         get() {
+            val spec: WeaponSpecAPI = spec ?: return 0f
             return when {
                 // Missiles may cause damage beyond the weapon engagement range.
                 spec.projectileSpec is MissileSpecAPI -> projectileSpeed * (spec.projectileSpec as MissileSpecAPI).maxFlightTime
@@ -203,13 +206,18 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
         }
 
     val isNonInterruptibleBurstWeapon: Boolean
-        get() = when {
-            spec.isInterruptibleBurst -> false
+        get() {
+            val spec: WeaponSpecAPI? = spec
+            return when {
+                spec == null -> false
 
-            // Exclude "continuous" burst beams like the IR Autolance.
-            isBeam && spec.burstDuration > 0f && cooldown == 0f -> false
+                spec.isInterruptibleBurst -> false
 
-            else -> isBurstWeapon
+                // Exclude "continuous" burst beams like the IR Autolance.
+                isBeam && spec.burstDuration > 0f && cooldown == 0f -> false
+
+                else -> isBurstWeapon
+            }
         }
 
     /** Warmup is the first phase of weapon firing sequence, preceding the first shot.
@@ -271,6 +279,9 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
      * For multi-barreled weapons, average offset is returned. */
     val barrelOffset: Vector2f
         get() {
+            val spec: WeaponSpecAPI = spec
+                ?: return Vector2f()
+
             val offsets: List<Vector2f> = when {
                 slot.isHardpoint -> spec.hardpointFireOffsets
 
@@ -296,15 +307,15 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
 
     private val projectileLength: Float
         get() {
-            val spec: ProjectileSpecAPI? = spec.projectileSpec as? ProjectileSpecAPI
+            val projectileSpec: ProjectileSpecAPI? = spec?.projectileSpec as? ProjectileSpecAPI
 
-            return when (spec?.spawnType) {
+            return when (projectileSpec?.spawnType) {
                 // MovingRay projectile class
                 BEAM,
                 BALLISTIC_AS_BEAM -> {
                     // Why the projectile length is governed by its width instead of length?
                     // Who knows, possibly a Starsector engine bug.
-                    spec.width / 2
+                    projectileSpec.width / 2
                 }
 
                 else -> 0f
@@ -346,13 +357,13 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
      * value returned by vanilla WeaponAPI.projectileSpeed. */
     val projectileSpeed: Float
         get() {
-            return when (val spec = spec.projectileSpec) {
+            return when (val projectileSpec = spec?.projectileSpec) {
                 is ProjectileSpecAPI -> {
-                    spec.getMoveSpeed(ship.mutableStats, weaponAPI)
+                    projectileSpec.getMoveSpeed(ship.mutableStats, weaponAPI)
                 }
 
                 is MissileSpecAPI -> {
-                    val engineSpec: ShipHullSpecAPI.EngineSpecAPI = spec.hullSpec.engineSpec
+                    val engineSpec: ShipHullSpecAPI.EngineSpecAPI = projectileSpec.hullSpec.engineSpec
                     val shipStats: MutableShipStatsAPI = ship.mutableStats
                     val maxSpeedStat = MutableStat(engineSpec.maxSpeed)
 
@@ -361,9 +372,9 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
                     maxSpeedStat.modifiedValue
                 }
 
-                else -> {
-                    weaponAPI.projectileSpeed
-                }
+                null -> 0f
+
+                else -> weaponAPI.projectileSpeed
             }
         }
 
@@ -572,7 +583,7 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
         return weaponAPI.usesEnergy()
     }
 
-    fun hasAIHint(p0: WeaponAPI.AIHints?): Boolean {
+    fun hasAIHint(p0: AIHints?): Boolean {
         return weaponAPI.hasAIHint(p0)
     }
 
@@ -644,7 +655,7 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
         weaponAPI.repair()
     }
 
-    val spec: WeaponSpecAPI
+    val spec: WeaponSpecAPI?
         get() = weaponAPI.spec
 
     val slot: WeaponSlotAPI

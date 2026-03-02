@@ -57,7 +57,7 @@ private fun canHitAlly(weapon: WeaponHandle, target: CombatEntityAPI, ally: Ship
         weapon.ballistics.intercept(ballisticTarget, endParams).facing,
     )
 
-    val spread = weapon.spec.maxSpread + 2f
+    val spread = (weapon.spec?.maxSpread ?: 0f) + 2f
     return allyArc.addAngle(spread).overlaps(enemyArc)
 }
 
@@ -66,7 +66,9 @@ private fun canHitAlly(weapon: WeaponHandle, target: CombatEntityAPI, ally: Ship
 private fun weaponBurstInterval(weapon: WeaponHandle): Pair<Float, Float> {
     // Don't bother with interruptible burst weapons.
     // They are rare and difficult to account for.
-    if (weapon.spec.isInterruptibleBurst) return Pair(0f, 0f)
+    if (weapon.spec?.isInterruptibleBurst == true) {
+        return Pair(0f, 0f)
+    }
 
     val cycle = weapon.firingCycle
     return Pair(cycle.warmupDuration, cycle.warmupDuration + cycle.burstDuration)

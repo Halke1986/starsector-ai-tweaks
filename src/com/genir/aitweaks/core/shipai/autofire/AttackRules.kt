@@ -184,5 +184,5 @@ fun allowPDFriendlyFire(weapon: WeaponHandle, expected: Hit): Boolean = when {
     !expected.target.isPDTarget -> false
 
     // Only fragmentation and beam weapons are allowed to risk friendly fire.
-    else -> weapon.spec.damageType == FRAGMENTATION || weapon.isPlainBeam
+    else -> weapon.spec?.damageType == FRAGMENTATION || weapon.isPlainBeam
 }

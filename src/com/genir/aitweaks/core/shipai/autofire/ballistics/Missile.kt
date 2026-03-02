@@ -16,10 +16,13 @@ class Missile(private val weapon: WeaponHandle) : Projectile(weapon) {
     /** Iteratively calculate the intercept point for dumb-fire missile weapon.
      * Note: the operation is computationally expensive. */
     override fun intercept(target: BallisticTarget, params: BallisticParams): Vector2f {
+        val missileSpec: MissileSpecAPI = weapon.spec?.projectileSpec as? MissileSpecAPI
+            ?: return target.location - weapon.location
+
         // Missile path is always computed using global time rate;
         // make sure not to use ship-specific time rate.
         val dt: Float = Global.getCombatEngine().elapsedInLastFrame
-        val missileStats = MissileStats(weapon)
+        val missileStats = MissileStats(weapon, missileSpec)
 
         var facing: Direction = super.intercept(target, params).facing
         for (i in 0..5) {
@@ -99,7 +102,7 @@ class Missile(private val weapon: WeaponHandle) : Projectile(weapon) {
     }
 
     /** Missile stats after applying ship bonuses. */
-    private class MissileStats(weapon: WeaponHandle) {
+    private class MissileStats(weapon: WeaponHandle, missileSpec: MissileSpecAPI) {
         val maxSpeed: Float
         val acceleration: Float
         val deceleration: Float
@@ -107,7 +110,6 @@ class Missile(private val weapon: WeaponHandle) : Projectile(weapon) {
         val maxFlightTime: Float
 
         init {
-            val missileSpec: MissileSpecAPI = weapon.spec.projectileSpec as MissileSpecAPI
             val engineSpec: ShipHullSpecAPI.EngineSpecAPI = missileSpec.hullSpec.engineSpec
             val shipStats: MutableShipStatsAPI = weapon.ship.mutableStats
 

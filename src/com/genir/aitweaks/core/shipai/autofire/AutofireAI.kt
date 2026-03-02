@@ -428,10 +428,12 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
      * position and calculated intercept position.
      */
     private fun getAccuracy(): Float {
-        if (weapon.hasBestTargetLeading || Global.getCurrentState() == GameState.TITLE) return 1f
+        if (weapon.hasBestTargetLeading || Global.getCurrentState() == GameState.TITLE) {
+            return 1f
+        }
 
         val accBase = ship.aimAccuracy
-        val accBonus = weapon.spec.autofireAccBonus
+        val accBonus = weapon.spec?.autofireAccBonus ?: 0f
         return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
     }
 
