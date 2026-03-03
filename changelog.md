@@ -1,3 +1,6 @@
+- Custom AI: Ships with FIGHTER collision class will not attempt to avoid collisions with other ships and asteroids. 
+- Autofire AI: Weapons will shoot through allied ships with FIGHTER collision class. Suggested by Levidos.
+
 Version v2.2.4
 
 - Custom AI: Frigates and destroyers now avoid all enemy missiles when backing off. 

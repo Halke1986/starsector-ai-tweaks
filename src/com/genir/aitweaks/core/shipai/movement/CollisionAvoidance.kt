@@ -31,9 +31,11 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidShips(dt: Float): List<SpeedLimit?> {
-        val obstacles: Sequence<ShipAPI> = findRelevantShips()
+        if (movement.ship.collisionClass != CollisionClass.SHIP) {
+            return listOf()
+        }
 
-        return obstacles.map { obstacle: ShipAPI ->
+        return findRelevantShips().map { obstacle: ShipAPI ->
             val collisionDistance: Float = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius
             val shieldDistance: Float = ai.ship.shieldRadiusEvenIfNoShield + obstacle.shieldRadiusEvenIfNoShield
 
@@ -162,6 +164,10 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidAsteroids(dt: Float): List<SpeedLimit?> {
+        if (movement.ship.collisionClass != CollisionClass.SHIP) {
+            return listOf()
+        }
+
         val speedThreshold = movement.maxSpeed
         val massThreshold = movement.ship.mass * 1.5f
         return Global.getCombatEngine().asteroids.asSequence().mapNotNull { asteroid ->

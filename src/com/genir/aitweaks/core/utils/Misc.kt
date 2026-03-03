@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
@@ -91,7 +92,7 @@ fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Directio
 fun firstShipAlongLineOfFire(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit? {
     val obstacles = Grid.ships(weapon.location, weapon.engagementRange).filter { ship ->
         when {
-            ship.isFighter -> false
+            ship.collisionClass != CollisionClass.SHIP -> false
             ship.isExpired -> false
             ship.root == weapon.ship.root -> false
 
