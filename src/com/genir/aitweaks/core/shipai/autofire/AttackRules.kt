@@ -178,11 +178,14 @@ fun avoidFriendlyFire(weapon: WeaponHandle, expected: Hit, actual: Hit?): HoldFi
 }
 
 /** Allow friendly fire with in some cases of PD defense. */
-fun allowPDFriendlyFire(weapon: WeaponHandle, expected: Hit): Boolean = when {
-    // Determine if weapon is performing PD defense.
-    !weapon.isPD -> false
-    !expected.target.isPDTarget -> false
+fun allowPDFriendlyFire(weapon: WeaponHandle, expected: Hit): Boolean {
+    return when {
+        // Determine if weapon is performing PD defense.
+        !weapon.isPD -> false
 
-    // Only fragmentation and beam weapons are allowed to risk friendly fire.
-    else -> weapon.spec?.damageType == FRAGMENTATION || weapon.isPlainBeam
+        !expected.target.isPDTarget -> false
+
+        // Only fragmentation and beam weapons are allowed to risk friendly fire.
+        else -> weapon.spec?.damageType == FRAGMENTATION || weapon.isPlainBeam
+    }
 }

@@ -154,19 +154,32 @@ class SelectTarget(
 
                 !shipTypeFilter(target) -> false
 
-                // Hardpoint weapons select ship target even when it's outside their firing arc,
-                // unless the ship is incapable of following the target.
-                weapon.slot.isHardpoint && !weapon.ship.isFlamedOut && attackTarget != null -> {
-                    target == attackTarget
+                weapon.slot.isHardpoint -> {
+                    when {
+                        // Hardpoint weapons select ship target even when it's outside their firing arc,
+                        // unless the ship is incapable of following the target.
+                        !weapon.ship.isFlamedOut && target == attackTarget -> true
+
+                        !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
+
+                        else -> true
+                    }
                 }
 
-                !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
+                weapon.slot.isTurret -> {
+                    when {
+                        !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
 
-                !canTrack(target) -> false
+                        // Can the weapon rotate fast enough to track the target.
+                        !canTrack(target) -> false
 
-                // Allow tracking main attack target even if it's occluded.
-                // This helps the ship to stay focused on finishing a single target.
-                target != attackTarget && obstacleList.isOccluded(target) -> false
+                        // Allow tracking main attack target even if it's occluded.
+                        // This helps the ship to stay focused on finishing a single target.
+                        target != attackTarget && obstacleList.isOccluded(target) -> false
+
+                        else -> true
+                    }
+                }
 
                 else -> true
             }
@@ -253,18 +266,26 @@ class SelectTarget(
             return current
         }
 
-        val opportunities: Sequence<CombatEntityAPI> = entities.filter { target ->
-            isTargetAcceptable(target, targetSearchRange)
+        var selectedTarget: CombatEntityAPI? = null
+        var targetEvaluation = Float.MAX_VALUE
+        for (target in entities) {
+            if (!isTargetAcceptable(target, targetSearchRange)) {
+                isTargetAcceptable(target, targetSearchRange)
+
+                continue
+            }
+
+            val eval = evaluateTarget(target)
+            if (eval < targetEvaluation) {
+                selectedTarget = target
+                targetEvaluation = eval
+            }
         }
 
-        val evaluated: Sequence<Pair<CombatEntityAPI, Float>> = opportunities.map { opportunity ->
-            evaluateTarget(opportunity)
-        }
-
-        return evaluated.minWithOrNull(compareBy { it.second })?.first
+        return selectedTarget
     }
 
-    private fun evaluateTarget(target: CombatEntityAPI): Pair<CombatEntityAPI, Float> {
+    private fun evaluateTarget(target: CombatEntityAPI): Float {
         var evaluation = 0f
         val ballisticTarget = BallisticTarget.collisionRadius(target)
         val dist = weapon.ballistics.intercept(ballisticTarget, params).length
@@ -283,7 +304,7 @@ class SelectTarget(
             evaluation += outOfRangePenalty
         }
 
-        return Pair(target, evaluation)
+        return evaluation
     }
 
     private fun canTrack(target: CombatEntityAPI): Boolean {
