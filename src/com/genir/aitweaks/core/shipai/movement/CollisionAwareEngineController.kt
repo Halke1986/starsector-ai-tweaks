@@ -9,6 +9,7 @@ import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
+import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
@@ -17,7 +18,10 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedY
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-import kotlin.math.*
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sign
+import kotlin.math.sqrt
 
 /**
  * Wraps EngineController and enforces local collision avoidance.
@@ -82,7 +86,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             return null
         }
 
-        val limitedVelocity: Vector2f = findSafeVelocity(bounds, expectedVelocity, expectedSpeed)
+        val limitedVelocity: Vector2f = findSafeVelocity(bounds, expectedVelocity)
             ?: return null
 
         // Use the two ship thrust vectors that form the quadrant containing
@@ -108,73 +112,81 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
     /** Find a velocity vector that respect the bounds, while allowing
      * the ship to travel the fastest and with direction aligned with
      * the expected velocity. */
-    private fun findSafeVelocity(bounds: List<Bound>, expectedVelocity: Vector2f, expectedSpeed: Float): Vector2f? {
-        val exceededBounds: MutableList<Bound> = mutableListOf()
+    private fun findSafeVelocity(bounds: List<Bound>, expectedVelocity: Vector2f): Vector2f? {
+        val expectedSpeed: Float = expectedVelocity.length
 
         var boundToYield: Bound? = null
         var boundToYieldExceededBy = 0f
 
         for (bound: Bound in bounds) {
             // Expected velocity does not exceed the bound.
-            val expectedX = expectedVelocity.rotatedX(bound.r)
-            val exceededBy = expectedX - bound.speedLimit
-            if (exceededBy <= 0f) {
-                continue
-            }
-
-            exceededBounds.add(bound)
-
+            val exceededBy = expectedVelocity.rotatedX(bound.r) - bound.speedLimit
             if (shouldYield(bound) && exceededBy > boundToYieldExceededBy) {
                 boundToYield = bound
                 boundToYieldExceededBy = exceededBy
             }
         }
 
-        val accumulator = VelocityEval(expectedVelocity, boundToYield)
-        for (bound: Bound in exceededBounds) {
-            // Calculate and evaluate velocity vectors that respect the bound
-            // while allowing the ship to move at the expected speed. If no such
-            // vector exists, evaluate the vector that violates the bound the least.
-            if (expectedSpeed >= abs(bound.speedLimit)) {
-                val yOffset = sqrt(expectedSpeed * expectedSpeed - bound.speedLimit * bound.speedLimit)
-                accumulator.evaluate(-yOffset, bound)
-                accumulator.evaluate(+yOffset, bound)
-            } else {
-                accumulator.evaluate(0f, bound)
-            }
+        // Calculate and evaluate velocity vectors that respect the bound
+        // while allowing the ship to move at the expected speed.
+        val accumulator = VelocityEval(expectedVelocity.facing, expectedSpeed + 10f, boundToYield)
+        for (bound: Bound in bounds) {
+            val yOffset = sqrt(expectedSpeed * expectedSpeed - bound.speedLimit * bound.speedLimit)
+            accumulator.evaluate(-yOffset, bound)
+            accumulator.evaluate(+yOffset, bound)
         }
 
-        return accumulator.velocity
+        if (accumulator.velocity != null) {
+            return accumulator.velocity
+        }
+
+        // Fall back to selecting any vector that does not violate the bounds.
+        val fallbackAccumulator = VelocityEval(expectedVelocity.facing, null, null)
+        for (bound: Bound in bounds) {
+            fallbackAccumulator.evaluate(0f, bound)
+        }
+
+        return fallbackAccumulator.velocity
     }
 
-    private inner class VelocityEval(val expectedVelocity: Vector2f, val boundToYield: Bound?) {
+    private inner class VelocityEval(val expectedVelocityFacing: Direction, val maxAllowedSpeed: Float?, val boundToYield: Bound?) {
         var velocity: Vector2f? = null
         var score: Float = 0f
 
         fun evaluate(yOffset: Float, bound: Bound) {
             val y: Float = yOffset.coerceIn(bound.pMin, bound.pMax)
-            val v: Vector2f = Vector2f(bound.speedLimit, y).rotatedReverse(bound.r)
+            val velocity: Vector2f = Vector2f(bound.speedLimit, y).rotatedReverse(bound.r)
+
+            if (maxAllowedSpeed != null && velocity.length > maxAllowedSpeed) {
+                return
+            }
 
             // Discard velocities that would cross obstacle direction vector.
             val obstacleToYield = (boundToYield?.obstacle as? ShipAPI)?.movement
             val obstacleAI = obstacleToYield?.ship?.customShipAI?.maneuver
             if (y != 0f && boundToYield != null && obstacleAI != null) {
                 val obstacleDirection = (obstacleAI.attackPoint ?: obstacleAI.headingPoint) - obstacleToYield.location
-                if (obstacleDirection.rotatedY(boundToYield.r).sign == v.rotatedY(boundToYield.r).sign) {
+                if (obstacleDirection.rotatedY(boundToYield.r).sign == velocity.rotatedY(boundToYield.r).sign) {
                     return
                 }
             }
 
-            val angleToExpected: Float = (expectedVelocity.facing - v.facing).length
+            // Prefer directions where the ship can travel faster.
+            // Strongly prefer directions aligned with the expected velocity vector.
+            val angleToExpected: Float = (expectedVelocityFacing - velocity.facing).length
             val angleNormalized = 1f - angleToExpected / 180f
             val angleSquared = angleNormalized * angleNormalized
 
-            // Prefer directions where the ship can travel faster.
-            // Strongly prefer directions aligned with the expected velocity vector.
-            val score = v.length * angleSquared
+            val directionChangePenalty = if ((velocity.facing - movement.velocity.facing).length > 90f) {
+                0.5f
+            } else {
+                1.0f
+            }
+
+            val score = velocity.length * angleSquared * directionChangePenalty
 
             if (this.velocity == null || score > this.score) {
-                this.velocity = v
+                this.velocity = velocity
                 this.score = score
             }
         }
