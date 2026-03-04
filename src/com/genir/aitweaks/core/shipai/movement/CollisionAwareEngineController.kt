@@ -50,6 +50,8 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
      * as possible toward its destination. */
     private fun limitVelocity(expectedVelocity: Vector2f, rotationToShip: RotationMatrix, limits: List<SpeedLimit>): Vector2f? {
         var limitExceeded = false
+        var boundToYield: Bound? = null
+        var boundToYieldExceededBy = 0f
         val rawBounds: MutableList<Bound> = mutableListOf()
         val dodgeSpeed = maxOf(expectedVelocity.length, ship.maxSpeed)
 
@@ -61,17 +63,21 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
 
             // Rotation to limit FoR.
             val r = (-limit.direction).rotationMatrix
-            if (limit.speedLimit < expectedVelocity.rotatedX(r)) {
+            val exceededBy = expectedVelocity.rotatedX(r) - limit.speedLimit
+            if (exceededBy > 0f) {
                 limitExceeded = true
             }
 
-            rawBounds.add(Bound(
-                r,
-                limit.speedLimit,
-                limit.obstacle,
-                0f,
-                0f
-            ))
+            val bound = Bound(r, limit.speedLimit, limit.obstacle, 0f, 0f)
+
+            // Find a bound to yield, if any. If there are
+            // multiple, select the one exceeded the most.
+            if (shouldYield(bound) && exceededBy > boundToYieldExceededBy) {
+                boundToYield = bound
+                boundToYieldExceededBy = exceededBy
+            }
+
+            rawBounds.add(bound)
         }
 
         if (!limitExceeded) {
@@ -83,19 +89,6 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             // Leave the behavior undefined in the unusual case
             // of strongly contradicting speed limits.
             return null
-        }
-
-        // Find a bound to yield, if any. If there are
-        // multiple, select the one exceeded the most.
-        var boundToYield: Bound? = null
-        var boundToYieldExceededBy = 0f
-        for (bound: Bound in bounds) {
-            // Expected velocity does not exceed the bound.
-            val exceededBy = expectedVelocity.rotatedX(bound.r) - bound.speedLimit
-            if (shouldYield(bound) && exceededBy > boundToYieldExceededBy) {
-                boundToYield = bound
-                boundToYieldExceededBy = exceededBy
-            }
         }
 
         val limitedVelocity: Vector2f = findSafeVelocity(bounds, expectedVelocity.facing, dodgeSpeed, boundToYield)
