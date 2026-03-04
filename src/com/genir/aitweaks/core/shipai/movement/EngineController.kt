@@ -8,7 +8,9 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.sign
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 /**
@@ -35,7 +37,7 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
         val af = movement.acceleration * dt * dt
         val ab = movement.deceleration * dt * dt
         val al = movement.strafeAcceleration * dt * dt
-        val vMax = max(movement.maxSpeed, movement.velocity.length) * dt + af
+        val vMax = maxOf(movement.maxSpeed, movement.velocity.length) * dt + af
 
         // Transform input into ship frame of reference. Account for
         // ship angular velocity, as linear acceleration is applied
@@ -54,7 +56,7 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
 
         // Expected velocity directly towards target location.
         val vtt = if (vmx == 0f || vmy == 0f) Vector2f(vmx, vmy)
-        else d * min(vmx / d.x, vmy / d.y)
+        else d * minOf(vmx / d.x, vmy / d.y)
 
         // Expected velocity change.
         val ve = (vtt + vt).clampedLength(vMax)
@@ -81,7 +83,7 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
         val fb = -dv.y / ab
         val fl = -dv.x / al
         val fr = +dv.x / al
-        val fMax = max(max(ff, fb), max(fl, fr))
+        val fMax = maxOf(ff, fb, fl, fr)
 
         val overSpeedX = vmx.sign == v.x.sign && abs(vmx) < abs(v.x)
         val overSpeedY = vmy.sign == v.y.sign && abs(vmy) < abs(v.y)
@@ -109,7 +111,7 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
         // animation frame duration (* dt).
         val w = movement.angularVelocity * dt
         val a = movement.turnAcceleration * dt * dt
-        val d = min(abs(w), movement.turnDeceleration * dt * dt) * -sign(w)
+        val d = minOf(abs(w), movement.turnDeceleration * dt * dt) * -sign(w)
 
         // Estimate target angular velocity.
         val wt = targetAngularVelocity * dt

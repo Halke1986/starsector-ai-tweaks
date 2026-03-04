@@ -7,7 +7,6 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.vectorProjectionLength
-import kotlin.math.min
 
 class MissileThreat(val ship: ShipAPI) {
     fun threats(duration: Float): Sequence<MissileAPI> {
@@ -61,7 +60,7 @@ class MissileThreat(val ship: ShipAPI) {
         val shipSpeedToMissile = vectorProjectionLength(ship.movement.velocity, toMissile)
         val approachSpeed = shipSpeedToMissile + missile.maxSpeed
 
-        val timeLeft = min(duration, flightTimeLeft)
+        val timeLeft = minOf(duration, flightTimeLeft)
         val rangeLeft = approachSpeed * timeLeft
         val dist = toMissile.length - ship.boundsRadius
 

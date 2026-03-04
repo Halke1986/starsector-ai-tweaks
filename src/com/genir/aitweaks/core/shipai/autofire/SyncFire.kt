@@ -7,7 +7,6 @@ import com.genir.aitweaks.core.extensions.isPhase
 import com.genir.aitweaks.core.extensions.isUnderManualControl
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.state.Config.Companion.config
-import kotlin.math.min
 import kotlin.math.round
 
 /** SyncFire is used to synchronise weapons that are to fire in staggered mode. */
@@ -98,7 +97,7 @@ class SyncFire(private val weapon: WeaponHandle, var state: State?) {
 
         val cycles = round(sinceLastAttack / stagger)
         val opportunity = state.lastAttack + cycles * stagger
-        val tolerance = min(stagger / 2, dt * 3)
+        val tolerance = minOf(stagger / 2, dt * 3)
 
         isInSync = when {
             // Weapons of same type didn't attack for at least entire firing cycle,

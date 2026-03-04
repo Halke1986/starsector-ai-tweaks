@@ -17,7 +17,6 @@ import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.starfarer.combat.entities.Ship
 import org.json.JSONObject
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.max
 
 fun shieldUptime(shield: ShieldAPI?): Float {
     if (shield == null) return 0f
@@ -166,7 +165,7 @@ enum class VanillaShipCommand {
 }
 
 fun isCloseToEnemy(ship: ShipAPI, enemy: ShipAPI): Boolean {
-    val maxRange = max(max(Preset.threatSearchRange, ship.maxRange * 2f), enemy.maxRange)
+    val maxRange = maxOf(Preset.threatSearchRange, ship.maxRange * 2f, enemy.maxRange)
     return (ship.location - enemy.location).lengthSquared <= maxRange * maxRange
 }
 

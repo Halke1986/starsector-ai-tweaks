@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.Global
-import kotlin.math.max
 
 class Preset {
     companion object {
@@ -35,7 +34,7 @@ class Preset {
         private val mapSize: Float
             get() {
                 val engine = Global.getCombatEngine()
-                return max(engine.mapHeight, engine.mapWidth)
+                return maxOf(engine.mapHeight, engine.mapWidth)
             }
     }
 }

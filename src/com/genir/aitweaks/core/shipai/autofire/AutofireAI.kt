@@ -27,7 +27,6 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.min
 
 open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
@@ -340,7 +339,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
             weapon.isPlainBeam -> return null
 
             // Weapon is on target for long enough already.
-            onTargetTime >= min(2f, weapon.firingCycle.duration) -> return null
+            onTargetTime >= minOf(2f, weapon.firingCycle.duration) -> return null
         }
 
         val arc = weapon.ballistics.interceptArc(BallisticTarget.collisionRadius(target!!), currentParams())

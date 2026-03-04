@@ -2,7 +2,10 @@ package com.genir.aitweaks.core.utils
 
 import com.genir.aitweaks.core.extensions.*
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.sign
+import kotlin.math.sqrt
+import kotlin.math.withSign
 
 const val DEGREES_TO_RADIANS: Float = 0.017453292F
 const val RADIANS_TO_DEGREES: Float = 57.29578F
@@ -31,7 +34,7 @@ fun timeToOrigin(p: Vector2f, v: Vector2f): Float {
 fun distanceToOrigin(p: Vector2f, v: Vector2f): Float {
     // return abs(crossProductZ(p, v)) / v.length
     val t = timeToOrigin(p, v)
-    return (p + v * max(0f, t)).length
+    return (p + v * maxOf(0f, t)).length
 }
 
 /** Angular velocity of point 'p' moving with a linear

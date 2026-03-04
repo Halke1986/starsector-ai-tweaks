@@ -10,8 +10,6 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import org.lwjgl.util.vector.Vector2f
 import kotlin.Float.Companion.MAX_VALUE
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sqrt
 
 object Bounds {
@@ -46,7 +44,7 @@ object Bounds {
 
             val t = crossProductZ(d, q) / m
             if (t >= 0) {
-                closest = min(t, closest)
+                closest = minOf(t, closest)
             }
         }
 
@@ -84,8 +82,8 @@ object Bounds {
 
         // Count the number of segments below the point p.
         val count = bounds.origSegments.count { segment ->
-            val x1 = min(segment.p1.x, segment.p2.x)
-            val x2 = max(segment.p1.x, segment.p2.x)
+            val x1 = minOf(segment.p1.x, segment.p2.x)
+            val x2 = maxOf(segment.p1.x, segment.p2.x)
             if (p.x < x1 || p.x >= x2) {
                 return@count false
             }
@@ -106,8 +104,8 @@ object Bounds {
 
         var radius = 0f
         bounds.origSegments.forEach { segment ->
-            radius = max(radius, segment.x1 * segment.x1 + segment.y1 + segment.y1)
-            radius = max(radius, segment.x2 * segment.x2 + segment.y2 + segment.y2)
+            radius = maxOf(radius, segment.x1 * segment.x1 + segment.y1 + segment.y1)
+            radius = maxOf(radius, segment.x2 * segment.x2 + segment.y2 + segment.y2)
         }
 
         return sqrt(radius)

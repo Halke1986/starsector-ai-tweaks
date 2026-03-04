@@ -12,7 +12,6 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.*
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.shieldUptime
-import kotlin.math.min
 
 val fire = null
 
@@ -108,7 +107,7 @@ class AttackRules(private val weapon: WeaponHandle, private val hit: Hit, privat
         hit.type == HULL -> AVOID_EXPOSED_HULL
 
         // Avoid shield flicker.
-        shieldUptime(hit.target.shield) < min(0.8f, weapon.firingCycle.duration) -> AVOID_EXPOSED_HULL
+        shieldUptime(hit.target.shield) < minOf(0.8f, weapon.firingCycle.duration) -> AVOID_EXPOSED_HULL
 
         else -> fire
     }

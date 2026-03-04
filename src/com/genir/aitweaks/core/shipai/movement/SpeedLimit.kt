@@ -4,8 +4,6 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.genir.aitweaks.core.utils.DEGREES_TO_RADIANS
 import com.genir.aitweaks.core.utils.PI
 import com.genir.aitweaks.core.utils.types.Direction
-import kotlin.math.max
-import kotlin.math.min
 
 /** Limit allows to restrict velocity to not exceed
  * max speed in a direction along a given heading. */
@@ -32,6 +30,6 @@ data class SpeedLimit(
 
         val t = PI / 2f - angleFromLimit * DEGREES_TO_RADIANS
         val e = speedLimit * (1f / t + t / 5f)
-        return min(max(0f, e), expectedSpeed)
+        return minOf(maxOf(0f, e), expectedSpeed)
     }
 }

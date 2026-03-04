@@ -17,7 +17,9 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedY
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.sign
+import kotlin.math.sqrt
 
 /**
  * Wraps EngineController and enforces local collision avoidance.
@@ -292,9 +294,9 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
                 val distance = (otherSpeedLimit - px) / vx
 
                 if (vx > 0f) {
-                    pMax = min(pMax, distance)
+                    pMax = minOf(pMax, distance)
                 } else {
-                    pMin = max(pMin, distance)
+                    pMin = maxOf(pMin, distance)
                 }
             }
 
@@ -319,13 +321,13 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
                 }
 
                 bound.pMin == -1e4f -> {
-                    pMin = bound.pMin.coerceAtLeast(min(-200f, bound.pMax))
+                    pMin = bound.pMin.coerceAtLeast(minOf(-200f, bound.pMax))
                     pMax = bound.pMax
                 }
 
                 bound.pMax == 1e4f -> {
                     pMin = bound.pMin
-                    pMax = bound.pMax.coerceAtMost(max(200f, bound.pMin))
+                    pMax = bound.pMax.coerceAtMost(maxOf(200f, bound.pMin))
                 }
 
                 else -> {

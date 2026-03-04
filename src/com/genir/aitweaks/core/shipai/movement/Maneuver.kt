@@ -16,8 +16,6 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.max
-import kotlin.math.min
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ai: CustomShipAI) {
@@ -249,7 +247,7 @@ class Maneuver(val ai: CustomShipAI) {
         val engine = Global.getCombatEngine()
         val borderDistX = (movement.location.x * movement.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
         val borderDistY = (movement.location.y * movement.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
-        val borderWeight = max(borderDistX, borderDistY) * 2f
+        val borderWeight = maxOf(borderDistX, borderDistY) * 2f
         return approachVector.resized(1f) - movement.location.resized(borderWeight)
     }
 
@@ -279,7 +277,7 @@ class Maneuver(val ai: CustomShipAI) {
             val arc: Float = angularSize(toHulk.lengthSquared, hulk.collisionRadius + shipSize / 2f)
 
             val facing: Direction = toHulk.facing
-            Arc(min(arc, 90f), facing)
+            Arc(minOf(arc, 90f), facing)
         }.toList()
 
         val mergedArcs = Arc.mergeOverlapping(arcs)
@@ -310,7 +308,7 @@ class Maneuver(val ai: CustomShipAI) {
 
         // Ship is close enough to target to start orbiting it.
         val dist = toShip.length
-        if (dist < max(maneuverTarget.ship.maxRange, ai.attackRange * 1.2f)) {
+        if (dist < maxOf(maneuverTarget.ship.maxRange, ai.attackRange * 1.2f)) {
             return orbitTarget(dt, maneuverTarget, attackLocation, speedLimits)
         }
 
@@ -352,7 +350,7 @@ class Maneuver(val ai: CustomShipAI) {
         // The ship tries to maintain distance from maneuver target.
         // If the maneuver target is slower than the ship, use the
         // remaining ship velocity to move around the orbit.
-        val maxSpeed = max(movement.maxSpeed, movement.velocity.length) + movement.acceleration * dt
+        val maxSpeed = maxOf(movement.maxSpeed, movement.velocity.length) + movement.acceleration * dt
         val t = solve(maneuverTarget.velocity, orbitVelocityVector, maxSpeed)?.largerNonNegative
 
         val approximateOrbitLength = (attackLocation - closestLocationOnOrbit).length

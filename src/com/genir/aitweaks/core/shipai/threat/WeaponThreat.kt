@@ -16,7 +16,6 @@ import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.LinearMotion
-import kotlin.math.max
 
 class WeaponThreat(private val ship: ShipAPI) {
     data class Damage(
@@ -97,7 +96,7 @@ class WeaponThreat(private val ship: ShipAPI) {
         val distSqr = toShip.lengthSquared
 
         // Check if projectile will reach the ship during venting.
-        val attackStart = max(
+        val attackStart = maxOf(
             weapon.cooldownRemaining,
             weapon.ship.offlineTimeRemaining,
         )
@@ -203,7 +202,7 @@ class WeaponThreat(private val ship: ShipAPI) {
 
     private fun potentialDamage(duration: Float, weapon: WeaponHandle): Float {
         val adjustedVentTime = duration - weapon.cooldownRemaining
-        val rawDamage = max(weapon.derivedStats.dps * adjustedVentTime, weapon.derivedStats.burstDamage)
+        val rawDamage = maxOf(weapon.derivedStats.dps * adjustedVentTime, weapon.derivedStats.burstDamage)
 
         val damageMultiplier = when {
             weapon.isFinisherMissile -> 8f
