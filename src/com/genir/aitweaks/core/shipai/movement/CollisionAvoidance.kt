@@ -31,10 +31,6 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidShips(dt: Float): List<SpeedLimit?> {
-        if (movement.ship.collisionClass != CollisionClass.SHIP) {
-            return listOf()
-        }
-
         return findRelevantShips().map { obstacle: ShipAPI ->
             val collisionDistance: Float = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius
             val shieldDistance: Float = ai.ship.shieldRadiusEvenIfNoShield + obstacle.shieldRadiusEvenIfNoShield
@@ -80,21 +76,26 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun findRelevantShips(): Sequence<ShipAPI> {
-        return Global.getCombatEngine().ships.asSequence().filter {
+        return Global.getCombatEngine().ships.asSequence().filter { obstacle ->
             when {
-                it.root == movement.ship.root -> false
-                it.collisionClass != CollisionClass.SHIP -> false
+                // Same ship.
+                obstacle.root == movement.ship.root -> false
+
+                obstacle.isFighter -> false
+
+                // Do not avoid ships exhibiting fighter-like behavior, unless the avoiding ship also exhibits fighter-like behavior.
+                obstacle.collisionClass != CollisionClass.SHIP && movement.ship.collisionClass == CollisionClass.SHIP -> false
 
                 // Modules and drones count towards
                 // their parent collision radius.
-                it.isModule -> false
-                it.isDrone -> false
+                obstacle.isModule -> false
+                obstacle.isDrone -> false
 
                 // Large hulks.
-                it.isHulk && (it.mass * hulkCollisionSizeFactor > movement.ship.mass) -> true
+                obstacle.isHulk && (obstacle.mass * hulkCollisionSizeFactor > movement.ship.mass) -> true
 
                 // Allies.
-                it.owner == movement.ship.owner -> true
+                obstacle.owner == movement.ship.owner -> true
 
                 else -> false
             }
