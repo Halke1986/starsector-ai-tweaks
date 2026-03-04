@@ -27,7 +27,6 @@ import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-import kotlin.math.max
 
 @Suppress("MemberVisibilityCanBePrivate")
 class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
@@ -336,7 +335,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             // Count modular ships just once.
             if (threat.isModule) return@fold sum
 
-            val dp = max(1f, threat.deploymentPoints)
+            val dp = maxOf(1f, threat.deploymentPoints)
             val toThreat = threat.location - ship.location
 
             // Threats are assigned decreasing weights as they approach the maximum
@@ -344,7 +343,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             // This ensures smooth transitions in threat vectors, avoiding sudden changes
             // when a threat exits the radius. The maneuver target is always assigned
             // a weight of 1, preventing situations where the threat vector becomes undefined.
-            val weight = max(maxThreatDistSqr - toThreat.lengthSquared, 0f) / maxThreatDistSqr
+            val weight = maxOf(maxThreatDistSqr - toThreat.lengthSquared, 0f) / maxThreatDistSqr
 
             val dir = toThreat.resized(weight)
             sum + dir * dp * dp
@@ -603,7 +602,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             return (target.location - ship.location).length
         }
 
-        return max(0f, targetBoundsDistance(target) + targetThickness)
+        return maxOf(0f, targetBoundsDistance(target) + targetThickness)
     }
 
     /** Target radius that should be used when calculating attack range. */

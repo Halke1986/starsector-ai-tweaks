@@ -16,7 +16,6 @@ import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lazywizard.lazylib.ext.combat.canUseSystemThisFrame
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.min
 
 /** Burn Drive AI. It replaces the vanilla implementation for ships with custom AI. */
 class BurnDriveToggle(ai: CustomShipAI) : CustomSystemAI(ai) {
@@ -115,7 +114,7 @@ class BurnDriveToggle(ai: CustomShipAI) : CustomSystemAI(ai) {
 
     private fun isFacingBurnVector(): Boolean {
         val angle = angleToDestination()
-        val minRecentAngle = min(angle.length, prevAngleToDestination.length)
+        val minRecentAngle = minOf(angle.length, prevAngleToDestination.length)
 
         return when {
             angle.length < 0.1f -> true

@@ -19,8 +19,6 @@ import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sign
 import kotlin.random.Random
@@ -118,7 +116,7 @@ class VentModule(private val ai: CustomShipAI) {
             } else {
                 ventTimeFlatModifierOptimistic
             }
-            val duration = max(0f, ship.fluxTracker.timeToVent + modifier)
+            val duration = maxOf(0f, ship.fluxTracker.timeToVent + modifier)
 
             isSafe = isSafeAssumeNoBackoff(duration)
         }
@@ -198,7 +196,7 @@ class VentModule(private val ai: CustomShipAI) {
             // Just reached safe distance. Move just far enough
             // to stop attacking, so the flux can drop.
             backoffDistance == farAway && maneuverTarget != null -> {
-                max(
+                maxOf(
                     ai.attackingGroup.maxRange + maneuverTarget.totalCollisionRadius,
                     1.1f * (maneuverTarget.location - ship.location).length
                 )
@@ -207,7 +205,7 @@ class VentModule(private val ai: CustomShipAI) {
             // Any achieved standoff distance becomes the new baseline;
             // do not approach again.
             maneuverTarget != null -> {
-                max(
+                maxOf(
                     backoffDistance,
                     (maneuverTarget.location - ship.location).length
                 )
@@ -509,7 +507,7 @@ class VentModule(private val ai: CustomShipAI) {
             }
 
             // Target is too far.
-            ai.currentEffectiveRange(target) > min(ai.attackingGroup.maxRange, 1.1f * ai.attackingGroup.effectiveRange) -> {
+            ai.currentEffectiveRange(target) > minOf(ai.attackingGroup.maxRange, 1.1f * ai.attackingGroup.effectiveRange) -> {
                 return false
             }
 
@@ -545,7 +543,7 @@ class VentModule(private val ai: CustomShipAI) {
         }
 
         // Do not start bursts that will not end before vent.
-        val timeToVent = min(longestBursts, 2f)
+        val timeToVent = minOf(longestBursts, 2f)
         burstWeapons.forEach {
             val cycle = it.firingCycle
             val duration = cycle.warmupDuration + cycle.burstDuration

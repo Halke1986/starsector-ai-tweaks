@@ -10,7 +10,6 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.max
 
 class Missile(private val weapon: WeaponHandle) : Projectile(weapon) {
     /** Iteratively calculate the intercept point for dumb-fire missile weapon.
@@ -40,7 +39,7 @@ class Missile(private val weapon: WeaponHandle) : Projectile(weapon) {
      * target location at the point where the two are the closest. */
     private fun angularDistanceToPath(dt: Float, weaponFacing: Direction, target: BallisticTarget, missileStats: MissileStats): Direction {
         val vMax: Float = missileStats.maxSpeed * dt
-        val decel: Float = max(missileStats.acceleration, missileStats.deceleration) * 2f * dt * dt
+        val decel: Float = maxOf(missileStats.acceleration, missileStats.deceleration) * 2f * dt * dt
         val steps: Int = (missileStats.maxFlightTime / dt).toInt()
         val a: Vector2f = weaponFacing.unitVector * missileStats.acceleration * dt * dt
 
@@ -78,7 +77,7 @@ class Missile(private val weapon: WeaponHandle) : Projectile(weapon) {
 
             val speed: Float = vMissile.length
             if (speed > vMax) {
-                val cappedSpeed: Float = max(vMax, speed - decel)
+                val cappedSpeed: Float = maxOf(vMax, speed - decel)
                 val scale: Float = cappedSpeed / speed
 
                 vMissile.x *= scale

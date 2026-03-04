@@ -5,10 +5,9 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
-import kotlin.math.min
 
 class Arc(angle: Float, val facing: Direction) {
-    val angle = min(360f, abs(angle))
+    val angle = minOf(360f, abs(angle))
 
     val halfAngle: Float
         get() = angle * 0.5f
