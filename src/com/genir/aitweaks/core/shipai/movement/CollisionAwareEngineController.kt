@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags
@@ -18,7 +17,6 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedY
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-import kotlin.math.abs
 import kotlin.math.sign
 import kotlin.math.sqrt
 
@@ -50,35 +48,36 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
      * velocity vector that respects the limit while moving the ship as efficiently
      * as possible toward its destination. */
     private fun limitVelocity(expectedVelocity: Vector2f, rotationToShip: RotationMatrix, limits: List<SpeedLimit>): Vector2f? {
-        // Discard speed limits with value too high to affect the ship movement.
-        val expectedSpeed = expectedVelocity.length
-        val relevantLimits = limits.filter { limit ->
-            limit.speedLimit <= expectedSpeed
+        var limitExceeded = false
+        val rawBounds: MutableList<Bound> = mutableListOf()
+        val expectedSpeed = maxOf(expectedVelocity.length, ship.maxSpeed)
+
+        for (limit in limits) {
+            // Discard speed limits with value too high to affect the ship movement.
+            if (limit.speedLimit > expectedSpeed) {
+                continue
+            }
+
+            // Rotation to limit FoR.
+            val r = (-limit.direction).rotationMatrix
+            if (limit.speedLimit < expectedVelocity.rotatedX(r)) {
+                limitExceeded = true
+            }
+
+            rawBounds.add(Bound(
+                r,
+                limit.speedLimit,
+                limit.obstacle,
+                0f,
+                0f
+            ))
         }
 
-        if (relevantLimits.isEmpty()) {
+        if (!limitExceeded) {
             return null
         }
 
-        // Clamp reverse (negative) speed limits, so they stay below the ship's
-        // maximum speed. This alters the resulting velocity vector, allowing
-        // the ship to slide past the obstacle instead of continuously backing away.
-        // Because this increases collision risk, do not apply when avoiding
-        // enemy missiles.
-        val speedConstraint = movement.maxSpeed / -2f
-        val constrainedLimits = relevantLimits.map { limit ->
-            return@map if (limit.obstacle != null && limit.obstacle !is MissileAPI) {
-                SpeedLimit(
-                    limit.direction,
-                    limit.speedLimit.coerceAtLeast(speedConstraint),
-                    limit.obstacle
-                )
-            } else {
-                limit
-            }
-        }
-
-        val bounds: List<Bound> = buildBounds(constrainedLimits)
+        val bounds: List<Bound> = buildBounds(rawBounds)
         if (bounds.isEmpty()) {
             // Leave the behavior undefined in the unusual case
             // of strongly contradicting speed limits.
@@ -102,7 +101,8 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
 
 //        debugDrawBounds(bounds)
 //        Debug.drawVector(movement.location, expectedVelocity, Color.MAGENTA)
-//        Debug.drawVector(movement.location, limitedVelocity.resized(200f), Color.YELLOW)
+//        Debug.drawVector(movement.location, limitedVelocity, Color.YELLOW)
+//        Debug.drawVector(movement.location, movement.velocity, Color.GREEN)
 
         return limitedVelocity
     }
@@ -234,12 +234,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         return timeToIntersection > obstacleTimeToIntersection
     }
 
-    private fun buildBounds(limits: List<SpeedLimit>): List<Bound> {
-        val rawBounds: List<Bound> = limits.map { limit ->
-            val r = (-limit.direction).rotationMatrix
-            Bound(r, limit.speedLimit, limit.obstacle, 0f, 0f)
-        }
-
+    private fun buildBounds(rawBounds: List<Bound>): List<Bound> {
         val strictBounds = intersectBounds(rawBounds, 0f)
         if (strictBounds.isNotEmpty()) {
             return strictBounds
@@ -247,7 +242,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
 
         // If conflicting speed limits are detected, use a binary search
         // algorithm to determine bounds that minimally violates them.
-        val minLimit = limits.minOf { it.speedLimit }
+        val minLimit = rawBounds.minOf { it.speedLimit }
         val span = 600f - minLimit
 
         var step: Float = span / 2
