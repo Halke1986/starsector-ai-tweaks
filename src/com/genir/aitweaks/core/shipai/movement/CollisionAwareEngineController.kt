@@ -17,6 +17,7 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedY
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
+import kotlin.math.abs
 import kotlin.math.sign
 import kotlin.math.sqrt
 
@@ -50,11 +51,11 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
     private fun limitVelocity(expectedVelocity: Vector2f, rotationToShip: RotationMatrix, limits: List<SpeedLimit>): Vector2f? {
         var limitExceeded = false
         val rawBounds: MutableList<Bound> = mutableListOf()
-        val expectedSpeed = maxOf(expectedVelocity.length, ship.maxSpeed)
+        val dodgeSpeed = maxOf(expectedVelocity.length, ship.maxSpeed)
 
         for (limit in limits) {
             // Discard speed limits with value too high to affect the ship movement.
-            if (limit.speedLimit > expectedSpeed) {
+            if (limit.speedLimit > dodgeSpeed) {
                 continue
             }
 
@@ -84,7 +85,20 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             return null
         }
 
-        val limitedVelocity: Vector2f = findSafeVelocity(bounds, expectedVelocity)
+        // Find a bound to yield, if any. If there are
+        // multiple, select the one exceeded the most.
+        var boundToYield: Bound? = null
+        var boundToYieldExceededBy = 0f
+        for (bound: Bound in bounds) {
+            // Expected velocity does not exceed the bound.
+            val exceededBy = expectedVelocity.rotatedX(bound.r) - bound.speedLimit
+            if (shouldYield(bound) && exceededBy > boundToYieldExceededBy) {
+                boundToYield = bound
+                boundToYieldExceededBy = exceededBy
+            }
+        }
+
+        val limitedVelocity: Vector2f = findSafeVelocity(bounds, expectedVelocity.facing, dodgeSpeed, boundToYield)
             ?: return null
 
         // Use the two ship thrust vectors that form the quadrant containing
@@ -99,48 +113,35 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         if (dv.x < 0) giveCommand(STRAFE_LEFT)
         if (dv.x > 0) giveCommand(STRAFE_RIGHT)
 
-//        debugDrawBounds(bounds)
-//        Debug.drawVector(movement.location, expectedVelocity, Color.MAGENTA)
-//        Debug.drawVector(movement.location, limitedVelocity, Color.YELLOW)
-//        Debug.drawVector(movement.location, movement.velocity, Color.GREEN)
+        debugDrawBounds(bounds)
+        Debug.drawVector(movement.location, expectedVelocity, Color.MAGENTA)
+        Debug.drawVector(movement.location, limitedVelocity, Color.YELLOW)
+        Debug.drawVector(movement.location, movement.velocity, Color.GREEN)
 
         return limitedVelocity
     }
 
-
     /** Find a velocity vector that respect the bounds, while allowing
      * the ship to travel the fastest and with direction aligned with
      * the expected velocity. */
-    private fun findSafeVelocity(bounds: List<Bound>, expectedVelocity: Vector2f): Vector2f? {
-        val expectedSpeed: Float = expectedVelocity.length
-
-        var boundToYield: Bound? = null
-        var boundToYieldExceededBy = 0f
-
-        for (bound: Bound in bounds) {
-            // Expected velocity does not exceed the bound.
-            val exceededBy = expectedVelocity.rotatedX(bound.r) - bound.speedLimit
-            if (shouldYield(bound) && exceededBy > boundToYieldExceededBy) {
-                boundToYield = bound
-                boundToYieldExceededBy = exceededBy
-            }
-        }
-
+    private fun findSafeVelocity(bounds: List<Bound>, expectedVelocityFacing: Direction, dodgeSpeed: Float, boundToYield: Bound?): Vector2f? {
         // Calculate and evaluate velocity vectors that respect the bound
         // while allowing the ship to move at the expected speed.
-        val accumulator = VelocityEval(expectedVelocity.facing, expectedSpeed + 10f, boundToYield)
+        val accumulator = VelocityEval(expectedVelocityFacing, dodgeSpeed + 10f, boundToYield)
         for (bound: Bound in bounds) {
-            val yOffset = sqrt(expectedSpeed * expectedSpeed - bound.speedLimit * bound.speedLimit)
-            accumulator.evaluate(-yOffset, bound)
-            accumulator.evaluate(+yOffset, bound)
+            if (abs(bound.speedLimit) <= dodgeSpeed) {
+                val yOffset = sqrt(dodgeSpeed * dodgeSpeed - bound.speedLimit * bound.speedLimit)
+                accumulator.evaluate(-yOffset, bound)
+                accumulator.evaluate(+yOffset, bound)
+            }
         }
 
         if (accumulator.velocity != null) {
             return accumulator.velocity
         }
 
-        // Fall back to selecting any vector that does not violate the bounds.
-        val fallbackAccumulator = VelocityEval(expectedVelocity.facing, null, null)
+        // Fall back to selecting a vector that violates the bounds the least.
+        val fallbackAccumulator = FallbackVelocityEval(expectedVelocityFacing)
         for (bound: Bound in bounds) {
             fallbackAccumulator.evaluate(0f, bound)
         }
@@ -148,7 +149,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         return fallbackAccumulator.velocity
     }
 
-    private inner class VelocityEval(val expectedVelocityFacing: Direction, val maxAllowedSpeed: Float?, val boundToYield: Bound?) {
+    private inner class VelocityEval(val expectedVelocityFacing: Direction, val maxAllowedSpeed: Float, val boundToYield: Bound?) {
         var velocity: Vector2f? = null
         var score: Float = 0f
 
@@ -156,7 +157,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             val y: Float = yOffset.coerceIn(bound.pMin, bound.pMax)
             val velocity: Vector2f = Vector2f(bound.speedLimit, y).rotatedReverse(bound.r)
 
-            if (maxAllowedSpeed != null && velocity.length > maxAllowedSpeed) {
+            if (velocity.length > maxAllowedSpeed) {
                 return
             }
 
@@ -185,6 +186,23 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             val score = velocity.length * angleSquared * directionChangePenalty
 
             if (this.velocity == null || score > this.score) {
+                this.velocity = velocity
+                this.score = score
+            }
+        }
+    }
+
+    private inner class FallbackVelocityEval(val expectedVelocityFacing: Direction) {
+        var velocity: Vector2f? = null
+        var score: Float = Float.MAX_VALUE
+
+        fun evaluate(yOffset: Float, bound: Bound) {
+            val y: Float = yOffset.coerceIn(bound.pMin, bound.pMax)
+            val velocity: Vector2f = Vector2f(bound.speedLimit, y).rotatedReverse(bound.r)
+
+            val score = velocity.length
+
+            if (this.velocity == null || score < this.score) {
                 this.velocity = velocity
                 this.score = score
             }
