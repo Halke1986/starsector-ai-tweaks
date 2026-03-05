@@ -46,6 +46,10 @@ class Maneuver(val ai: CustomShipAI) {
         prevFrameIdx = ai.globalAI.frameTracker.count
     }
 
+    fun isAvoidingCollision(): Boolean {
+        return engineController.isAvoidinCollision
+    }
+
     private fun setFacing(dt: Float) {
         val systemOverride: Direction? = ai.systemAI?.overrideFacing()
         val currentAttackTarget: CombatEntityAPI? = ai.finishBurstTarget ?: ai.attackTarget

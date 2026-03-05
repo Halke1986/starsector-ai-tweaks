@@ -193,6 +193,11 @@ class VentModule(private val ai: CustomShipAI) {
                 farAway
             }
 
+            // Do not attempt to stop in a congested area.
+            ai.maneuver.isAvoidingCollision() -> {
+                farAway
+            }
+
             // Just reached safe distance. Move just far enough
             // to stop attacking, so the flux can drop.
             backoffDistance == farAway && maneuverTarget != null -> {

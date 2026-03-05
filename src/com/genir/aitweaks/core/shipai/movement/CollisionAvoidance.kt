@@ -153,9 +153,10 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val speedThreshold = movement.maxSpeed
         return relevantMissiles.mapNotNull { missile: MissileAPI ->
             val missileMotion = LinearMotion(missile.location, missile.velocity)
-            val minDistance = ai.stats.totalCollisionRadius + missile.mineExplosionRange + 30f
+            val missileRadius = maxOf(missile.mineExplosionRange, missile.collisionRadius * 5f, 150f)
+            val minDistance = ai.stats.totalCollisionRadius + missileRadius
 
-            val vMax = vMaxToObstacle(dt, missileMotion, minDistance, null)
+            val vMax = vMaxToObstacle(dt, missileMotion, minDistance, missile)
             if (vMax.speedLimit > speedThreshold) {
                 return@mapNotNull null
             }
