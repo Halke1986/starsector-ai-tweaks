@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.Global
+import java.awt.Color
 
 /**
  *
@@ -24,18 +25,23 @@ internal fun debug(dt: Float) {
         val playerShip = Global.getCombatEngine().playerShip ?: return
         val ships = Global.getCombatEngine().ships
 
+//        Global.getCombatEngine().missiles.forEach { missile ->
+//            Debug.drawCollisionRadius(missile)
+//        }
+
 //    if (!Global.getCombatEngine().isPaused){
 //        log("***********************************************")
 //    }
 
+        //  Debug.drawCircle(playerShip.location, playerShip.maxSpeed, Color.GRAY)
+
         ships.forEach { ship ->
 //            if (it != ship) {
 //                installAI(it) { MirrorTargetAI(it, ship) }
-//                Debug.drawEngineLines(it)
+//            Debug.drawEngineLines(ship)
 //            }
-//        Debug.drawCollisionRadius(it, Color.CYAN)
-
-//        Debug.drawCircle(it.location, it.collisionRadius * 1.4f, CYAN)
+//            Debug.drawCollisionRadius(ship, Color.CYAN)
+//            Debug.drawCircle(ship.location, ship.collisionRadius * 1.4f, Color.CYAN)
 
 //            Debug.print[ship] = "${ship.Id} ${ship.name}"
         }

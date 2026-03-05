@@ -372,8 +372,6 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
                     maxSpeedStat.modifiedValue
                 }
 
-                null -> 0f
-
                 else -> weaponAPI.projectileSpeed
             }
         }
