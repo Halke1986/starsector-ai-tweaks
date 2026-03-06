@@ -38,6 +38,7 @@ class VentModule(private val ai: CustomShipAI) {
 
     private var ventTrigger: Boolean = false
     private var isSafe: Boolean = false
+    private var isSafeWhileParked: Boolean = false
     private var backoffDistance: Float = farAway
     private var backoffDirectionOffset: RotationMatrix = RotationMatrix(0f)
 
@@ -118,7 +119,13 @@ class VentModule(private val ai: CustomShipAI) {
             }
             val duration = maxOf(0f, ship.fluxTracker.timeToVent + modifier)
 
-            isSafe = isSafeAssumeNoBackoff(duration)
+            isSafe = isSafe(duration)
+
+            isSafeWhileParked = if (isSafe) {
+                isSafeAssumeNoBackoff(duration)
+            } else {
+                false
+            }
         }
 
         return when {
@@ -136,12 +143,18 @@ class VentModule(private val ai: CustomShipAI) {
     /** Ships with Safety Overrides. */
     private fun handleShipsWithNoVent() {
         if (isBackingOff) {
-            isSafe = isSafeAssumeNoBackoff(dropShieldSafetyPeriod)
+            isSafe = isSafe(dropShieldSafetyPeriod)
 
             if (isSafe && ship.fluxLevel > 0f) {
                 ai.flags.set(Flags.Flag.DO_NOT_USE_SHIELDS)
             } else {
                 ai.flags.unset(Flags.Flag.DO_NOT_USE_SHIELDS)
+            }
+
+            isSafeWhileParked = if (isSafe) {
+                isSafeAssumeNoBackoff(dropShieldSafetyPeriod)
+            } else {
+                false
             }
         }
     }
@@ -189,12 +202,7 @@ class VentModule(private val ai: CustomShipAI) {
         // Update safe backoff distance.
         backoffDistance = when {
             // It's dangerous, move away.
-            !isSafe -> {
-                farAway
-            }
-
-            // Do not attempt to stop in a congested area.
-            ai.maneuver.isAvoidingCollision() -> {
+            !isSafeWhileParked -> {
                 farAway
             }
 
@@ -224,13 +232,13 @@ class VentModule(private val ai: CustomShipAI) {
         // Calculate backoff heading.
         return when {
             // Maintain const distance from the maneuver target.
-            isSafe && maneuverTarget != null -> {
+            isSafeWhileParked && maneuverTarget != null -> {
                 val location = maneuverTarget.location - ai.threatVector.resized(backoffDistance)
                 Destination(location, maneuverTarget.movement.velocity)
             }
 
             // Undefined situation: no danger, and no maneuver target.
-            isSafe && maneuverTarget == null -> {
+            isSafeWhileParked && maneuverTarget == null -> {
                 null
             }
 
@@ -357,20 +365,19 @@ class VentModule(private val ai: CustomShipAI) {
     /** Estimate if the ship is safe when staying at a constant distance
      * from the maneuver target during the given time duration. */
     private fun isSafeAssumeNoBackoff(duration: Float): Boolean {
-        val maneuverTarget: ShipAPI = ai.maneuverTarget
-            ?: return isSafe(duration)
-
         // Ship is approaching its maneuver target.
         // Most likely the target is faster than the ship.
         // Cannot assume maintaining constant distance.
-        if (approachSpeed(ai.ship, maneuverTarget) < 0) {
-            return isSafe(duration)
+        val maneuverTarget: ShipAPI? = ai.maneuverTarget
+        if (maneuverTarget != null && approachSpeed(ai.ship, maneuverTarget) > 0) {
+            return false
         }
 
+        val assumedVelocity = maneuverTarget?.movement?.velocity ?: Vector2f()
         val actualVelocity = ai.ship.velocity.copy
         try {
             // Modify ship velocity for the time of the calculation.
-            ai.ship.velocity.set(maneuverTarget.movement.velocity)
+            ai.ship.velocity.set(assumedVelocity)
 
             return isSafe(duration)
         } finally {
