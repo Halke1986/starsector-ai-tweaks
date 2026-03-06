@@ -10,18 +10,23 @@ class SearchAndDestroy : BaseHullMod() {
     }
 
     override fun isApplicableToShip(ship: ShipAPI): Boolean {
-        return !fleetwideEanbled()
+        return getUnapplicableReason(ship) == null
     }
 
     override fun getUnapplicableReason(ship: ShipAPI): String? {
         return when {
-            fleetwideEanbled() -> "Fleetwide Search & Destroy is selected in LunaLib settings. All ship default to Search & Destroy assignment."
+            LunaSettings.getBoolean("aitweaks", "aitweaks_fleetwide_search_destroy") == true -> {
+                "When Fleetwide Search & Destroy is enabled in LunaLib settings, all player ship default to Search & Destroy assignment."
+            }
 
-            else -> null
+            else -> {
+                null
+            }
         }
     }
 
-    private fun fleetwideEanbled(): Boolean {
-        return LunaSettings.getBoolean("aitweaks", "aitweaks_fleetwide_search_destroy") == true
+    override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? = when (index) {
+        0 -> "Search and Destroy"
+        else -> null
     }
 }

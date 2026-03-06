@@ -7,7 +7,6 @@ import com.fs.starfarer.api.campaign.CampaignPlugin.PickPriority.MOD_SPECIFIC
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.ShipHullSpecAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
 import com.fs.starfarer.api.fleet.FleetMemberAPI
@@ -55,12 +54,6 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
             ship.isFighter -> return null
         }
 
-        // If a Custom AI is explicitly assigned to the ship via a hullmod,
-        // prioritize it highly, potentially overriding AIs from other mods.
-        if (shouldHaveCustomAIByHullmod(ship)) {
-            return PluginPick(CustomShipAI(ship, globalAI), MOD_SPECIFIC)
-        }
-
         // Identify other mods or vanilla AI pick.
         val mods = Global.getSettings().modManager.enabledModPlugins
         val picks = mods.mapNotNull { it.pickShipAI(member, ship) }
@@ -102,7 +95,7 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
     }
 
     /** Returns true is custom AI can control the given ship. */
-    override fun canHaveCustomAI(ship: ShipAPI): Boolean {
+    private fun canHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
             ship.isPhase -> false
 
@@ -118,36 +111,20 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
         }
     }
 
-    override fun getUnapplicableReason(ship: ShipAPI): String? {
-        return when {
-            ship.isPhase -> "Can not be installed on phase ships."
-
-            ship.hullSpec.hints.contains(ShipHullSpecAPI.ShipTypeHints.CARRIER) && !ship.hullSpec.hints.contains(ShipHullSpecAPI.ShipTypeHints.COMBAT) -> "Can not be installed on non-combat carriers."
-
-            ship.isStation -> "Can not be installed on stations."
-
-            ship.isModule -> "Can not be installed on modules."
-
-            ship.isFighter -> "Can not be installed on fighters."
-
-            else -> null
-        }
-    }
-
-    /** Is the Custom AI assigned to ship explicitly via a hullmod. */
-    private fun shouldHaveCustomAIByHullmod(ship: ShipAPI): Boolean {
-        return canHaveCustomAI(ship) && ship.variant.hasHullMod("aitweaks_custom_ship_ai")
-    }
-
     private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
         return when {
             !canHaveCustomAI(ship) -> false
+
+            ship.variant.hasHullMod("aitweaks_custom_ship_ai") -> true
 
             // Debug option. All eligible ships are controlled by AI Tweaks custom AI.
             config.enableAllCustomAI -> true
 
             // Debug option. Eligible enemy ships in the simulator are controlled by AI Tweaks custom AI.
             config.enableSimulatorCustomAI && Global.getCombatEngine().isSimulation && ship.owner == 1 -> true
+
+            // Custom AI is assigned to all player ships via Lunalib config.
+            config.fleetwideCustomAI && ship.owner == 0 && !ship.isAlly -> true
 
             // Non-player ships can have custom AI by default, without the hullmod.
             ship.owner == 1 || ship.isAlly -> when {

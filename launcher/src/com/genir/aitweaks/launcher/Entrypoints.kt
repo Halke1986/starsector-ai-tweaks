@@ -14,8 +14,4 @@ interface AutofireAIPicker {
 
 interface ShipAIPicker {
     fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>?
-
-    fun canHaveCustomAI(ship: ShipAPI): Boolean
-
-    fun getUnapplicableReason(ship: ShipAPI): String?
 }
