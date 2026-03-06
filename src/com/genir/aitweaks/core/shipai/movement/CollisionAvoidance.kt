@@ -260,8 +260,8 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
         // Obstacle is moving towards the ship. If the obstacle is an ally,
         // assume both ships will try to avoid the collision.
-        val decelObstacle = if (obstacle?.owner == ai.ship.owner) {
-            collisionDeceleration(movement, -toObstacleFacing)
+        val decelObstacle = if (obstacle is ShipAPI && obstacle.owner == ai.ship.owner) {
+            collisionDeceleration(obstacle.movement, -toObstacleFacing)
         } else {
             0f
         }
