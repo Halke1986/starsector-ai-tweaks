@@ -145,16 +145,18 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         }
 
         // Relax constraints by ignoring movement deconflicting.
-        val noYieldAccumulator = VelocityEval(expectedVelocityFacing, dodgeSpeed + 10f, null)
-        for (bound: Bound in bounds) {
-            if (abs(bound.speedLimit) <= dodgeSpeed) {
-                val yOffset = sqrt(dodgeSpeed * dodgeSpeed - bound.speedLimit * bound.speedLimit)
-                noYieldAccumulator.evaluate(-yOffset, bound)
-                noYieldAccumulator.evaluate(+yOffset, bound)
+        if (boundToYield != null) {
+            val noYieldAccumulator = VelocityEval(expectedVelocityFacing, dodgeSpeed + 10f, null)
+            for (bound: Bound in bounds) {
+                if (abs(bound.speedLimit) <= dodgeSpeed) {
+                    val yOffset = sqrt(dodgeSpeed * dodgeSpeed - bound.speedLimit * bound.speedLimit)
+                    noYieldAccumulator.evaluate(-yOffset, bound)
+                    noYieldAccumulator.evaluate(+yOffset, bound)
+                }
             }
-        }
-        if (noYieldAccumulator.velocity != null) {
-            return noYieldAccumulator.velocity
+            if (noYieldAccumulator.velocity != null) {
+                return noYieldAccumulator.velocity
+            }
         }
 
         // Fall back to selecting a vector that violates the bounds the least.
