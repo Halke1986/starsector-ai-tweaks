@@ -1,3 +1,5 @@
+Version v2.2.5
+
 - Custom AI: Ships with FIGHTER collision class will not attempt to avoid collisions with other ships and asteroids.
 - Custom AI: Multiple bug fixes and improvements to flux venting and to collision avoidance logic.
 - Autofire AI: Weapons will shoot through allied ships with FIGHTER collision class. Suggested by Levidos.
