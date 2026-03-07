@@ -1,14 +1,26 @@
 package com.genir.aitweaks.core.handles
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.characters.PersonAPI
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.listeners.CombatListenerManagerAPI
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.fs.starfarer.api.graphics.SpriteAPI
+import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.fs.starfarer.api.loading.WeaponSlotAPI
+import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
+import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.state.Config
+import com.genir.aitweaks.core.utils.types.Direction
+import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
+import com.genir.starfarer.combat.ai.BasicShipAI
+import com.genir.starfarer.combat.entities.Ship
+import com.genir.starfarer.combat.tasks.CombatTaskManager
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
+import kotlin.math.max
 
 @JvmInline
 value class ShipHandle(val shipAPI: ShipAPI) {
@@ -16,6 +28,189 @@ value class ShipHandle(val shipAPI: ShipAPI) {
         val ShipAPI.handle: ShipHandle
             get() = ShipHandle(this)
     }
+
+    /** Returns false for detached modules. Will be false before
+     * ship is completely initialized, e.g. in AI picker. */
+    val isModule: Boolean
+        get() = stationSlot != null && parentStation != null
+
+    /** Return ship root module. */
+    val root: ShipHandle
+        get() = if (isModule) parentStation ?: this else this
+
+    val isBig: Boolean
+        get() = (root.isDestroyer || root.isCruiser || root.isCapital) && allGroupedWeapons.isNotEmpty()
+
+    val isHullDamageable: Boolean
+        get() = mutableStats.hullDamageTakenMult.modifiedValue > 0f
+
+    val taskManager: CombatTaskManagerAPI
+        get() = Global.getCombatEngine().getFleetManager(owner).getTaskManager(isAlly)
+
+    val assignment: CombatFleetManagerAPI.AssignmentInfo?
+        get() = taskManager.getAssignmentFor(this.shipAPI)
+
+    val deployedFleetMember: DeployedFleetMemberAPI?
+        get() = Global.getCombatEngine().getFleetManager(owner).getDeployedFleetMember(this.shipAPI)
+
+    val hasDirectOrders: Boolean
+        get() {
+            val taskManager = taskManager as? CombatTaskManager
+            val fleetMember = deployedFleetMember as? CombatTaskManager.DeployedFleetMember
+
+            return taskManager?.hasDirectOrders(fleetMember) == true
+        }
+
+    val canReceiveOrders: Boolean
+        get() = when {
+            !isAlive -> false
+            isExpired -> false
+            isStation -> false
+            isModule -> false
+            isFighter -> false
+            isUnderManualControl -> false
+            deployedFleetMember == null -> false
+            else -> true
+        }
+
+    /** Get target which the ship is currently attacking. */
+    val attackTarget: ShipHandle?
+        get() {
+            val entity = when {
+                // Modules follow their parent target.
+                isModule -> root.attackTarget
+
+                // Custom AI reliably sets shipTarget value.
+                customShipAI != null -> shipTarget
+
+                // For manually controlled ship, return the R-selected target.
+                isUnderManualControl -> shipTarget
+
+                // For vanilla AI, check the maneuver target directly.
+                basicShipAI != null -> {
+                    basicShipAI!!.currentManeuver?.maneuver_getTarget()
+                }
+
+                // Fall back to using vanilla maneuver target flag.
+                else -> aiFlags?.getCustom(AIFlags.MANEUVER_TARGET)
+            }
+
+            if (entity !is ShipAPI || !entity.isValidTarget) {
+                return null
+            }
+
+            return entity
+        }
+
+    val isAutomated: Boolean
+        get() = variant.hasHullMod(HullMods.AUTOMATED)
+
+    val isPhase: Boolean
+        get() = hullSpec.isPhase || hullSpec.hints.contains(ShipHullSpecAPI.ShipTypeHints.PHASE) || shield?.type == ShieldAPI.ShieldType.PHASE
+
+    val deploymentPoints: Float
+        get() = max(0f, fleetMember?.unmodifiedDeploymentPointsCost ?: 0f)
+
+    val timeMult: Float
+        get() = mutableStats.timeMult.modifiedValue
+
+    val fluxLeft: Float
+        get() = fluxTracker.maxFlux - fluxTracker.currFlux
+
+    val customShipAI: CustomShipAI?
+        get() = ai as? CustomShipAI
+
+    val basicShipAI: BasicShipAI?
+        get() = ai as? BasicShipAI
+
+    val isUnderManualControl: Boolean
+        get() = this == Global.getCombatEngine().playerShip && Global.getCombatEngine().isUIAutopilotOn
+
+    val allGroupedWeapons: List<WeaponHandle>
+        get() = weaponGroupsCopy.flatMap { it.weaponsCopy.map { weaponAPI -> weaponAPI.handle } }
+
+    fun shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Direction): Direction {
+        val targetFacing = (target - location).facing
+        val weaponFacing = facing.toDirection + weaponGroupFacing
+        return targetFacing - weaponFacing
+    }
+
+    /** Collision radius encompassing an entire modular ship, including drones. */
+    val totalCollisionRadius: Float
+        get() {
+            val modules = childModulesCopy.filter { it.isModule } // Make sure the module is still attached.
+            val drones = deployedDrones?.filter { it.collisionClass == CollisionClass.SHIP && it.isValidTarget }
+
+            val withModules = modules.maxOfOrNull { (location - it.location).length + it.collisionRadius } ?: 0f
+            val withDrones = drones?.maxOfOrNull { (location - it.location).length + it.collisionRadius } ?: 0f
+
+            return max(collisionRadius, max(withDrones, withModules))
+        }
+
+    fun command(cmd: ShipCommand) = this.giveCommand(cmd, null, 0)
+
+    // TODO refine the speed threshold, maybe add maneuverability threshold.
+    val isFast: Boolean
+        get() = isAlive && (root.isFrigate || root.isDestroyer || baseMaxSpeed * timeMult >= 150f)
+
+    /** Ship max speed not modified by zero flux boost or an active system. */
+    val baseMaxSpeed: Float
+        get() = statWithoutMobilityBonuses(mutableStats.maxSpeed).modifiedValue
+
+    val baseTurnRate: Float
+        get() = statWithoutMobilityBonuses(mutableStats.maxTurnRate).modifiedValue
+
+    private fun statWithoutMobilityBonuses(modifiedStat: MutableStat): MutableStat {
+        val stat = modifiedStat.createCopy()
+
+        if (system != null) {
+            stat.unmodify(system.id + " effect")
+        }
+
+        // Remove zero flux boost for ships with no Safety Overrides.
+        if (mutableStats.zeroFluxMinimumFluxLevel.modifiedValue < 1f) {
+            stat.unmodify("zero_flux_boost")
+        }
+
+        return stat
+    }
+
+    val maxRange: Float
+        get() = allGroupedWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.toDirection, it.engagementRange) } ?: 0f
+
+    val AIPersonality: String
+        get() = (ai as? BasicShipAI)?.config?.personalityOverride ?: (this as Ship).personality
+
+    val Id: String
+        get() = hullSpec?.hullId ?: "-"
+
+    val isFlamedOut: Boolean
+        get() = engineController.isFlamedOut
+
+    val isSkirmisher: Boolean
+        get() = root.isFrigate || variant.hasHullMod("aitweaks_skirmisher")
+
+    val offlineTimeRemaining: Float
+        get() = when {
+            fluxTracker.isOverloaded -> {
+                fluxTracker.overloadTimeRemaining
+            }
+
+            fluxTracker.isVenting -> {
+                fluxTracker.timeToVent
+            }
+
+            else -> {
+                0f
+            }
+        }
+
+    /** Some ships, e.g. ones with Safety Overrides can not vent. */
+    val canVentFlux: Boolean
+        get() = mutableStats.ventRateMult.getModifiedValue() > 0f
+
+    val isAlwaysSearchDestroy: Boolean
+        get() = Config.config.fleetwideSearchAndDestroy || variant.hasHullMod("aitweaks_search_and_destroy")
 
 // ****************************************************************************
 // ShipAPI Implementation
@@ -451,10 +646,10 @@ value class ShipHandle(val shipAPI: ShipAPI) {
             shipAPI.stationSlot = p0
         }
 
-    var parentStation: ShipAPI?
-        get() = shipAPI.parentStation as ShipAPI
+    var parentStation: ShipHandle?
+        get() = shipAPI.parentStation?.handle
         set(p0) {
-            shipAPI.parentStation = p0
+            shipAPI.parentStation = p0?.shipAPI
         }
 
     var fixedLocation: Vector2f?
@@ -1068,7 +1263,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
             shipAPI.maxHitpoints = p0
         }
 
-    val aI: Any
+    val ai: Any
         get() = shipAPI.ai
 
     val isExpired: Boolean
