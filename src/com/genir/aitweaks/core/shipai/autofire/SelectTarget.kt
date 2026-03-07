@@ -141,7 +141,7 @@ class SelectTarget(
             { selectShipInner(shipTypeFilter) },
         )
 
-        return selected as? ShipAPI
+        return selected?.asShipHandle
     }
 
     private fun selectShipInner(shipTypeFilter: ((ShipHandle) -> Boolean)): ShipHandle? {
@@ -188,7 +188,7 @@ class SelectTarget(
 
         val ships: Sequence<ShipHandle> = Grid.ships(weapon.location, targetSearchRange)
 
-        return selectTarget(ships, isTargetAcceptable) as? ShipAPI
+        return selectTarget(ships, isTargetAcceptable)?.asShipHandle
     }
 
     private fun selectMissile(): MissileAPI? {

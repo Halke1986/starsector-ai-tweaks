@@ -503,7 +503,7 @@ class VentModule(private val ai: CustomShipAI) {
     /** Determine if ship should forego venting and backing off
      * to instead focus on finishing its target. */
     private fun shouldFinishTarget(): Boolean {
-        val target: ShipHandle = ai.attackTarget as? ShipAPI ?: return false
+        val target: ShipHandle = ai.attackTarget?.asShipHandle ?: return false
 
         when {
             target.isFighter -> {

@@ -101,7 +101,7 @@ class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
         validPlans.minWithOrNull(compareBy { it.distanceToTarget() })?.let { return it }
 
         // Use burst to ram attack target.
-        val attackTarget = ai.attackTarget as? ShipAPI ?: return null
+        val attackTarget = ai.attackTarget?.asShipHandle ?: return null
         val collision = estimateCollision(attackTarget) ?: return null
 
         val frontVectors = burstVectors.filter { !it.commands.contains(ACCELERATE_BACKWARDS) }

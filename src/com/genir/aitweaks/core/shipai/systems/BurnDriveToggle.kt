@@ -80,7 +80,7 @@ class BurnDriveToggle(ai: CustomShipAI) : CustomSystemAI(ai) {
 
             // Don't burn if not facing the burn destination, as this may lead
             // to interrupting an attack. Frigates may be ignored.
-            angleToDestination().length > maxAngleToTarget && (ai.attackTarget as? ShipAPI)?.root?.isFrigate != true -> false
+            angleToDestination().length > maxAngleToTarget && ai.attackTarget?.asShipHandle?.root?.isFrigate != true -> false
 
             // Don't burn to destination if it's too close.
             burnVector.length < maxBurnDist * minBurnDistFraction -> false

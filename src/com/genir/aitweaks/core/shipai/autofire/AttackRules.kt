@@ -34,7 +34,7 @@ class AttackRules(private val weapon: WeaponHandle, private val hit: Hit, privat
     val shouldHoldFire = avoidPhased() ?: conservePDAmmo() ?: avoidWrongDamageType()
 
     private fun avoidPhased(): HoldFire? = when {
-        (hit.target as? ShipAPI)?.isPhased != true -> fire
+        hit.target.asShipHandle?.isPhased != true -> fire
 
         weapon.conserveAmmo -> AVOID_PHASED
         weapon.isPD -> fire

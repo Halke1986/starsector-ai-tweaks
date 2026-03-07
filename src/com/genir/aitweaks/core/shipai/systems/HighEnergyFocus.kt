@@ -8,8 +8,10 @@ import com.fs.starfarer.api.combat.DamageType.KINETIC
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponSize.*
 import com.fs.starfarer.api.combat.WeaponAPI.WeaponType
 import com.genir.aitweaks.core.extensions.allGroupedWeapons
+import com.genir.aitweaks.core.extensions.asShipHandle
 import com.genir.aitweaks.core.extensions.isValidTarget
 import com.genir.aitweaks.core.extensions.sumOf
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitShield
@@ -85,7 +87,7 @@ class HighEnergyFocus : ShipSystemAIScript {
     }
 
     private fun dpsMultiplier(weapon: WeaponHandle): Float {
-        val target: ShipHandle = (weapon.target as? ShipAPI) ?: return 0f
+        val target: ShipHandle = weapon.target?.asShipHandle ?: return 0f
         val params = defaultBallisticParams
 
         return when {

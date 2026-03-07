@@ -2,7 +2,6 @@ package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.MissileAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.debug.Debug
@@ -222,7 +221,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
     }
 
     private fun obstacleDirection(obstacle: CombatEntityAPI): Vector2f {
-        val obstacleAI = (obstacle as? ShipAPI)?.customShipAI?.maneuver
+        val obstacleAI = obstacle.asShipHandle?.customShipAI?.maneuver
         if (obstacleAI != null) {
             return (obstacleAI.attackPoint ?: obstacleAI.headingPoint) - obstacle.location
         }
@@ -242,7 +241,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         }
 
         // Yield to allies controlled by custom AI.
-        val obstacleAI = (obstacle as? ShipAPI)?.customShipAI?.maneuver
+        val obstacleAI = obstacle.asShipHandle?.customShipAI?.maneuver
             ?: return false
         if (movement.ship.owner != obstacle.owner) {
             return false

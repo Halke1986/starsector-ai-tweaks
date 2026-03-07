@@ -97,7 +97,7 @@ class CustomShipAI(val ship: ShipHandle, val globalAI: GlobalAI) : BaseShipAI() 
         }
 
         // Advance subsystems.
-        vanilla.advance(dt, attackTarget as? ShipAPI, maneuver.expectedVelocity, maneuver.expectedFacing)
+        vanilla.advance(dt, attackTarget?.asShipHandle, maneuver.expectedVelocity, maneuver.expectedFacing)
         assignment.advance()
         ventModule.advance(dt)
         systemAI?.advance(dt)
@@ -305,7 +305,7 @@ class CustomShipAI(val ship: ShipHandle, val globalAI: GlobalAI) : BaseShipAI() 
                 false
             }
 
-            (attackTarget as? ShipAPI)?.root?.movement?.maxSpeed?.let { it > ship.movement.maxSpeed } == true -> { // peak Kotlin
+            attackTarget?.asShipHandle?.root?.movement?.maxSpeed?.let { it > ship.movement.maxSpeed } == true -> { // peak Kotlin
                 false
             }
 

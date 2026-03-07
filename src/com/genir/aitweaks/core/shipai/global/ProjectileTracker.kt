@@ -3,8 +3,8 @@ package com.genir.aitweaks.core.shipai.global
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.DamagingProjectileAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.core.extensions.asShipHandle
 import com.genir.aitweaks.core.extensions.isMissile
 import com.genir.aitweaks.core.extensions.root
 import com.genir.aitweaks.core.handles.ShipHandle
@@ -97,6 +97,6 @@ class ProjectileTracker : BaseEveryFrameCombatPlugin() {
             return null
         }
 
-        return closestHit.target as? ShipAPI
+        return closestHit.target.asShipHandle
     }
 }

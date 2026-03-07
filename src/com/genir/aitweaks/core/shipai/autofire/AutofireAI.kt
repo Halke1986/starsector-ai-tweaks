@@ -7,6 +7,7 @@ import com.fs.starfarer.api.loading.BeamWeaponSpecAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.ExtendedShipAI
@@ -115,7 +116,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         return weapon.weaponAPI
     }
 
-    override fun getTargetShip(): ShipHandle? {
+    override fun getTargetShip(): ShipAPI? {
         return target as? ShipAPI
     }
 

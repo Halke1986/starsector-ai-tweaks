@@ -2,6 +2,8 @@ package com.genir.aitweaks.core.extensions
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.genir.aitweaks.core.handles.ShipHandle
+import com.genir.aitweaks.core.handles.ShipHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.types.LinearMotion
@@ -26,6 +28,9 @@ val CombatEntityAPI.isValidTarget: Boolean
         else -> false
     }
 
+val CombatEntityAPI.asShipHandle: ShipHandle?
+    get() = (this as? ShipAPI)?.handle
+
 /** Is the entity a true ship, not a missile or fighter. */
 val CombatEntityAPI.isShip: Boolean
     get() = (this is ShipAPI) && !isFighter
@@ -43,7 +48,7 @@ val CombatEntityAPI.isPDTarget: Boolean
     get() = isMissile || isFighter
 
 val CombatEntityAPI.timeAdjustedVelocity: Vector2f
-    get() = (this as? ShipAPI)?.movement?.velocity ?: velocity
+    get() = asShipHandle?.movement?.velocity ?: velocity
 
 /** True if otherEntity is hostile towards this entity. */
 fun CombatEntityAPI.isHostile(otherEntity: CombatEntityAPI): Boolean {
@@ -70,7 +75,7 @@ val CombatEntityAPI.hasShield: Boolean
     }
 
 val CombatEntityAPI.root: CombatEntityAPI
-    get() = (this as? ShipAPI)?.root ?: this
+    get() = asShipHandle?.root?.shipAPI ?: this
 
 val CombatEntityAPI.linearMotion: LinearMotion
     get() = LinearMotion(

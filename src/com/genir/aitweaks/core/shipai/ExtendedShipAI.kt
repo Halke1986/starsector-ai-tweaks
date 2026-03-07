@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.shipai.autofire.AutofireManager
 import com.genir.aitweaks.core.shipai.movement.EngineController
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
@@ -88,7 +89,7 @@ class ExtendedShipAI(val ship: ShipHandle, config: ShipAIConfig) : BasicShipAI(s
         }
 
         // Find ship target and force a refresh if it's invalid.
-        val target: ShipHandle = currentManeuver.maneuver_getTarget() as? ShipAPI ?: return
+        val target: ShipHandle = currentManeuver.maneuver_getTarget()?.asShipHandle ?: return
         if (!target.isValidTarget) {
             super.cancelCurrentManeuver()
             return
