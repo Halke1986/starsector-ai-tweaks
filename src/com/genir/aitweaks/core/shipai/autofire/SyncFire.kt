@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.extensions.isPhase
 import com.genir.aitweaks.core.extensions.isUnderManualControl
@@ -158,7 +157,7 @@ class SyncFire(private val weapon: WeaponHandle, var state: State?) {
 
     companion object {
         /** Ensure all weapons that are to fire in staggered mode share an up-to date state. */
-        fun updateWeaponSync(ship: ShipAPI) {
+        fun updateWeaponSync(ship: ShipHandle) {
             // Phase ships should be able to fire all weapons immediately after exiting P-space.
             if (ship.isPhase) {
                 return

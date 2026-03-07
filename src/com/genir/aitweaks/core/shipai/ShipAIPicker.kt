@@ -6,13 +6,13 @@ import com.fs.starfarer.api.PluginPick
 import com.fs.starfarer.api.campaign.CampaignPlugin.PickPriority.MOD_SPECIFIC
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.CARRIER
 import com.fs.starfarer.api.combat.ShipHullSpecAPI.ShipTypeHints.COMBAT
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.genir.aitweaks.core.extensions.isAutomated
 import com.genir.aitweaks.core.extensions.isModule
 import com.genir.aitweaks.core.extensions.isPhase
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.shipai.global.GlobalAI
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.state.State.Companion.state
@@ -25,7 +25,7 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
         private var isRecursiveCall: Boolean = false
     }
 
-    override fun pickShipAI(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
+    override fun pickShipAI(member: FleetMemberAPI?, ship: ShipHandle): PluginPick<ShipAIPlugin>? {
         if (isRecursiveCall) {
             return null
         }
@@ -39,7 +39,7 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
         }
     }
 
-    private fun pickShipAIInner(member: FleetMemberAPI?, ship: ShipAPI): PluginPick<ShipAIPlugin>? {
+    private fun pickShipAIInner(member: FleetMemberAPI?, ship: ShipHandle): PluginPick<ShipAIPlugin>? {
         val globalAI: GlobalAI = state?.globalAI
             ?: return null
 
@@ -95,7 +95,7 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
     }
 
     /** Returns true is custom AI can control the given ship. */
-    private fun canHaveCustomAI(ship: ShipAPI): Boolean {
+    private fun canHaveCustomAI(ship: ShipHandle): Boolean {
         return when {
             ship.isPhase -> false
 
@@ -111,7 +111,7 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
         }
     }
 
-    private fun shouldHaveCustomAI(ship: ShipAPI): Boolean {
+    private fun shouldHaveCustomAI(ship: ShipHandle): Boolean {
         return when {
             !canHaveCustomAI(ship) -> false
 
@@ -140,7 +140,7 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
         }
     }
 
-    private fun shouldHaveCustomPersonality(ship: ShipAPI): Boolean {
+    private fun shouldHaveCustomPersonality(ship: ShipHandle): Boolean {
         return when {
             !ship.isAutomated -> false
 

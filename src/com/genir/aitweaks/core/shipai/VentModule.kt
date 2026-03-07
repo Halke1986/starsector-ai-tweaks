@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitBounds
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitShield
@@ -25,7 +26,7 @@ import kotlin.random.Random
 import com.genir.aitweaks.core.shipai.Preset as AIPreset
 
 class VentModule(private val ai: CustomShipAI) {
-    private val ship: ShipAPI = ai.ship
+    private val ship: ShipHandle = ai.ship
     private val damageTracker: DamageTracker = DamageTracker(ship)
     private val weaponThreat: WeaponThreat = WeaponThreat(ship)
     private val missileThreat: MissileThreat = MissileThreat(ship)
@@ -194,7 +195,7 @@ class VentModule(private val ai: CustomShipAI) {
     }
 
     /** Control the ship heading when backing off. */
-    fun overrideHeading(maneuverTarget: ShipAPI?): Destination? {
+    fun overrideHeading(maneuverTarget: ShipHandle?): Destination? {
         if (!isBackingOff) {
             return null
         }
@@ -368,7 +369,7 @@ class VentModule(private val ai: CustomShipAI) {
         // Ship is approaching its maneuver target.
         // Most likely the target is faster than the ship.
         // Cannot assume maintaining constant distance.
-        val maneuverTarget: ShipAPI? = ai.maneuverTarget
+        val maneuverTarget: ShipHandle? = ai.maneuverTarget
         if (maneuverTarget != null && approachSpeed(ai.ship, maneuverTarget) > 0) {
             return false
         }
@@ -502,7 +503,7 @@ class VentModule(private val ai: CustomShipAI) {
     /** Determine if ship should forego venting and backing off
      * to instead focus on finishing its target. */
     private fun shouldFinishTarget(): Boolean {
-        val target: ShipAPI = ai.attackTarget as? ShipAPI ?: return false
+        val target: ShipHandle = ai.attackTarget as? ShipAPI ?: return false
 
         when {
             target.isFighter -> {

@@ -7,26 +7,27 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.isMissile
 import com.genir.aitweaks.core.extensions.root
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
 import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeHit
 
 class ProjectileTracker : BaseEveryFrameCombatPlugin() {
-    private val threats: MutableMap<ShipAPI, MutableSet<DamagingProjectileAPI>> = mutableMapOf()
+    private val threats: MutableMap<ShipHandle, MutableSet<DamagingProjectileAPI>> = mutableMapOf()
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         val newProjectiles = Global.getCombatEngine().projectiles.asSequence().filter {
             !it.isMissile && it.elapsed == 0f
         }
 
-        val allTargets: List<ShipAPI> = findTargets()
+        val allTargets: List<ShipHandle> = findTargets()
 
         newProjectiles.forEach { projectile ->
             if (projectile.weapon == null) {
                 return@forEach
             }
 
-            val target: ShipAPI = firstShipAlongFlightPath(projectile, allTargets)
+            val target: ShipHandle = firstShipAlongFlightPath(projectile, allTargets)
                 ?: return@forEach
 
             threats.getOrPut(target) { mutableSetOf() }.add(projectile)
@@ -35,7 +36,7 @@ class ProjectileTracker : BaseEveryFrameCombatPlugin() {
         garbageCollection()
     }
 
-    fun threats(ship: ShipAPI): Sequence<DamagingProjectileAPI> {
+    fun threats(ship: ShipHandle): Sequence<DamagingProjectileAPI> {
         val allThreats = threats[ship]
             ?: return sequenceOf()
 
@@ -66,7 +67,7 @@ class ProjectileTracker : BaseEveryFrameCombatPlugin() {
         }
     }
 
-    private fun findTargets(): List<ShipAPI> {
+    private fun findTargets(): List<ShipHandle> {
         val ships = Global.getCombatEngine().ships.asSequence().filter { ship ->
             when {
                 ship.isFighter -> false
@@ -79,8 +80,8 @@ class ProjectileTracker : BaseEveryFrameCombatPlugin() {
         return ships.toList()
     }
 
-    private fun firstShipAlongFlightPath(projectile: DamagingProjectileAPI, allTargets: List<ShipAPI>): ShipAPI? {
-        val targets: Sequence<ShipAPI> = allTargets.asSequence().filter { target ->
+    private fun firstShipAlongFlightPath(projectile: DamagingProjectileAPI, allTargets: List<ShipHandle>): ShipHandle? {
+        val targets: Sequence<ShipHandle> = allTargets.asSequence().filter { target ->
             target.root != projectile.weapon?.ship?.root
         }
 

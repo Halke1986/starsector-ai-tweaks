@@ -8,6 +8,7 @@ import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.WeaponGroupType
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.BaseShipAI
@@ -29,7 +30,7 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
 class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
-    private var prevPlayerShip: ShipAPI? = null
+    private var prevPlayerShip: ShipHandle? = null
     private var engineController: EngineController? = null
 
     private var currentTarget: CombatEntityAPI? = null
@@ -65,7 +66,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         this.currentTarget = target
     }
 
-    private fun aimShip(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
+    private fun aimShip(dt: Float, ship: ShipHandle, target: CombatEntityAPI?) {
         // Update engine controller if player ship changed.
         if (ship != prevPlayerShip) {
             prevPlayerShip = ship
@@ -80,7 +81,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         engineController!!.executeCommands()
     }
 
-    private fun controlShipHeading(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
+    private fun controlShipHeading(dt: Float, ship: ShipHandle, target: CombatEntityAPI?) {
         // Do not attempt to override the ship movement if any of the movement commands is blocked.
         val commands = arrayOf(
             VanillaShipCommand.STRAFE_LEFT,
@@ -116,7 +117,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         }
     }
 
-    private fun controlShipFacing(dt: Float, ship: ShipAPI, target: CombatEntityAPI?) {
+    private fun controlShipFacing(dt: Float, ship: ShipHandle, target: CombatEntityAPI?) {
         // Do not attempt to override the ship movement if any of the movement commands is blocked.
         val commands = arrayOf(VanillaShipCommand.TURN_LEFT, VanillaShipCommand.TURN_RIGHT)
         val blockedCommands = (ship as Ship).blockedCommands
@@ -162,7 +163,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         }
     }
 
-    private fun aimWeapons(ship: ShipAPI, target: CombatEntityAPI) {
+    private fun aimWeapons(ship: ShipHandle, target: CombatEntityAPI) {
         val ballisticTarget = BallisticTarget(targetLocation(target), target.velocity, target.collisionRadius, target)
         val selectedWeapons: Set<WeaponHandle> = ship.selectedWeapons
         val aimableWeapons: Set<WeaponHandle> = ship.nonAutofireWeapons + selectedWeapons
@@ -299,9 +300,9 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     private val WeaponHandle.shouldAim: Boolean
         get() = type != WeaponAPI.WeaponType.MISSILE || isUnguidedMissile
 
-    private val ShipAPI.nonAutofireWeapons: Set<WeaponHandle>
+    private val ShipHandle.nonAutofireWeapons: Set<WeaponHandle>
         get() = weaponGroupsCopy.filter { !it.isAutofiring }.flatMap { it.weapons }.filter { it.shouldAim }.toSet()
 
-    private val ShipAPI.selectedWeapons: Set<WeaponHandle>
+    private val ShipHandle.selectedWeapons: Set<WeaponHandle>
         get() = selectedGroupAPI?.weapons?.filter { it.shouldAim }?.toSet() ?: setOf()
 }

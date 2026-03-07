@@ -5,8 +5,8 @@ import com.fs.starfarer.api.combat.*
 import org.lwjgl.util.vector.Vector2f
 
 object Grid {
-    fun ships(p: Vector2f, r: Float): Sequence<ShipAPI> {
-        return Global.getCombatEngine().shipGrid.search(p, r).filterIsInstance<ShipAPI>()
+    fun ships(p: Vector2f, r: Float): Sequence<ShipHandle> {
+        return Global.getCombatEngine().shipGrid.search(p, r).filterIsInstance<ShipHandle>()
     }
 
     fun missiles(p: Vector2f, r: Float): Sequence<MissileAPI> {

@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipSystemAPI.SystemState.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.Grid
@@ -168,7 +169,7 @@ class BurnDriveToggle(ai: CustomShipAI) : CustomSystemAI(ai) {
         else (ship.facing.toDirection - burnVector.facing)
     }
 
-    private fun findObstacles(center: Vector2f, radius: Float): Sequence<ShipAPI> {
+    private fun findObstacles(center: Vector2f, radius: Float): Sequence<ShipHandle> {
         return Grid.ships(center, radius).filter {
             when {
                 // Self
@@ -211,7 +212,7 @@ class BurnDriveToggle(ai: CustomShipAI) : CustomSystemAI(ai) {
         return timeToCollision(obstacles, ship.velocity) <= stopBeforeCollision
     }
 
-    private fun timeToCollision(obstacles: Sequence<ShipAPI>, shipVelocity: Vector2f): Float {
+    private fun timeToCollision(obstacles: Sequence<ShipHandle>, shipVelocity: Vector2f): Float {
         return obstacles.mapNotNull { obstacle ->
             val p = obstacle.location - ship.location
             val v = obstacle.movement.velocity - shipVelocity

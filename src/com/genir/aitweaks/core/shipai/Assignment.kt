@@ -5,7 +5,6 @@ import com.fs.starfarer.api.combat.AssignmentTargetAPI
 import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI
 import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.assignment
 import com.genir.aitweaks.core.extensions.isNearMapCenterline
 import com.genir.aitweaks.core.extensions.length
@@ -15,11 +14,11 @@ import com.genir.aitweaks.core.shipai.global.NavigationCoordinator
 import org.lwjgl.util.vector.Vector2f
 
 class Assignment(private val ai: CustomShipAI) {
-    private val ship: ShipAPI = ai.ship
+    private val ship: ShipHandle = ai.ship
 
     var navigateTo: Vector2f? = null
     var arrivedAt: Boolean = false
-    var eliminate: ShipAPI? = null
+    var eliminate: ShipHandle? = null
     var type: Type = NONE
 
     enum class Type {

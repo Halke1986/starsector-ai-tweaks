@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShieldAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.extensions.rangeFromShipCenter
 import com.genir.aitweaks.core.extensions.sumOf
@@ -12,7 +11,7 @@ import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 
-class ShipStats(private val ship: ShipAPI) {
+class ShipStats(private val ship: ShipHandle) {
     val primaryWeapons: List<WeaponHandle> = findPrimaryWeapons()
     val attackTargetSearchRange: Float = calculateAttackTargetSearchRange()
     val totalCollisionRadius: Float = ship.totalCollisionRadius

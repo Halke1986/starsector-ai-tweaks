@@ -2,8 +2,8 @@ package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.shipai.Assignment
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.global.AttackCoordinator
@@ -108,7 +108,7 @@ class Maneuver(val ai: CustomShipAI) {
         engineController.facing(dt, expectedFacing, shouldStop)
     }
 
-    private fun setHeading(dt: Float, maneuverTarget: ShipAPI?) {
+    private fun setHeading(dt: Float, maneuverTarget: ShipHandle?) {
         val systemOverride: Destination? = ai.systemAI?.overrideHeading()
         val backoffOverride: Destination? = ai.ventModule.overrideHeading(maneuverTarget)
         val navigateTo: Vector2f? = ai.assignment.navigateTo
@@ -150,7 +150,7 @@ class Maneuver(val ai: CustomShipAI) {
         expectedVelocity = engineController.heading(dt, destination, speedLimits)
     }
 
-    private fun calculateAttackLocation(dt: Float, maneuverTarget: ShipAPI, speedLimits: List<SpeedLimit>): Destination {
+    private fun calculateAttackLocation(dt: Float, maneuverTarget: ShipHandle, speedLimits: List<SpeedLimit>): Destination {
         // If the ship is near the navigation objective, it should
         // position itself between the objective and the target.
         ai.assignment.navigateTo?.let {
@@ -229,7 +229,7 @@ class Maneuver(val ai: CustomShipAI) {
     }
 
     /** Take into account other entities when planning ship attack location. */
-    private fun coordinateAttackLocation(maneuverTarget: ShipAPI, attackLocation: Vector2f): Vector2f {
+    private fun coordinateAttackLocation(maneuverTarget: ShipHandle, attackLocation: Vector2f): Vector2f {
         // Coordinate the attack with allied ships.
         val coordinator: AttackCoordinator = ai.globalAI.maneuverCoordinator
         val (coordinatedAttackLocation, taskForceSize) = coordinator.coordinateAttack(ai, maneuverTarget, attackLocation)
@@ -261,7 +261,7 @@ class Maneuver(val ai: CustomShipAI) {
         val toHeadingAngle = toHeadingVector.facing
         val dist = toHeadingVector.length
 
-        val hulks: Sequence<ShipAPI> = Grid.ships(maneuverTarget.location, dist).filter {
+        val hulks: Sequence<ShipHandle> = Grid.ships(maneuverTarget.location, dist).filter {
             when {
                 !it.isHulk -> false
 

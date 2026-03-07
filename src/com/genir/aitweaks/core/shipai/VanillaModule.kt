@@ -2,7 +2,6 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAIConfig
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.AutofireManager
@@ -18,7 +17,7 @@ import com.genir.starfarer.combat.entities.Ship
 import org.lwjgl.util.vector.Vector2f
 
 /** AI modules carried over from vanilla ship AI. */
-class VanillaModule(val ship: ShipAPI, private val customSystem: CustomSystemAI?) {
+class VanillaModule(val ship: ShipHandle, private val customSystem: CustomSystemAI?) {
     val basicShipAI = Global.getSettings().createDefaultShipAI(ship, ShipAIConfig()) as BasicShipAI
     private val flags: ShipwideAIFlags = basicShipAI.aiFlags
 
@@ -38,7 +37,7 @@ class VanillaModule(val ship: ShipAPI, private val customSystem: CustomSystemAI?
 
     /** Advance AI subsystems carried over from the vanilla BasicShipAI. To work
      * correctly, the subsystems should be called in same order as in BasicShipAI. */
-    fun advance(dt: Float, attackTarget: ShipAPI?, expectedVelocity: Vector2f, expectedFacing: Direction) {
+    fun advance(dt: Float, attackTarget: ShipHandle?, expectedVelocity: Vector2f, expectedFacing: Direction) {
         // Lock the personality to aggressive, ensuring AI elements
         // delegated to vanilla do not behave reckless.
         val personalityOverride = ShipPersonalityOverride()

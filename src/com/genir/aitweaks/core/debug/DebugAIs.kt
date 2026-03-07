@@ -3,9 +3,9 @@ package com.genir.aitweaks.core.debug
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipAIPlugin
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.shipai.movement.EngineController
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.angularVelocity
@@ -20,7 +20,7 @@ import java.awt.Color
 var expectedFacing = 90f.toDirection
 const val df = -1f * 60f
 
-class ControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
+class ControllerAI(val ship: ShipHandle) : BaseEngineControllerAI() {
     private val controller = EngineController(ship.movement)
     private val RAD: Float = 300f
 
@@ -43,7 +43,7 @@ class ControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     }
 }
 
-class RamTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
+class RamTargetAI(val ship: ShipHandle, val target: ShipHandle) : BaseEngineControllerAI() {
     private val controller = EngineController(ship.movement)
 
     override fun advance(dt: Float) {
@@ -56,7 +56,7 @@ class RamTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineController
     }
 }
 
-class MirrorTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
+class MirrorTargetAI(val ship: ShipHandle, val target: ShipHandle) : BaseEngineControllerAI() {
     private val controller = EngineController(ship.movement)
     private val offset = Vector2f(200f, 200f)
 
@@ -70,7 +70,7 @@ class MirrorTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControl
     }
 }
 
-class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : BaseEngineControllerAI() {
+class OrbitTargetAI(val ship: ShipHandle, val target: ShipHandle, val r: Float) : BaseEngineControllerAI() {
     private val controller = EngineController(ship.movement)
 
     override fun advance(dt: Float) {
@@ -83,7 +83,7 @@ class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : Base
     }
 }
 
-class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
+class RotateEngineControllerAI(val ship: ShipHandle) : BaseEngineControllerAI() {
     private val controller = EngineController(ship.movement)
 
     override fun advance(dt: Float) {
@@ -97,7 +97,7 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     }
 }
 
-class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
+class FollowMouseAI(val ship: ShipHandle) : BaseEngineControllerAI() {
     private val controller = EngineController(ship.movement)
     private val prevP: Vector2f = Vector2f()
 
@@ -151,7 +151,7 @@ abstract class BaseEngineControllerAI : ShipAIPlugin {
     override fun getConfig(): ShipAIConfig = ShipAIConfig()
 }
 
-inline fun <reified T : ShipAIPlugin> installAI(ship: ShipAPI, aiFactory: () -> T) {
+inline fun <reified T : ShipAIPlugin> installAI(ship: ShipHandle, aiFactory: () -> T) {
     if (((ship.ai as? Ship.ShipAIWrapper)?.ai !is T)) {
         ship.shipAI = aiFactory()
     }

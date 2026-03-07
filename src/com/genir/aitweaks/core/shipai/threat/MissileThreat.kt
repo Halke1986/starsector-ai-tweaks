@@ -2,16 +2,16 @@ package com.genir.aitweaks.core.shipai.threat
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.MissileAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.vectorProjectionLength
 
-class MissileThreat(val ship: ShipAPI) {
+class MissileThreat(val ship: ShipHandle) {
     fun threats(duration: Float): Sequence<MissileAPI> {
         val allMissiles: Sequence<MissileAPI> = Global.getCombatEngine().missiles.asSequence()
-        val allies: List<ShipAPI> = findAllies()
+        val allies: List<ShipHandle> = findAllies()
 
         // Find maneuvering missiles that are likely to hit the ship.
         return allMissiles.filter { missile ->
@@ -33,7 +33,7 @@ class MissileThreat(val ship: ShipAPI) {
         }
     }
 
-    private fun findAllies(): List<ShipAPI> {
+    private fun findAllies(): List<ShipHandle> {
         return Global.getCombatEngine().ships.filter { otherShip ->
             when {
                 !otherShip.isValidTarget -> false
@@ -67,7 +67,7 @@ class MissileThreat(val ship: ShipAPI) {
         return rangeLeft > dist
     }
 
-    private fun isShipTheClosestTarget(missile: MissileAPI, allies: List<ShipAPI>): Boolean {
+    private fun isShipTheClosestTarget(missile: MissileAPI, allies: List<ShipHandle>): Boolean {
         val shipDist = effectiveDistance(ship, missile)
 
         return allies.none { ally ->
@@ -76,7 +76,7 @@ class MissileThreat(val ship: ShipAPI) {
         }
     }
 
-    private fun effectiveDistance(target: ShipAPI, missile: MissileAPI): Float {
+    private fun effectiveDistance(target: ShipHandle, missile: MissileAPI): Float {
         val toTarget = target.location - missile.location
         val dist = toTarget.length - ship.boundsRadius
         if (dist > missile.maxRange) {

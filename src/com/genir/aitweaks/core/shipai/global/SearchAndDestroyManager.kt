@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.shipai.global
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
 
@@ -11,7 +10,7 @@ import com.genir.aitweaks.core.extensions.*
  * assigned to Assault, Eliminate or any other tasks. Player can manually assign ships
  * to any tasks. */
 class SearchAndDestroyManager(private val globalAI: GlobalAI) : BaseEveryFrameCombatPlugin() {
-    private val initialAssignments: MutableMap<ShipAPI, CombatFleetManagerAPI.AssignmentInfo> = mutableMapOf()
+    private val initialAssignments: MutableMap<ShipHandle, CombatFleetManagerAPI.AssignmentInfo> = mutableMapOf()
 
     private var firstFrameWithShips = -1
 

@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import java.util.*
 
 /** FluxTracker tracks the rise in flux level during the provided period. */
-class FluxTracker(val ship: ShipAPI, private val period: Float) {
+class FluxTracker(val ship: ShipHandle, private val period: Float) {
     private data class Record(val value: Float, val timestamp: Float)
 
     private val history = LinkedList<Record>()

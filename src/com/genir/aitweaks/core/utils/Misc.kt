@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
@@ -140,7 +139,7 @@ fun averageFacing(facings: Collection<Direction>): Direction {
 }
 
 /** Remove ship commands issued by AI or the player. Needs to be executed before Ship.advance() to take effect.*/
-fun clearVanillaCommands(ship: ShipAPI, vararg commands: VanillaShipCommand) {
+fun clearVanillaCommands(ship: ShipHandle, vararg commands: VanillaShipCommand) {
     val commandWrappers: MutableIterator<Ship.CommandWrapper> = (ship as Ship).commands.iterator()
     while (commandWrappers.hasNext()) {
         val command: Ship.Command = commandWrappers.next().shipCommandWrapper_command
@@ -164,7 +163,7 @@ enum class VanillaShipCommand {
     val obfuscated = Ship.Command.valueOf(name)
 }
 
-fun isCloseToEnemy(ship: ShipAPI, enemy: ShipAPI): Boolean {
+fun isCloseToEnemy(ship: ShipHandle, enemy: ShipHandle): Boolean {
     val maxRange = maxOf(Preset.threatSearchRange, ship.maxRange * 2f, enemy.maxRange)
     return (ship.location - enemy.location).lengthSquared <= maxRange * maxRange
 }

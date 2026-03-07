@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.Tag
@@ -15,7 +14,7 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 
 /** A group of weapons that should be able to fire along a single attack vector. */
-class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
+class WeaponGroup(val ship: ShipHandle, val weapons: List<WeaponHandle>) {
     val defaultFacing: Direction = defaultAttackFacing() // Default group facing in ship frame of reference.
     val dps: Float = weapons.sumOf { it.effectiveDPS }
     private val rangeMap: Map<WeaponHandle, Float> = weaponRanges()

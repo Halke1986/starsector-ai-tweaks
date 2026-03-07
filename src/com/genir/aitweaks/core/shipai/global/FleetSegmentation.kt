@@ -2,17 +2,17 @@ package com.genir.aitweaks.core.shipai.global
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.utils.defaultAIInterval
 
 /** Segment enemy fleet into separate battle groups. */
 class FleetSegmentation(side: Int) : BaseEveryFrameCombatPlugin() {
     private val enemy: Int = side xor 1
 
-    private var primaryTargets: List<ShipAPI> = listOf()
-    private var allTargets: List<ShipAPI> = listOf()
+    private var primaryTargets: List<ShipHandle> = listOf()
+    private var allTargets: List<ShipHandle> = listOf()
 
     private val advanceInterval = defaultAIInterval()
 
@@ -28,11 +28,11 @@ class FleetSegmentation(side: Int) : BaseEveryFrameCombatPlugin() {
         }
     }
 
-    fun primaryTargets(includeSmallTargets: Boolean = true): Sequence<ShipAPI> {
+    fun primaryTargets(includeSmallTargets: Boolean = true): Sequence<ShipHandle> {
         return primaryTargets.asSequence().filter { it.isValidTarget && (includeSmallTargets || it.isBig) }
     }
 
-    fun allTargets(includeSmallTargets: Boolean = true): Sequence<ShipAPI> {
+    fun allTargets(includeSmallTargets: Boolean = true): Sequence<ShipHandle> {
         return allTargets.asSequence().filter { it.isValidTarget && (includeSmallTargets || it.isBig) }
     }
 
@@ -53,7 +53,7 @@ class FleetSegmentation(side: Int) : BaseEveryFrameCombatPlugin() {
     }
 
     /** Divide fleet into separate battle groups. */
-    private fun segmentFleet(fleet: Array<ShipAPI>): List<List<ShipAPI>> {
+    private fun segmentFleet(fleet: Array<ShipHandle>): List<List<ShipHandle>> {
         val maxRange = 2000f
 
         // Assign targets to battle groups.
@@ -85,7 +85,7 @@ class FleetSegmentation(side: Int) : BaseEveryFrameCombatPlugin() {
         }
 
         // Build battle groups.
-        val lists: MutableMap<Int, MutableList<ShipAPI>> = mutableMapOf()
+        val lists: MutableMap<Int, MutableList<ShipHandle>> = mutableMapOf()
         for (i in fleet.indices) {
             val group = groups[i]
             if (group !in lists) {
@@ -98,10 +98,10 @@ class FleetSegmentation(side: Int) : BaseEveryFrameCombatPlugin() {
         return lists.values.toList()
     }
 
-    private fun isValidGroup(group: List<ShipAPI>, largestGroupDP: Float): Boolean {
-        return group.any { ship: ShipAPI -> ship.root.isCapital } || (group.dpSum * 4f >= largestGroupDP)
+    private fun isValidGroup(group: List<ShipHandle>, largestGroupDP: Float): Boolean {
+        return group.any { ship: ShipHandle -> ship.root.isCapital } || (group.dpSum * 4f >= largestGroupDP)
     }
 
-    private val List<ShipAPI>.dpSum: Float
+    private val List<ShipHandle>.dpSum: Float
         get() = sumOf { it.deploymentPoints }
 }

@@ -2,10 +2,10 @@ package com.genir.aitweaks.core.shipai.threat
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.DamageType
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
@@ -17,7 +17,7 @@ import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.LinearMotion
 
-class WeaponThreat(private val ship: ShipAPI) {
+class WeaponThreat(private val ship: ShipHandle) {
     data class Damage(
         val damage: Float,
         val isFinisherMissile: Boolean,
@@ -37,8 +37,8 @@ class WeaponThreat(private val ship: ShipAPI) {
     }
 
     private fun findDangerousWeapons(duration: Float, missileOnly: Boolean): List<WeaponHandle> {
-        val enemies: MutableList<ShipAPI> = mutableListOf()
-        val obstacles: MutableList<ShipAPI> = mutableListOf()
+        val enemies: MutableList<ShipHandle> = mutableListOf()
+        val obstacles: MutableList<ShipHandle> = mutableListOf()
 
         // Find relevant enemy and allied ships.
         Global.getCombatEngine().ships.asSequence().forEach { entity ->
@@ -90,7 +90,7 @@ class WeaponThreat(private val ship: ShipAPI) {
         }
     }
 
-    private fun canWeaponHitShip(duration: Float, weapon: WeaponHandle, obstacles: List<ShipAPI>): Boolean {
+    private fun canWeaponHitShip(duration: Float, weapon: WeaponHandle, obstacles: List<ShipHandle>): Boolean {
         val enemy: Movement = weapon.ship.movement
         val toShip = ship.location - weapon.location
         val distSqr = toShip.lengthSquared

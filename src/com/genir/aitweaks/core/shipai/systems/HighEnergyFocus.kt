@@ -17,14 +17,14 @@ import org.lazywizard.lazylib.combat.AIUtils
 import org.lwjgl.util.vector.Vector2f
 
 class HighEnergyFocus : ShipSystemAIScript {
-    private var ship: ShipAPI? = null
+    private var ship: ShipHandle? = null
 
-    override fun init(ship: ShipAPI?, p1: ShipSystemAPI?, p2: ShipwideAIFlags?, engine: CombatEngineAPI?) {
+    override fun init(ship: ShipHandle?, p1: ShipSystemAPI?, p2: ShipwideAIFlags?, engine: CombatEngineAPI?) {
         this.ship = ship
     }
 
-    override fun advance(p0: Float, p1: Vector2f?, p2: Vector2f?, p3: ShipAPI?) {
-        val ship: ShipAPI = ship ?: return
+    override fun advance(p0: Float, p1: Vector2f?, p2: Vector2f?, p3: ShipHandle?) {
+        val ship: ShipHandle = ship ?: return
 
         when {
             Global.getCurrentState() == GameState.TITLE -> return
@@ -38,7 +38,7 @@ class HighEnergyFocus : ShipSystemAIScript {
 
     /** High Energy Focus is triggered when weapons with at least half
      * of the total energy weapon DPS (adjusted for damage type) are firing. */
-    private fun shouldTriggerHEF(ship: ShipAPI): Boolean {
+    private fun shouldTriggerHEF(ship: ShipHandle): Boolean {
         val weapons: List<WeaponHandle> = energyWeapons(ship)
 
         // All weapons are in cooldown.
@@ -65,7 +65,7 @@ class HighEnergyFocus : ShipSystemAIScript {
         return true
     }
 
-    private fun energyWeapons(ship: ShipAPI): List<WeaponHandle> {
+    private fun energyWeapons(ship: ShipHandle): List<WeaponHandle> {
         return ship.allGroupedWeapons.filter { weapon ->
             when {
                 weapon.isDisabled -> false
@@ -85,7 +85,7 @@ class HighEnergyFocus : ShipSystemAIScript {
     }
 
     private fun dpsMultiplier(weapon: WeaponHandle): Float {
-        val target: ShipAPI = (weapon.target as? ShipAPI) ?: return 0f
+        val target: ShipHandle = (weapon.target as? ShipAPI) ?: return 0f
         val params = defaultBallisticParams
 
         return when {

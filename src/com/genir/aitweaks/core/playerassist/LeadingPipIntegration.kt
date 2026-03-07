@@ -2,7 +2,6 @@ package com.genir.aitweaks.core.playerassist
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.EveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.copy
 import com.genir.aitweaks.core.extensions.minus
@@ -43,8 +42,8 @@ object LeadingPipIntegration {
             timeEnabled += if (manager.enableAimAssist) dt else -dt
             timeEnabled = timeEnabled.coerceIn(0f, 0.5f)
 
-            val ship: ShipAPI? = Global.getCombatEngine().playerShip
-            val target: ShipAPI? = ship?.shipTarget
+            val ship: ShipHandle? = Global.getCombatEngine().playerShip
+            val target: ShipHandle? = ship?.shipTarget
             if (ship == null || target == null) {
                 pip.advance(dt, events)
                 return

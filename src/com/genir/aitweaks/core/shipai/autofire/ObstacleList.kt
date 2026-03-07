@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.boundsRadius
 import com.genir.aitweaks.core.extensions.facing
 import com.genir.aitweaks.core.extensions.length
@@ -17,7 +16,7 @@ class ObstacleList(private val weapon: WeaponHandle, radius: Float, private val 
     private data class Obstacle(val arc: Arc, val dist: Float, val origin: CombatEntityAPI)
 
     private val obstacles: List<Obstacle> = run {
-        val ships: Sequence<ShipAPI> = Grid.ships(weapon.location, radius).filter {
+        val ships: Sequence<ShipHandle> = Grid.ships(weapon.location, radius).filter {
             when {
                 // Same ship.
                 it.root == weapon.ship.root -> false

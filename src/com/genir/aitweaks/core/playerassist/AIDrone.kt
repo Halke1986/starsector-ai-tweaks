@@ -3,10 +3,10 @@ package com.genir.aitweaks.core.playerassist
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAIPlugin
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.timeMult
+import com.genir.aitweaks.core.handles.ShipHandle
 
-fun makeAIDrone(ai: ShipAIPlugin, variantName: String): ShipAPI {
+fun makeAIDrone(ai: ShipAIPlugin, variantName: String): ShipHandle {
     val spec = Global.getSettings().getHullSpec("dem_drone")
     val v = Global.getSettings().createEmptyVariant(variantName, spec)
     val aiDrone = Global.getCombatEngine().createFXDrone(v)
@@ -25,7 +25,7 @@ fun makeAIDrone(ai: ShipAIPlugin, variantName: String): ShipAPI {
 /** AI drone time multiplier needs to be the same as the player ship time multiplier.
  * This is required for the game engine to advance the AI the same number of times
  * as the player ship is advanced when the player ship is in fast-time mode. */
-fun syncTimeWithPlayerShip(aiDrone: ShipAPI) {
+fun syncTimeWithPlayerShip(aiDrone: ShipHandle) {
     val droneTime = aiDrone.mutableStats.timeMult
     val playerShip = Global.getCombatEngine().playerShip
     if (playerShip != null) {

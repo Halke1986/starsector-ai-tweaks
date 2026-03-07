@@ -10,6 +10,7 @@ import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.debug.expectedFacing
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.shipai.Preset.Companion.assaultShipApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.fullAssaultApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
@@ -29,7 +30,7 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
 @Suppress("MemberVisibilityCanBePrivate")
-class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
+class CustomShipAI(val ship: ShipHandle, val globalAI: GlobalAI) : BaseShipAI() {
     // Subsystems.
     val maneuver: Maneuver = Maneuver(this)
     val assignment: Assignment = Assignment(this)
@@ -42,7 +43,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
     // Standing orders.
-    var maneuverTarget: ShipAPI? = null
+    var maneuverTarget: ShipHandle? = null
     var attackTarget: CombatEntityAPI? = null
 
     // Keep attacking the previous target for the
@@ -60,10 +61,10 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     var isExploring: Boolean = true
     var isAvoidingBorder: Boolean = false
     var is1v1: Boolean = false
-    var threats: Set<ShipAPI> = setOf()
+    var threats: Set<ShipHandle> = setOf()
     var threatVector = Vector2f()
 
-    val knownSegmentationTargets: MutableSet<ShipAPI> = mutableSetOf()
+    val knownSegmentationTargets: MutableSet<ShipHandle> = mutableSetOf()
 
     init {
         updateInterval.forceIntervalElapsed()
@@ -146,11 +147,11 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     }
 
     private fun updateManeuverTarget() {
-        val segmentationTarget: ShipAPI? by lazy {
+        val segmentationTarget: ShipHandle? by lazy {
             findClosestSegmentationTarget()
         }
 
-        val closestVisibleTarget: ShipAPI? by lazy {
+        val closestVisibleTarget: ShipHandle? by lazy {
             findClosestTarget(onlyVisible = true)
         }
 
@@ -195,13 +196,13 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     }
 
     /** Find a new maneuver target using enemy fleet segmentation. */
-    private fun findClosestSegmentationTarget(): ShipAPI? {
+    private fun findClosestSegmentationTarget(): ShipHandle? {
         val segmentation: FleetSegmentation = globalAI.fleetSegmentation.getOrNull(ship.owner)
             ?: return null
 
         // Prioritize the nearest segmentation target over primary targets if the ship is already in proximity to it.
         val allTargets = segmentation.allTargets(ship.isFast).filter { isTargetVisible(it) }
-        val closestTarget: ShipAPI = closestEntity(allTargets, ship.location) ?: return null
+        val closestTarget: ShipHandle = closestEntity(allTargets, ship.location) ?: return null
         if (isCloseToEnemy(ship, closestTarget)) {
             return closestTarget
         }
@@ -211,7 +212,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         return closestEntity(primaryTargets, ship.location)
     }
 
-    private fun findClosestTarget(onlyVisible: Boolean): ShipAPI? {
+    private fun findClosestTarget(onlyVisible: Boolean): ShipHandle? {
         val targets = Global.getCombatEngine().ships.filter {
             when {
                 it.owner == ship.owner -> false
@@ -225,7 +226,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         }
 
         // Find the closest ship.
-        val target: ShipAPI? = closestEntity<ShipAPI>(targets.filter { !it.isFighter }, ship.location)
+        val target: ShipHandle? = closestEntity<ShipHandle>(targets.filter { !it.isFighter }, ship.location)
         if (target != null) {
             return target
         }
@@ -236,7 +237,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
     /** Consider once seen ships as visible, even if they're in fog again. This allows
      * to avoid erratic target changes in the initial phase of the battle. */
-    private fun isTargetVisible(target: ShipAPI): Boolean {
+    private fun isTargetVisible(target: ShipHandle): Boolean {
         if (target in knownSegmentationTargets) {
             return true
         }
@@ -322,7 +323,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         threats = Grid.ships(ship.location, threatSearchRange).filter { isThreat(it) }.toSet()
     }
 
-    private fun isThreat(target: ShipAPI): Boolean {
+    private fun isThreat(target: ShipHandle): Boolean {
         return target.owner != ship.owner && target.isAlive && !target.isFighter
     }
 
@@ -388,7 +389,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         }
     }
 
-    private fun findNewAttackTarget(): Pair<WeaponGroup, ShipAPI?> {
+    private fun findNewAttackTarget(): Pair<WeaponGroup, ShipHandle?> {
         val allies = Global.getCombatEngine().ships.filter {
             it != ship && it.owner == ship.owner && !it.isFighter && !it.isFrigate
         }
@@ -396,7 +397,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         val maneuverTarget = this.maneuverTarget
         val targetedEnemies = allies.mapNotNull { it.attackTarget }.filter { it.isBig }.toSet()
 
-        val allShips: Sequence<ShipAPI> = Grid.ships(ship.location, stats.attackTargetSearchRange)
+        val allShips: Sequence<ShipHandle> = Grid.ships(ship.location, stats.attackTargetSearchRange)
         val allTargets = allShips.filter { it.owner != ship.owner && it.isValidTarget }.toList()
         val allShipTargets = allTargets.filter { !it.isFighter }.toList()
 
@@ -416,10 +417,10 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         }
 
         // Find best attack opportunity for each weapon group.
-        val weaponGroupTargets: Map<WeaponGroup, Map.Entry<ShipAPI, Float>> = stats.weaponGroups.associateWith { weaponGroup ->
+        val weaponGroupTargets: Map<WeaponGroup, Map.Entry<ShipHandle, Float>> = stats.weaponGroups.associateWith { weaponGroup ->
             val obstacles = getObstacles(weaponGroup)
             val groupOpportunities = opportunities.filter { currentEffectiveRange(it) < weaponGroup.maxRange }
-            val evaluatedOpportunities: Map<ShipAPI, Float> = groupOpportunities.associateWith {
+            val evaluatedOpportunities: Map<ShipHandle, Float> = groupOpportunities.associateWith {
                 evaluateTarget(it, weaponGroup, obstacles, targetedEnemies)
             }
 
@@ -432,7 +433,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         }
 
         // No good attack target found. Try alternatives.
-        val altTarget: ShipAPI? = when {
+        val altTarget: ShipHandle? = when {
             maneuverTarget != null -> {
                 maneuverTarget
             }
@@ -451,7 +452,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     }
 
     /** Evaluate if target is worth attacking. The higher the score, the better the target. */
-    private fun evaluateTarget(target: ShipAPI, weaponGroup: WeaponGroup, obstacles: List<Obstacle>, targetedEnemies: Set<ShipAPI>): Float {
+    private fun evaluateTarget(target: ShipHandle, weaponGroup: WeaponGroup, obstacles: List<Obstacle>, targetedEnemies: Set<ShipHandle>): Float {
         var evaluation = 0f
 
         // Apply a tolerance to the range comparison to avoid rapid value
@@ -526,7 +527,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     }
 
     private inner class Obstacle(val arc: Arc, val dist: Float) {
-        fun occludes(target: ShipAPI): Boolean {
+        fun occludes(target: ShipHandle): Boolean {
             val toTarget = target.location - ship.location
             return arc.contains(toTarget.facing) && dist < toTarget.length
         }
@@ -619,7 +620,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     }
 
     /** Distance between ship location and target bounds. */
-    private fun targetBoundsDistance(target: ShipAPI): Float {
+    private fun targetBoundsDistance(target: ShipHandle): Float {
         val position = ship.location - target.location
         val velocity = position.resized(-1f)
         return Bounds.collision(position, velocity, target) ?: 0f

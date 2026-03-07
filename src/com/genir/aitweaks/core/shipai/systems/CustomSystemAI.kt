@@ -1,13 +1,12 @@
 package com.genir.aitweaks.core.shipai.systems
 
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.CollisionAwareEngineController
 import com.genir.aitweaks.core.utils.types.Direction
 
 abstract class CustomSystemAI(val ai: CustomShipAI) {
-    protected val ship: ShipAPI = ai.ship
+    protected val ship: ShipHandle = ai.ship
     protected val system: ShipSystemAPI = ship.system
 
     abstract fun advance(dt: Float)

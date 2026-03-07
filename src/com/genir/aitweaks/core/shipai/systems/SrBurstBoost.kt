@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
@@ -157,7 +158,7 @@ class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
     }
 
     /** Burst vector associated with heading towards a target. */
-    data class BurstPlan(val burst: BurstVector, val toTarget: Vector2f, val target: ShipAPI?) {
+    data class BurstPlan(val burst: BurstVector, val toTarget: Vector2f, val target: ShipHandle?) {
         private val targetDistance: Float = toTarget.length
         private val targetFacing: Direction = toTarget.facing
 
@@ -170,7 +171,7 @@ class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
         }
     }
 
-    private fun makeBurstPlan(toTarget: Vector2f, burstVectors: List<BurstVector>, target: ShipAPI?): BurstPlan {
+    private fun makeBurstPlan(toTarget: Vector2f, burstVectors: List<BurstVector>, target: ShipHandle?): BurstPlan {
         // Find burst vector best aligned with direction to target.
         val burst: BurstVector = burstVectors.minWithOrNull(compareBy { (toTarget.facing - it.facing).length })!!
 
@@ -214,7 +215,7 @@ class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
 
     /** Estimate collision parameters with target, assuming the ship travels
      * directly at target (including target leading) with burstSpeed. */
-    private fun estimateCollision(target: ShipAPI): Vector2f? {
+    private fun estimateCollision(target: ShipHandle): Vector2f? {
         val intercept = intercept(target) ?: return null
         val toIntercept = intercept - ship.location
 
@@ -226,7 +227,7 @@ class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
         return toIntercept.resized(distance)
     }
 
-    private fun intercept(target: ShipAPI): Vector2f? {
+    private fun intercept(target: ShipHandle): Vector2f? {
         // Target location and velocity in ship frame of reference.
         val p = target.location - ship.location
         val v = target.movement.velocity
@@ -236,7 +237,7 @@ class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
     }
 
     /** Distance along burn vector at which collision with target shield occurs. */
-    private fun shieldCollision(position: Vector2f, velocity: Vector2f, target: ShipAPI): Float? {
+    private fun shieldCollision(position: Vector2f, velocity: Vector2f, target: ShipHandle): Float? {
         if (target.shield?.isOn != true) return null
         val shield = target.shield
 
@@ -248,7 +249,7 @@ class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
     }
 
     /** Distance along burn vector at which collision with target bounds occurs. */
-    private fun boundsCollision(position: Vector2f, velocity: Vector2f, target: ShipAPI): Float? {
+    private fun boundsCollision(position: Vector2f, velocity: Vector2f, target: ShipHandle): Float? {
         val distanceRelative = Bounds.collision(position, velocity, target)
         return distanceRelative?.let { it * velocity.length }
     }

@@ -1,9 +1,8 @@
 package com.genir.aitweaks.core.shipai.movement
 
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 
-open class Helm(val ship: ShipAPI) {
+open class Helm(val ship: ShipHandle) {
     private val commands: MutableSet<ShipCommand> = mutableSetOf()
 
     fun clearCommands() {

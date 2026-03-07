@@ -29,7 +29,7 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 
 open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
-    private val ship: ShipAPI = weapon.ship
+    private val ship: ShipHandle = weapon.ship
     var syncFire: SyncFire = SyncFire(weapon, null)
     val reloadTracker: ReloadTracker = ReloadTracker(weapon)
 
@@ -115,7 +115,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         return weapon.weaponAPI
     }
 
-    override fun getTargetShip(): ShipAPI? {
+    override fun getTargetShip(): ShipHandle? {
         return target as? ShipAPI
     }
 

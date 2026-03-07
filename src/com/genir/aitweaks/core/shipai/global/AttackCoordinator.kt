@@ -2,9 +2,9 @@ package com.genir.aitweaks.core.shipai.global
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.utils.angularSize
 import com.genir.aitweaks.core.utils.types.Direction
@@ -37,7 +37,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
         requests.clear()
     }
 
-    fun coordinateAttack(ai: CustomShipAI, maneuverTarget: ShipAPI, proposedHeadingPoint: Vector2f): Response {
+    fun coordinateAttack(ai: CustomShipAI, maneuverTarget: ShipHandle, proposedHeadingPoint: Vector2f): Response {
         requests[ai] = Unit(ai, maneuverTarget, proposedHeadingPoint)
 
         return responses[ai] ?: Response(proposedHeadingPoint, 1)
@@ -45,7 +45,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
 
     // Divide attacking coordinatables into task forces attacking the same target.
     private fun buildTaskForces(): Collection<List<Unit>> {
-        val taskForces: MutableMap<ShipAPI, MutableList<Unit>> = mutableMapOf()
+        val taskForces: MutableMap<ShipHandle, MutableList<Unit>> = mutableMapOf()
 
         requests.forEach { (_, unit) ->
             val taskForce = taskForces[unit.maneuverTarget]
@@ -91,7 +91,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
     }
 
     private fun coordinateFormation(formation: Formation) {
-        val target: ShipAPI = formation.units.first().maneuverTarget
+        val target: ShipHandle = formation.units.first().maneuverTarget
         var facingOffset: Float = -formation.angularSize / 2f
 
         formation.units.sortBy { (it.currentFacing - formation.facing).degrees }
@@ -115,7 +115,7 @@ class AttackCoordinator : BaseEveryFrameCombatPlugin() {
 
     private class Unit(
         val ai: CustomShipAI,
-        val maneuverTarget: ShipAPI,
+        val maneuverTarget: ShipHandle,
         proposedHeadingPoint: Vector2f,
     ) {
         val attackRange: Float = (proposedHeadingPoint - maneuverTarget.location).length

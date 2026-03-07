@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.shipai.movement
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.Preset.Companion.enemyCollisionSizeFactor
@@ -31,7 +32,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidShips(dt: Float): List<SpeedLimit?> {
-        return findRelevantShips().map { obstacle: ShipAPI ->
+        return findRelevantShips().map { obstacle: ShipHandle ->
             val collisionDistance: Float = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius
             val shieldDistance: Float = ai.ship.shieldRadiusEvenIfNoShield + obstacle.shieldRadiusEvenIfNoShield
 
@@ -75,7 +76,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }.toList()
     }
 
-    private fun findRelevantShips(): Sequence<ShipAPI> {
+    private fun findRelevantShips(): Sequence<ShipHandle> {
         return Global.getCombatEngine().ships.asSequence().filter { obstacle ->
             when {
                 // Same ship.
@@ -102,7 +103,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }
     }
 
-    private val ShipAPI.movementPriority: Int
+    private val ShipHandle.movementPriority: Int
         get() {
             val ai = customShipAI
 
@@ -189,7 +190,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidManeuverTarget(dt: Float): SpeedLimit? {
-        val target: ShipAPI = ai.maneuverTarget ?: return null
+        val target: ShipHandle = ai.maneuverTarget ?: return null
 
         // Ship can approach the target when backing off, unless the target is too large.
         if (ai.ventModule.isBackingOff && target.mass * enemyCollisionSizeFactor < movement.ship.mass) {

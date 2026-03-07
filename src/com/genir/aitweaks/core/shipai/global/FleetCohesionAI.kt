@@ -22,7 +22,7 @@ class FleetCohesionAI(private val side: Int, private val globalAI: GlobalAI) : B
 
     private val advanceInterval = IntervalUtil(0.75f, 1f)
 
-    private data class AssignmentKey(val ship: ShipAPI, val location: Vector2f?, val type: CombatAssignmentType)
+    private data class AssignmentKey(val ship: ShipHandle, val location: Vector2f?, val type: CombatAssignmentType)
 
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         val engine = Global.getCombatEngine()
@@ -77,7 +77,7 @@ class FleetCohesionAI(private val side: Int, private val globalAI: GlobalAI) : B
         if (!channelWasOpen && taskManager.isCommChannelOpen) taskManager.closeCommChannel()
     }
 
-    private fun findValidTarget(ship: ShipAPI, currentTarget: ShipAPI?): ShipAPI? {
+    private fun findValidTarget(ship: ShipHandle, currentTarget: ShipHandle?): ShipHandle? {
         val segmentation = globalAI.fleetSegmentation[side]
         return when {
             // Ship is engaging or planning to engage the primary group.
@@ -89,14 +89,14 @@ class FleetCohesionAI(private val side: Int, private val globalAI: GlobalAI) : B
             // Ship has wrong target. Find the closest valid target in the main enemy battle group.
             else -> {
                 val fog: FogOfWarAPI? = Global.getCombatEngine().getFogOfWar(side)
-                val targets: Sequence<ShipAPI> = segmentation.primaryTargets(false)
+                val targets: Sequence<ShipHandle> = segmentation.primaryTargets(false)
                 val visibleTargets: Sequence<CombatEntityAPI> = fog?.filter(targets) ?: targets
                 closestEntity(visibleTargets, ship.location) ?: currentTarget
             }
         }
     }
 
-    private fun manageAssignments(ship: ShipAPI) {
+    private fun manageAssignments(ship: ShipHandle) {
         // Ship has foreign assignment.
         val currentAssignmentType: CombatAssignmentType? = ship.assignment?.type
         if (currentAssignmentType != null) {

@@ -1,8 +1,8 @@
 package com.genir.aitweaks.core.shipai.autofire.ballistics
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.facing
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.state.Config.Companion.config
@@ -13,7 +13,7 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
  *
  * This function is more conservative than `analyzeHit`, accounting for the entire weapon burst
  * rather than a single idealized shot. This helps minimize the risk of friendly fire. */
-fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Hit? {
+fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipHandle, params: BallisticParams): Hit? {
     return when {
         weapon.noFF -> {
             null
@@ -37,7 +37,7 @@ fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipAPI,
 
 /** Estimates if an inaccurate projectile may collide with allay ship.
  * Takes entire weapon burst into account. */
-private fun canHitAlly(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipAPI, params: BallisticParams): Boolean {
+private fun canHitAlly(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipHandle, params: BallisticParams): Boolean {
     val (_, burstEnd) = weaponBurstInterval(weapon)
     val startParams = BallisticParams(params.accuracy, params.delay)
     val endParams = BallisticParams(params.accuracy, params.delay + burstEnd)

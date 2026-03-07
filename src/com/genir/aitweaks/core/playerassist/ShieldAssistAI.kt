@@ -3,7 +3,6 @@ package com.genir.aitweaks.core.playerassist
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShieldAPI.ShieldType.FRONT
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.command
@@ -20,7 +19,7 @@ import com.genir.starfarer.combat.entities.Ship
 import java.lang.reflect.Field
 
 class ShieldAssistAI(private val manager: ShieldAssistManager) : BaseShipAI() {
-    private var prevPlayerShip: ShipAPI? = null
+    private var prevPlayerShip: ShipHandle? = null
     private var shieldControlAI: OmniShieldControlAI? = null
     var forceShieldOff = false
 
@@ -32,7 +31,7 @@ class ShieldAssistAI(private val manager: ShieldAssistManager) : BaseShipAI() {
             return
         }
 
-        val ship: ShipAPI = Global.getCombatEngine().playerShip ?: return
+        val ship: ShipHandle = Global.getCombatEngine().playerShip ?: return
         val shield: ShieldAPI = ship.shield ?: return
 
         // Update shield controller if the player ship changed.

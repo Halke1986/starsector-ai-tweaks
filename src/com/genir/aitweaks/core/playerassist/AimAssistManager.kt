@@ -3,14 +3,13 @@ package com.genir.aitweaks.core.playerassist
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.playerassist.LeadingPipIntegration.overrideTargetingLeadIndicator
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.state.VanillaKeymap
 
 class AimAssistManager : BaseEveryFrameCombatPlugin() {
-    private var aiDrone: ShipAPI? = null
+    private var aiDrone: ShipHandle? = null
 
     var enableAimAssist: Boolean = false
     var strafeModeOn: Boolean = false

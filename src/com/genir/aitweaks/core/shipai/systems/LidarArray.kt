@@ -82,7 +82,7 @@ class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
         }
     }
 
-    private fun weaponsOnTarget(target: ShipAPI): Boolean {
+    private fun weaponsOnTarget(target: ShipHandle): Boolean {
         return lidarWeapons.firstOrNull { weapon ->
             !weapon.ballistics.canEngage(
                 BallisticTarget.collisionRadius(target),
@@ -92,11 +92,11 @@ class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
         } == null
     }
 
-    private fun weaponsNotBlocked(target: ShipAPI): Boolean {
+    private fun weaponsNotBlocked(target: ShipHandle): Boolean {
         return lidarWeapons.firstOrNull { isWeaponBlocked(it, target) } == null
     }
 
-    private fun isWeaponBlocked(weapon: WeaponHandle, target: ShipAPI): Boolean {
+    private fun isWeaponBlocked(weapon: WeaponHandle, target: ShipHandle): Boolean {
         val hit = firstShipAlongLineOfFire(weapon, target, defaultBallisticParams)?.target
         return when {
             hit == null -> false

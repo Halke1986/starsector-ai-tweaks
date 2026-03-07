@@ -9,6 +9,7 @@ import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
@@ -25,7 +26,7 @@ import kotlin.math.abs
 class SelectTarget(
     private val weapon: WeaponHandle,
     private val current: CombatEntityAPI?,
-    private val attackTarget: ShipAPI?,
+    private val attackTarget: ShipHandle?,
     private val params: BallisticParams,
 ) {
     companion object {
@@ -101,7 +102,7 @@ class SelectTarget(
         return outOfRangeTarget
     }
 
-    private fun selectShip(shipTypeFilter: ((ShipAPI) -> Boolean)): ShipAPI? {
+    private fun selectShip(shipTypeFilter: ((ShipHandle) -> Boolean)): ShipHandle? {
         val prioritizeAntiArmor = when {
             !weapon.isStrictlyAntiArmor -> false
 
@@ -117,7 +118,7 @@ class SelectTarget(
             return selectShipInner(shipTypeFilter)
         }
 
-        val willAttackBypassShields = fun(target: ShipAPI): Boolean {
+        val willAttackBypassShields = fun(target: ShipHandle): Boolean {
             val idealHit by lazy {
                 estimateIdealHit(weapon, target, params)
             }
@@ -143,7 +144,7 @@ class SelectTarget(
         return selected as? ShipAPI
     }
 
-    private fun selectShipInner(shipTypeFilter: ((ShipAPI) -> Boolean)): ShipAPI? {
+    private fun selectShipInner(shipTypeFilter: ((ShipHandle) -> Boolean)): ShipHandle? {
         val isTargetAcceptable = fun(target: CombatEntityAPI?, range: Float): Boolean {
             return when {
                 target !is ShipAPI -> false
@@ -185,7 +186,7 @@ class SelectTarget(
             }
         }
 
-        val ships: Sequence<ShipAPI> = Grid.ships(weapon.location, targetSearchRange)
+        val ships: Sequence<ShipHandle> = Grid.ships(weapon.location, targetSearchRange)
 
         return selectTarget(ships, isTargetAcceptable) as? ShipAPI
     }

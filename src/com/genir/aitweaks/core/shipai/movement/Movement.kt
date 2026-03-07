@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.times
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.LinearMotion
@@ -11,7 +12,7 @@ import org.lwjgl.util.vector.Vector2f
  * Movement describes ship movement in global frame of reference.
  */
 @JvmInline
-value class Movement(val ship: ShipAPI) {
+value class Movement(val ship: ShipHandle) {
     // Linear velocity.
     val location: Vector2f
         get() = ship.location
@@ -62,7 +63,7 @@ value class Movement(val ship: ShipAPI) {
         get() = ship.mutableStats.timeMult.modifiedValue
 
     companion object {
-        val ShipAPI.movement: Movement
+        val ShipHandle.movement: Movement
             get() = Movement(this)
     }
 }

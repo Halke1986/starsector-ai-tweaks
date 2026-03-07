@@ -1,11 +1,11 @@
 package com.genir.aitweaks.core.debug
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.lengthSquared
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.extensions.plus
 import com.genir.aitweaks.core.extensions.times
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.state.State.Companion.state
@@ -51,7 +51,7 @@ object Debug {
         debugPlugin?.renderer?.lines?.add(Renderer.Line(p, p + v, color))
     }
 
-    fun drawEngineLines(ship: ShipAPI) {
+    fun drawEngineLines(ship: ShipHandle) {
         drawAccelerationLines(ship)
         drawTurnLines(ship)
     }
@@ -65,7 +65,7 @@ object Debug {
         }
     }
 
-    fun drawAccelerationLines(ship: ShipAPI) {
+    fun drawAccelerationLines(ship: ShipHandle) {
         if (debugPlugin?.renderer == null) return
 
         val r = (ship.facing.toDirection - 90f.toDirection).rotationMatrix
@@ -81,7 +81,7 @@ object Debug {
         }
     }
 
-    fun drawTurnLines(ship: ShipAPI) {
+    fun drawTurnLines(ship: ShipHandle) {
         if (debugPlugin?.renderer == null) return
 
         val r = (ship.facing.toDirection - 90f.toDirection).rotationMatrix
@@ -101,7 +101,7 @@ object Debug {
         drawCircle(entity.location, entity.collisionRadius, color)
     }
 
-    fun drawWeaponLines(ship: ShipAPI) {
+    fun drawWeaponLines(ship: ShipHandle) {
         if (debugPlugin?.renderer == null) return
 
         val ais = ship.weaponGroupsCopy.flatMap { it.aiPlugins }.filter { it is AutofireAI && it.target != null }
@@ -110,7 +110,7 @@ object Debug {
 
     private data class Edge(val src: Int, val dest: Int, val weight: Float)
 
-    fun drawBattleGroup(group: Set<ShipAPI>, color: Color = Color.YELLOW) {
+    fun drawBattleGroup(group: Set<ShipHandle>, color: Color = Color.YELLOW) {
         if (debugPlugin?.renderer == null) return
 
         val ts = group.toTypedArray()

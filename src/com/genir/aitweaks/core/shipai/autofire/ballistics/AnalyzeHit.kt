@@ -58,7 +58,7 @@ fun willHitCircumference(projectile: DamagingProjectileAPI, target: CombatEntity
 /** Calculates if a perfectly accurate projectile fired from the weapon will collide with the target shield.
  * Will not detect hits to inside of shield.
  * Collision range is returned; null if no collision. */
-fun willHitShield(weapon: WeaponHandle, target: ShipAPI, params: BallisticParams): Float? {
+fun willHitShield(weapon: WeaponHandle, target: ShipHandle, params: BallisticParams): Float? {
     val projectileMotion = weapon.ballistics.projectileMotionInTargetFoR(target.linearMotion, params)
 
     return willHitShield(projectileMotion, target)?.let { range ->

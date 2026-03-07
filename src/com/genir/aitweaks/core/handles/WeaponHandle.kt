@@ -616,7 +616,7 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
     val damageType: DamageType
         get() = weaponAPI.damageType
 
-    val ship: ShipAPI
+    val ship: ShipHandle
         get() = weaponAPI.ship
 
     val derivedStats: WeaponAPI.DerivedWeaponStatsAPI

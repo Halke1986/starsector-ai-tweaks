@@ -23,7 +23,7 @@ import com.genir.starfarer.combat.entities.Ship
 import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */
-class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : BasicShipAI(ship as Ship, config) {
+class ExtendedShipAI(val ship: ShipHandle, config: ShipAIConfig) : BasicShipAI(ship as Ship, config) {
     private val engineController: EngineController = EngineController(ship.movement)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 
@@ -88,7 +88,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : BasicShipAI(ship
         }
 
         // Find ship target and force a refresh if it's invalid.
-        val target: ShipAPI = currentManeuver.maneuver_getTarget() as? ShipAPI ?: return
+        val target: ShipHandle = currentManeuver.maneuver_getTarget() as? ShipAPI ?: return
         if (!target.isValidTarget) {
             super.cancelCurrentManeuver()
             return
