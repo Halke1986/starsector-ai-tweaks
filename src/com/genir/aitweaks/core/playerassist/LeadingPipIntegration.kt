@@ -6,6 +6,8 @@ import com.fs.starfarer.api.input.InputEventAPI
 import com.genir.aitweaks.core.extensions.copy
 import com.genir.aitweaks.core.extensions.minus
 import com.genir.aitweaks.core.extensions.times
+import com.genir.aitweaks.core.handles.ShipHandle
+import com.genir.aitweaks.core.handles.ShipHandle.Companion.handle
 import com.genir.aitweaks.core.utils.PI
 import com.genir.starfarer.combat.CombatEngine
 import com.genir.starfarer.title.mission.MissionDefinition
@@ -42,7 +44,7 @@ object LeadingPipIntegration {
             timeEnabled += if (manager.enableAimAssist) dt else -dt
             timeEnabled = timeEnabled.coerceIn(0f, 0.5f)
 
-            val ship: ShipHandle? = Global.getCombatEngine().playerShip
+            val ship: ShipHandle? = Global.getCombatEngine().playerShip?.handle
             val target: ShipHandle? = ship?.shipTarget
             if (ship == null || target == null) {
                 pip.advance(dt, events)

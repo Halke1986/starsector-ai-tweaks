@@ -31,6 +31,9 @@ value class ShipHandle(val shipAPI: ShipAPI) {
             get() = ShipHandle(this)
     }
 
+    val isValidTarget: Boolean
+        get() = isHullDamageable && isAlive
+
     /** Returns false for detached modules. Will be false before
      * ship is completely initialized, e.g. in AI picker. */
     val isModule: Boolean
@@ -781,7 +784,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
             shipAPI.isRenderEngines = p0
         }
 
-    val selectedGroupAPI: WeaponGroupAPI
+    val selectedGroupAPI: WeaponGroupAPI?
         get() = shipAPI.selectedGroupAPI
 
     fun ensureClonedStationSlotSpec() {

@@ -5,9 +5,8 @@ import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.input.InputEventAPI
-import com.genir.aitweaks.core.extensions.isPhase
-import com.genir.aitweaks.core.extensions.isUnderManualControl
 import com.genir.aitweaks.core.handles.ShipHandle
+import com.genir.aitweaks.core.handles.ShipHandle.Companion.handle
 import com.genir.aitweaks.core.state.Config.Companion.config
 
 class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
@@ -46,7 +45,7 @@ class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
             ai = ShieldAssistAI(this)
             aiDrone = makeAIDrone(ai!!, "aitweaks_shield_assist_drone")
 
-            Global.getCombatEngine().addEntity(aiDrone)
+            Global.getCombatEngine().addEntity(aiDrone.shipAPI)
             this.aiDrone = aiDrone
         }
 
@@ -61,8 +60,10 @@ class ShieldAssistManager : BaseEveryFrameCombatPlugin() {
     }
 
     fun shouldRunShieldAssist(): Boolean {
-        val ship: ShipHandle = Global.getCombatEngine().playerShip ?: return false
-        val shield: ShieldAPI = ship.shield ?: return false
+        val ship: ShipHandle = Global.getCombatEngine().playerShip?.handle
+            ?: return false
+        val shield: ShieldAPI = ship.shield
+            ?: return false
 
         // Decide if shield assist should run.
         return when {

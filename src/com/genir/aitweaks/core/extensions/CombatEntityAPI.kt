@@ -18,7 +18,7 @@ val CombatEntityAPI.isValidTarget: Boolean
         owner == 100 -> false
 
         this is ShipAPI -> {
-            asShipHandle!!.isHullDamageable && isAlive
+            asShipHandle!!.isValidTarget
         }
 
         this is MissileAPI -> {

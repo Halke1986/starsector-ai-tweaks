@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.rules.MemoryAPI
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.input.InputEventAPI
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.playerassist.LeadingPipIntegration.overrideTargetingLeadIndicator
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.state.VanillaKeymap
@@ -42,7 +43,7 @@ class AimAssistManager : BaseEveryFrameCombatPlugin() {
         var aiDrone = aiDrone
         if (aiDrone == null) {
             aiDrone = makeAIDrone(AimAssistAI(this), "aitweaks_aim_assist_drone")
-            Global.getCombatEngine().addEntity(aiDrone)
+            Global.getCombatEngine().addEntity(aiDrone.shipAPI)
             this.aiDrone = aiDrone
         }
 

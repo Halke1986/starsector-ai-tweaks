@@ -221,9 +221,9 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
                 it.owner == 0 -> false
                 it.isFighter -> false
 
-                else -> Bounds.isPointWithin(mousePosition(), it)
+                else -> Bounds.isPointWithin(mousePosition(), it.shipAPI)
             }
-        }.firstOrNull()?.let { return it }
+        }.firstOrNull()?.let { return it.shipAPI }
 
         val ships = Grid.ships(mousePosition(), searchRadius).filter {
             when {
@@ -234,7 +234,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
             }
         }
 
-        closestTarget(ships)?.let { return it }
+        closestTarget(ships.map { it.shipAPI })?.let { return it }
 
         if (Config.config.aimAssistTargetJunk) {
             return selectJunkTarget()
@@ -256,7 +256,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
             }
         }
 
-        closestTarget(hulks)?.let { return it }
+        closestTarget(hulks.map { it.shipAPI })?.let { return it }
 
         val asteroids = Grid.asteroids(mousePosition(), searchRadius).filter {
             when {

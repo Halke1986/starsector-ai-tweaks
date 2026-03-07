@@ -82,6 +82,6 @@ class ShieldAssistAI(private val manager: ShieldAssistManager) : BaseShipAI() {
 
         // Shield AI overrides the player ship mouse position.
         // The position needs to be restored.
-        ship.mouseTarget.set(mousePosition())
+        ship.mouseTarget?.set(mousePosition())
     }
 }

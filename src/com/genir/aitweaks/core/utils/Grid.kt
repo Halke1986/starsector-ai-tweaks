@@ -1,12 +1,17 @@
 package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.CollisionGridAPI
+import com.fs.starfarer.api.combat.CombatAsteroidAPI
+import com.fs.starfarer.api.combat.MissileAPI
+import com.fs.starfarer.api.combat.ShipAPI
+import com.genir.aitweaks.core.handles.ShipHandle
+import com.genir.aitweaks.core.handles.ShipHandle.Companion.handle
 import org.lwjgl.util.vector.Vector2f
 
 object Grid {
     fun ships(p: Vector2f, r: Float): Sequence<ShipHandle> {
-        return Global.getCombatEngine().shipGrid.search(p, r).filterIsInstance<ShipHandle>()
+        return Global.getCombatEngine().shipGrid.search(p, r).filterIsInstance<ShipAPI>().map { it.handle }
     }
 
     fun missiles(p: Vector2f, r: Float): Sequence<MissileAPI> {
@@ -15,15 +20,6 @@ object Grid {
 
     fun asteroids(p: Vector2f, r: Float): Sequence<CombatAsteroidAPI> {
         return Global.getCombatEngine().asteroidGrid.search(p, r).filterIsInstance<CombatAsteroidAPI>()
-    }
-
-    fun entities(c: Class<*>, p: Vector2f, r: Float): Sequence<CombatEntityAPI> {
-        return when (c) {
-            ShipAPI::class.java -> ships(p, r)
-            MissileAPI::class.java -> missiles(p, r)
-            CombatAsteroidAPI::class.java -> asteroids(p, r)
-            else -> sequenceOf()
-        }
     }
 
     private fun CollisionGridAPI.search(p: Vector2f, r: Float): Sequence<Any> {
