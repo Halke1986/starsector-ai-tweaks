@@ -2,11 +2,7 @@ package com.genir.aitweaks.core.shipai.autofire.ballistics
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.DamagingProjectileAPI
-import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.extensions.hasShield
-import com.genir.aitweaks.core.extensions.isHit
-import com.genir.aitweaks.core.extensions.isShip
-import com.genir.aitweaks.core.extensions.linearMotion
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.solve
@@ -101,7 +97,7 @@ private fun analyzeHit(projectileMotion: LinearMotion, target: CombatEntityAPI):
     }
 
     // Check shield hit.
-    willHitShield(projectileMotion, target as ShipAPI)?.let { hitRange ->
+    willHitShield(projectileMotion, target)?.let { hitRange ->
         return Hit(target, hitRange, Hit.Type.SHIELD)
     }
 
@@ -146,7 +142,7 @@ private fun willHitBounds(projectileMotion: LinearMotion, target: CombatEntityAP
 }
 
 fun estimateIdealHit(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit {
-    val ballisticTarget = BallisticTarget.shieldRadius(target as ShipAPI)
+    val ballisticTarget = BallisticTarget.shieldRadius(target.asShipHandle!!)
     val (hitPoint, range) = weapon.ballistics.closestHitInTargetFoR(ballisticTarget, params)
 
     val shieldHit = target.hasShield && target.shield.isHit(hitPoint)

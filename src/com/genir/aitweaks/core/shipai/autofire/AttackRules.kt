@@ -87,7 +87,7 @@ class AttackRules(private val weapon: WeaponHandle, private val hit: Hit, privat
             }
 
             // Try to burst through almost depleted shields.
-            weapon.isBurstBeam && weapon.firingCycle.damage > (hit.target as ShipAPI).fluxLeft * 2f -> fire
+            weapon.isBurstBeam && weapon.firingCycle.damage > hit.target.asShipHandle!!.fluxLeft * 2f -> fire
 
             // Don't interrupt fire because of shield flicker.
             weapon.isInFiringCycle && shieldUptime(hit.target.shield) < 1.2f -> fire
@@ -100,7 +100,7 @@ class AttackRules(private val weapon: WeaponHandle, private val hit: Hit, privat
     private fun avoidExposedHull(): HoldFire? = when {
         !hit.target.isShip -> fire
 
-        weapon.size == LARGE && (hit.target as ShipAPI).root.isFrigate -> fire
+        weapon.size == LARGE && hit.target.asShipHandle!!.root.isFrigate -> fire
 
         weapon.ship.system?.let { it.specAPI.id == "lidararray" && it.isOn } == true -> fire
 

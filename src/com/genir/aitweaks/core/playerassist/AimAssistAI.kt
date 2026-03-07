@@ -273,7 +273,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     private fun closestTarget(entities: Sequence<CombatEntityAPI>): CombatEntityAPI? {
         val distances = entities.map { entity ->
             val closestPoint = if (!entity.isShip) entity.location
-            else Bounds.closestPoint(mousePosition(), entity as ShipAPI)
+            else Bounds.closestPoint(mousePosition(), entity)
 
             // Apply target switching hysteresis.
             val currentTargetBonus = if (entity == currentTarget) 2 else 1

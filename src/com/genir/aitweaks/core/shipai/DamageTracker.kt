@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.listeners.ApplyDamageResultAPI
 import com.fs.starfarer.api.combat.listeners.DamageListener
 import com.genir.aitweaks.core.handles.ShipHandle
+import com.genir.aitweaks.core.handles.ShipHandle.Companion.handle
 
 class DamageTracker(val ship: ShipHandle) : DamageListener {
     data class Entry(val timestamp: Float, val damage: Float)
@@ -54,12 +55,13 @@ class DamageTracker(val ship: ShipHandle) : DamageListener {
     }
 
     override fun reportDamageApplied(source: Any?, target: CombatEntityAPI, result: ApplyDamageResultAPI) {
+        val sourceShip: ShipHandle = (source as? ShipAPI)?.handle
+            ?: return
+
         when {
-            source !is ShipHandle -> return
+            !sourceShip.isAlive || sourceShip.isExpired -> return
 
-            !source.isAlive || source.isExpired -> return
-
-            target != ship -> return
+            target != ship.shipAPI -> return
         }
 
         val newDamage = result.damageToShields + result.damageToHull + result.totalDamageToArmor
@@ -68,8 +70,8 @@ class DamageTracker(val ship: ShipHandle) : DamageListener {
         damage += newDamage
 
         val entry = Entry(timestamp, newDamage)
-        if (history[source]?.add(entry) != true) {
-            history[source as ShipAPI] = mutableListOf(entry)
+        if (history[sourceShip]?.add(entry) != true) {
+            history[sourceShip] = mutableListOf(entry)
         }
     }
 }

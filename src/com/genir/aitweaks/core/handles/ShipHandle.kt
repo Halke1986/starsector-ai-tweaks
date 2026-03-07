@@ -252,7 +252,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
         }
 
     var shipTarget: ShipAPI?
-        get() = shipAPI.shipTarget as ShipAPI
+        get() = shipAPI.shipTarget
         set(p0) {
             shipAPI.shipTarget = p0
         }
@@ -282,8 +282,8 @@ value class ShipHandle(val shipAPI: ShipAPI) {
     val phaseCloak: ShipSystemAPI
         get() = shipAPI.phaseCloak as ShipSystemAPI
 
-    val system: ShipSystemAPI
-        get() = shipAPI.system as ShipSystemAPI
+    val system: ShipSystemAPI?
+        get() = shipAPI.system
 
     val travelDrive: ShipSystemAPI
         get() = shipAPI.travelDrive as ShipSystemAPI

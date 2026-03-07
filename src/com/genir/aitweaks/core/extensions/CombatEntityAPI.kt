@@ -18,7 +18,7 @@ val CombatEntityAPI.isValidTarget: Boolean
         owner == 100 -> false
 
         this is ShipAPI -> {
-            isHullDamageable && isAlive
+            asShipHandle!!.isHullDamageable && isAlive
         }
 
         this is MissileAPI -> {
@@ -63,7 +63,7 @@ val CombatEntityAPI.hasShield: Boolean
         !isShip -> false
 
         // Workaround for hulks retaining outdated ShieldAPI.
-        (this as ShipAPI).isHulk -> false
+        asShipHandle!!.isHulk -> false
 
         shield == null -> false
 
