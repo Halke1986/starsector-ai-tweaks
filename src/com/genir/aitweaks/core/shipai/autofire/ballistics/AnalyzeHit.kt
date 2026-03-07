@@ -3,6 +3,7 @@ package com.genir.aitweaks.core.shipai.autofire.ballistics
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.Bounds
 import com.genir.aitweaks.core.utils.solve
@@ -57,7 +58,7 @@ fun willHitCircumference(projectile: DamagingProjectileAPI, target: CombatEntity
 fun willHitShield(weapon: WeaponHandle, target: ShipHandle, params: BallisticParams): Float? {
     val projectileMotion = weapon.ballistics.projectileMotionInTargetFoR(target.linearMotion, params)
 
-    return willHitShield(projectileMotion, target)?.let { range ->
+    return willHitShield(projectileMotion, target.shipAPI)?.let { range ->
         range + weapon.projectileSpawnOffset
     }
 }

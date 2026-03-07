@@ -14,6 +14,7 @@ import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
+import com.genir.aitweaks.core.utils.types.LinearMotion
 import com.genir.starfarer.combat.ai.AI
 import com.genir.starfarer.combat.ai.BasicShipAI
 import com.genir.starfarer.combat.entities.Ship
@@ -224,6 +225,12 @@ value class ShipHandle(val shipAPI: ShipAPI) {
             val level = shipAPI.fluxLevel
             return if (level.isNaN()) 0f else level
         }
+
+    val linearMotion: LinearMotion
+        get() = LinearMotion(
+            position = location,
+            velocity = velocity * timeMult,
+        )
 
 // ****************************************************************************
 // Unexported Ship class methods

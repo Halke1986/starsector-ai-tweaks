@@ -20,7 +20,7 @@ fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipHand
         }
 
         config.fireThroughShields && weapon.isPlainBeam -> {
-            return analyzeHit(weapon, ally, params)?.let { hit ->
+            return analyzeHit(weapon, ally.shipAPI, params)?.let { hit ->
                 Hit(hit.target, hit.range, Hit.Type.ALLY)
             }
         }
@@ -30,7 +30,7 @@ fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipHand
         }
 
         else -> {
-            Hit(ally, weapon.ballistics.closestHitRange(BallisticTarget.shieldRadius(ally), params), Hit.Type.ALLY)
+            Hit(ally.shipAPI, weapon.ballistics.closestHitRange(BallisticTarget.shieldRadius(ally), params), Hit.Type.ALLY)
         }
     }
 }
