@@ -189,14 +189,18 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidManeuverTarget(dt: Float): SpeedLimit? {
-        val target: ShipAPI = ai.maneuverTarget ?: return null
+        val target: ShipAPI = ai.maneuverTarget?.root
+            ?: return null
 
         // Ship can approach the target when backing off, unless the target is too large.
         if (ai.ventModule.isBackingOff && target.mass * enemyCollisionSizeFactor < movement.ship.mass) {
             return null
         }
 
-        return vMaxToObstacle(dt, target.movement.linearMotion, ai.attackRange * 0.85f, target)
+        val collisionDistance: Float = ai.stats.totalCollisionRadius + target.totalCollisionRadius
+        val distance: Float = maxOf(ai.attackRange * 0.85f, collisionDistance)
+
+        return vMaxToObstacle(dt, target.movement.linearMotion, distance, target)
     }
 
     private fun avoidBorder(): SpeedLimit? {
