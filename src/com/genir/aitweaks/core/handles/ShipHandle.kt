@@ -81,7 +81,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
             shipAPI.isHulk = p0
         }
 
-    val allWeapons: List<*>
+    val allWeapons: List<WeaponAPI>
         get() = shipAPI.allWeapons
 
     val phaseCloak: ShipSystemAPI
@@ -114,7 +114,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
     val fluxTracker: FluxTrackerAPI
         get() = shipAPI.fluxTracker as FluxTrackerAPI
 
-    val wingMembers: List<*>
+    val wingMembers: List<ShipAPI>
         get() = shipAPI.wingMembers
 
     val wingLeader: ShipAPI
@@ -130,7 +130,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
             shipAPI.wing = p0
         }
 
-    val deployedDrones: List<*>
+    val deployedDrones: List<ShipAPI>
         get() = shipAPI.deployedDrones
 
     val droneSource: ShipAPI
@@ -179,7 +179,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
         shipAPI.setControlsLocked(p0)
     }
 
-    val disabledWeapons: Set<*>
+    val disabledWeapons: Set<WeaponAPI>
         get() = shipAPI.disabledWeapons
 
     val numFlameouts: Int
@@ -293,7 +293,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
     val aIFlags: ShipwideAIFlags
         get() = shipAPI.aiFlags
 
-    val weaponGroupsCopy: List<*>
+    val weaponGroupsCopy: List<WeaponGroupAPI>
         get() = shipAPI.weaponGroupsCopy
 
     var isHoldFire: Boolean
@@ -479,7 +479,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
             shipAPI.isShipWithModules = p0
         }
 
-    val childModulesCopy: List<*>
+    val childModulesCopy: List<ShipAPI>
         get() = shipAPI.childModulesCopy
 
     val isPiece: Boolean
@@ -508,7 +508,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
         return shipAPI.hasLaunchBays()
     }
 
-    val launchBaysCopy: List<*>
+    val launchBaysCopy: List<FighterLaunchBayAPI>
         get() = shipAPI.launchBaysCopy
 
     var fighterTimeBeforeRefit: Float
@@ -517,7 +517,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
             shipAPI.fighterTimeBeforeRefit = p0
         }
 
-    val allWings: List<*>
+    val allWings: List<FighterWingAPI>
         get() = shipAPI.allWings
 
     val sharedFighterReplacementRate: Float
@@ -527,7 +527,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
         return shipAPI.areSignificantEnemiesInRange()
     }
 
-    val usableWeapons: List<*>
+    val usableWeapons: List<WeaponAPI>
         get() = shipAPI.usableWeapons
 
     val moduleOffset: Vector2f
@@ -828,7 +828,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
             shipAPI.isForceHideFFOverlay = p0
         }
 
-    val tags: Set<*>
+    val tags: Set<String>
         get() = shipAPI.tags
 
     fun addTag(p0: String?) {
@@ -842,7 +842,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
     val peakTimeRemaining: Float
         get() = shipAPI.peakTimeRemaining
 
-    val activeLayers: EnumSet<*>
+    val activeLayers: EnumSet<CombatEngineLayers>
         get() = shipAPI.activeLayers
 
     var isShipSystemDisabled: Boolean
