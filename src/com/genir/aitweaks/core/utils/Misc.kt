@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
@@ -140,7 +141,7 @@ fun averageFacing(facings: Collection<Direction>): Direction {
 
 /** Remove ship commands issued by AI or the player. Needs to be executed before Ship.advance() to take effect.*/
 fun clearVanillaCommands(ship: ShipHandle, vararg commands: VanillaShipCommand) {
-    val commandWrappers: MutableIterator<Ship.CommandWrapper> = (ship as Ship).commands.iterator()
+    val commandWrappers: MutableIterator<Ship.CommandWrapper> = ship.commands.iterator()
     while (commandWrappers.hasNext()) {
         val command: Ship.Command = commandWrappers.next().shipCommandWrapper_command
 

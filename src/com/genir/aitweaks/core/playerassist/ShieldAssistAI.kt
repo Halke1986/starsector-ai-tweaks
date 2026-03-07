@@ -5,7 +5,8 @@ import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShieldAPI.ShieldType.FRONT
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.genir.aitweaks.core.extensions.command
+import com.genir.aitweaks.core.handles.ShipHandle
+import com.genir.aitweaks.core.handles.ShipHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.BaseShipAI
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.utils.VanillaShipCommand
@@ -31,22 +32,24 @@ class ShieldAssistAI(private val manager: ShieldAssistManager) : BaseShipAI() {
             return
         }
 
-        val ship: ShipHandle = Global.getCombatEngine().playerShip ?: return
-        val shield: ShieldAPI = ship.shield ?: return
+        val ship: ShipHandle = Global.getCombatEngine().playerShip?.handle
+            ?: return
+        val shield: ShieldAPI = ship.shield
+            ?: return
 
         // Update shield controller if the player ship changed.
         if (ship != prevPlayerShip) {
-            prevPlayerShip = ship as Ship
+            prevPlayerShip = ship
             val flags = ShipwideAIFlags()
-            shieldControlAI = OmniShieldControlAI(ship, flags)
+            shieldControlAI = OmniShieldControlAI(ship.shipAPI as Ship, flags)
 
             val shieldAI: ShieldAI = when (shield.type) {
                 // Replace the default omni shield AI with front shield AI.
-                FRONT -> FrontShieldAI(ship, flags)
+                FRONT -> FrontShieldAI(ship.shipAPI as Ship, flags)
 
                 // Replace the default omni shield AI. Default AI is misconfigured
                 // and keeps toggling the shield on and off when the ship isn’t in danger.
-                else -> OmniShieldAI(ship, flags)
+                else -> OmniShieldAI(ship.shipAPI as Ship, flags)
             }
 
             val shieldAIField: Field = OmniShieldControlAI::class.java.getDeclaredField("shieldAI")

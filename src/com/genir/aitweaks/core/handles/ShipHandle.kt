@@ -14,8 +14,10 @@ import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
+import com.genir.starfarer.combat.ai.AI
 import com.genir.starfarer.combat.ai.BasicShipAI
 import com.genir.starfarer.combat.entities.Ship
+import com.genir.starfarer.combat.entities.Ship.CommandWrapper
 import com.genir.starfarer.combat.tasks.CombatTaskManager
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -179,7 +181,7 @@ value class ShipHandle(val shipAPI: ShipAPI) {
         get() = allGroupedWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.toDirection, it.engagementRange) } ?: 0f
 
     val AIPersonality: String
-        get() = (ai as? BasicShipAI)?.config?.personalityOverride ?: (this as Ship).personality
+        get() = (ai as? BasicShipAI)?.config?.personalityOverride ?: personality
 
     val Id: String
         get() = hullSpec?.hullId ?: "-"
@@ -221,12 +223,43 @@ value class ShipHandle(val shipAPI: ShipAPI) {
         }
 
 // ****************************************************************************
+// Unexported Ship class methods
+
+    // UNOBFUSCATED
+    val personality: String
+        get() = (shipAPI as Ship).personality
+
+    // UNOBFUSCATED
+    val blockedCommands: EnumSet<Ship.Command>
+        get() = (shipAPI as Ship).blockedCommands
+
+    // UNOBFUSCATED
+    fun setNoWeaponSelected() {
+        (shipAPI as Ship).setNoWeaponSelected()
+    }
+
+    // UNOBFUSCATED
+    fun setFallbackPersonalityId(personality: String?) {
+        (shipAPI as Ship).setFallbackPersonalityId(personality)
+    }
+
+    // UNOBFUSCATED
+    val getCommands: List<CommandWrapper>
+        get() = (shipAPI as Ship).commands
+
+    var ai: AI
+        get() = (shipAPI as Ship).ai
+        set(p0) {
+            (shipAPI as Ship).ai = p0
+        }
+
+// ****************************************************************************
 // ShipAPI Implementation
 
     val fleetMemberId: String
         get() = shipAPI.fleetMemberId
 
-    val mouseTarget: Vector2f
+    val mouseTarget: Vector2f?
         get() = shipAPI.mouseTarget
 
     val isShuttlePod: Boolean
@@ -259,10 +292,10 @@ value class ShipHandle(val shipAPI: ShipAPI) {
             shipAPI.hullSize = p0
         }
 
-    var shipTarget: ShipAPI?
-        get() = shipAPI.shipTarget
+    var shipTarget: ShipHandle?
+        get() = shipAPI.shipTarget?.handle
         set(p0) {
-            shipAPI.shipTarget = p0
+            shipAPI.shipTarget = p0?.shipAPI
         }
 
     var originalOwner: Int
@@ -1254,8 +1287,8 @@ value class ShipHandle(val shipAPI: ShipAPI) {
     val exactBounds: BoundsAPI
         get() = shipAPI.exactBounds as BoundsAPI
 
-    val shield: ShieldAPI
-        get() = shipAPI.shield as ShieldAPI
+    val shield: ShieldAPI?
+        get() = shipAPI.shield
 
     val hullLevel: Float
         get() = shipAPI.hullLevel
@@ -1271,9 +1304,6 @@ value class ShipHandle(val shipAPI: ShipAPI) {
         set(p0) {
             shipAPI.maxHitpoints = p0
         }
-
-    val ai: Any
-        get() = shipAPI.ai
 
     val isExpired: Boolean
         get() = shipAPI.isExpired

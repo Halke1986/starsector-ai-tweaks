@@ -24,7 +24,6 @@ import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
-import com.genir.starfarer.combat.entities.Ship
 import com.genir.starfarer.combat.entities.ship.trackers.AimTracker
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -89,7 +88,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
             VanillaShipCommand.ACCELERATE,
             VanillaShipCommand.ACCELERATE_BACKWARDS,
         )
-        val blockedCommands = (ship as Ship).blockedCommands
+        val blockedCommands = ship.blockedCommands
         if (commands.any { blockedCommands.contains(it.obfuscated) }) {
             return
         }
@@ -120,7 +119,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     private fun controlShipFacing(dt: Float, ship: ShipHandle, target: CombatEntityAPI?) {
         // Do not attempt to override the ship movement if any of the movement commands is blocked.
         val commands = arrayOf(VanillaShipCommand.TURN_LEFT, VanillaShipCommand.TURN_RIGHT)
-        val blockedCommands = (ship as Ship).blockedCommands
+        val blockedCommands = ship.blockedCommands
         if (commands.any { blockedCommands.contains(it.obfuscated) }) {
             return
         }

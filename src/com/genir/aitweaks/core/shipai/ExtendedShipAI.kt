@@ -24,7 +24,7 @@ import com.genir.starfarer.combat.entities.Ship
 import java.awt.Color
 
 /** Ship AI implementation that extends vanilla BasicShipAI and overrides certain decisions. */
-class ExtendedShipAI(val ship: ShipHandle, config: ShipAIConfig) : BasicShipAI(ship as Ship, config) {
+class ExtendedShipAI(val ship: ShipHandle, config: ShipAIConfig) : BasicShipAI(ship.shipAI as Ship, config) {
     private val engineController: EngineController = EngineController(ship.movement)
     private val updateInterval: IntervalUtil = defaultAIInterval()
 

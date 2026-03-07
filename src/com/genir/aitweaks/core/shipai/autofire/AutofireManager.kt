@@ -37,7 +37,7 @@ class AutofireManager(val ship: ShipHandle) : com.genir.starfarer.combat.ai.atta
             if (shouldAutofire) {
                 // Deselect group that should be auto-firing.
                 if (ship.selectedGroupAPI == group) {
-                    (ship as Ship).setNoWeaponSelected()
+                    ship.setNoWeaponSelected()
                 }
 
                 group.toggleOn()

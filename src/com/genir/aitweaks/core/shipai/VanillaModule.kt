@@ -3,7 +3,11 @@ package com.genir.aitweaks.core.shipai
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAIConfig
 import com.fs.starfarer.api.combat.ShipwideAIFlags
-import com.genir.aitweaks.core.extensions.*
+import com.genir.aitweaks.core.extensions.facing
+import com.genir.aitweaks.core.extensions.getPrivateField
+import com.genir.aitweaks.core.extensions.isZero
+import com.genir.aitweaks.core.extensions.length
+import com.genir.aitweaks.core.handles.ShipHandle
 import com.genir.aitweaks.core.shipai.autofire.AutofireManager
 import com.genir.aitweaks.core.shipai.systems.CustomSystemAI
 import com.genir.aitweaks.core.utils.types.Direction
@@ -44,7 +48,7 @@ class VanillaModule(val ship: ShipHandle, private val customSystem: CustomSystem
         personalityOverride.set("aggressive")
 
         run {
-            val target = attackTarget as? Ship
+            val target: Ship? = attackTarget?.shipAPI as? Ship
 
             flags.advance(dt)
             threatEvaluator.threatEvaluator_advance(dt)
@@ -80,7 +84,6 @@ class VanillaModule(val ship: ShipHandle, private val customSystem: CustomSystem
 
     /** Advance the entire BasicShipAI, effectively giving control over the ship to vanilla AI. */
     fun advanceBasicShipAI(dt: Float) {
-        ship as Ship
         val thisCustomAI = ship.ai
 
         // Make the BasicShipAI think it's in control,
@@ -106,7 +109,7 @@ class VanillaModule(val ship: ShipHandle, private val customSystem: CustomSystem
                 }
 
                 else -> {
-                    (ship as Ship).setFallbackPersonalityId("aggressive")
+                    ship.setFallbackPersonalityId("aggressive")
                 }
             }
         }
