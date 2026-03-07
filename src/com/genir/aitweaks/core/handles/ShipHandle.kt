@@ -212,6 +212,14 @@ value class ShipHandle(val shipAPI: ShipAPI) {
     val isAlwaysSearchDestroy: Boolean
         get() = Config.config.fleetwideSearchAndDestroy || variant.hasHullMod("aitweaks_search_and_destroy")
 
+    /** Vanilla ShipAPI.fluxLevel May return NaN for ships
+     * without flux bar, like armor modules. */
+    val FluxLevel: Float
+        get() {
+            val level = shipAPI.fluxLevel
+            return if (level.isNaN()) 0f else level
+        }
+
 // ****************************************************************************
 // ShipAPI Implementation
 
@@ -786,8 +794,9 @@ value class ShipHandle(val shipAPI: ShipAPI) {
     val maxSpeed: Float
         get() = shipAPI.maxSpeed
 
-    val fluxLevel: Float
-        get() = shipAPI.fluxLevel
+//    OVERRIDEN
+//    val fluxLevel: Float
+//        get() = shipAPI.fluxLevel
 
     val currFlux: Float
         get() = shipAPI.currFlux

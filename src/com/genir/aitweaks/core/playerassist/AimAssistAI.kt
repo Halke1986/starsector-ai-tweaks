@@ -2,13 +2,13 @@ package com.genir.aitweaks.core.playerassist
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.combat.WeaponGroupAPI
 import com.fs.starfarer.api.loading.WeaponGroupType
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.ShipHandle
+import com.genir.aitweaks.core.handles.ShipHandle.Companion.handle
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.BaseShipAI
@@ -37,11 +37,11 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     private var currentAlternatingWeapon: WeaponHandle? = null
 
     override fun advance(dt: Float) {
-        val ship = Global.getCombatEngine().playerShip
+        val ship: ShipHandle = Global.getCombatEngine().playerShip?.handle
+            ?: return
 
         // Decide if aim assist should run.
         when {
-            ship == null -> return
             !ship.isAlive -> return
             !ship.isUnderManualControl -> return
 

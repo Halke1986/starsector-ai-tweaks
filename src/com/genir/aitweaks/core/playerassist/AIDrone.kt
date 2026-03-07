@@ -3,13 +3,13 @@ package com.genir.aitweaks.core.playerassist
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.ShipAIPlugin
-import com.genir.aitweaks.core.extensions.timeMult
 import com.genir.aitweaks.core.handles.ShipHandle
+import com.genir.aitweaks.core.handles.ShipHandle.Companion.handle
 
 fun makeAIDrone(ai: ShipAIPlugin, variantName: String): ShipHandle {
     val spec = Global.getSettings().getHullSpec("dem_drone")
     val v = Global.getSettings().createEmptyVariant(variantName, spec)
-    val aiDrone = Global.getCombatEngine().createFXDrone(v)
+    val aiDrone: ShipHandle = Global.getCombatEngine().createFXDrone(v).handle
 
     aiDrone.owner = 0
     aiDrone.mutableStats.hullDamageTakenMult.modifyMult("aitweaks_ai_drone", 0f) // so it's non-targetable
@@ -27,7 +27,7 @@ fun makeAIDrone(ai: ShipAIPlugin, variantName: String): ShipHandle {
  * as the player ship is advanced when the player ship is in fast-time mode. */
 fun syncTimeWithPlayerShip(aiDrone: ShipHandle) {
     val droneTime = aiDrone.mutableStats.timeMult
-    val playerShip = Global.getCombatEngine().playerShip
+    val playerShip: ShipHandle? = Global.getCombatEngine().playerShip?.handle
     if (playerShip != null) {
         droneTime.modifyMult("aitweaks_ai_drone_time_sync", playerShip.timeMult)
     } else {
