@@ -11,7 +11,6 @@ import com.genir.aitweaks.core.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.extensions.isValidTarget
 import com.genir.aitweaks.core.extensions.sumOf
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitShield
 import org.lazywizard.lazylib.combat.AIUtils
 import org.lwjgl.util.vector.Vector2f
@@ -86,7 +85,7 @@ class HighEnergyFocus : ShipSystemAIScript {
 
     private fun dpsMultiplier(weapon: WeaponHandle): Float {
         val target: ShipAPI = (weapon.target as? ShipAPI) ?: return 0f
-        val params = defaultBallisticParams
+        val params = weapon.currentBallisticsParams
 
         return when {
             // Check custom AI decision.

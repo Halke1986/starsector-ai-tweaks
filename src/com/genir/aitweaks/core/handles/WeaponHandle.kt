@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.handles
 
 import com.fs.starfarer.api.AnimationAPI
+import com.fs.starfarer.api.GameState
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints
@@ -12,10 +13,7 @@ import com.fs.starfarer.api.loading.ProjectileSpawnType.BEAM
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.autofire.AutofireAI
 import com.genir.aitweaks.core.shipai.autofire.Tag
-import com.genir.aitweaks.core.shipai.autofire.ballistics.Ballistics
-import com.genir.aitweaks.core.shipai.autofire.ballistics.Beam
-import com.genir.aitweaks.core.shipai.autofire.ballistics.Missile
-import com.genir.aitweaks.core.shipai.autofire.ballistics.Projectile
+import com.genir.aitweaks.core.shipai.autofire.ballistics.*
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
 import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.state.Config
@@ -468,6 +466,29 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
 
     val aimTracker: AimTracker
         get() = (weaponAPI as Weapon).aimTracker
+
+    /**
+     * getAccuracy returns current weapon accuracy.
+     * The value is a number in range [1.0;2.0]. 1.0 is perfect accuracy, 2.0f is the worst accuracy.
+     * For worst accuracy, the weapon should aim exactly in the middle point between the target actual
+     * position and calculated intercept position.
+     */
+    val currentAccuracy: Float
+        get() {
+            if (hasBestTargetLeading || Global.getCurrentState() == GameState.TITLE) {
+                return 1f
+            }
+
+            val accBase = ship.aimAccuracy
+            val accBonus = spec?.autofireAccBonus ?: 0f
+
+            // Accuracy increases as the weapon attacks same target.
+            val attackTime = customAI?.attackTime ?: 0f
+            return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
+        }
+
+    val currentBallisticsParams: BallisticParams
+        get() = BallisticParams(currentAccuracy, 0f)
 
 // ****************************************************************************
 // WeaponAPI Implementation

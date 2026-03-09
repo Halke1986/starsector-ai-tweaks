@@ -41,11 +41,7 @@ data class BallisticTarget(
 }
 
 /** Weapon attack parameters: accuracy and delay until attack. */
-data class BallisticParams(val accuracy: Float, val delay: Float) {
-    companion object {
-        val defaultBallisticParams = BallisticParams(1f, 0f)
-    }
-}
+data class BallisticParams(val accuracy: Float, val delay: Float)
 
 /** Expected hit on a target. */
 data class Hit(

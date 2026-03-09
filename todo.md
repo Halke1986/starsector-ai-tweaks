@@ -46,6 +46,9 @@ ah see, I play with a relatively even or slightly advantaged field, because the 
 they require more focused fire
 and can't be hard rushed
 
+
+avoid only allied station drones?
+
 ----------------------------------------------------------------
 
 Take DEMs into account.

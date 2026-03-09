@@ -10,7 +10,6 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Flags
-import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
@@ -86,7 +85,7 @@ class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
         return lidarWeapons.firstOrNull { weapon ->
             !weapon.ballistics.canEngage(
                 BallisticTarget.collisionRadius(target),
-                defaultBallisticParams,
+                weapon.currentBallisticsParams,
                 weapon.engagementRange * weaponRangeFraction
             )
         } == null
@@ -97,7 +96,7 @@ class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
     }
 
     private fun isWeaponBlocked(weapon: WeaponHandle, target: ShipAPI): Boolean {
-        val hit = firstShipAlongLineOfFire(weapon, target, defaultBallisticParams)?.target
+        val hit = firstShipAlongLineOfFire(weapon, target, weapon.currentBallisticsParams)?.target
         return when {
             hit == null -> false
             hit !is ShipAPI -> false

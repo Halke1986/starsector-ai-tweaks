@@ -13,7 +13,6 @@ import com.genir.aitweaks.core.shipai.ExtendedShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.shipai.autofire.SelectTarget.Companion.TARGET_SEARCH_MULT
-import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.ROTATE_BEAM
@@ -42,7 +41,8 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     // Timers.
     private var updateTargetInterval = IntervalUtil(0.25F, 0.50F)
     private var shouldFireInterval = IntervalUtil(0.1F, 0.2F)
-    private var attackTime: Float = 0f
+    var attackTime: Float = 0f
+        private set
     private var idleTime: Float = 0f
     private var onTargetTime: Float = 0f
 
@@ -156,7 +156,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
 
             // Weapon can no longer track the target. Use double the weapon.totalRange to allow
             // tracking potential targets when there are no targets within the actual firing range.
-            !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), currentParams(), weapon.engagementRange * TARGET_SEARCH_MULT) -> true
+            !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), weapon.currentBallisticsParams, weapon.engagementRange * TARGET_SEARCH_MULT) -> true
 
             else -> false
         }
@@ -193,7 +193,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
 
     private fun updateTarget(dt: Float) {
         val previousTarget = target
-        target = SelectTarget(weapon, target, ship.attackTarget, currentParams()).target()
+        target = SelectTarget(weapon, target, ship.attackTarget, weapon.currentBallisticsParams).target()
 
         // Nothing changed, return early.
         if (target == previousTarget) {
@@ -235,12 +235,12 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
-        val ballisticParams = currentParams()
+        val ballisticParams = weapon.currentBallisticsParams
         var expectedHit: Hit? = analyzeHit(weapon, target, ballisticParams)
 
         // Mock an expected hit for beams that should keep firing when in transition between targets.
         if (expectedHit == null && shouldSweepBeam(target)) {
-            val range = weapon.ballistics.intercept(BallisticTarget.collisionRadius(target), currentParams()).length
+            val range = weapon.ballistics.intercept(BallisticTarget.collisionRadius(target), ballisticParams).length
             expectedHit = Hit(target, range, ROTATE_BEAM)
         }
 
@@ -342,19 +342,12 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
             onTargetTime >= minOf(2f, weapon.firingCycle.duration) -> return null
         }
 
-        val arc = weapon.ballistics.interceptArc(BallisticTarget.collisionRadius(target!!), currentParams())
+        val arc = weapon.ballistics.interceptArc(BallisticTarget.collisionRadius(target!!), weapon.currentBallisticsParams)
         val inaccuracy = (arc.facing - weapon.currAngle.toDirection).length
         if (inaccuracy * 4f > arc.angle) return STABILIZE_ON_TARGET
 
         return null
     }
-
-    /** get current weapon attack parameters */
-    protected fun currentParams() = BallisticParams(
-        getAccuracy(),
-        // TODO Currently, the weapon attack delay time is disabled.
-        0f,
-    )
 
     /** Given the finite speed of beam weapons, when the weapon is off target,
      * it may be more effective to rotate the active beam towards the target
@@ -440,7 +433,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         aimPoint = null
 
         val target = this.target ?: return
-        val intercept = weapon.ballistics.intercept(BallisticTarget.collisionRadius(target), currentParams())
+        val intercept = weapon.ballistics.intercept(BallisticTarget.collisionRadius(target), weapon.currentBallisticsParams)
 
         interceptTracker.advance(dt, intercept)
 
@@ -497,7 +490,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         try {
             ship.facing = expectedFacing.degrees
             val ballisticTarget: BallisticTarget = BallisticTarget.collisionRadius(target)
-            val allowedArc: Arc = weapon.ballistics.interceptArc(ballisticTarget, currentParams()).rotated(toActualFacing.degrees)
+            val allowedArc: Arc = weapon.ballistics.interceptArc(ballisticTarget, weapon.currentBallisticsParams).rotated(toActualFacing.degrees)
 
             // Allow limited weapon freedom, constrained to the arc the target will
             // occupy once the ship reaches its expected facing. This speeds up target

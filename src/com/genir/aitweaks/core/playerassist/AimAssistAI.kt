@@ -13,7 +13,6 @@ import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.BaseShipAI
 import com.genir.aitweaks.core.shipai.WeaponGroup
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
-import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
 import com.genir.aitweaks.core.shipai.movement.EngineController
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
@@ -166,7 +165,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         val ballisticTarget = BallisticTarget(targetLocation(target), target.velocity, target.collisionRadius, target)
         val selectedWeapons: Set<WeaponHandle> = ship.selectedWeapons
         val aimableWeapons: Set<WeaponHandle> = ship.nonAutofireWeapons + selectedWeapons
-        val params = defaultBallisticParams
+        val params = BallisticParams(accuracy = 1f, delay = 0f)
 
         aimableWeapons.forEach { weapon ->
             // Override aim for all non-autofire weapons except missile missile hardpoints.

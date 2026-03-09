@@ -23,7 +23,7 @@ class RecklessAutofireAI(weapon: WeaponHandle) : AutofireAI(weapon) {
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
         // on targets that are only briefly in the line of sight, when the weapon is turning.
-        val ballisticParams = currentParams()
+        val ballisticParams = weapon.currentBallisticsParams
         val expectedHit = analyzeHit(weapon, target, ballisticParams)
             ?: Hit(target, (target.location - weapon.location).length, if (target.shield?.isOn == true) SHIELD else HULL)
 
