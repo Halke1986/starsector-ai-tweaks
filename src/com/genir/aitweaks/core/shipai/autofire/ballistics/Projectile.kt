@@ -18,7 +18,7 @@ open class Projectile(private val weapon: WeaponHandle) : Ballistics {
      * time and location approach infinity. In such cases, the function assumes an
      * arbitrary long time period to approximate the target location. */
     override fun intercept(target: BallisticTarget, params: BallisticParams): Vector2f {
-        val pv = targetMotion(target.linearMotion, params)
+        val pv = targetMotion(target, params)
         val projectileFlightDistance = solve(pv, weapon.projectileSpawnOffset, 1f, 0f, 0f)?.smallerNonNegative
 
         return pv.positionAfter(projectileFlightDistance ?: approachesInfinity)
@@ -29,7 +29,7 @@ open class Projectile(private val weapon: WeaponHandle) : Ballistics {
      * Similar to intercept point, but not restricted to target center point.
      * For simplicity, the barrel offset is omitted. */
     override fun interceptArc(target: BallisticTarget, params: BallisticParams): Arc {
-        val pv = targetMotion(target.linearMotion, params)
+        val pv = targetMotion(target, params)
         val points = pointsOfTangency(pv.position, target.radius)
             ?: return Arc(360f, 0f.toDirection)
 
@@ -48,7 +48,7 @@ open class Projectile(private val weapon: WeaponHandle) : Ballistics {
     /** Closest possible range at which the projectile fired by the weapon can collide
      * with the target circumference, for any weapon facing. */
     override fun closestHitRange(target: BallisticTarget, params: BallisticParams): Float {
-        val pv = targetMotion(target.linearMotion, params)
+        val pv = targetMotion(target, params)
         if (targetAboveWeapon(pv.position, weapon, target)) {
             return 0f
         }
@@ -76,7 +76,7 @@ open class Projectile(private val weapon: WeaponHandle) : Ballistics {
      *
      * Returns hitPoint in target frame of reference and projectile flight range. */
     override fun closestHitInTargetFoR(target: BallisticTarget, params: BallisticParams): Pair<Vector2f, Float> {
-        val pv = targetMotion(target.linearMotion, params)
+        val pv = targetMotion(target, params)
         val range = closestHitRange(target, params)
         val hitPoint = -pv.positionAfter(range).resized(target.radius)
         return Pair(hitPoint, range)
@@ -98,8 +98,8 @@ open class Projectile(private val weapon: WeaponHandle) : Ballistics {
 
     /** Target location and velocity in weapon frame of reference.
      * weapon.projectileSpeed is used as velocity unit.  */
-    private fun targetMotion(target: LinearMotion, params: BallisticParams): LinearMotion {
-        val pAbs = target.position - weapon.location
+    private fun targetMotion(target: BallisticTarget, params: BallisticParams): LinearMotion {
+        val pAbs = target.location - weapon.location
         val vAbs = target.velocity - weapon.ship.velocity
 
         return LinearMotion(
