@@ -14,8 +14,7 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 
 /** A group of weapons that should be able to fire along a single attack vector. */
-class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
-    val defaultFacing: Direction = defaultAttackFacing() // Default group facing in ship frame of reference.
+class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>, val defaultFacing: Direction) {
     val dps: Float = weapons.sumOf { it.effectiveDPS }
     private val rangeMap: Map<WeaponHandle, Float> = weaponRanges()
     val effectiveRange: Float = effectiveRange(Preset.effectiveDpsThreshold)
@@ -66,22 +65,11 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
     private val WeaponHandle.rangeInGroup: Float
         get() = rangeMap[this]!!
 
-    private fun defaultAttackFacing(): Direction {
-        val dpsArcs: Sequence<DPSArc> = weapons.asSequence().map { weapon ->
-            DPSArc(weapon.arc, effectivePeakDPS(weapon))
-        }
-
-        val optimalArc: Arc = dpsArcs.maxWithOrNull(compareBy<DPSArc> { it.dps }.thenBy { -it.arc.distanceTo(0f.toDirection).length })?.arc
-            ?: return 0f.toDirection
-
-        return -optimalArc.distanceTo(0f.toDirection)
-    }
-
     /** Calculate ship facing that maximizes DPS delivered
      * to the target when using the current weapon group. */
     fun shipAttackFacing(target: CombatEntityAPI, targetLocationOverride: Vector2f? = null): Direction {
         val directFacing: Direction = (target.location - ship.location).facing
-        val defaultFacing: Direction = directFacing + this.defaultFacing
+        val defaultFacing: Direction = directFacing - this.defaultFacing
 
         // Use default facing if no firing solutions are available.
         if (weapons.isEmpty()) {
@@ -133,8 +121,8 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
 
         data class TrackingSolution(val offset: Direction, val dps: Float)
 
-        val offsetSubArcs: Sequence<DPSArc> = splitArcs(offsets).filter { it.dps > 0f }
-        val solutions: Sequence<TrackingSolution> = offsetSubArcs.map { subArc: DPSArc ->
+        val offsetSubArcs: List<DPSArc> = splitArcs(offsets).filter { it.dps > 0f }
+        val solutions: List<TrackingSolution> = offsetSubArcs.map { subArc: DPSArc ->
             val trackingArc = Arc(
                 angle = (subArc.arc.angle - 2.5f).coerceAtLeast(0f), // Apply padding
                 facing = defaultFacing + subArc.arc.facing
@@ -156,7 +144,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
      *
      * The function computes and returns sub-arcs that span the angular intervals between
      * adjacent arc boundaries ("arms") of the input arcs. */
-    private fun splitArcs(arcs: List<DPSArc>): Sequence<DPSArc> {
+    private fun splitArcs(arcs: List<DPSArc>): List<DPSArc> {
         // Storing source ref is needed to properly handle 0 degree arcs.
         data class Lim(val facing: Float, val source: DPSArc?)
 
@@ -171,7 +159,7 @@ class WeaponGroup(val ship: ShipAPI, val weapons: List<WeaponHandle>) {
         boundaries.sortWith(compareBy { it.facing })
 
         // DPS sum of all weapons capable of firing in the given sub-arc.
-        return boundaries.indices.asSequence().map { i ->
+        return boundaries.indices.map { i ->
             val start: Lim = boundaries[i]
             val end: Lim = boundaries[(i + 1) % boundaries.size]
 

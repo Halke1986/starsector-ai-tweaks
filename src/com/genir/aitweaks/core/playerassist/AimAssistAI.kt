@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.BaseShipAI
 import com.genir.aitweaks.core.shipai.WeaponGroup
+import com.genir.aitweaks.core.shipai.WeaponGroups
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
 import com.genir.aitweaks.core.shipai.movement.EngineController
@@ -20,6 +21,7 @@ import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.state.VanillaKeymap
 import com.genir.aitweaks.core.state.VanillaKeymap.PlayerAction
 import com.genir.aitweaks.core.utils.*
+import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.starfarer.combat.entities.Ship
@@ -148,17 +150,32 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         }
 
         // Aim the weapons by rotating the ship.
-        val weaponGroup = WeaponGroup(ship, weapons.filter { it.shouldAim })
+        val groups: List<WeaponGroup> = WeaponGroups.findGroups(ship, weapons.filter { it.shouldAim })
         if (target != null) {
             // Rotate ship to face the target intercept with the selected weapon group.
+            val toTarget: Vector2f = targetLocation(target) - ship.location
+            val weaponGroup = selectBestGroup(toTarget, ship, groups)
             val expectedFacing = weaponGroup.shipAttackFacing(target, targetLocation(target))
             val facingChange = angularVelocity(target.location - ship.location, target.velocity - ship.velocity)
             engineController!!.facing(dt, expectedFacing, facingChange)
         } else {
             // If there's no target, rotate the ship to face the mouse position with the selected weapon group.
-            val expectedFacing = (mousePosition() - ship.location).facing - weaponGroup.defaultFacing
+            val toTarget: Vector2f = mousePosition() - ship.location
+            val weaponGroup = selectBestGroup(toTarget, ship, groups)
+            val expectedFacing = toTarget.facing - weaponGroup.defaultFacing
             engineController!!.facing(dt, expectedFacing, 0f)
         }
+    }
+
+    private fun selectBestGroup(toTarget: Vector2f, ship: ShipAPI, groups: List<WeaponGroup>): WeaponGroup {
+        // To target facing in ship frame of reference.
+        val toTargetFacing: Direction = toTarget.facing - ship.facing.toDirection
+
+        // Select weapon group best aligned with the target direction.
+        // Assume groups are non-empty.
+        return groups.minWithOrNull(compareBy {
+            (toTargetFacing - it.defaultFacing).length
+        })!!
     }
 
     private fun aimWeapons(ship: ShipAPI, target: CombatEntityAPI) {

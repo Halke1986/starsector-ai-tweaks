@@ -1,3 +1,5 @@
+- Fixed handling of ships with unusual broadside configurations. Issue reported by Urfin. 
+
 Version v2.2.5
 
 - Custom AI: Ships with FIGHTER collision class will not attempt to avoid collisions with other ships and asteroids.
