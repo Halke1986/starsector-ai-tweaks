@@ -2,47 +2,62 @@ package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.combat.WeaponAPI
 import com.genir.aitweaks.core.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.extensions.rangeFromShipCenter
 import com.genir.aitweaks.core.extensions.sumOf
 import com.genir.aitweaks.core.extensions.totalCollisionRadius
 import com.genir.aitweaks.core.handles.WeaponHandle
+import com.genir.aitweaks.core.shipai.autofire.Tag
+import com.genir.aitweaks.core.shipai.autofire.hasAITag
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
-import kotlin.math.max
 
 class ShipStats(private val ship: ShipAPI) {
-    val significantWeapons: List<WeaponHandle> = findSignificantWeapons()
-    val threatSearchRange: Float = calculateThreatSearchRange()
+    val primaryWeapons: List<WeaponHandle> = findPrimaryWeapons()
+    val attackTargetSearchRange: Float = calculateAttackTargetSearchRange()
     val totalCollisionRadius: Float = ship.totalCollisionRadius
     val weaponGroups: List<WeaponGroup> = findWeaponGroups()
 
-    private fun calculateThreatSearchRange(): Float {
+    private fun calculateAttackTargetSearchRange(): Float {
         val rangeEnvelope = 1.5f
-        val totalMaxRange = significantWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.toDirection, it.engagementRange) } ?: 0f
+        val totalMaxRange = primaryWeapons.maxOfOrNull { it.slot.rangeFromShipCenter(0f.toDirection, it.engagementRange) } ?: 0f
 
-        return max(Preset.threatSearchRange, totalMaxRange * rangeEnvelope)
+        return totalMaxRange * rangeEnvelope
     }
 
     /** Weapons that can be used by the ship to conduct attacks, as opposed to PD, decoratives, etc. */
-    private fun findSignificantWeapons(): List<WeaponHandle> {
-        val weapons = ship.allGroupedWeapons.filter { weapon ->
+    private fun findPrimaryWeapons(): List<WeaponHandle> {
+        val allWeapons: List<WeaponHandle> = ship.allGroupedWeapons.filter { weapon ->
             when {
-                weapon.type == WeaponAPI.WeaponType.MISSILE -> false
+                weapon.isMissile -> false
+
                 weapon.derivedStats.dps == 0f -> false
+
                 else -> true
             }
         }
 
         // Filter out PD weapons, but only if there are non PD weapons available.
-        val attackWeapons = weapons.filter { !it.isPD || it.slot.isHardpoint }.ifEmpty { weapons }
+        val attackWeapons: List<WeaponHandle> = allWeapons.filter {
+            when {
+                // PD hardpoints are considered attack weapons
+                it.slot.isHardpoint -> true
+
+                it.hasAITag(Tag.PRIMARY_WEAPON) -> true
+
+                it.isPD -> false
+
+                else -> true
+            }
+        }.ifEmpty { allWeapons }
 
         // Return active weapons.
         return attackWeapons.filter { weapon ->
             when {
                 weapon.isDisabled -> false
+
                 weapon.isPermanentlyDisabled -> false
+
                 else -> true
             }
         }
@@ -51,37 +66,37 @@ class ShipStats(private val ship: ShipAPI) {
     /** A ship can have multiple valid weapon groups. */
     private fun findWeaponGroups(): List<WeaponGroup> {
         // Find dps for each possible firing arc.
-        val attackAngles: Map<Direction, Float> = attackAngles(significantWeapons)
+        val attackAngles: Map<Direction, Float> = attackAngles(primaryWeapons)
 
         // Assign lower weight to arcs more distant from the ship front.
-        val weightedAngles = attackAngles.mapValues { (direction, dps) ->
+        val weightedAngles: Map<Direction, Float> = attackAngles.mapValues { (direction, dps) ->
             val weight = if (direction.length <= 90f) 1f else 0.66f
             dps * weight
         }
 
         // Ignore firing arcs that are close to or fall outside front shield arc.
         val shield = ship.shield
-        val validAngles = if (shield?.type == ShieldAPI.ShieldType.FRONT) {
-            val limit = shield.arc / 3
+        val validAngles: Map<Direction, Float> = if (shield?.type == ShieldAPI.ShieldType.FRONT) {
+            val limit: Float = (shield.arc / 3).coerceAtLeast(20f)
             weightedAngles.filter { it.key.length < limit }
         } else {
             weightedAngles
         }
 
-        // Find weapon group with the best DPS. If no such group exists, return front facing group.
-        val bestWeaponGroup = validAngles.maxWithOrNull(compareBy { it.value })
+        // Find attack angles with acceptable DPS.
+        val bestDPS: Float = validAngles.maxWithOrNull(compareBy { it.value })?.value
             ?: return listOf(WeaponGroup(ship, listOf()))
+        val validDPSAngles: Map<Direction, Float> = validAngles.filter { it.value >= bestDPS * Preset.weaponGroupPerformanceThreshold }
 
-        // Find all weapon groups with acceptable DPS.
-        val validWeaponGroups = validAngles.filter { it.value >= bestWeaponGroup.value * Preset.validWeaponGroupDPSThreshold }
-        return validWeaponGroups.map { (angle, _) ->
-            WeaponGroup(ship, significantWeapons.filter { it.isAngleInArc(angle) })
+        // Build weapon groups.
+        return validDPSAngles.map { (direction, _) ->
+            WeaponGroup(ship, primaryWeapons.filter { it.isAngleInArc(direction) })
         }
     }
 
     /** Find firing arc angles closest to ship front for each weapon,
      * or 0f for front facing weapons. Associate the angles with total
-     * DPS for the provided weapon list.*/
+     * DPS for the provided weapon list. */
     private fun attackAngles(weapons: List<WeaponHandle>): Map<Direction, Float> {
         val angles: List<Direction> = weapons.flatMap { weapon ->
             val facing: Direction = weapon.arcFacing.toDirection

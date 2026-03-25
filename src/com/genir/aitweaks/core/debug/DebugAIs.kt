@@ -6,9 +6,7 @@ import com.fs.starfarer.api.combat.ShipAIPlugin
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
-import com.genir.aitweaks.core.shipai.autofire.ballistics.SimulateMissile
-import com.genir.aitweaks.core.shipai.movement.BasicEngineController
+import com.genir.aitweaks.core.shipai.movement.EngineController
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.angularVelocity
 import com.genir.aitweaks.core.utils.mousePosition
@@ -23,8 +21,8 @@ var expectedFacing = 90f.toDirection
 const val df = -1f * 60f
 
 class ControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.movement)
-    private val RAD: Float = 300f;
+    private val controller = EngineController(ship.movement)
+    private val RAD: Float = 300f
 
     override fun advance(dt: Float) {
         val dir: Vector2f = mousePosition() - ship.location
@@ -45,8 +43,21 @@ class ControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     }
 }
 
+class RamTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
+    private val controller = EngineController(ship.movement)
+
+    override fun advance(dt: Float) {
+        controller.clearCommands()
+
+        controller.heading(dt, target.location, (target.location - ship.location).resized(1000f))
+        controller.facing(dt, (target.location - ship.location).facing, 0f)
+
+        controller.executeCommands()
+    }
+}
+
 class MirrorTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.movement)
+    private val controller = EngineController(ship.movement)
     private val offset = Vector2f(200f, 200f)
 
     override fun advance(dt: Float) {
@@ -60,7 +71,7 @@ class MirrorTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControl
 }
 
 class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.movement)
+    private val controller = EngineController(ship.movement)
 
     override fun advance(dt: Float) {
         val toTarget = target.location - ship.location
@@ -73,7 +84,7 @@ class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : Base
 }
 
 class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.movement)
+    private val controller = EngineController(ship.movement)
 
     override fun advance(dt: Float) {
         expectedFacing += df.toDirection * dt
@@ -87,7 +98,7 @@ class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
 }
 
 class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = BasicEngineController(ship.movement)
+    private val controller = EngineController(ship.movement)
     private val prevP: Vector2f = Vector2f()
 
     override fun advance(dt: Float) {
@@ -108,25 +119,6 @@ class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
 
         prevP.set(p)
     }
-}
-
-var trail: Sequence<SimulateMissile.Frame>? = null
-
-fun debugMissilePath(dt: Float) {
-    val ship = Global.getCombatEngine().playerShip ?: return
-    val weapon = ship.allWeapons.firstOrNull()?.handle ?: return
-
-    if (trail != null) {
-        var prev = trail!!.firstOrNull()!!.location
-        trail?.forEach { frame ->
-            Debug.drawLine(prev, frame.location, Color.BLUE)
-            prev = frame.location
-        }
-    }
-
-    if (Global.getCombatEngine().missiles.isNotEmpty()) return
-
-    trail = SimulateMissile.missilePath(weapon)
 }
 
 fun removeAsteroids() {

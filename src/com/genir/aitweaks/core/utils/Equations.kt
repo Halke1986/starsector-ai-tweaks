@@ -2,8 +2,7 @@ package com.genir.aitweaks.core.utils
 
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.sqrt
 
 data class QuadSolution(val x1: Float, val x2: Float) {
     val smallerNonNegative: Float?
@@ -59,7 +58,7 @@ fun quad(a: Float, b: Float, c: Float): QuadSolution? {
     val x1 = (-b + d) / (2 * a)
     val x2 = (-b - d) / (2 * a)
 
-    return QuadSolution(min(x1, x2), max(x1, x2))
+    return QuadSolution(minOf(x1, x2), maxOf(x1, x2))
 }
 
 /**

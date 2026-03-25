@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.Global
-import kotlin.math.max
 
 class Preset {
     companion object {
@@ -21,11 +20,11 @@ class Preset {
         const val borderHardNoGoZone = borderNoGoZone / 2f
 
         // Collision avoidance
-        const val collisionBuffer = 0f
-        const val hulkSizeFactor = 0.85f
+        const val hulkCollisionSizeFactor = 0.85f
+        const val enemyCollisionSizeFactor = 2f
 
         // Targeting & Weapon groups
-        const val validWeaponGroupDPSThreshold = 0.9f
+        const val weaponGroupPerformanceThreshold = 0.93f
         const val noWeaponsAttackRange = 2000f
         const val effectiveDpsThreshold = 0.80f
         const val targetThickness = 60f
@@ -35,7 +34,7 @@ class Preset {
         private val mapSize: Float
             get() {
                 val engine = Global.getCombatEngine()
-                return max(engine.mapHeight, engine.mapWidth)
+                return maxOf(engine.mapHeight, engine.mapWidth)
             }
     }
 }

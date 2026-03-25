@@ -4,10 +4,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 
 - attack enemy ships that are inflicting damage
 
-- area targeting for devastator
-
-- avoid blocking burn vector via collision avoidance
-
 - revisit hiding behind allies to vent
 
 - extract vanilla missile decisioning
@@ -17,8 +13,6 @@ SUGGESTED: ships avoid collisions with very large modded shields
 - notify systems of overridden facing in extended AI
 
 check Lidar on faster ships - destroyer : ass pinetree, frigate DEX Catapult
-
-- why SO ships backing off so far away
 
 - tahlan shipworks hel hound module has speed 0
 
@@ -40,18 +34,30 @@ take a look at progressive staggered fire
 
 approach into missile range
 
-shieldless ships should ignore all non-missile weapons when deciding if to vent 
-
-fire at support fighters when they're the primary target
-
-cjy toybox shield modules issue Mykophobia
-
-tempest flying backwards
-
-temporal shell messing up staggered fire 
-
-----------------------------------------------------------------
-
 vent logic:
   - calculate proper damage for dangerous weapons, remove finisherMissile flag
   - properly handle non-guided missiles
+
+
+Wish Dragon
+ — 
+00:14
+ah see, I play with a relatively even or slightly advantaged field, because the normal game is too easy. Ships have a random chance to have a mod that gives them significantly more power, so some ships are dramatically more dangerous than others, which I think is why it doesn't work
+they require more focused fire
+and can't be hard rushed
+
+----------------------------------------------------------------
+
+Take DEMs into account.
+Lelboihi
+ — 
+18/01/2026, 16:49
+@Genir 
+this isnt the ai tweaks prerelease channel but uhhh
+local odyssey (IX) decides to drop shields and vent infront of 10 dragonfires fired by strike pegasus, fucking dies
+
+
+coordination between cruisers and frigates
+
+----------------------------------------------------------------
+ 

@@ -2,8 +2,6 @@ package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.max
-import kotlin.math.min
 
 class EntityGrid(entities: List<CombatEntityAPI>?) {
     companion object {
@@ -39,10 +37,10 @@ class EntityGrid(entities: List<CombatEntityAPI>?) {
                 val l = entity.location
                 val r = entity.collisionRadius
 
-                minX = min(minX, l.x - r)
-                maxX = max(maxX, l.x + r)
-                minY = min(minY, l.y - r)
-                maxY = max(maxY, l.y + r)
+                minX = minOf(minX, l.x - r)
+                maxX = maxOf(maxX, l.x + r)
+                minY = minOf(minY, l.y - r)
+                maxY = maxOf(maxY, l.y + r)
             }
 
             gridMinX = minX

@@ -1,6 +1,7 @@
 package com.genir.aitweaks.launcher.loading
 
 import java.io.IOException
+import java.io.InputStream
 import java.lang.instrument.IllegalClassFormatException
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -143,6 +144,24 @@ class Transformer(transforms: List<Transform>) {
          * is matched by the shorter "package/Ship" transform. */
         private fun sortTransforms(transforms: List<Transform>): List<Transform> {
             return transforms.sortedWith(compareBy { -it.from.length })
+        }
+
+        fun readClassBuffer(cl: ClassLoader, className: String): ByteArray {
+            val classPath: String = className.replace('.', '/') + ".class"
+            val stream: InputStream = cl.getResourceAsStream(classPath)!!
+
+            var size = 0
+            var buffer = ByteArray(1024)
+            while (stream.available() > 0) {
+                size += stream.read(buffer, size, buffer.size - size)
+                if (size == buffer.size) {
+                    buffer += ByteArray(buffer.size)
+                }
+            }
+
+            val classData = buffer.sliceArray(IntRange(0, size - 1))
+
+            return classData
         }
 
         private const val CONSTANT_Utf8: Byte = 1

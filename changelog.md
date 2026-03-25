@@ -1,3 +1,50 @@
+Version v2.2.5
+
+- Custom AI: Ships with FIGHTER collision class will not attempt to avoid collisions with other ships and asteroids.
+- Custom AI: Multiple bug fixes and improvements to flux venting and to collision avoidance logic.
+- Autofire AI: Weapons will shoot through allied ships with FIGHTER collision class. Suggested by Levidos.
+- Added LunaLib setting for fleetwide application of the AI Tweaks Custom AI. Suggested by Gu5590.
+
+Version v2.2.4
+
+- Custom AI: Frigates and destroyers now avoid all enemy missiles when backing off. 
+- Custom AI: Shieldless ships now ignore non-missile weapons when deciding whether to vent.
+- Custom AI: Frigates and other low hit point ship are now more cautious when deciding whether to vent. Suggested by Seekers.
+- Custom AI: Ships now avoid collisions with large asteroids. Suggested by GeboGlima.
+- Custom AI: Fixed a bug where ships were pushed toward the map border after a drone-equipped station was destroyed. Reported by Seekers.
+- Rift Lance is now controlled by the Finisher Beam Protocol hullmod. Suggested by Cherman0.
+
+Version v2.2.3
+
+- Custom AI: Ships will approach enemies within range of weapons with PD_ALSO AI tag. This applies only to vanilla weapons: devastator, heavy_adjudicator, heavymg and rift_lightning.
+- Custom AI: Fixed an issue where certain modded ships would not close to weapon range. Reported by Levidos.
+- Custom AI: Fixed an issue preventing ships from closing to weapon range when operating alongside faster, short-range allies.
+- Custom AI: Fixed a java.lang.ArrayIndexOutOfBoundsException crash when an active ship is assigned to a neutral faction (owner == 100). The crash may still occur if the ship has fighter bays. Reported by wad78. 
+
+Version v2.2.2
+
+- Custom AI: Number of improvements to collision avoidance logic. Ships are now less likely to bump into allies.
+- Custom AI: Ships now avoid mines.
+- Fixed log spam when calculations result in Not a Number. Suggested by Oddish.
+- Removed mod_info.json link to ASM library to avoid conflicts with other mods that depend on different ASM versions. The library is now loaded with a custom loader. Suggested by andylizi.
+- Fixed a ClassCastException crash when calculating threat from a missile weapons firing non-missile projectiles. Reported by carbineaction and Goldendragonfinn.
+- Custom AI: Ships no longer rotate to aim weapons with DO_NOT_AIM hint, like the Voltaic Discharge. Reported by Seekers.
+- Added LunaLib setting for fleetwide Search & Destroy assignment. Suggested by lchronosl.
+- Improved broadside selection logic. Ships like the Intrepid from Emergent Threats-IX Revival will now broadside only when you put very powerful weapons in side mounts. Issue reported by Chaosmoose.
+
+Version v2.2.1
+
+- Custom AI: Fixed an issue where backing off ships would collide with enemies.
+- Custom AI: Fixed an issue where ships would get too close the enemies when the battle space was crowded.
+- Custom AI: Fixed an issue where Tempest would attack while flying backwards. Reported by MegaPenguin.
+- Custom AI: Frigates are more likely to attack fighters if there are no nearby enemy ships.
+- Autofire AI: Non-PD weapons will fire at support fighters when the fighters are the ships' main target.
+- Autofire AI: Fixed an issue where staggered fire logic would not account for time flow multiplier and reduce weapon rate of fire. Reported by Samael Gray.
+- Ships with Custom AI hullmod will always default to Search and Destroy order, even without Search and Destroy hullmod.
+- Added descriptions explaining why hullmods can not be installed on given ships.
+- AI Tweaks hullmods can not be S-modded.
+- Added LunaLib setting to show AI Tweaks hullmods only in AI Tweaks tab.
+
 Version v2.2.0
 
 - Custom AI hullmod can now be installed on frigates.

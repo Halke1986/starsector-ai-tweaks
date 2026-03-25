@@ -48,7 +48,7 @@ class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
         }
 
         if (canUseBurst()) {
-            hardpoints = ai.stats.significantWeapons.filter { it.slot.isHardpoint }
+            hardpoints = ai.stats.primaryWeapons.filter { it.slot.isHardpoint }
             burstVectors = calculateBurstVectors()
             burstPlan = updatePlannedBurst()
             if (shouldExecuteBurstPlan()) executeBurstPlan(burstPlan!!)

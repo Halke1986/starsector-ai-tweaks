@@ -3,44 +3,44 @@ package com.genir.aitweaks.core.shipai.threat
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.ballistics.closestHitRange
 import com.genir.aitweaks.core.shipai.movement.Movement
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.LinearMotion
-import kotlin.math.max
 
 class WeaponThreat(private val ship: ShipAPI) {
     data class Damage(
-        val finisherMissileDanger: Boolean,
         val damage: Float,
+        val isFinisherMissile: Boolean,
+        val weapon: WeaponHandle,
     )
 
-    fun potentialDamage(duration: Float): Damage {
-        val dangerousWeapons = findDangerousWeapons(duration)
+    fun potentialDamage(duration: Float, missileOnly: Boolean): List<Damage> {
+        val dangerousWeapons: List<WeaponHandle> = findDangerousWeapons(duration, missileOnly)
 
-        return Damage(
-            finisherMissileDanger = dangerousWeapons.any { weapon ->
-                weapon.isFinisherMissile
-            },
-
-            damage = dangerousWeapons.sumOf { weapon ->
-                potentialDamage(duration, weapon)
-            }
-        )
+        return dangerousWeapons.map { weapon ->
+            Damage(
+                damage = potentialDamage(duration, weapon),
+                isFinisherMissile = weapon.isFinisherMissile,
+                weapon = weapon,
+            )
+        }
     }
 
-    private fun findDangerousWeapons(duration: Float): List<WeaponHandle> {
+    private fun findDangerousWeapons(duration: Float, missileOnly: Boolean): List<WeaponHandle> {
         val enemies: MutableList<ShipAPI> = mutableListOf()
         val obstacles: MutableList<ShipAPI> = mutableListOf()
 
+        // Find relevant enemy and allied ships.
         Global.getCombatEngine().ships.asSequence().forEach { entity ->
             if (entity.root == ship.root) {
                 return@forEach
@@ -64,7 +64,9 @@ class WeaponThreat(private val ship: ShipAPI) {
 
         // Take all weapons into account, not just the grouped ones.
         // Otherwise, system weapons like the Shrouded Eye beam will be ignored.
-        val allEnemyWeapons = enemies.flatMap { it.allWeapons.map { weaponAPI -> weaponAPI.handle } }
+        val allEnemyWeapons = enemies.flatMap { ship ->
+            ship.allWeapons.map { weaponAPI -> weaponAPI.handle }
+        }
 
         return allEnemyWeapons.filter { weapon ->
             when {
@@ -79,6 +81,8 @@ class WeaponThreat(private val ship: ShipAPI) {
                 // missile launcher, same as the player can.
                 weapon.isMissile && weapon.isPermanentlyOutOfAmmo -> false
 
+                missileOnly && weapon.spec?.projectileSpec !is MissileSpecAPI -> false
+
                 !canWeaponHitShip(duration, weapon, obstacles) -> false
 
                 else -> true
@@ -92,7 +96,7 @@ class WeaponThreat(private val ship: ShipAPI) {
         val distSqr = toShip.lengthSquared
 
         // Check if projectile will reach the ship during venting.
-        val attackStart = max(
+        val attackStart = maxOf(
             weapon.cooldownRemaining,
             weapon.ship.offlineTimeRemaining,
         )
@@ -151,7 +155,7 @@ class WeaponThreat(private val ship: ShipAPI) {
             return 0f
         }
 
-        val currentRange = closestHitRange(weapon, target, params)
+        val currentRange = weapon.ballistics.closestHitRange(target, params)
 
         when {
             // Already in range. Assume weapon fires immediately
@@ -198,7 +202,7 @@ class WeaponThreat(private val ship: ShipAPI) {
 
     private fun potentialDamage(duration: Float, weapon: WeaponHandle): Float {
         val adjustedVentTime = duration - weapon.cooldownRemaining
-        val rawDamage = max(weapon.derivedStats.dps * adjustedVentTime, weapon.derivedStats.burstDamage)
+        val rawDamage = maxOf(weapon.derivedStats.dps * adjustedVentTime, weapon.derivedStats.burstDamage)
 
         val damageMultiplier = when {
             weapon.isFinisherMissile -> 8f
@@ -214,5 +218,15 @@ class WeaponThreat(private val ship: ShipAPI) {
     }
 
     private val WeaponHandle.isFinisherMissile: Boolean
-        get() = isMissile && damageType == DamageType.HIGH_EXPLOSIVE
+        get() = when {
+            !isMissile -> false
+
+            damageType != DamageType.HIGH_EXPLOSIVE -> false
+
+            hasAIHint(WeaponAPI.AIHints.DO_NOT_CONSERVE) -> false
+
+            hasAIHint(WeaponAPI.AIHints.CONSERVE_1) -> false
+
+            else -> true
+        }
 }

@@ -15,9 +15,7 @@ import com.genir.aitweaks.core.shipai.WeaponGroup
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.ballistics.intercept
-import com.genir.aitweaks.core.shipai.autofire.ballistics.interceptArc
-import com.genir.aitweaks.core.shipai.movement.BasicEngineController
+import com.genir.aitweaks.core.shipai.movement.EngineController
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.state.Config
 import com.genir.aitweaks.core.state.VanillaKeymap
@@ -32,7 +30,7 @@ import java.awt.Color
 
 class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     private var prevPlayerShip: ShipAPI? = null
-    private var engineController: BasicEngineController? = null
+    private var engineController: EngineController? = null
 
     private var currentTarget: CombatEntityAPI? = null
     private var currentAlternatingWeapon: WeaponHandle? = null
@@ -71,7 +69,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
         // Update engine controller if player ship changed.
         if (ship != prevPlayerShip) {
             prevPlayerShip = ship
-            engineController = BasicEngineController(ship.movement)
+            engineController = EngineController(ship.movement)
         }
 
         engineController!!.clearCommands()
@@ -186,7 +184,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
     }
 
     private fun aimWeapon(weapon: WeaponHandle, ballisticTarget: BallisticTarget, params: BallisticParams) {
-        val intercept: Vector2f = intercept(weapon, ballisticTarget, params)
+        val intercept: Vector2f = weapon.ballistics.intercept(ballisticTarget, params)
 
         // Override vanilla-computed weapon facing.
         val aimTracker: AimTracker = weapon.aimTracker
@@ -203,7 +201,7 @@ class AimAssistAI(private val manager: AimAssistManager) : BaseShipAI() {
             group.type == WeaponGroupType.ALTERNATING && weapon.equals(group.activeWeapon) -> true
 
             // Fire linked weapons if it's possible to hit the target.
-            group.type == WeaponGroupType.LINKED && interceptArc(weapon, ballisticTarget, params).contains(weapon.currAngle.toDirection) -> true
+            group.type == WeaponGroupType.LINKED && weapon.ballistics.interceptArc(ballisticTarget, params).contains(weapon.currAngle.toDirection) -> true
 
             else -> false
         }

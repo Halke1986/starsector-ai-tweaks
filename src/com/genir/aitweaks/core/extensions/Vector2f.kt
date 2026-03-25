@@ -2,10 +2,10 @@ package com.genir.aitweaks.core.extensions
 
 import com.genir.aitweaks.core.utils.RADIANS_TO_DEGREES
 import com.genir.aitweaks.core.utils.atan2
-import com.genir.aitweaks.core.utils.sqrt
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.sqrt
 
 operator fun Vector2f.plus(b: Vector2f): Vector2f {
     return Vector2f(x + b.x, y + b.y)
@@ -35,7 +35,7 @@ fun Vector2f.resized(length: Float): Vector2f {
     }
 }
 
-fun Vector2f.clampLength(maxLength: Float): Vector2f {
+fun Vector2f.clampedLength(maxLength: Float): Vector2f {
     return if (lengthSquared > maxLength * maxLength) {
         resized(maxLength)
     } else {

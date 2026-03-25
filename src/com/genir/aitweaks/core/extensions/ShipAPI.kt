@@ -8,6 +8,7 @@ import com.fs.starfarer.api.impl.campaign.ids.HullMods
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
 import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.starfarer.combat.ai.BasicShipAI
@@ -126,7 +127,7 @@ fun ShipAPI.shortestRotationToTarget(target: Vector2f, weaponGroupFacing: Direct
 val ShipAPI.totalCollisionRadius: Float
     get() {
         val modules = childModulesCopy.filter { it.isModule } // Make sure the module is still attached.
-        val drones = deployedDrones?.filter { it.collisionClass == CollisionClass.SHIP }
+        val drones = deployedDrones?.filter { it.collisionClass == CollisionClass.SHIP && it.isValidTarget }
 
         val withModules = modules.maxOfOrNull { (location - it.location).length + it.collisionRadius } ?: 0f
         val withDrones = drones?.maxOfOrNull { (location - it.location).length + it.collisionRadius } ?: 0f
@@ -195,3 +196,6 @@ val ShipAPI.offlineTimeRemaining: Float
 /** Some ships, e.g. ones with Safety Overrides can not vent. */
 val ShipAPI.canVentFlux: Boolean
     get() = mutableStats.ventRateMult.getModifiedValue() > 0f
+
+val ShipAPI.isAlwaysSearchDestroy: Boolean
+    get() = config.fleetwideSearchAndDestroy || variant.hasHullMod("aitweaks_search_and_destroy")

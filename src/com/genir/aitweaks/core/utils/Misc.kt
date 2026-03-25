@@ -1,11 +1,11 @@
 package com.genir.aitweaks.core.utils
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CollisionClass
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShieldAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.util.IntervalUtil
-import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.Preset
@@ -17,7 +17,6 @@ import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.starfarer.combat.entities.Ship
 import org.json.JSONObject
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.max
 
 fun shieldUptime(shield: ShieldAPI?): Float {
     if (shield == null) return 0f
@@ -92,7 +91,7 @@ fun getShortestRotation(from: Vector2f, pivot: Vector2f, to: Vector2f): Directio
 fun firstShipAlongLineOfFire(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit? {
     val obstacles = Grid.ships(weapon.location, weapon.engagementRange).filter { ship ->
         when {
-            ship.isFighter -> false
+            ship.collisionClass != CollisionClass.SHIP -> false
             ship.isExpired -> false
             ship.root == weapon.ship.root -> false
 
@@ -124,11 +123,11 @@ fun mousePosition(): Vector2f {
 }
 
 inline fun <reified T> closestEntity(entities: Collection<CombatEntityAPI>, p: Vector2f): T? {
-    return entities.minByOrNull { (it.location - p).lengthSquared - it.boundsRadius } as? T
+    return entities.minByOrNull { (it.location - p).length - it.boundsRadius } as? T
 }
 
 inline fun <reified T> closestEntity(entities: Sequence<CombatEntityAPI>, p: Vector2f): T? {
-    return entities.minByOrNull { (it.location - p).lengthSquared - it.boundsRadius } as? T
+    return entities.minByOrNull { (it.location - p).length - it.boundsRadius } as? T
 }
 
 /**
@@ -166,20 +165,8 @@ enum class VanillaShipCommand {
 }
 
 fun isCloseToEnemy(ship: ShipAPI, enemy: ShipAPI): Boolean {
-    val maxRange = max(max(Preset.threatSearchRange, ship.maxRange * 2f), enemy.maxRange)
+    val maxRange = maxOf(Preset.threatSearchRange, ship.maxRange * 2f, enemy.maxRange)
     return (ship.location - enemy.location).lengthSquared <= maxRange * maxRange
-}
-
-fun sqrt(x: Float): Float {
-    val result = kotlin.math.sqrt(x)
-
-    if (result.isNaN()) {
-        Debug.print["NaN"] = "NaN"
-        val e = Exception("NaN")
-        Global.getLogger(Log::class.java).error(e, e)
-    }
-
-    return result
 }
 
 fun approachSpeed(a: CombatEntityAPI, b: CombatEntityAPI): Float {

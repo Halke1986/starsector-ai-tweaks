@@ -14,8 +14,11 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Preset.Companion.assaultShipApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.fullAssaultApproachFactor
 import com.genir.aitweaks.core.shipai.Preset.Companion.targetThickness
+import com.genir.aitweaks.core.shipai.Preset.Companion.threatSearchRange
+import com.genir.aitweaks.core.shipai.global.FleetSegmentation
 import com.genir.aitweaks.core.shipai.global.GlobalAI
 import com.genir.aitweaks.core.shipai.movement.Maneuver
+import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.shipai.systems.BurnDriveToggle
 import com.genir.aitweaks.core.shipai.systems.CustomSystemAI
 import com.genir.aitweaks.core.shipai.systems.SystemAIManager
@@ -25,7 +28,6 @@ import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
-import kotlin.math.max
 
 @Suppress("MemberVisibilityCanBePrivate")
 class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
@@ -64,10 +66,14 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
     val knownSegmentationTargets: MutableSet<ShipAPI> = mutableSetOf()
 
+    init {
+        updateInterval.forceIntervalElapsed()
+    }
+
     override fun advance(dt: Float) {
         debug()
 
-        // Cede the control to vanilla AI when the ship is retreating.
+        // Cede control to vanilla AI when the ship is retreating.
         if (ship.assignment?.type == RETREAT) {
             vanilla.advanceBasicShipAI(dt)
             return
@@ -112,32 +118,28 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         }
 
 //        if (ventModule.isBackingOff) {
-//            Debug.drawCollisionRadius(ship, RED)
+//            Debug.drawCollisionRadius(ship, Color.RED)
 //        }
-
+//
 //        Debug.drawTurnLines(ship)
-//        Debug.drawCircle(movement.headingPoint, ship.collisionRadius)
-
-//        Debug.drawCircle(ship.location, stats.threatSearchRange)
-
 //        Debug.drawCircle(ship.location, ship.collisionRadius * 1.4f, Color.CYAN)
-
+//
+//        Debug.drawCircle(ship.location, stats.attackTargetSearchRange)
+//
 //        Debug.drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
-//        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.BLUE)
+//        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.GREEN)
 //        Debug.drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
-
-//        Debug.drawLine(ship.location, movement.headingPoint, Color.MAGENTA)
-
-//        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing) * 600f, Color.GREEN)
-//        Debug.drawLine(ship.location, ship.location + movement.expectedFacing.unitVector * 600f, Color.YELLOW)
-
-//        ship.facing = movement.expectedFacing.degrees
-
-//        Debug.drawLine(ship.location, ship.location + unitVector(ship.facing + attackingGroup.facing) * 600f, Color.BLUE)
-//        Debug.drawLine(ship.location, ship.location + movement.expectedVelocity, Color.GREEN)
-//        Debug.drawLine(ship.location, ship.location + (ship.velocity).resized(300f), Color.BLUE)
+//
+//        Debug.drawLine(ship.location, maneuver.attackPoint ?: ship.location, Color.CYAN)
+//        Debug.drawLine(ship.location, maneuver.headingPoint, Color.GRAY)
+//
+//        Debug.drawLine(ship.location, ship.location + ship.facing.toDirection.unitVector * 600f, Color.GREEN)
+//        Debug.drawLine(ship.location, ship.location + maneuver.expectedFacing.unitVector * 600f, Color.BLUE)
+//
+//        Debug.drawVector(ship.location, maneuver.expectedVelocity, Color.MAGENTA)
+//        Debug.drawVector(ship.location, ship.movement.velocity, Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location - threatVector.resized(600f), Color.PINK)
-
+//
 //        if (maneuverTarget != null) {
 //            Debug.drawCircle(ship.location, attackingGroup.minRange, Color.BLUE)
 //            Debug.drawCircle(maneuverTarget!!.location, effectiveTargetRadius(maneuverTarget!!))
@@ -195,7 +197,8 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
     /** Find a new maneuver target using enemy fleet segmentation. */
     private fun findClosestSegmentationTarget(): ShipAPI? {
-        val segmentation = globalAI.fleetSegmentation[ship.owner]
+        val segmentation: FleetSegmentation = globalAI.fleetSegmentation.getOrNull(ship.owner)
+            ?: return null
 
         // Prioritize the nearest segmentation target over primary targets if the ship is already in proximity to it.
         // Skip ignored targets.
@@ -287,18 +290,38 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     /** Is ship engaged in 1v1 duel with the target. */
     private fun update1v1Status() {
         is1v1 = when {
-            isAvoidingBorder -> false
-            ventModule.isBackingOff -> false
-            attackTarget == null -> false
-            attackTarget != maneuverTarget -> false
-            (attackTarget as? ShipAPI)?.root?.isFrigate != ship.root.isFrigate -> false
-            threats.size > 1 -> false
-            else -> true
+            isAvoidingBorder -> {
+                false
+            }
+
+            ventModule.isBackingOff -> {
+                false
+            }
+
+            attackTarget == null -> {
+                false
+            }
+
+            attackTarget != maneuverTarget -> {
+                false
+            }
+
+            (attackTarget as? ShipAPI)?.root?.movement?.maxSpeed?.let { it > ship.movement.maxSpeed } == true -> { // peak Kotlin
+                false
+            }
+
+            threats.size > 1 -> {
+                false
+            }
+
+            else -> {
+                true
+            }
         }
     }
 
     private fun updateThreats() {
-        threats = Grid.ships(ship.location, stats.threatSearchRange).filter { isThreat(it) }.toSet()
+        threats = Grid.ships(ship.location, threatSearchRange).filter { isThreat(it) }.toSet()
     }
 
     private fun isThreat(target: ShipAPI): Boolean {
@@ -309,12 +332,12 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
      * in movement calculations. Values involved in these calculations
      * should change smoothly to avoid erratic velocity changes. */
     private fun updateThreatVector() {
-        val maxThreatDistSqr = stats.threatSearchRange * stats.threatSearchRange
+        val maxThreatDistSqr = threatSearchRange * threatSearchRange
         threatVector = threats.fold(Vector2f()) { sum, threat ->
             // Count modular ships just once.
             if (threat.isModule) return@fold sum
 
-            val dp = max(1f, threat.deploymentPoints)
+            val dp = maxOf(1f, threat.deploymentPoints)
             val toThreat = threat.location - ship.location
 
             // Threats are assigned decreasing weights as they approach the maximum
@@ -322,7 +345,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             // This ensures smooth transitions in threat vectors, avoiding sudden changes
             // when a threat exits the radius. The maneuver target is always assigned
             // a weight of 1, preventing situations where the threat vector becomes undefined.
-            var weight = max(maxThreatDistSqr - toThreat.lengthSquared, 0f) / maxThreatDistSqr
+            var weight = maxOf(maxThreatDistSqr - toThreat.lengthSquared, 0f) / maxThreatDistSqr
             if(isIgnored(threat))
                 weight /= 100f
 
@@ -374,24 +397,32 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             it != ship && it.owner == ship.owner && !it.isFighter && !it.isFrigate
         }
 
+        val maneuverTarget = this.maneuverTarget
         val targetedEnemies = allies.mapNotNull { it.attackTarget }.filter { it.isBig }.toSet()
 
-        val validThreats: List<ShipAPI> = threats.filter { it.isValidTarget }
+        val allShips: Sequence<ShipAPI> = Grid.ships(ship.location, stats.attackTargetSearchRange)
+        val allTargets = allShips.filter { it.owner != ship.owner && it.isValidTarget }.toList()
+        val allShipTargets = allTargets.filter { !it.isFighter }.toList()
 
-        val opportunities = when {
-            (validThreats.isEmpty() && ship.root.isFrigate) || maneuverTarget?.isFighter == true -> {
-                Grid.ships(ship.location, stats.threatSearchRange).filter { it.owner != ship.owner && it.isValidTarget }.toSet()
-            }
+        // With vanilla balance, the optimal strategy is to ignore fighters and focus on enemy ships.
+        // The AI attacks fighters only when no other targets are available.
+        // For frigates, which can retarget quickly, fighters may be attacked if no nearby ship targets exist.
+        val shouldAttackFighters = if (ship.isFrigate) {
+            allShipTargets.isEmpty() && (maneuverTarget == null || currentEffectiveRange(maneuverTarget) > stats.attackTargetSearchRange)
+        } else {
+            maneuverTarget?.isFighter == true
+        }
 
-            else -> {
-                validThreats
-            }
+        val opportunities = if (shouldAttackFighters) {
+            allTargets
+        } else {
+            allShipTargets
         }
 
         // Find best attack opportunity for each weapon group.
         val weaponGroupTargets: Map<WeaponGroup, Map.Entry<ShipAPI, Float>> = stats.weaponGroups.associateWith { weaponGroup ->
             val obstacles = getObstacles(weaponGroup)
-            val groupOpportunities = opportunities.asSequence().filter { currentEffectiveRange(it) < weaponGroup.maxRange }
+            val groupOpportunities = opportunities.filter { currentEffectiveRange(it) < weaponGroup.maxRange }
             val evaluatedOpportunities: Map<ShipAPI, Float> = groupOpportunities.associateWith {
                 evaluateTarget(it, weaponGroup, obstacles, targetedEnemies)
             }
@@ -423,45 +454,13 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         return Pair(stats.weaponGroups[0], altTarget)
     }
 
-    private inner class Obstacle(val arc: Arc, val dist: Float) {
-        fun occludes(target: ShipAPI): Boolean {
-            val toTarget = target.location - ship.location
-            return arc.contains(toTarget.facing) && dist < toTarget.length
-        }
-    }
-
-    private fun getObstacles(weaponGroup: WeaponGroup): List<Obstacle> {
-        val obstacles = Grid.ships(ship.location, weaponGroup.maxRange).filter { obstacle ->
-            when {
-                // Same ship.
-                obstacle.root == ship.root -> false
-
-                obstacle.isFighter -> false
-
-                // Don't consider enemy ships as obstacles. Try to shoot
-                // through them, as long as they're possible to damage.
-                !obstacle.isHullDamageable -> true
-                obstacle.isHostile(ship) -> false
-
-                obstacle.isFast -> false
-
-                else -> true
-            }
-        }
-
-        // Use simple approximate calculations instead of ballistics for simplicity.
-        return obstacles.map { obstacle ->
-            val toObstacle = obstacle.location - ship.location
-            val dist = toObstacle.length
-            val arc = Arc(angularSize(dist * dist, obstacle.boundsRadius * 0.8f), toObstacle.facing)
-
-            Obstacle(arc, dist)
-        }.toList()
-    }
-
     /** Evaluate if target is worth attacking. The higher the score, the better the target. */
     private fun evaluateTarget(target: ShipAPI, weaponGroup: WeaponGroup, obstacles: List<Obstacle>, targetedEnemies: Set<ShipAPI>): Float {
         var evaluation = 0f
+
+        // Apply a tolerance to the range comparison to avoid rapid value
+        // oscillation when the ship is hovering at the weapon range limit.
+        val rangeTolerance = 10f
 
         // Prioritize targets closer to ship facing.
         val angle = ship.shortestRotationToTarget(target.location, weaponGroup.defaultFacing).length / ship.maxTurnRate
@@ -470,7 +469,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
         // Prioritize closer targets. Avoid attacking targets out of effective weapons range.
         val dist = currentEffectiveRange(target)
-        val distWeight = 1f / weaponGroup.dpsFractionAtRange(dist)
+        val distWeight = 1f / weaponGroup.dpsFractionAtRange(dist - rangeTolerance)
         evaluation -= (dist / weaponGroup.maxRange) * distWeight
 
         // Prioritize targets high on flux. Avoid hunting low flux phase ships.
@@ -510,7 +509,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
         // Try to stay on target.
         if (target == attackTarget) {
-            val withinRange = currentEffectiveRange(target) <= weaponGroup.effectiveRange
+            val withinRange = currentEffectiveRange(target) - rangeTolerance <= weaponGroup.effectiveRange
             val withinArc = (expectedFacing - ship.facing.toDirection).length < 60f
             if (withinRange && withinArc) {
                 evaluation += 1f
@@ -537,6 +536,42 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         }
 
         return evaluation
+    }
+
+    private inner class Obstacle(val arc: Arc, val dist: Float) {
+        fun occludes(target: ShipAPI): Boolean {
+            val toTarget = target.location - ship.location
+            return arc.contains(toTarget.facing) && dist < toTarget.length
+        }
+    }
+
+    private fun getObstacles(weaponGroup: WeaponGroup): List<Obstacle> {
+        val obstacles = Grid.ships(ship.location, weaponGroup.maxRange).filter { obstacle ->
+            when {
+                // Same ship.
+                obstacle.root == ship.root -> false
+
+                obstacle.isFighter -> false
+
+                // Don't consider enemy ships as obstacles. Try to shoot
+                // through them, as long as they're possible to damage.
+                !obstacle.isHullDamageable -> true
+                obstacle.isHostile(ship) -> false
+
+                obstacle.isFast -> false
+
+                else -> true
+            }
+        }
+
+        // Use simple approximate calculations instead of ballistics for simplicity.
+        return obstacles.map { obstacle ->
+            val toObstacle = obstacle.location - ship.location
+            val dist = toObstacle.length
+            val arc = Arc(angularSize(dist * dist, obstacle.boundsRadius * 0.8f), toObstacle.facing)
+
+            Obstacle(arc, dist)
+        }.toList()
     }
 
     /** Range from which ship should attack its target. */
@@ -580,7 +615,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             return (target.location - ship.location).length
         }
 
-        return max(0f, targetBoundsDistance(target) + targetThickness)
+        return maxOf(0f, targetBoundsDistance(target) + targetThickness)
     }
 
     /** Target radius that should be used when calculating attack range. */

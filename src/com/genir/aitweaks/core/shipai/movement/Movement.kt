@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.times
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
+import com.genir.aitweaks.core.utils.types.LinearMotion
 import org.lwjgl.util.vector.Vector2f
 
 /**
@@ -37,16 +38,6 @@ value class Movement(val ship: ShipAPI) {
             else -> 1.0f
         }
 
-    /** Ship deceleration for collision avoidance purposes. */
-    fun collisionDeceleration(collisionFacing: Direction): Float {
-        val angleFromBow = (collisionFacing - facing).length
-        return when {
-            angleFromBow < 30f -> deceleration
-            angleFromBow < 150f -> strafeAcceleration
-            else -> acceleration
-        }
-    }
-
     // Angular velocity.
     val facing: Direction
         get() = ship.facing.toDirection
@@ -63,7 +54,10 @@ value class Movement(val ship: ShipAPI) {
     val turnDeceleration: Float
         get() = ship.turnDeceleration * timeMult
 
-    // Helpers.
+    // Misc.
+    val linearMotion: LinearMotion
+        get() = LinearMotion(location, velocity)
+
     private val timeMult: Float
         get() = ship.mutableStats.timeMult.modifiedValue
 

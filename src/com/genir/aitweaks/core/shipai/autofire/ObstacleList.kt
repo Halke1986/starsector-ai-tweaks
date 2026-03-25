@@ -9,8 +9,6 @@ import com.genir.aitweaks.core.extensions.root
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.ballistics.intercept
-import com.genir.aitweaks.core.shipai.autofire.ballistics.interceptArc
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.types.Arc
@@ -37,8 +35,8 @@ class ObstacleList(private val weapon: WeaponHandle, radius: Float, private val 
             val target = BallisticTarget(ship.location, ship.movement.velocity, ship.boundsRadius * 0.8f, ship)
 
             return@map Obstacle(
-                arc = interceptArc(weapon, target, params),
-                dist = intercept(weapon, target, params).length,
+                arc = weapon.ballistics.interceptArc(target, params),
+                dist = weapon.ballistics.intercept(target, params).length,
                 origin = ship,
             )
         }
@@ -48,7 +46,7 @@ class ObstacleList(private val weapon: WeaponHandle, radius: Float, private val 
 
     fun isOccluded(target: CombatEntityAPI): Boolean {
         val ballisticTarget = BallisticTarget.collisionRadius(target)
-        val intercept = intercept(weapon, ballisticTarget, params)
+        val intercept = weapon.ballistics.intercept(ballisticTarget, params)
 
         return obstacles.any { obstacle ->
             when {

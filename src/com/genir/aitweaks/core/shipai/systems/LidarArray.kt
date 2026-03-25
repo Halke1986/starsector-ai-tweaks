@@ -12,7 +12,6 @@ import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Flags
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams.Companion.defaultBallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.ballistics.canTrack
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
@@ -43,7 +42,7 @@ class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
             ai.flags.set(Flags.Flag.MANEUVER_RANGE_FROM_TARGET, minLidarWeaponRange())
 
             // Check if ship has other flux drains except lidar weapons.
-            zeroFluxBoostMode = lidarWeapons.size == ai.stats.significantWeapons.size && ship.shield == null
+            zeroFluxBoostMode = lidarWeapons.size == ai.stats.primaryWeapons.size && ship.shield == null
 
             when {
                 shouldForceVent() -> ship.command(ShipCommand.VENT_FLUX)
@@ -84,12 +83,11 @@ class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
     }
 
     private fun weaponsOnTarget(target: ShipAPI): Boolean {
-        return lidarWeapons.firstOrNull {
-            !canTrack(
-                it,
+        return lidarWeapons.firstOrNull { weapon ->
+            !weapon.ballistics.canEngage(
                 BallisticTarget.collisionRadius(target),
                 defaultBallisticParams,
-                it.engagementRange * weaponRangeFraction
+                weapon.engagementRange * weaponRangeFraction
             )
         } == null
     }
@@ -137,7 +135,7 @@ class LidarArray(ai: CustomShipAI) : CustomSystemAI(ai) {
     }
 
     private fun getLidarWeapons(): List<WeaponHandle> {
-        return ai.stats.significantWeapons.filter { it.isLidarWeapon }
+        return ai.stats.primaryWeapons.filter { it.isLidarWeapon }
     }
 
     private val WeaponHandle.isLidarWeapon: Boolean

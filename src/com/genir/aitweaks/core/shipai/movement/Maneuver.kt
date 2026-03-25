@@ -7,7 +7,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Assignment
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.global.AttackCoordinator
-import com.genir.aitweaks.core.shipai.movement.EngineController.Destination
+import com.genir.aitweaks.core.shipai.movement.CollisionAwareEngineController.Destination
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Arc
@@ -16,18 +16,17 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.max
-import kotlin.math.min
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ai: CustomShipAI) {
     private val movement: Movement = ai.ship.movement
-    private val engineController: EngineController = EngineController(ai, movement)
+    private val engineController: CollisionAwareEngineController = CollisionAwareEngineController(ai, movement)
     private val collisionAvoidance: CollisionAvoidance = CollisionAvoidance(ai)
 
     private var prevFrameIdx = 0
 
     var headingPoint: Vector2f = Vector2f()
+    var attackPoint: Vector2f? = null // May be different from immediate heading point when ship is orbiting the target.
     var expectedVelocity: Vector2f = Vector2f()
     var expectedFacing: Direction = movement.facing
 
@@ -45,6 +44,10 @@ class Maneuver(val ai: CustomShipAI) {
         engineController.executeCommands()
 
         prevFrameIdx = ai.globalAI.frameTracker.count
+    }
+
+    fun isAvoidingCollision(): Boolean {
+        return engineController.isAvoidinCollision
     }
 
     private fun setFacing(dt: Float) {
@@ -111,6 +114,8 @@ class Maneuver(val ai: CustomShipAI) {
         val navigateTo: Vector2f? = ai.assignment.navigateTo
         val speedLimits = collisionAvoidance.gatherSpeedLimits(dt)
 
+        attackPoint = null
+
         val destination: Destination = when {
             // Let movement system determine ship heading.
             systemOverride != null -> {
@@ -145,7 +150,7 @@ class Maneuver(val ai: CustomShipAI) {
         expectedVelocity = engineController.heading(dt, destination, speedLimits)
     }
 
-    private fun calculateAttackLocation(dt: Float, maneuverTarget: ShipAPI, speedLimits: List<CollisionAvoidance.Limit>): Destination {
+    private fun calculateAttackLocation(dt: Float, maneuverTarget: ShipAPI, speedLimits: List<SpeedLimit>): Destination {
         // If the ship is near the navigation objective, it should
         // position itself between the objective and the target.
         ai.assignment.navigateTo?.let {
@@ -195,7 +200,7 @@ class Maneuver(val ai: CustomShipAI) {
             ai.is1v1 -> {
                 val toShip = movement.location - maneuverTarget.location
                 // Chase the target, but only when it's attempting to escape and is faster than the ship.
-                if ((toShip.facing - maneuverTarget.velocity.facing).length > 90f && movement.maxSpeed < maneuverTarget.movement.maxSpeed) {
+                if ((toShip.facing - maneuverTarget.velocity.facing).length > 90f && movement.velocity.length > maneuverTarget.movement.maxSpeed * 0.7f) {
                     directApproach
                 } else {
                     -ai.threatVector.rotated(strafeRotation)
@@ -218,11 +223,13 @@ class Maneuver(val ai: CustomShipAI) {
         attackLocation = attackLocation.resized(ai.attackRange) + maneuverTarget.location
 
         attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
+        this.attackPoint = attackLocation
+
         return approachTarget(dt, maneuverTarget.movement, attackLocation, speedLimits)
     }
 
     /** Take into account other entities when planning ship attack location. */
-    fun coordinateAttackLocation(maneuverTarget: ShipAPI, attackLocation: Vector2f): Vector2f {
+    private fun coordinateAttackLocation(maneuverTarget: ShipAPI, attackLocation: Vector2f): Vector2f {
         // Coordinate the attack with allied ships.
         val coordinator: AttackCoordinator = ai.globalAI.maneuverCoordinator
         val (coordinatedAttackLocation, taskForceSize) = coordinator.coordinateAttack(ai, maneuverTarget, attackLocation)
@@ -244,7 +251,7 @@ class Maneuver(val ai: CustomShipAI) {
         val engine = Global.getCombatEngine()
         val borderDistX = (movement.location.x * movement.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
         val borderDistY = (movement.location.y * movement.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
-        val borderWeight = max(borderDistX, borderDistY) * 2f
+        val borderWeight = maxOf(borderDistX, borderDistY) * 2f
         return approachVector.resized(1f) - movement.location.resized(borderWeight)
     }
 
@@ -274,7 +281,7 @@ class Maneuver(val ai: CustomShipAI) {
             val arc: Float = angularSize(toHulk.lengthSquared, hulk.collisionRadius + shipSize / 2f)
 
             val facing: Direction = toHulk.facing
-            Arc(min(arc, 90f), facing)
+            Arc(minOf(arc, 90f), facing)
         }.toList()
 
         val mergedArcs = Arc.mergeOverlapping(arcs)
@@ -297,7 +304,7 @@ class Maneuver(val ai: CustomShipAI) {
         dt: Float,
         maneuverTarget: Movement,
         attackLocation: Vector2f,
-        speedLimits: List<CollisionAvoidance.Limit>,
+        speedLimits: List<SpeedLimit>,
     ): Destination {
         // Perform calculations in target frame of reference.
         val toShip = movement.location - maneuverTarget.location
@@ -305,7 +312,7 @@ class Maneuver(val ai: CustomShipAI) {
 
         // Ship is close enough to target to start orbiting it.
         val dist = toShip.length
-        if (dist < max(maneuverTarget.ship.maxRange, ai.attackRange * 1.2f)) {
+        if (dist < maxOf(maneuverTarget.ship.maxRange, ai.attackRange * 1.2f)) {
             return orbitTarget(dt, maneuverTarget, attackLocation, speedLimits)
         }
 
@@ -334,7 +341,7 @@ class Maneuver(val ai: CustomShipAI) {
         dt: Float,
         maneuverTarget: Movement,
         attackLocation: Vector2f,
-        speedLimits: List<CollisionAvoidance.Limit>,
+        speedLimits: List<SpeedLimit>,
     ): Destination {
         // Perform calculations in target frame of reference.
         val toShip = movement.location - maneuverTarget.location
@@ -347,11 +354,11 @@ class Maneuver(val ai: CustomShipAI) {
         // The ship tries to maintain distance from maneuver target.
         // If the maneuver target is slower than the ship, use the
         // remaining ship velocity to move around the orbit.
-        val maxSpeed = max(movement.maxSpeed, movement.velocity.length) + movement.acceleration * dt
+        val maxSpeed = maxOf(movement.maxSpeed, movement.velocity.length) + movement.acceleration * dt
         val t = solve(maneuverTarget.velocity, orbitVelocityVector, maxSpeed)?.largerNonNegative
 
         val approximateOrbitLength = (attackLocation - closestLocationOnOrbit).length
-        val orbitSpeed = BasicEngineController.vMax(dt, approximateOrbitLength, movement.acceleration)
+        val orbitSpeed = EngineController.vMax(dt, approximateOrbitLength, movement.acceleration)
         val cappedOrbitSpeed = t?.coerceAtMost(orbitSpeed) ?: 0f
 
         val expectedVelocity = maneuverTarget.velocity + orbitVelocityVector * cappedOrbitSpeed

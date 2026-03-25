@@ -10,7 +10,10 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.WeaponAPI.AIHints.*
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
-import com.genir.aitweaks.core.shipai.autofire.ballistics.*
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
+import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
+import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.estimateIdealHit
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Grid
@@ -19,7 +22,7 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 
-class UpdateTarget(
+class SelectTarget(
     private val weapon: WeaponHandle,
     private val current: CombatEntityAPI?,
     private val attackTarget: ShipAPI?,
@@ -29,8 +32,8 @@ class UpdateTarget(
         const val TARGET_SEARCH_MULT = 1.5f
     }
 
-    // Search within twice weapon.totalRange to account for projectile flight time,
-    // allowing attacks to start before the target enters maximum range.
+    // Search within TARGET_SEARCH_MULT weapon.totalRange to account for projectile
+    // flight time, allowing attacks to start before the target enters maximum range.
     private val targetSearchRange = weapon.engagementRange * TARGET_SEARCH_MULT
 
     private val obstacleList by lazy {
@@ -51,7 +54,7 @@ class UpdateTarget(
         }
 
         val selectNonSupportFighter = fun(): CombatEntityAPI? {
-            return selectShip { it.isFighter && !it.isSupportFighter }
+            return selectShip { it.isFighter && (!it.isSupportFighter || it == attackTarget) }
         }
 
         return when {
@@ -66,7 +69,8 @@ class UpdateTarget(
             weapon.isAntiFighter -> selectShipOrFighter()
             weapon.hasAIHint(STRIKE) || weapon.isFinisherBeam -> selectShip()
 
-            // Default main weapon.
+            // Default main weapon. Do not fire at support fighters, as this risks wasting weapon
+            // burst immediately before the fighters’ mothership enters weapon range.
             else -> combineSelectors(selectShip, selectNonSupportFighter)
         }
     }
@@ -79,7 +83,7 @@ class UpdateTarget(
 
             if (target != null) {
                 val ballisticTarget = BallisticTarget.collisionRadius(target)
-                val dist = closestHitRange(weapon, ballisticTarget, params)
+                val dist = weapon.ballistics.closestHitRange(ballisticTarget, params)
                 val range = weapon.engagementRange
 
                 // New in-range target found.
@@ -150,17 +154,32 @@ class UpdateTarget(
 
                 !shipTypeFilter(target) -> false
 
-                // Hardpoint weapons select ship target even when it's outside their firing arc,
-                // unless the ship is incapable of following the target.
-                weapon.slot.isHardpoint && !weapon.ship.isFlamedOut && attackTarget != null -> {
-                    target == attackTarget
+                weapon.slot.isHardpoint -> {
+                    when {
+                        // Hardpoint weapons select ship target even when it's outside their firing arc,
+                        // unless the ship is incapable of following the target.
+                        !weapon.ship.isFlamedOut && target == attackTarget -> true
+
+                        !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
+
+                        else -> true
+                    }
                 }
 
-                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, range) -> false
+                weapon.slot.isTurret -> {
+                    when {
+                        !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
 
-                // Allow tracking main attack target even if it's occluded.
-                // This helps the ship to stay focused on finishing a single target.
-                target != attackTarget && obstacleList.isOccluded(target) -> false
+                        // Can the weapon rotate fast enough to track the target.
+                        !canTrack(target) -> false
+
+                        // Allow tracking main attack target even if it's occluded.
+                        // This helps the ship to stay focused on finishing a single target.
+                        target != attackTarget && obstacleList.isOccluded(target) -> false
+
+                        else -> true
+                    }
+                }
 
                 else -> true
             }
@@ -182,7 +201,11 @@ class UpdateTarget(
 
                 target.isFlare && weapon.ignoresFlares -> false
 
-                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, range) -> false
+                !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
+
+                // Beams exhibit rapid on/off behavior when attempting
+                // to track targets with too high angular velocity.
+                !canTrack(target) -> false
 
                 obstacleList.isOccluded(target) -> false
 
@@ -212,7 +235,9 @@ class UpdateTarget(
 
                 !target.isValidTarget -> false
 
-                !canTrack(weapon, BallisticTarget.collisionRadius(target), params, range) -> false
+                !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), params, range) -> false
+
+                !canTrack(target) -> false
 
                 !inViewport(target.location) -> false
 
@@ -241,21 +266,29 @@ class UpdateTarget(
             return current
         }
 
-        val opportunities: Sequence<CombatEntityAPI> = entities.filter { target ->
-            isTargetAcceptable(target, targetSearchRange)
+        var selectedTarget: CombatEntityAPI? = null
+        var targetEvaluation = Float.MAX_VALUE
+        for (target in entities) {
+            if (!isTargetAcceptable(target, targetSearchRange)) {
+                isTargetAcceptable(target, targetSearchRange)
+
+                continue
+            }
+
+            val eval = evaluateTarget(target)
+            if (eval < targetEvaluation) {
+                selectedTarget = target
+                targetEvaluation = eval
+            }
         }
 
-        val evaluated: Sequence<Pair<CombatEntityAPI, Float>> = opportunities.map { opportunity ->
-            evaluateTarget(opportunity)
-        }
-
-        return evaluated.minWithOrNull(compareBy { it.second })?.first
+        return selectedTarget
     }
 
-    private fun evaluateTarget(target: CombatEntityAPI): Pair<CombatEntityAPI, Float> {
+    private fun evaluateTarget(target: CombatEntityAPI): Float {
         var evaluation = 0f
         val ballisticTarget = BallisticTarget.collisionRadius(target)
-        val dist = intercept(weapon, ballisticTarget, params).length
+        val dist = weapon.ballistics.intercept(ballisticTarget, params).length
         val range = weapon.engagementRange
 
         // Evaluate the target based on angle from current weapon facing.
@@ -271,14 +304,16 @@ class UpdateTarget(
             evaluation += outOfRangePenalty
         }
 
-        // Beams exhibit rapid on/off behavior when attempting
-        // to track targets with too high angular velocity.
-        if (weapon.isPlainBeam && estimateAngularVelocity(target) > weapon.turnRateWhileFiring) {
-            val unableToTrackPenalty = 1e3f
-            evaluation += unableToTrackPenalty
+        return evaluation
+    }
+
+    private fun canTrack(target: CombatEntityAPI): Boolean {
+        if (target == weapon.ship.attackTarget) {
+            // Assume the ship is turning towards the attack target.
+            return true
         }
 
-        return Pair(target, evaluation)
+        return estimateAngularVelocity(target) <= weapon.turnRateWhileFiring
     }
 
     /** Estimate target angular velocity in weapon frame of reference.

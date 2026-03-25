@@ -30,7 +30,7 @@ fun analyzeAllyHit(weapon: WeaponHandle, target: CombatEntityAPI, ally: ShipAPI,
         }
 
         else -> {
-            Hit(ally, closestHitRange(weapon, BallisticTarget.shieldRadius(ally), params), Hit.Type.ALLY)
+            Hit(ally, weapon.ballistics.closestHitRange(BallisticTarget.shieldRadius(ally), params), Hit.Type.ALLY)
         }
     }
 }
@@ -47,17 +47,17 @@ private fun canHitAlly(weapon: WeaponHandle, target: CombatEntityAPI, ally: Ship
 
     // Arc occupied by the ally during the duration of the weapon burst.
     val allyArc = Arc.union(
-        interceptArc(weapon, ballisticAlly, startParams),
-        interceptArc(weapon, ballisticAlly, endParams),
+        weapon.ballistics.interceptArc(ballisticAlly, startParams),
+        weapon.ballistics.interceptArc(ballisticAlly, endParams),
     )
 
     // Expected weapon facing towards the enemy at the end of burst.
     val enemyArc = Arc.fromTo(
         weapon.currAngle.toDirection,
-        intercept(weapon, ballisticTarget, endParams).facing,
+        weapon.ballistics.intercept(ballisticTarget, endParams).facing,
     )
 
-    val spread = weapon.spec.maxSpread + 2f
+    val spread = (weapon.spec?.maxSpread ?: 0f) + 2f
     return allyArc.addAngle(spread).overlaps(enemyArc)
 }
 
@@ -66,7 +66,9 @@ private fun canHitAlly(weapon: WeaponHandle, target: CombatEntityAPI, ally: Ship
 private fun weaponBurstInterval(weapon: WeaponHandle): Pair<Float, Float> {
     // Don't bother with interruptible burst weapons.
     // They are rare and difficult to account for.
-    if (weapon.spec.isInterruptibleBurst) return Pair(0f, 0f)
+    if (weapon.spec?.isInterruptibleBurst == true) {
+        return Pair(0f, 0f)
+    }
 
     val cycle = weapon.firingCycle
     return Pair(cycle.warmupDuration, cycle.warmupDuration + cycle.burstDuration)

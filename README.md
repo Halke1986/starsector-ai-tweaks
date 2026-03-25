@@ -51,6 +51,9 @@ A reworked ship AI, replacing a significant part of vanilla logic with custom im
 progress, and will probably remain so for a long time. The custom AI can be activated via a hullmod on all ship
 except phase and non combat carriers.
 
+As an addition, custom AI makes the ship default to Search and Destroy order. The ship will not be automatically 
+assigned to Assault, Eliminate or any other tasks. Player can manually assign the ship to any tasks.
+
 ![custom_ship_ai](https://raw.githubusercontent.com/Halke1986/starsector-ai-tweaks/master/images/custom_ship_ai.png)
 
 ### 2. Ships rotate to aim hardpoints and correctly handle broadside builds ###

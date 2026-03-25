@@ -75,7 +75,7 @@ class CoreLoader : URLClassLoader(arrayOf(latestCoreURL())) {
         val c: Class<*> = when {
             name.startsWith("com.genir.aitweaks.core") -> {
                 // Load and transform AI Tweaks core logic classes.
-                val classBuffer = Bytecode.readClassBuffer(this, name)
+                val classBuffer = Transformer.readClassBuffer(this, name)
                 val obfuscated = obfuscator.apply(obfuscator.apply(classBuffer))
                 defineClass(name, obfuscated, 0, obfuscated.size)
             }
