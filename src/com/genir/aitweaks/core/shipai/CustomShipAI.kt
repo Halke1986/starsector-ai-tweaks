@@ -302,7 +302,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
     }
 
     private fun isThreat(target: ShipAPI): Boolean {
-        return target.owner != ship.owner && target.isAlive && !target.isFighter && !isIgnored(target)
+        return target.owner != ship.owner && target.isAlive && !target.isFighter
     }
 
     /** The threat vector should be updated every frame, as it is used
@@ -322,7 +322,9 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             // This ensures smooth transitions in threat vectors, avoiding sudden changes
             // when a threat exits the radius. The maneuver target is always assigned
             // a weight of 1, preventing situations where the threat vector becomes undefined.
-            val weight = max(maxThreatDistSqr - toThreat.lengthSquared, 0f) / maxThreatDistSqr
+            var weight = max(maxThreatDistSqr - toThreat.lengthSquared, 0f) / maxThreatDistSqr
+            if(isIgnored(threat))
+                weight /= 100f
 
             val dir = toThreat.resized(weight)
             sum + dir * dp * dp
@@ -609,6 +611,8 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
     fun isIgnored(target: ShipAPI): Boolean {
         val playerTaskManager = Global.getCombatEngine().getFleetManager(0).getTaskManager(false)
-        return playerTaskManager.getAssignmentInfoForTarget(target.deployedFleetMember).type == CombatAssignmentType.IGNORE
+        val assignmentInfo =  playerTaskManager.getAssignmentInfoForTarget(target.deployedFleetMember)
+        return assignmentInfo != null && assignmentInfo.type == CombatAssignmentType.IGNORE
+            && (ship.assignment == null || ship.assignment!!.target != target)
     }
 }
