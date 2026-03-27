@@ -13,9 +13,8 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.*
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.shieldUptime
 
-val fire = null
-
 enum class HoldFire {
+    FIRE,
     AVOID_PHASED,
     AVOID_SHIELDS,
     AVOID_EXPOSED_HULL,
@@ -31,101 +30,113 @@ enum class HoldFire {
 }
 
 class AttackRules(private val weapon: WeaponHandle, private val hit: Hit, private val params: BallisticParams) {
-    val shouldHoldFire = avoidPhased() ?: conservePDAmmo() ?: avoidWrongDamageType()
+    fun shouldHoldFire(): HoldFire {
+        val reasonPhased = avoidPhased()
+        if (reasonPhased != FIRE) {
+            return reasonPhased
+        }
 
-    private fun avoidPhased(): HoldFire? = when {
-        (hit.target as? ShipAPI)?.isPhased != true -> fire
+        val reasonAmmo = conservePDAmmo()
+        if (reasonAmmo != FIRE) {
+            return reasonAmmo
+        }
+
+        return avoidWrongDamageType()
+    }
+
+    private fun avoidPhased(): HoldFire = when {
+        (hit.target as? ShipAPI)?.isPhased != true -> FIRE
 
         weapon.conserveAmmo -> AVOID_PHASED
-        weapon.isPD -> fire
-        weapon.isBeam -> fire
-        hit.target.FluxLevel > 0.9f -> fire
+        weapon.isPD -> FIRE
+        weapon.isBeam -> FIRE
+        hit.target.FluxLevel > 0.9f -> FIRE
 
         else -> AVOID_PHASED
     }
 
     /** Do not waste PD ammo on ships, and non-PD ammo on fighters and missiles. */
-    private fun conservePDAmmo(): HoldFire? = when {
-        !weapon.usesAmmo() -> fire
-        weapon.hasAmmoToSpare -> fire
+    private fun conservePDAmmo(): HoldFire = when {
+        !weapon.usesAmmo() -> FIRE
+        weapon.hasAmmoToSpare -> FIRE
 
-        weapon.isAntiFighter && hit.target.isFighter -> fire
-        weapon.isPD && hit.target.isPDTarget -> fire
-        (!weapon.isPD || weapon.hasAIHint(PD_ALSO)) && hit.target.isShip -> fire
+        weapon.isAntiFighter && hit.target.isFighter -> FIRE
+        weapon.isPD && hit.target.isPDTarget -> FIRE
+        (!weapon.isPD || weapon.hasAIHint(PD_ALSO)) && hit.target.isShip -> FIRE
 
         else -> CONSERVE_AMMO
     }
 
-    private fun avoidWrongDamageType(): HoldFire? = when {
-        !hit.target.isShip -> fire
+    private fun avoidWrongDamageType(): HoldFire = when {
+        !hit.target.isShip -> FIRE
 
         weapon.isStrictlyAntiShield -> avoidExposedHull()
 
         weapon.isStrictlyAntiArmor -> avoidShields()
 
-        else -> fire
+        else -> FIRE
     }
 
     /** Ensure projectile will not hit shields. */
-    private fun avoidShields(): HoldFire? {
+    private fun avoidShields(): HoldFire {
         return when {
-            !hit.target.isShip -> fire
+            !hit.target.isShip -> FIRE
 
-            hit.type != SHIELD -> fire
+            hit.type != SHIELD -> FIRE
 
             weapon.usesAmmo() -> when {
                 // Voidblaster on Assault Units in incursion mode
                 // (and other weapons in similar circumstances)
                 // should be allowed to use spare ammo on shields in all cases.
-                weapon.ammoRegenMultiplier > 3f && weapon.hasAmmoToSpare -> fire
+                weapon.ammoRegenMultiplier > 3f && weapon.hasAmmoToSpare -> FIRE
 
                 config.strictUseLessVSShields -> AVOID_SHIELDS
 
-                weapon.hasAmmoToSpare -> fire
+                weapon.hasAmmoToSpare -> FIRE
 
                 else -> AVOID_SHIELDS
             }
 
             // Try to burst through almost depleted shields.
-            weapon.isBurstBeam && weapon.firingCycle.damage > (hit.target as ShipAPI).fluxLeft * 2f -> fire
+            weapon.isBurstBeam && weapon.firingCycle.damage > (hit.target as ShipAPI).fluxLeft * 2f -> FIRE
 
             // Don't interrupt fire because of shield flicker.
-            weapon.isInFiringCycle && shieldUptime(hit.target.shield) < 1.2f -> fire
+            weapon.isInFiringCycle && shieldUptime(hit.target.shield) < 1.2f -> FIRE
 
             else -> AVOID_SHIELDS
         }
     }
 
     /** Ensure projectile will not hit exposed hull. */
-    private fun avoidExposedHull(): HoldFire? = when {
-        !hit.target.isShip -> fire
+    private fun avoidExposedHull(): HoldFire = when {
+        !hit.target.isShip -> FIRE
 
-        weapon.size == LARGE && (hit.target as ShipAPI).root.isFrigate -> fire
+        weapon.size == LARGE && (hit.target as ShipAPI).root.isFrigate -> FIRE
 
-        weapon.ship.system?.let { it.specAPI.id == "lidararray" && it.isOn } == true -> fire
+        weapon.ship.system?.let { it.specAPI.id == "lidararray" && it.isOn } == true -> FIRE
 
         hit.type == HULL -> AVOID_EXPOSED_HULL
 
         // Avoid shield flicker.
         shieldUptime(hit.target.shield) < minOf(0.8f, weapon.firingCycle.duration) -> AVOID_EXPOSED_HULL
 
-        else -> fire
+        else -> FIRE
     }
 }
 
 /** Avoiding friendly fire works under the assumption that the provided
  * actual hit is the first non-fighter, non-phased ship or phased friendly
  * ship along the line of fire. */
-fun avoidFriendlyFire(weapon: WeaponHandle, expected: Hit, actual: Hit?): HoldFire? {
+fun avoidFriendlyFire(weapon: WeaponHandle, expected: Hit, actual: Hit?): HoldFire {
     return when {
         // There are no obstacles in the line of fire.
         actual == null -> {
-            fire
+            FIRE
         }
 
         // Weapon will hit an unidentified entity. Allow fire.
         actual.target !is ShipAPI -> {
-            fire
+            FIRE
         }
 
         // Weapon will hit a friendly ship.
@@ -138,7 +149,7 @@ fun avoidFriendlyFire(weapon: WeaponHandle, expected: Hit, actual: Hit?): HoldFi
 
             // Allow risk of friendly fire if PD weapon misses its target.
             allowPDFriendlyFire(weapon, expected) -> {
-                fire
+                FIRE
             }
 
             else -> {
@@ -149,7 +160,7 @@ fun avoidFriendlyFire(weapon: WeaponHandle, expected: Hit, actual: Hit?): HoldFi
         // Obstacle is behind the expected target. This case may happen
         // during PD fire, when a high likelihood of a miss is assumed.
         expected.range < actual.range -> {
-            fire
+            FIRE
         }
 
         // Weapon will hit inert or enemy ship.
@@ -157,7 +168,7 @@ fun avoidFriendlyFire(weapon: WeaponHandle, expected: Hit, actual: Hit?): HoldFi
 
             // Beams transiting to a new target are allowed to hit inert targets.
             expected.type == ROTATE_BEAM -> {
-                fire
+                FIRE
             }
 
             !actual.target.isAlive -> {
@@ -170,7 +181,7 @@ fun avoidFriendlyFire(weapon: WeaponHandle, expected: Hit, actual: Hit?): HoldFi
 
             // Weapon will hit a damageable enemy ship. Allow fire.
             else -> {
-                fire
+                FIRE
             }
         }
     }

@@ -35,7 +35,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     // Aiming data.
     protected var target: CombatEntityAPI? = null
     private var aimPoint: Vector2f? = null
-    var shouldHoldFire: HoldFire? = NO_TARGET
+    var shouldHoldFire: HoldFire = NO_TARGET
     private val interceptTracker = InterceptTracker(weapon)
 
     // Timers.
@@ -97,7 +97,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
                 false
             }
 
-            shouldHoldFire != null -> false
+            shouldHoldFire != FIRE -> false
 
             else -> syncFire.shouldFire()
         }
@@ -146,19 +146,29 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     private fun shouldUpdateTargetImmediately(target: CombatEntityAPI?): Boolean {
         return when {
             // Leave the case of no target to slow update interval.
-            target == null -> false
+            target == null -> {
+                false
+            }
 
             // Target was destroyed the previous frame.
-            !target.isValidTarget -> true
+            !target.isValidTarget -> {
+                true
+            }
 
             // Next step does not apply to hardpoint weapons tracking ship attack target.
-            target == ship.attackTarget && weapon.slot.isHardpoint -> false
+            target == ship.attackTarget && weapon.slot.isHardpoint -> {
+                false
+            }
 
             // Weapon can no longer track the target. Use double the weapon.totalRange to allow
             // tracking potential targets when there are no targets within the actual firing range.
-            !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), weapon.currentBallisticsParams, weapon.engagementRange * TARGET_SEARCH_MULT) -> true
+            !weapon.ballistics.canEngage(BallisticTarget.collisionRadius(target), weapon.currentBallisticsParams, weapon.engagementRange * TARGET_SEARCH_MULT) -> {
+                true
+            }
 
-            else -> false
+            else -> {
+                false
+            }
         }
     }
 
@@ -209,28 +219,29 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         updateAim(dt)
     }
 
-    protected open fun calculateShouldFire(): HoldFire? {
+    protected open fun calculateShouldFire(): HoldFire {
         val shouldHoldFire = calculateShouldFireInner()
 
-        if (shouldHoldFire != fire && jitterBeamShutdown()) {
-            return fire
+        if (shouldHoldFire != FIRE && jitterBeamShutdown()) {
+            return FIRE
         }
 
         return shouldHoldFire
     }
 
-    private fun calculateShouldFireInner(): HoldFire? {
+    private fun calculateShouldFireInner(): HoldFire {
         val target = target
         if (target == null || !target.isValidTarget) {
             if (jitterBeamShutdown()) {
-                return fire
+                return FIRE
             }
 
             return NO_TARGET
         }
 
-        holdFireIfOverfluxed(target)?.let { reason ->
-            return reason
+        val reasonOverfluxed = holdFireIfOverfluxed(target)
+        if (reasonOverfluxed != FIRE) {
+            return reasonOverfluxed
         }
 
         // Fire only when the selected target can be hit. That way the weapon doesn't fire
@@ -252,15 +263,17 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
             return OUT_OF_RANGE
         }
 
-        stabilizeOnTarget()?.let { reason ->
-            return reason
+        val reasonStabilize = stabilizeOnTarget()
+        if (reasonStabilize != FIRE) {
+            return reasonStabilize
         }
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, target, ballisticParams)
 
-        avoidFriendlyFire(weapon, expectedHit, actualHit)?.let { reason ->
-            return reason
+        val reasonAvoidFF = avoidFriendlyFire(weapon, expectedHit, actualHit)
+        if (reasonAvoidFF != FIRE) {
+            return reasonAvoidFF
         }
 
         // Rest of the should-fire decisioning will be based on the actual hit.
@@ -274,7 +287,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
             else -> actualHit
         }
 
-        return AttackRules(weapon, hit, ballisticParams).shouldHoldFire
+        return AttackRules(weapon, hit, ballisticParams).shouldHoldFire()
     }
 
     /** PD beam weapons are updated each frame, which can cause many beams to shut down
@@ -283,7 +296,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     private fun jitterBeamShutdown(): Boolean {
         return when {
             // Weapon already holding fire
-            shouldHoldFire != fire -> false
+            shouldHoldFire != FIRE -> false
 
             // Jitter applies only to normal beams.
             !weapon.isPlainBeam -> false
@@ -297,21 +310,23 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         }
     }
 
-    protected fun holdFireIfOverfluxed(target: CombatEntityAPI): HoldFire? {
+    protected fun holdFireIfOverfluxed(target: CombatEntityAPI): HoldFire {
         return when {
             // Ships with no shields don't need to preserve flux.
-            ship.shield == null -> null
+            ship.shield == null -> FIRE
 
-            weapon.isPD -> null
+            weapon.isPD -> FIRE
 
-            weapon.ship.isUnderManualControl -> null
+            weapon.ship.isUnderManualControl -> FIRE
 
-            shouldFinishTarget(target) -> null
+            shouldFinishTarget(target) -> FIRE
 
             // Ship will be overfluxed after the attack.
-            ship.fluxTracker.currFlux + weapon.fluxCostToFire >= ship.fluxTracker.maxFlux * Preset.holdFireThreshold -> SAVE_FLUX
+            ship.fluxTracker.currFlux + weapon.fluxCostToFire >= ship.fluxTracker.maxFlux * Preset.holdFireThreshold -> {
+                SAVE_FLUX
+            }
 
-            else -> null
+            else -> FIRE
         }
     }
 
@@ -330,23 +345,25 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
 
     /** Hold fire for a period of time after initially acquiring
      * the target to increase first volley accuracy. */
-    private fun stabilizeOnTarget(): HoldFire? {
+    private fun stabilizeOnTarget(): HoldFire {
         when {
             // PD weapons should fire with no delay.
-            weapon.isPD || target!!.isPDTarget -> return null
+            weapon.isPD || target!!.isPDTarget -> return FIRE
 
             // Normal beams are accurate enough to fire with no delay.
-            weapon.isPlainBeam -> return null
+            weapon.isPlainBeam -> return FIRE
 
             // Weapon is on target for long enough already.
-            onTargetTime >= minOf(2f, weapon.firingCycle.duration) -> return null
+            onTargetTime >= minOf(2f, weapon.firingCycle.duration) -> return FIRE
         }
 
         val arc = weapon.ballistics.interceptArc(BallisticTarget.collisionRadius(target!!), weapon.currentBallisticsParams)
         val inaccuracy = (arc.facing - weapon.currAngle.toDirection).length
-        if (inaccuracy * 4f > arc.angle) return STABILIZE_ON_TARGET
+        if (inaccuracy * 4f > arc.angle) {
+            return STABILIZE_ON_TARGET
+        }
 
-        return null
+        return FIRE
     }
 
     /** Given the finite speed of beam weapons, when the weapon is off target,
