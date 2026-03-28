@@ -134,24 +134,33 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }
 
     private fun avoidMissiles(dt: Float): List<SpeedLimit?> {
-        val allMissiles: Sequence<MissileAPI> = Global.getCombatEngine().missiles.asSequence()
-        val relevantMissiles: Sequence<MissileAPI> = allMissiles.filter { missile: MissileAPI ->
+        val speedThreshold = movement.maxSpeed
+        return Global.getCombatEngine().missiles.mapNotNull { missile: MissileAPI ->
+            // Filter irrelevant missiles.
             when {
-                !missile.isValidTarget -> false
+                !missile.isValidTarget -> return@mapNotNull null
 
-                missile.owner == ai.ship.owner -> false
+                missile.owner == ai.ship.owner -> return@mapNotNull null
 
                 // Always avoid mines.
-                missile.isMine -> true
+                missile.isMine -> Unit
 
-                (movement.ship.root.isFrigate || movement.ship.root.isDestroyer) && ai.ventModule.isBackingOff -> true
+                // Smaller ships avoid all missiles, but only when backing off.
+                (movement.ship.root.isFrigate || movement.ship.root.isDestroyer) && ai.ventModule.isBackingOff -> Unit
 
-                else -> false
+                else -> return@mapNotNull null
             }
-        }
 
-        val speedThreshold = movement.maxSpeed
-        return relevantMissiles.mapNotNull { missile: MissileAPI ->
+            // Ignore missiles that are blocking the retreat vector.
+            if (ai.ventModule.isBackingOff && !missile.isMine) {
+                val toDestination: Vector2f = ai.maneuver.headingPoint - movement.location
+                val toMissile: Vector2f = missile.location - movement.location
+
+                if ((toDestination.facing - toMissile.facing).length < 60f) {
+                    return@mapNotNull null
+                }
+            }
+
             val missileMotion = LinearMotion(missile.location, missile.velocity)
             val missileRadius = maxOf(missile.mineExplosionRange, missile.collisionRadius * 5f, 150f)
             val minDistance = ai.stats.totalCollisionRadius + missileRadius
@@ -162,7 +171,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
             }
 
             return@mapNotNull vMax
-        }.toList()
+        }
     }
 
     private fun avoidAsteroids(dt: Float): List<SpeedLimit?> {

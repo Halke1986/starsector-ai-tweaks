@@ -1,7 +1,6 @@
 package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
-import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
 import com.fs.starfarer.api.combat.ShipwideAIFlags
@@ -14,11 +13,9 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
-import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedY
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import kotlin.math.abs
-import kotlin.math.sign
 import kotlin.math.sqrt
 
 /**
@@ -184,8 +181,16 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             val obstacleToYield = boundToYield?.obstacle
             if (y != 0f && boundToYield != null && obstacleToYield != null) {
                 val obstacleDirection = obstacleDirection(obstacleToYield)
-                if (obstacleDirection.rotatedY(boundToYield.r).sign == velocity.rotatedY(boundToYield.r).sign) {
-                    return
+                val intersection: Pair<Float, Float>? = LinearMotion.intersection(
+                    LinearMotion(movement.location, velocity),
+                    LinearMotion(obstacleToYield.location, obstacleDirection),
+                )
+
+                if (intersection != null) {
+                    val (k, t) = intersection
+                    if (k > 0f && t > 0f) {
+                        return
+                    }
                 }
             }
 
@@ -195,7 +200,13 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             val angleNormalized = 1f - angleToExpected / 180f
             val angleSquared = angleNormalized * angleNormalized
 
-            val score = velocity.length * angleSquared
+            val directionChangePenalty = if (obstacleToYield == null && (velocity.facing - movement.velocity.facing).length > 60f) {
+                0.5f
+            } else {
+                1.0f
+            }
+
+            val score = velocity.length * angleSquared * directionChangePenalty
 
             if (this.velocity == null || score > this.score) {
                 this.velocity = velocity
@@ -233,17 +244,10 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
 
     /** Movement de-conflicting. */
     private fun shouldYield(bound: Bound): Boolean {
-        val obstacle: CombatEntityAPI = bound.obstacle
+        val obstacle: ShipAPI = bound.obstacle as? ShipAPI
             ?: return false
 
-        // Do not try to cross paths with missiles.
-        if (obstacle is MissileAPI) {
-            return true
-        }
-
-        // Yield to allies controlled by custom AI.
-        val obstacleAI = (obstacle as? ShipAPI)?.customShipAI?.maneuver
-            ?: return false
+        // Yield only to allies.
         if (movement.ship.owner != obstacle.owner) {
             return false
         }
@@ -256,7 +260,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         }
 
         // Check if ship intends to cross obstacle velocity vector.
-        val obstacleDirection = (obstacleAI.attackPoint ?: obstacleAI.headingPoint) - obstacle.location
+        val obstacleDirection = obstacleDirection(obstacle)
         val direction = (ai.maneuver.attackPoint ?: ai.maneuver.headingPoint) - movement.location
 
         // Ship and obstacle move roughly along the same path. Do not yield.
@@ -360,31 +364,19 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
     }
 
     private fun debugDrawBounds(bounds: List<Bound>) {
-        bounds.forEach { bound ->
-            val pMin: Float
-            val pMax: Float
+        val vMax = ship.maxSpeed
 
-            when {
-                bound.pMin == -1e4f && bound.pMax == 1e4f -> {
-                    pMin = bound.pMin.coerceIn(-200f, 200f)
-                    pMax = bound.pMax.coerceIn(-200f, 200f)
-                }
+        Debug.drawCircle(movement.location, vMax, Color.GRAY)
 
-                bound.pMin == -1e4f -> {
-                    pMin = bound.pMin.coerceAtLeast(minOf(-200f, bound.pMax))
-                    pMax = bound.pMax
-                }
-
-                bound.pMax == 1e4f -> {
-                    pMin = bound.pMin
-                    pMax = bound.pMax.coerceAtMost(maxOf(200f, bound.pMin))
-                }
-
-                else -> {
-                    pMin = bound.pMin
-                    pMax = bound.pMax
-                }
+        for (bound in bounds) {
+            if (abs(bound.speedLimit) >= vMax) {
+                continue
             }
+
+            val vLim = sqrt(vMax * vMax - bound.speedLimit * bound.speedLimit)
+
+            val pMin: Float = bound.pMin.coerceIn(-vLim, vLim)
+            val pMax: Float = bound.pMax.coerceIn(-vLim, vLim)
 
             val p1 = movement.location + Vector2f(bound.speedLimit, pMin).rotatedReverse(bound.r)
             val p2 = movement.location + Vector2f(bound.speedLimit, pMax).rotatedReverse(bound.r)
