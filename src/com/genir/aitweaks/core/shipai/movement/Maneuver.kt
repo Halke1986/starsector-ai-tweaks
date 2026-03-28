@@ -161,9 +161,6 @@ class Maneuver(val ai: CustomShipAI) {
         val isAttackingStation = targetRoot.isStation && maneuverTarget.isModule && targetRoot != maneuverTarget
         val directApproach = movement.location - maneuverTarget.location
 
-        // Post-processing flags.
-        var preferMapCenter = true
-
         val attackVector: Vector2f = when {
             // When attacking a station, avoid positioning the ship
             // with station bulk obstructing the targeted module.
@@ -178,7 +175,6 @@ class Maneuver(val ai: CustomShipAI) {
 
             // If the enemy is retreating, attempt to intercept and block its escape route.
             Global.getCombatEngine().getFleetManager(movement.ship.owner xor 1).getTaskManager(false).isInFullRetreat -> {
-                preferMapCenter = false
                 when (movement.ship.owner) {
                     0 -> Vector2f(0f, 1f)
                     else -> Vector2f(0f, -1f)
@@ -214,17 +210,11 @@ class Maneuver(val ai: CustomShipAI) {
         }
 
         // Calculate attack location in global coordinates.
-        var attackLocation = if (preferMapCenter) {
-            preferMapCenter(attackVector)
-        } else {
-            attackVector
-        }
-
+        var attackLocation = preferredAttackLocation(attackVector)
         attackLocation = attackLocation.resized(ai.attackRange) + maneuverTarget.location
-
         attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
-        this.attackPoint = attackLocation
 
+        this.attackPoint = attackLocation
         return approachTarget(dt, maneuverTarget.movement, attackLocation, speedLimits)
     }
 
@@ -246,13 +236,31 @@ class Maneuver(val ai: CustomShipAI) {
         return adjustedAttackLocation
     }
 
-    /** Strafe away from map border, prefer the map center. */
-    private fun preferMapCenter(approachVector: Vector2f): Vector2f {
-        val engine = Global.getCombatEngine()
-        val borderDistX = (movement.location.x * movement.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
-        val borderDistY = (movement.location.y * movement.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
-        val borderWeight = maxOf(borderDistX, borderDistY) * 2f
-        return approachVector.resized(1f) - movement.location.resized(borderWeight)
+    private fun preferredAttackLocation(approachVector: Vector2f): Vector2f {
+        when {
+            // Do not modify the approach vector when chasing retreating enemies.
+            Global.getCombatEngine().getFleetManager(movement.ship.owner xor 1).getTaskManager(false).isInFullRetreat -> {
+                return approachVector
+            }
+
+            // Skirmishers should prefer attacking from the sides,
+            // where they do not block the line of fire of larger ships.
+            movement.ship.isSkirmisher -> {
+                return Vector2f(
+                    approachVector.x,
+                    approachVector.y * 0.66f,
+                )
+            }
+
+            // Default behavior is to strafe away from the map border and prefer the map center.
+            else -> {
+                val engine = Global.getCombatEngine()
+                val borderDistX = (movement.location.x * movement.location.x) / (engine.mapWidth * engine.mapWidth * 0.25f)
+                val borderDistY = (movement.location.y * movement.location.y) / (engine.mapHeight * engine.mapHeight * 0.25f)
+                val borderWeight = maxOf(borderDistX, borderDistY) * 2f
+                return approachVector.resized(1f) - movement.location.resized(borderWeight)
+            }
+        }
     }
 
     /** Adjust the ship's heading to avoid positioning with hulks obstructing its target. */
