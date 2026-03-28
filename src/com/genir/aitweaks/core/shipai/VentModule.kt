@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
+import com.genir.aitweaks.core.shipai.autofire.HoldFire
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitBounds
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitShield
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
@@ -353,7 +354,10 @@ class VentModule(private val ai: CustomShipAI) {
             ship.system?.isOn == true -> false
 
             // Flux is not critical, but still could use an opportunity to vent.
-            ship.FluxLevel >= opportunisticVentThreshold -> true
+            ship.hasShield && ship.FluxLevel >= opportunisticVentThreshold -> true
+
+            // Shield shunt ships should take the opportunity vent whenever there's a pause in an engagement.
+            !ship.hasShield && ship.fluxTracker.timeToVent > 2f && !isFullyEngaged() -> true
 
             // Vent when the ship is idle.
             ship.FluxLevel >= idleVentThreshold && isIdle() -> true
@@ -533,6 +537,19 @@ class VentModule(private val ai: CustomShipAI) {
         // the ship is willing to tolerate.
         val damage = 1 - target.hullLevel
         return ship.FluxLevel < damage * damage
+    }
+
+    private fun isFullyEngaged(): Boolean {
+        if (ai.attackTarget?.isValidTarget != true) {
+            return false
+        }
+
+        val engagedWeaponsCount = ai.attackingGroup.weapons.count { weapon ->
+            weapon.isInFiringCycle || weapon.customAI?.shouldHoldFire == HoldFire.FIRE
+        }
+
+        // Consider the ship fully engaged when at least 75% of its weapons are attacking the target.
+        return engagedWeaponsCount / ai.attackingGroup.weapons.size >= 0.75f
     }
 
     private fun isIdle(): Boolean {
