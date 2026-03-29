@@ -28,15 +28,13 @@ import kotlin.math.sqrt
 class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) : EngineController(movement) {
     data class Destination(val location: Vector2f, val velocity: Vector2f)
 
-    var isAvoidinCollision = false
-
     private data class Bound(
         val r: RotationMatrix,
         val unconstrainedSpeedLimit: Float,
         val speedLimit: Float,
         val obstacle: CombatEntityAPI?,
-        val pMin: Float,
-        val pMax: Float,
+        val minPoint: Float,
+        val maxPoint: Float,
     )
 
     fun heading(dt: Float, destination: Destination, limits: List<SpeedLimit> = listOf()): Vector2f {
@@ -49,41 +47,9 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
      * velocity vector that respects the limit while moving the ship as efficiently
      * as possible toward its destination. */
     private fun limitVelocity(expectedVelocity: Vector2f, rotationToShip: RotationMatrix, limits: List<SpeedLimit>): Vector2f? {
-        isAvoidinCollision = false
-        val rawBounds: MutableList<Bound> = mutableListOf()
         val dodgeSpeed = maxOf(expectedVelocity.length, ship.maxSpeed)
-
-        // Clamp reverse (negative) speed limits, so they stay below the ship's
-        // maximum speed. This alters the resulting velocity vector, allowing
-        // the ship to slide past the obstacle instead of continuously backing away.
-        val boundConstraint = dodgeSpeed * -0.5f
-
-        for (limit in limits) {
-            // Discard speed limits with value too high to affect the ship movement.
-            if (limit.speedLimit > dodgeSpeed) {
-                continue
-            }
-
-            // Rotation to limit FoR.
-            val r = (-limit.direction).rotationMatrix
-            val exceededBy = expectedVelocity.rotatedX(r) - limit.speedLimit
-            if (exceededBy > 0f) {
-                isAvoidinCollision = true
-            }
-
-            val constrainedLimit = limit.speedLimit.coerceAtLeast(boundConstraint)
-            val bound = Bound(r, limit.speedLimit, constrainedLimit, limit.obstacle, 0f, 0f)
-            rawBounds.add(bound)
-        }
-
-        if (!isAvoidinCollision) {
-            return null
-        }
-
-        val bounds: List<Bound> = buildBounds(rawBounds)
+        val bounds: List<Bound> = compileBounds(expectedVelocity, dodgeSpeed, limits)
         if (bounds.isEmpty()) {
-            // Leave the behavior undefined in the unusual case
-            // of strongly contradicting speed limits.
             return null
         }
 
@@ -170,7 +136,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         var score: Float = 0f
 
         fun evaluate(yOffset: Float, bound: Bound) {
-            val y: Float = yOffset.coerceIn(bound.pMin, bound.pMax)
+            val y: Float = yOffset.coerceIn(bound.minPoint, bound.maxPoint)
             val velocity: Vector2f = Vector2f(bound.speedLimit, y).rotatedReverse(bound.r)
 
             if (velocity.length > maxAllowedSpeed) {
@@ -220,7 +186,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         var score: Float = Float.MAX_VALUE
 
         fun evaluate(yOffset: Float, bound: Bound) {
-            val y: Float = yOffset.coerceIn(bound.pMin, bound.pMax)
+            val y: Float = yOffset.coerceIn(bound.minPoint, bound.maxPoint)
             val velocity: Vector2f = Vector2f(bound.speedLimit, y).rotatedReverse(bound.r)
 
             val score = velocity.length
@@ -284,7 +250,41 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         return timeToIntersection > obstacleTimeToIntersection
     }
 
-    private fun buildBounds(rawBounds: List<Bound>): List<Bound> {
+    private fun compileBounds(expectedVelocity: Vector2f, dodgeSpeed: Float, limits: List<SpeedLimit>): List<Bound> {
+        var isAvoidinCollision = false
+        val rawBounds: MutableList<Bound> = mutableListOf()
+
+        // Clamp reverse (negative) speed limits, so they stay below the ship's
+        // maximum speed. This alters the resulting velocity vector, allowing
+        // the ship to slide past the obstacle instead of continuously backing away.
+        val boundConstraint = dodgeSpeed * -0.66f
+
+        for (limit in limits) {
+            // Discard speed limits with value too high to affect the ship movement.
+            if (limit.speedLimit > dodgeSpeed) {
+                continue
+            }
+
+            // Rotation to limit FoR.
+            val r = (-limit.direction).rotationMatrix
+            val exceededBy = expectedVelocity.rotatedX(r) - limit.speedLimit
+            if (exceededBy > 0f) {
+                isAvoidinCollision = true
+            }
+
+            val constrainedLimit = limit.speedLimit.coerceAtLeast(boundConstraint)
+            val bound = Bound(r, limit.speedLimit, constrainedLimit, limit.obstacle, 0f, 0f)
+            rawBounds.add(bound)
+        }
+
+        if (!isAvoidinCollision) {
+            return listOf()
+        }
+
+        return filterAndConnectBounds(rawBounds)
+    }
+
+    private fun filterAndConnectBounds(rawBounds: List<Bound>): List<Bound> {
         val strictBounds = intersectBounds(rawBounds, 0f)
         if (strictBounds.isNotEmpty()) {
             return strictBounds
@@ -375,8 +375,8 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
 
             val vLim = sqrt(vMax * vMax - bound.speedLimit * bound.speedLimit)
 
-            val pMin: Float = bound.pMin.coerceIn(-vLim, vLim)
-            val pMax: Float = bound.pMax.coerceIn(-vLim, vLim)
+            val pMin: Float = bound.minPoint.coerceIn(-vLim, vLim)
+            val pMax: Float = bound.maxPoint.coerceIn(-vLim, vLim)
 
             val p1 = movement.location + Vector2f(bound.speedLimit, pMin).rotatedReverse(bound.r)
             val p2 = movement.location + Vector2f(bound.speedLimit, pMax).rotatedReverse(bound.r)
