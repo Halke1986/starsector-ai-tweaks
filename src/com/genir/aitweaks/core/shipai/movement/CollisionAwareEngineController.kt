@@ -26,17 +26,6 @@ import kotlin.math.sqrt
  * to prevent unsafe movement.
  */
 class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) : EngineController(movement) {
-    data class Destination(val location: Vector2f, val velocity: Vector2f)
-
-    private data class Bound(
-        val r: RotationMatrix,
-        val unconstrainedSpeedLimit: Float,
-        val speedLimit: Float,
-        val obstacle: CombatEntityAPI?,
-        val minPoint: Float,
-        val maxPoint: Float,
-    )
-
     fun heading(dt: Float, destination: Destination, limits: List<SpeedLimit> = listOf()): Vector2f {
         return heading(dt, destination.location, destination.velocity) { ve, rotationToShip ->
             limitVelocity(ve, rotationToShip, limits)
@@ -252,7 +241,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
 
     private fun compileBounds(expectedVelocity: Vector2f, dodgeSpeed: Float, limits: List<SpeedLimit>): List<Bound> {
         var isAvoidinCollision = false
-        val rawBounds: MutableList<Bound> = mutableListOf()
+        val rawBounds: MutableList<RawBound> = mutableListOf()
 
         // Clamp reverse (negative) speed limits, so they stay below the ship's
         // maximum speed. This alters the resulting velocity vector, allowing
@@ -273,7 +262,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             }
 
             val constrainedLimit = limit.speedLimit.coerceAtLeast(boundConstraint)
-            val bound = Bound(r, limit.speedLimit, constrainedLimit, limit.obstacle, 0f, 0f)
+            val bound = RawBound(r, limit.speedLimit, constrainedLimit, limit.obstacle)
             rawBounds.add(bound)
         }
 
@@ -284,7 +273,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         return filterAndConnectBounds(rawBounds)
     }
 
-    private fun filterAndConnectBounds(rawBounds: List<Bound>): List<Bound> {
+    private fun filterAndConnectBounds(rawBounds: List<RawBound>): List<Bound> {
         val strictBounds = intersectBounds(rawBounds, 0f)
         if (strictBounds.isNotEmpty()) {
             return strictBounds
@@ -314,7 +303,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         return relaxedBounds
     }
 
-    private fun intersectBounds(rawBounds: List<Bound>, tolerance: Float): List<Bound> {
+    private fun intersectBounds(rawBounds: List<RawBound>, tolerance: Float): List<Bound> {
         return rawBounds.mapNotNull { bound ->
             // Find enclosing velocity bounds.
             val speedLimit = bound.speedLimit + tolerance
@@ -359,7 +348,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
                 return@mapNotNull null
             }
 
-            return@mapNotNull Bound(bound.r, bound.unconstrainedSpeedLimit, speedLimit, bound.obstacle, pMin, pMax)
+            return@mapNotNull Bound(bound.r, bound.unconstrainedSpeedLimit, speedLimit, bound.obstacle, null, pMin, pMax)
         }
     }
 
@@ -384,4 +373,23 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             Debug.drawLine(p1, p2, Color.BLUE)
         }
     }
+
+    data class Destination(val location: Vector2f, val velocity: Vector2f)
+
+    private data class RawBound(
+        val r: RotationMatrix,
+        val unconstrainedSpeedLimit: Float,
+        val speedLimit: Float,
+        val obstacle: CombatEntityAPI?,
+    )
+
+    private data class Bound(
+        val r: RotationMatrix,
+        val unconstrainedSpeedLimit: Float,
+        val speedLimit: Float,
+        val obstacle: CombatEntityAPI?,
+        val yieldDirection: Int?,
+        val minPoint: Float,
+        val maxPoint: Float,
+    )
 }
