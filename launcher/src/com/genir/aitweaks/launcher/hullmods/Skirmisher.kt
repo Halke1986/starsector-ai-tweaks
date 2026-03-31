@@ -9,17 +9,7 @@ class Skirmisher : BaseHullMod() {
     }
 
     override fun isApplicableToShip(ship: ShipAPI): Boolean {
-        return when {
-            ship.isStation -> false
-
-            ship.stationSlot != null && ship.parentStation != null -> false
-
-            ship.isFighter -> false
-
-            ship.isFrigate -> false
-
-            else -> true
-        }
+        return getUnapplicableReason(ship) == null
     }
 
     override fun getUnapplicableReason(ship: ShipAPI): String? {

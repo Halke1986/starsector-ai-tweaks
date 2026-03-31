@@ -3,19 +3,20 @@ package com.genir.aitweaks.core.shipai.movement
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand.*
-import com.fs.starfarer.api.combat.ShipwideAIFlags
 import com.genir.aitweaks.core.debug.Debug
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.utils.timeToOrigin
 import com.genir.aitweaks.core.utils.types.Direction
-import com.genir.aitweaks.core.utils.types.LinearMotion
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedReverse
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
+import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedY
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import kotlin.math.abs
+import kotlin.math.sign
 import kotlin.math.sqrt
 
 /**
@@ -49,7 +50,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         // multiple, select the one exceeded the most.
         for (bound in bounds) {
             val exceededBy = expectedVelocity.rotatedX(bound.r) - bound.unconstrainedSpeedLimit
-            if (shouldYield(bound) && exceededBy > boundToYieldExceededBy) {
+            if (bound.yieldDirection != null && exceededBy > boundToYieldExceededBy) {
                 boundToYield = bound
                 boundToYieldExceededBy = exceededBy
             }
@@ -133,19 +134,11 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             }
 
             // Discard velocities that would cross obstacle direction vector.
-            val obstacleToYield = boundToYield?.obstacle
-            if (y != 0f && boundToYield != null && obstacleToYield != null) {
-                val obstacleDirection = obstacleDirection(obstacleToYield)
-                val intersection: Pair<Float, Float>? = LinearMotion.intersection(
-                    LinearMotion(movement.location, velocity),
-                    LinearMotion(obstacleToYield.location, obstacleDirection),
-                )
-
-                if (intersection != null) {
-                    val (k, t) = intersection
-                    if (k > 0f && t > 0f) {
-                        return
-                    }
+            val yieldDirection: Float? = boundToYield?.yieldDirection
+            if (y != 0f && boundToYield != null && yieldDirection != null) {
+                val yieldDirectionLocal = Vector2f(0f, yieldDirection).rotatedReverse(boundToYield.r).rotatedY(bound.r)
+                if (yieldDirectionLocal.sign != y.sign) {
+                    return
                 }
             }
 
@@ -155,13 +148,12 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             val angleNormalized = 1f - angleToExpected / 180f
             val angleSquared = angleNormalized * angleNormalized
 
-            val directionChangePenalty = if (obstacleToYield == null && (velocity.facing - movement.velocity.facing).length > 60f) {
-                0.5f
-            } else {
-                1.0f
-            }
+            var score = velocity.length * angleSquared
 
-            val score = velocity.length * angleSquared * directionChangePenalty
+            // Apply direction change penalty.
+            if ((velocity.facing - movement.velocity.facing).length > 60f) {
+                score /= 2f
+            }
 
             if (this.velocity == null || score > this.score) {
                 this.velocity = velocity
@@ -195,48 +187,6 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
 
         // Fallback to velocity.
         return obstacle.velocity
-    }
-
-    /** Movement de-conflicting. */
-    private fun shouldYield(bound: Bound): Boolean {
-        val obstacle: ShipAPI = bound.obstacle as? ShipAPI
-            ?: return false
-
-        // Yield only to allies.
-        if (movement.ship.owner != obstacle.owner) {
-            return false
-        }
-
-        // If the obstacle is a retreating ally, the ship must proactively
-        // yield right-of-way even if their paths do not intersect.
-        val obstacleBackingOff = obstacle.aiFlags.hasFlag(ShipwideAIFlags.AIFlags.BACKING_OFF)
-        if (obstacleBackingOff != ai.ventModule.isBackingOff) {
-            return obstacleBackingOff
-        }
-
-        // Check if ship intends to cross obstacle velocity vector.
-        val obstacleDirection = obstacleDirection(obstacle)
-        val direction = (ai.maneuver.attackPoint ?: ai.maneuver.headingPoint) - movement.location
-
-        // Ship and obstacle move roughly along the same path. Do not yield.
-        if ((obstacleDirection.facing - direction.facing).length < 45f) {
-            return false
-        }
-
-        val (k, t) = LinearMotion.intersection(
-            LinearMotion(movement.location, direction),
-            LinearMotion(obstacle.location, obstacleDirection),
-        ) ?: return false
-
-        // Ship does not intend to cross the obstacle velocity vector.
-        if (k < 0f || k > 0.9f || t < 0f || t > 0.9f) {
-            return false
-        }
-
-        val timeToIntersection = (direction * k).length / movement.maxSpeed
-        val obstacleTimeToIntersection = (obstacleDirection * t).length / obstacle.maxSpeed
-
-        return timeToIntersection > obstacleTimeToIntersection
     }
 
     private fun compileBounds(expectedVelocity: Vector2f, dodgeSpeed: Float, limits: List<SpeedLimit>): List<Bound> {
@@ -348,8 +298,37 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
                 return@mapNotNull null
             }
 
-            return@mapNotNull Bound(bound.r, bound.unconstrainedSpeedLimit, speedLimit, bound.obstacle, null, pMin, pMax)
+            return@mapNotNull Bound(
+                bound.r,
+                bound.unconstrainedSpeedLimit,
+                speedLimit,
+                bound.obstacle,
+                calculateYieldDirection(bound),
+                pMin,
+                pMax,
+            )
         }
+    }
+
+    /** Movement de-conflicting. */
+    private fun calculateYieldDirection(bound: RawBound): Float? {
+        val obstacle = bound.obstacle as? ShipAPI
+            ?: return null
+
+        if (obstacle.isHostile(movement.ship)) {
+            return null
+        }
+
+        val obstacleDirection: Vector2f = obstacleDirection(obstacle)
+        val shipDirection: Vector2f = (ai.maneuver.attackPoint ?: ai.maneuver.headingPoint) - movement.location
+
+        val p: Vector2f = obstacle.location - movement.location
+        val v: Vector2f = obstacleDirection - shipDirection
+        val t: Float = timeToOrigin(p, v)
+
+        val closestPoint: Vector2f = p + v * t
+
+        return -closestPoint.rotatedY(bound.r).sign
     }
 
     private fun debugDrawBounds(bounds: List<Bound>) {
@@ -374,7 +353,10 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         }
     }
 
-    data class Destination(val location: Vector2f, val velocity: Vector2f)
+    data class Destination(
+        val location: Vector2f,
+        val velocity: Vector2f,
+    )
 
     private data class RawBound(
         val r: RotationMatrix,
@@ -388,7 +370,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         val unconstrainedSpeedLimit: Float,
         val speedLimit: Float,
         val obstacle: CombatEntityAPI?,
-        val yieldDirection: Int?,
+        val yieldDirection: Float?,
         val minPoint: Float,
         val maxPoint: Float,
     )
