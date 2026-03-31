@@ -220,9 +220,10 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     }
 
     protected open fun calculateShouldFire(): HoldFire {
+        val prevShouldHoldFire = this.shouldHoldFire
         val shouldHoldFire = calculateShouldFireInner()
 
-        if (shouldHoldFire != FIRE && jitterBeamShutdown()) {
+        if (prevShouldHoldFire == FIRE && shouldHoldFire != FIRE && jitterBeamShutdown()) {
             return FIRE
         }
 
@@ -232,10 +233,6 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     private fun calculateShouldFireInner(): HoldFire {
         val target = target
         if (target == null || !target.isValidTarget) {
-            if (jitterBeamShutdown()) {
-                return FIRE
-            }
-
             return NO_TARGET
         }
 
@@ -270,7 +267,6 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
 
         // Check what actually will get hit, and hold fire if it's an ally or hulk.
         val actualHit = firstShipAlongLineOfFire(weapon, target, ballisticParams)
-
         val reasonAvoidFF = avoidFriendlyFire(weapon, expectedHit, actualHit)
         if (reasonAvoidFF != FIRE) {
             return reasonAvoidFF
@@ -295,16 +291,14 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
      * by a short random duration to ensure a more gradual cessation.*/
     private fun jitterBeamShutdown(): Boolean {
         return when {
-            // Weapon already holding fire
-            shouldHoldFire != FIRE -> false
-
             // Jitter applies only to normal beams.
             !weapon.isPlainBeam -> false
 
             // Only PD weapons are updated each frame.
             !weapon.isPD -> false
 
-            shouldFireInterval.intervalElapsed() -> false
+            // Allow the beam to shut down eventually.
+            updateTargetInterval.intervalElapsed() -> false
 
             else -> true
         }
@@ -520,5 +514,13 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     }
 
     private val WeaponHandle.isSlowRotating: Boolean
-        get() = turnRateWhileFiring < ship.baseTurnRate
+        get() {
+            return when {
+                turnRateWhileIdle < ship.baseTurnRate -> true
+
+                isNonInterruptibleBurstWeapon && turnRateWhileFiring < ship.baseTurnRate -> true
+
+                else -> false
+            }
+        }
 }
