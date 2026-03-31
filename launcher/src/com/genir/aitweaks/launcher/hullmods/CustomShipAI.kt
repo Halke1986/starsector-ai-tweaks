@@ -41,6 +41,10 @@ class CustomShipAI : BaseHullMod() {
                 "Can not be installed on modules."
             }
 
+            ship.hullSpec.engineSpec.maxSpeed == 0f -> {
+                "Can not be installed on modules."
+            }
+
             ship.isFighter -> {
                 "Can not be installed on fighters."
             }

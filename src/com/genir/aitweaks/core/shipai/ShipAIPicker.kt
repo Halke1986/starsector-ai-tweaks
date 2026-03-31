@@ -107,6 +107,8 @@ class ShipAIPicker : com.genir.aitweaks.launcher.ShipAIPicker {
 
             ship.isFighter -> false
 
+            ship.hullSpec.engineSpec.maxSpeed == 0f -> false
+
             else -> true
         }
     }

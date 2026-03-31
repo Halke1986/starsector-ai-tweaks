@@ -59,11 +59,5 @@ Lelboihi
 this isnt the ai tweaks prerelease channel but uhhh
 local odyssey (IX) decides to drop shields and vent infront of 10 dragonfires fired by strike pegasus, fucking dies
 
-
-coordination between cruisers and frigates
-
-
-https://fractalsoftworks.com/forum/index.php?topic=28428.msg512701#msg512701
-
 ----------------------------------------------------------------
  
