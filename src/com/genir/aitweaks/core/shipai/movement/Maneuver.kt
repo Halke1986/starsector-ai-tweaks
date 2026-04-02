@@ -100,10 +100,15 @@ class Maneuver(val ai: CustomShipAI) {
             else -> null
         }
 
-        val shouldStop = newExpectedFacing == null
-        expectedFacing = newExpectedFacing ?: movement.facing
-
-        engineController.facing(dt, expectedFacing, shouldStop)
+        if (newExpectedFacing != null) {
+            val prevExpectedFacing: Direction = expectedFacing
+            val angularVelocity = (newExpectedFacing - prevExpectedFacing).degrees / dt
+            engineController.facing(dt, newExpectedFacing, angularVelocity)
+            expectedFacing = newExpectedFacing
+        } else {
+            engineController.facing(dt, movement.facing, 0f)
+            expectedFacing = movement.facing
+        }
     }
 
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?) {

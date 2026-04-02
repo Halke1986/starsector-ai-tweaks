@@ -70,32 +70,32 @@ class MirrorTargetAI(val ship: ShipAPI, val target: ShipAPI) : BaseEngineControl
     }
 }
 
-class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : BaseEngineControllerAI() {
-    private val controller = EngineController(ship.movement)
-
-    override fun advance(dt: Float) {
-        val toTarget = target.location - ship.location
-
-        val v = toTarget.rotated(RotationMatrix(90f)).resized(ship.baseMaxSpeed)
-
-        controller.heading(dt, toTarget.resized(-r) + target.location, v + target.velocity)
-        controller.facing(dt, toTarget.facing, false)
-    }
-}
-
-class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
-    private val controller = EngineController(ship.movement)
-
-    override fun advance(dt: Float) {
-        expectedFacing += df.toDirection * dt
-
-        Debug.drawLine(ship.location, ship.location + expectedFacing.unitVector * 400f, Color.GREEN)
-        Debug.drawLine(ship.location, ship.location + ship.facing.toDirection.unitVector * 400f, Color.BLUE)
-        Debug.print["f"] = (expectedFacing - ship.facing.toDirection).length
-
-        controller.facing(dt, expectedFacing, false)
-    }
-}
+//class OrbitTargetAI(val ship: ShipAPI, val target: ShipAPI, val r: Float) : BaseEngineControllerAI() {
+//    private val controller = EngineController(ship.movement)
+//
+//    override fun advance(dt: Float) {
+//        val toTarget = target.location - ship.location
+//
+//        val v = toTarget.rotated(RotationMatrix(90f)).resized(ship.baseMaxSpeed)
+//
+//        controller.heading(dt, toTarget.resized(-r) + target.location, v + target.velocity)
+//        controller.facing(dt, toTarget.facing, false)
+//    }
+//}
+//
+//class RotateEngineControllerAI(val ship: ShipAPI) : BaseEngineControllerAI() {
+//    private val controller = EngineController(ship.movement)
+//
+//    override fun advance(dt: Float) {
+//        expectedFacing += df.toDirection * dt
+//
+//        Debug.drawLine(ship.location, ship.location + expectedFacing.unitVector * 400f, Color.GREEN)
+//        Debug.drawLine(ship.location, ship.location + ship.facing.toDirection.unitVector * 400f, Color.BLUE)
+//        Debug.print["f"] = (expectedFacing - ship.facing.toDirection).length
+//
+//        controller.facing(dt, expectedFacing, false)
+//    }
+//}
 
 class FollowMouseAI(val ship: ShipAPI) : BaseEngineControllerAI() {
     private val controller = EngineController(ship.movement)
