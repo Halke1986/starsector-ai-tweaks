@@ -63,7 +63,7 @@ class BurnDriveToggle(ai: CustomShipAI) : CustomSystemAI(ai) {
      * calculated specifically for an assault-type ship. In other words,
      * it drives the ship straight at the target without strafing. */
     private fun updateBurnVector() {
-        burnVector = ai.maneuver.headingPoint - ship.location
+        burnVector = ai.maneuver.destination - ship.location
     }
 
     /** Should the ship position itself to begin burn? */

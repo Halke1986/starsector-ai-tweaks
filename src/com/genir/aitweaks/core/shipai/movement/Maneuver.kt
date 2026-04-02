@@ -7,7 +7,6 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Assignment
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.global.AttackCoordinator
-import com.genir.aitweaks.core.shipai.movement.CollisionAwareEngineController.Destination
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.*
 import com.genir.aitweaks.core.utils.types.Arc
@@ -25,8 +24,11 @@ class Maneuver(val ai: CustomShipAI) {
 
     private var prevFrameIdx = 0
 
-    var headingPoint: Vector2f = Vector2f()
-    var attackPoint: Vector2f? = null // May be different from immediate heading point when ship is orbiting the target.
+    // Temporary point used for steering maneuvers. The controller steers
+    // toward this point, without changing the final destination.
+    private var steeringPoint: Vector2f = Vector2f()
+    var destination: Vector2f = Vector2f()
+
     var expectedVelocity: Vector2f = Vector2f()
     var expectedFacing: Direction = movement.facing
 
@@ -105,14 +107,12 @@ class Maneuver(val ai: CustomShipAI) {
     }
 
     private fun setHeading(dt: Float, maneuverTarget: ShipAPI?) {
-        val systemOverride: Destination? = ai.systemAI?.overrideHeading()
-        val backoffOverride: Destination? = ai.ventModule.overrideHeading(maneuverTarget)
+        val systemOverride: ExpectedManeuver? = ai.systemAI?.overrideHeading()
+        val backoffOverride: ExpectedManeuver? = ai.ventModule.overrideHeading(maneuverTarget)
         val navigateTo: Vector2f? = ai.assignment.navigateTo
         val speedLimits = collisionAvoidance.gatherSpeedLimits(dt)
 
-        attackPoint = null
-
-        val destination: Destination = when {
+        val expectedManeuver: ExpectedManeuver = when {
             // Let movement system determine ship heading.
             systemOverride != null -> {
                 systemOverride
@@ -120,7 +120,7 @@ class Maneuver(val ai: CustomShipAI) {
 
             // Heading to assignment location takes priority.
             navigateTo != null && (ai.threatVector.isZero || !ai.assignment.arrivedAt) -> {
-                Destination(navigateTo, Vector2f())
+                ExpectedManeuver(navigateTo, null, Vector2f())
             }
 
             // Hand over control to backoff module when the ship is backing off.
@@ -138,19 +138,21 @@ class Maneuver(val ai: CustomShipAI) {
 
             // Nothing to do, stop the ship.
             else -> {
-                Destination(movement.location, Vector2f())
+                ExpectedManeuver(movement.location, null, Vector2f())
             }
         }
 
-        headingPoint.set(destination.location) // Set to avoid relying on changing value.
-        expectedVelocity = engineController.heading(dt, destination, speedLimits)
+        destination.set(expectedManeuver.destination) // Set to avoid relying on changing value.
+        steeringPoint.set(expectedManeuver.steeringPoint ?: expectedManeuver.destination)
+
+        expectedVelocity = engineController.heading(dt, steeringPoint, expectedManeuver.velocityAtDestination, speedLimits)
     }
 
-    private fun calculateAttackLocation(dt: Float, maneuverTarget: ShipAPI, speedLimits: List<SpeedLimit>): Destination {
+    private fun calculateAttackLocation(dt: Float, maneuverTarget: ShipAPI, speedLimits: List<SpeedLimit>): ExpectedManeuver {
         // If the ship is near the navigation objective, it should
         // position itself between the objective and the target.
         ai.assignment.navigateTo?.let {
-            return Destination(maneuverTarget.location - it, Vector2f())
+            return ExpectedManeuver(maneuverTarget.location - it, null, Vector2f())
         }
 
         val targetRoot = maneuverTarget.root
@@ -210,7 +212,6 @@ class Maneuver(val ai: CustomShipAI) {
         attackLocation = attackLocation.resized(ai.attackRange) + maneuverTarget.location
         attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
 
-        this.attackPoint = attackLocation
         return approachTarget(dt, maneuverTarget.movement, attackLocation, speedLimits)
     }
 
@@ -309,7 +310,7 @@ class Maneuver(val ai: CustomShipAI) {
         maneuverTarget: Movement,
         attackLocation: Vector2f,
         speedLimits: List<SpeedLimit>,
-    ): Destination {
+    ): ExpectedManeuver {
         // Perform calculations in target frame of reference.
         val toShip = movement.location - maneuverTarget.location
         val toAttackLocation = attackLocation - maneuverTarget.location
@@ -335,7 +336,11 @@ class Maneuver(val ai: CustomShipAI) {
         val point2Dir = (pointsOfTangency.second + toShip).facing - toAttackLocation.facing
 
         val tangentialAttackVector = if (point1Dir.length < point2Dir.length) pointsOfTangency.first else pointsOfTangency.second
-        return Destination(movement.location + tangentialAttackVector, maneuverTarget.velocity)
+        return ExpectedManeuver(
+            destination = attackLocation,
+            steeringPoint = movement.location + tangentialAttackVector,
+            velocityAtDestination = maneuverTarget.velocity,
+        )
     }
 
     /** Maintain distance to maneuver target while approaching the expected attackLocation.
@@ -346,7 +351,7 @@ class Maneuver(val ai: CustomShipAI) {
         maneuverTarget: Movement,
         attackLocation: Vector2f,
         speedLimits: List<SpeedLimit>,
-    ): Destination {
+    ): ExpectedManeuver {
         // Perform calculations in target frame of reference.
         val toShip = movement.location - maneuverTarget.location
         val toAttackLocation = attackLocation - maneuverTarget.location
@@ -376,6 +381,16 @@ class Maneuver(val ai: CustomShipAI) {
 
         // Instruct the engine controller to position the ship on the calculated orbit,
         // and assume the calculated orbital speed.
-        return Destination(closestLocationOnOrbit, expectedVelocity.resized(clampedSpeed))
+        return ExpectedManeuver(
+            destination = attackLocation,
+            steeringPoint = closestLocationOnOrbit,
+            velocityAtDestination = expectedVelocity.resized(clampedSpeed),
+        )
     }
+
+    data class ExpectedManeuver(
+        val destination: Vector2f,
+        val steeringPoint: Vector2f?,
+        val velocityAtDestination: Vector2f,
+    )
 }

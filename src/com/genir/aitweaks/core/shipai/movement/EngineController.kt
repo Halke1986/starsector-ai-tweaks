@@ -31,7 +31,7 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
      * `limitVelocity` lambda is used to restrict the velocity, e.g. for
      * collision avoidance purposes. Returns the calculated expected velocity.
      */
-    fun heading(dt: Float, heading: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Vector2f, RotationMatrix) -> Vector2f?)? = null): Vector2f {
+    fun heading(dt: Float, destination: Vector2f, targetVelocity: Vector2f, limitVelocity: ((Vector2f, RotationMatrix) -> Vector2f?)? = null): Vector2f {
         // Change unit of time from second to
         // animation frame duration (* dt).
         val af = movement.acceleration * dt * dt
@@ -45,7 +45,7 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
         val w = movement.angularVelocity * dt
         val toShipFacing = -(movement.facing + w.toDirection) + 90f.toDirection
         val r = toShipFacing.rotationMatrix
-        val d = (heading - movement.location).rotated(r)
+        val d = (destination - movement.location).rotated(r)
         val v = (movement.velocity).rotated(r) * dt
         val vt = targetVelocity.rotated(r) * dt
 

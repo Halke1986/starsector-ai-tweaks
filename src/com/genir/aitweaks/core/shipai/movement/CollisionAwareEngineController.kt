@@ -27,8 +27,8 @@ import kotlin.math.sqrt
  * to prevent unsafe movement.
  */
 class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) : EngineController(movement) {
-    fun heading(dt: Float, destination: Destination, limits: List<SpeedLimit> = listOf()): Vector2f {
-        return heading(dt, destination.location, destination.velocity) { ve, rotationToShip ->
+    fun heading(dt: Float, destination: Vector2f, targetVelocity: Vector2f, limits: List<SpeedLimit> = listOf()): Vector2f {
+        return heading(dt, destination, targetVelocity) { ve, rotationToShip ->
             limitVelocity(ve, rotationToShip, limits)
         }
     }
@@ -182,7 +182,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
     private fun obstacleDirection(obstacle: CombatEntityAPI): Vector2f {
         val obstacleAI = (obstacle as? ShipAPI)?.customShipAI?.maneuver
         if (obstacleAI != null) {
-            return (obstacleAI.attackPoint ?: obstacleAI.headingPoint) - obstacle.location
+            return obstacleAI.destination - obstacle.location
         }
 
         // Fallback to velocity.
@@ -310,7 +310,9 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         }
     }
 
-    /** Movement de-conflicting. */
+    /** Calculate the direction along the speed limit boundry
+     * in which the ship should move to avoid blocking movement
+     * paths of other ships. */
     private fun calculateYieldDirection(bound: RawBound): Float? {
         val obstacle = bound.obstacle as? ShipAPI
             ?: return null
@@ -320,7 +322,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         }
 
         val obstacleDirection: Vector2f = obstacleDirection(obstacle)
-        val shipDirection: Vector2f = (ai.maneuver.attackPoint ?: ai.maneuver.headingPoint) - movement.location
+        val shipDirection: Vector2f = ai.maneuver.destination - movement.location
 
         val p: Vector2f = obstacle.location - movement.location
         val v: Vector2f = obstacleDirection - shipDirection
@@ -352,11 +354,6 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
             Debug.drawLine(p1, p2, Color.BLUE)
         }
     }
-
-    data class Destination(
-        val location: Vector2f,
-        val velocity: Vector2f,
-    )
 
     private data class RawBound(
         val r: RotationMatrix,

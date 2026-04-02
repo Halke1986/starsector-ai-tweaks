@@ -153,7 +153,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
             // Ignore missiles that are blocking the retreat vector.
             if (ai.ventModule.isBackingOff && !missile.isMine) {
-                val toDestination: Vector2f = ai.maneuver.headingPoint - movement.location
+                val toDestination: Vector2f = ai.maneuver.destination - movement.location
                 val toMissile: Vector2f = missile.location - movement.location
 
                 if ((toDestination.facing - toMissile.facing).length < 60f) {

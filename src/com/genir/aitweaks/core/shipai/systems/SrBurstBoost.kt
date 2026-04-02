@@ -87,7 +87,7 @@ class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
     private fun updatePlannedBurst(): BurstPlan? {
         // Use burst to back off.
         if (ai.ventModule.isBackingOff) {
-            return makeBurstPlan(ai.maneuver.headingPoint - ship.location, burstVectors, null)
+            return makeBurstPlan(ai.maneuver.destination - ship.location, burstVectors, null)
         }
 
         // Use burst to ram opportunity target.

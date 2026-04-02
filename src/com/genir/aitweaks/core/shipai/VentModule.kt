@@ -11,7 +11,7 @@ import com.genir.aitweaks.core.shipai.autofire.HoldFire
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitBounds
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitShield
 import com.genir.aitweaks.core.shipai.autofire.firingCycle
-import com.genir.aitweaks.core.shipai.movement.CollisionAwareEngineController.Destination
+import com.genir.aitweaks.core.shipai.movement.Maneuver
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.shipai.threat.MissileThreat
 import com.genir.aitweaks.core.shipai.threat.WeaponThreat
@@ -195,7 +195,7 @@ class VentModule(private val ai: CustomShipAI) {
     }
 
     /** Control the ship heading when backing off. */
-    fun overrideHeading(maneuverTarget: ShipAPI?): Destination? {
+    fun overrideHeading(maneuverTarget: ShipAPI?): Maneuver.ExpectedManeuver? {
         if (!isBackingOff) {
             return null
         }
@@ -235,7 +235,7 @@ class VentModule(private val ai: CustomShipAI) {
             // Maintain const distance from the maneuver target.
             isSafeWhileParked && maneuverTarget != null -> {
                 val location = maneuverTarget.location - ai.threatVector.resized(backoffDistance)
-                Destination(location, maneuverTarget.movement.velocity)
+                Maneuver.ExpectedManeuver(location, null, maneuverTarget.movement.velocity)
             }
 
             // Undefined situation: no danger, and no maneuver target.
@@ -246,12 +246,12 @@ class VentModule(private val ai: CustomShipAI) {
             // Move opposite to threat vector.
             ai.threatVector.isNonZero -> {
                 val location = ship.location - ai.threatVector.rotated(backoffDirectionOffset).resized(farAway)
-                Destination(location, Vector2f())
+                Maneuver.ExpectedManeuver(location, null, Vector2f())
             }
 
             // Continue present course if no threat vector is available.
             else -> {
-                Destination(ship.location, ship.velocity.resized(farAway))
+                Maneuver.ExpectedManeuver(ship.location, null, ship.velocity.resized(farAway))
             }
         }
     }
