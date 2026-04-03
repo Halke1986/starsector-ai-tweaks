@@ -1,3 +1,5 @@
+Version v2.2.6
+
 - Custom AI: Frigates and ships with Role: Skirmisher hullmod will now prioritize flanking enemies.
 - Custom AI: Ship now respect the IGNORE assignment. Implemented by djrvywfbjr.
 - Fixed handling of ships with unusual broadside configurations. Issue reported by Urfin.
