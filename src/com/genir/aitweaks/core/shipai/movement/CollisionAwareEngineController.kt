@@ -195,7 +195,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
     private fun obstacleDirection(obstacle: CombatEntityAPI): Vector2f {
         val obstacleAI = (obstacle as? ShipAPI)?.customShipAI?.maneuver
         if (obstacleAI != null) {
-            return obstacleAI.destination - obstacle.location
+            return obstacleAI.expectedVelocity
         }
 
         // Fallback to velocity.
@@ -335,7 +335,7 @@ class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) :
         }
 
         val obstacleDirection: Vector2f = obstacleDirection(obstacle)
-        val shipDirection: Vector2f = ai.maneuver.destination - movement.location
+        val shipDirection: Vector2f = ai.maneuver.expectedVelocity
 
         val p: Vector2f = obstacle.location - movement.location
         val v: Vector2f = obstacleDirection - shipDirection
