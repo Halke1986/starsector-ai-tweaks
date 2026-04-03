@@ -1,6 +1,7 @@
 package com.genir.aitweaks.core.shipai
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CombatAssignmentType.IGNORE
 import com.fs.starfarer.api.combat.CombatAssignmentType.RETREAT
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.FogOfWarAPI
@@ -150,7 +151,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         }
 
         val closestVisibleTarget: ShipAPI? by lazy {
-            findClosestTarget(onlyVisible = true)
+            findClosestTarget(onlyDesignatedTargets = true)
         }
 
         maneuverTarget = when {
@@ -186,7 +187,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
             // Fall back to the closest target.
             else -> {
-                findClosestTarget(onlyVisible = false)
+                findClosestTarget(onlyDesignatedTargets = false)
             }
         }
 
@@ -199,38 +200,45 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             ?: return null
 
         // Prioritize the nearest segmentation target over primary targets if the ship is already in proximity to it.
-        val allTargets = segmentation.allTargets(ship.isFast).filter { isTargetVisible(it) }
-        val closestTarget: ShipAPI = closestEntity(allTargets, ship.location) ?: return null
+        val allTargets: Sequence<ShipAPI> = segmentation.allTargets(ship.isFast).filter { isPrimaryTarget(it) }
+        val closestTarget: ShipAPI = closestEntity(allTargets, ship.location)
+            ?: return null
         if (isCloseToEnemy(ship, closestTarget)) {
             return closestTarget
         }
 
         // Follow the closest primary target.
-        val primaryTargets = segmentation.primaryTargets(ship.isFast).filter { isTargetVisible(it) }
+        val primaryTargets = segmentation.primaryTargets(ship.isFast).filter { isPrimaryTarget(it) }
         return closestEntity(primaryTargets, ship.location)
     }
 
-    private fun findClosestTarget(onlyVisible: Boolean): ShipAPI? {
-        val targets = Global.getCombatEngine().ships.filter {
+    private fun findClosestTarget(onlyDesignatedTargets: Boolean): ShipAPI? {
+        val targets = Global.getCombatEngine().ships.filter { target ->
             when {
-                it.owner == ship.owner -> false
+                target.owner == ship.owner -> false
 
-                !it.isValidTarget -> false
+                !target.isValidTarget -> false
 
-                onlyVisible && !isTargetVisible(it) -> false
+                onlyDesignatedTargets && !isPrimaryTarget(target) -> false
 
                 else -> true
             }
         }
 
-        // Find the closest ship.
-        val target: ShipAPI? = closestEntity<ShipAPI>(targets.filter { !it.isFighter }, ship.location)
-        if (target != null) {
-            return target
-        }
-
-        // Fallback to finding a fighter.
+        // Find the closest target.
         return closestEntity(targets, ship.location)
+    }
+
+    private fun isPrimaryTarget(target: ShipAPI): Boolean {
+        return when {
+            target.isFighter -> false
+
+            ship.taskManager.getAssignmentInfoForTarget(target.root.deployedFleetMember)?.type == IGNORE -> false
+
+            !isTargetVisible(target) -> false
+
+            else -> true
+        }
     }
 
     /** Consider once seen ships as visible, even if they're in fog again. This allows
@@ -397,21 +405,21 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
         val allShips: Sequence<ShipAPI> = Grid.ships(ship.location, stats.attackTargetSearchRange)
         val allTargets = allShips.filter { it.owner != ship.owner && it.isValidTarget }.toList()
-        val allShipTargets = allTargets.filter { !it.isFighter }.toList()
+        val allDesignatedTargets = allTargets.filter { isPrimaryTarget(it) }.toList()
 
-        // With vanilla balance, the optimal strategy is to ignore fighters and focus on enemy ships.
-        // The AI attacks fighters only when no other targets are available.
-        // For frigates, which can retarget quickly, fighters may be attacked if no nearby ship targets exist.
-        val shouldAttackFighters = if (ship.isFrigate) {
-            allShipTargets.isEmpty() && (maneuverTarget == null || currentEffectiveRange(maneuverTarget) > stats.attackTargetSearchRange)
+        // The AI attacks secondary targets only when no other targets are available.
+        // For frigates, which can retarget quickly, secondary targets may be attacked
+        // if no nearby designated targets exist.
+        val shouldAttackSecondaryTargets = if (ship.isFrigate) {
+            allDesignatedTargets.isEmpty() && (maneuverTarget == null || currentEffectiveRange(maneuverTarget) > stats.attackTargetSearchRange)
         } else {
-            maneuverTarget?.isFighter == true
+            maneuverTarget != null && !isPrimaryTarget(maneuverTarget)
         }
 
-        val opportunities = if (shouldAttackFighters) {
+        val opportunities = if (shouldAttackSecondaryTargets) {
             allTargets
         } else {
-            allShipTargets
+            allDesignatedTargets
         }
 
         // Find best attack opportunity for each weapon group.

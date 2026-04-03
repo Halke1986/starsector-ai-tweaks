@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
+import com.fs.starfarer.api.combat.CombatAssignmentType.IGNORE
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -20,18 +21,32 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     private val movement: Movement = ai.ship.movement
 
     fun gatherSpeedLimits(dt: Float): List<SpeedLimit> {
-        // Calculate speed limits.
-        val shipLimits = avoidShips(dt)
-        val borderLimit = avoidBorder()
-        val targetLimit = avoidManeuverTarget(dt)
-        val missileLimits = avoidMissiles(dt)
-        val asteroidLimits = avoidAsteroids(dt)
+        val allShipsWithCollision: List<ShipAPI> = findShipsWithCollision()
+        val limits: MutableList<SpeedLimit?> = mutableListOf()
 
-        return (listOf(borderLimit, targetLimit) + shipLimits + missileLimits + asteroidLimits).filterNotNull()
+        // Calculate speed limits.
+        limits.addAll(avoidShips(dt, allShipsWithCollision))
+        limits.add(avoidBorder())
+        limits.add(avoidManeuverTarget(dt))
+        limits.addAll(avoidIgnoredEnemies(dt, allShipsWithCollision))
+        limits.addAll(avoidMissiles(dt))
+        limits.addAll(avoidAsteroids(dt))
+
+        return limits.filterNotNull()
     }
 
-    private fun avoidShips(dt: Float): List<SpeedLimit?> {
-        return findRelevantShips().map { obstacle: ShipAPI ->
+    private fun avoidShips(dt: Float, allShipsWithCollision: List<ShipAPI>): List<SpeedLimit?> {
+        val relevantShips: List<ShipAPI> = allShipsWithCollision.filter { obstacle ->
+            when {
+                // Large hulks.
+                obstacle.isHulk && (obstacle.mass * hulkCollisionSizeFactor > movement.ship.mass) -> true
+
+                // Allies.
+                else -> obstacle.owner == movement.ship.owner
+            }
+        }
+
+        return relevantShips.map { obstacle: ShipAPI ->
             val collisionDistance: Float = ai.stats.totalCollisionRadius + obstacle.totalCollisionRadius
             val shieldDistance: Float = ai.ship.shieldRadiusEvenIfNoShield + obstacle.shieldRadiusEvenIfNoShield
 
@@ -75,8 +90,8 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         }.toList()
     }
 
-    private fun findRelevantShips(): Sequence<ShipAPI> {
-        return Global.getCombatEngine().ships.asSequence().filter { obstacle ->
+    private fun findShipsWithCollision(): List<ShipAPI> {
+        return Global.getCombatEngine().ships.filter { obstacle ->
             when {
                 // Same ship.
                 obstacle.root == movement.ship.root -> false
@@ -91,13 +106,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
                 obstacle.isModule -> false
                 obstacle.isDrone -> false
 
-                // Large hulks.
-                obstacle.isHulk && (obstacle.mass * hulkCollisionSizeFactor > movement.ship.mass) -> true
-
-                // Allies.
-                obstacle.owner == movement.ship.owner -> true
-
-                else -> false
+                else -> true
             }
         }
     }
@@ -181,7 +190,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
 
         val speedThreshold = movement.maxSpeed
         val massThreshold = movement.ship.mass * 1.5f
-        return Global.getCombatEngine().asteroids.asSequence().mapNotNull { asteroid ->
+        return Global.getCombatEngine().asteroids.mapNotNull { asteroid ->
             if (asteroid.mass < massThreshold) {
                 return@mapNotNull null
             }
@@ -194,7 +203,7 @@ class CollisionAvoidance(val ai: CustomShipAI) {
             }
 
             return@mapNotNull vMax
-        }.toList()
+        }
     }
 
     private fun avoidManeuverTarget(dt: Float): SpeedLimit? {
@@ -210,6 +219,23 @@ class CollisionAvoidance(val ai: CustomShipAI) {
         val distance: Float = maxOf(ai.attackRange * 0.85f, collisionDistance)
 
         return vMaxToObstacle(dt, target.movement.linearMotion, distance, target)
+    }
+
+    private fun avoidIgnoredEnemies(dt: Float, allShipsWithCollision: List<ShipAPI>): List<SpeedLimit?> {
+        return allShipsWithCollision.mapNotNull { obstacle ->
+            // Check if ship is ignored.
+            if (movement.ship.taskManager.getAssignmentInfoForTarget(obstacle.root.deployedFleetMember)?.type != IGNORE) {
+                return@mapNotNull null
+            }
+
+            // Do not attempt to avoid small enemies.
+            if (obstacle.mass * enemyCollisionSizeFactor < movement.ship.mass) {
+                return@mapNotNull null
+            }
+
+            val distance: Float = 10f + ai.ship.shieldRadiusEvenIfNoShield + obstacle.shieldRadiusEvenIfNoShield
+            return@mapNotNull vMaxToObstacle(dt, obstacle.movement.linearMotion, distance, obstacle)
+        }
     }
 
     private fun avoidBorder(): SpeedLimit? {
