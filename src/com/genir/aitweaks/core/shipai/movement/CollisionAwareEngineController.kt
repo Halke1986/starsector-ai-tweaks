@@ -27,10 +27,23 @@ import kotlin.math.sqrt
  * to prevent unsafe movement.
  */
 class CollisionAwareEngineController(val ai: CustomShipAI, movement: Movement) : EngineController(movement) {
-    fun heading(dt: Float, destination: Vector2f, targetVelocity: Vector2f, limits: List<SpeedLimit> = listOf()): Vector2f {
-        return heading(dt, destination, targetVelocity) { ve, rotationToShip ->
-            limitVelocity(ve, rotationToShip, limits)
+    data class Velocity(
+        val expected: Vector2f,
+        val limited: Vector2f?,
+    )
+
+    fun heading(dt: Float, destination: Vector2f, targetVelocity: Vector2f, limits: List<SpeedLimit> = listOf()): Velocity {
+        var expected: Vector2f = Vector2f()
+        var limited: Vector2f? = null
+
+        super.heading(dt, destination, targetVelocity) { expectedVelocity, rotationToShip ->
+            expected = expectedVelocity
+            limited = limitVelocity(expectedVelocity, rotationToShip, limits)
+
+            limited
         }
+
+        return Velocity(expected, limited)
     }
 
     /** If the ship's expected velocity exceeds a speed limit, compute a new

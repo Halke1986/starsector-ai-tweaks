@@ -24,13 +24,16 @@ class Maneuver(val ai: CustomShipAI) {
 
     private var prevFrameIdx = 0
 
-    // Temporary point used for steering maneuvers. The controller steers
-    // toward this point, without changing the final destination.
-    private var steeringPoint: Vector2f = Vector2f()
-    var destination: Vector2f = Vector2f()
-
+    var destination: Vector2f = movement.location.copy
     var expectedVelocity: Vector2f = Vector2f()
     var expectedFacing: Direction = movement.facing
+
+    // Temporary point used for steering maneuvers. The controller steers
+    // toward this point, without changing the final destination.
+    var steeringPoint: Vector2f? = null
+
+    // Expected velocity overriden by collision avoidance logic.
+    var limitedVelocity: Vector2f? = null
 
     // Make strafe rotation direction random, but consistent for the given ship.
     private val strafeRotation = RotationMatrix(if (this.hashCode() % 2 == 0) 90f else -90f)
@@ -148,9 +151,14 @@ class Maneuver(val ai: CustomShipAI) {
         }
 
         destination.set(expectedManeuver.destination) // Set to avoid relying on changing value.
-        steeringPoint.set(expectedManeuver.steeringPoint ?: expectedManeuver.destination)
+        steeringPoint = null
+        if (expectedManeuver.steeringPoint != null) {
+            steeringPoint = expectedManeuver.steeringPoint.copy
+        }
 
-        expectedVelocity = engineController.heading(dt, steeringPoint, expectedManeuver.velocityAtDestination, speedLimits)
+        val heading = engineController.heading(dt, steeringPoint ?: destination, expectedManeuver.velocityAtDestination, speedLimits)
+        expectedVelocity = heading.expected
+        limitedVelocity = heading.limited
     }
 
     private fun calculateAttackLocation(dt: Float, maneuverTarget: ShipAPI, speedLimits: List<SpeedLimit>): ExpectedManeuver {

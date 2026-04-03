@@ -61,9 +61,9 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
         val dv = ve - v
 
         // Allow velocity limiting logic to handle the ship movement, if required.
-        val limitedVelocity = limitVelocity?.invoke(ve.rotatedReverse(r) / dt, r)
-        if (limitedVelocity != null) {
-            return limitedVelocity
+        val expectedVelocity = ve.rotatedReverse(r) / dt
+        if (limitVelocity?.invoke(ve.rotatedReverse(r) / dt, r) != null) {
+            return expectedVelocity
         }
 
         // Stop if arrived at location, that is when expected velocity change
@@ -92,7 +92,7 @@ open class EngineController(val movement: Movement) : Helm(movement.ship) {
         if (shouldAccelerate(overSpeedX, fl, fMax)) giveCommand(STRAFE_LEFT)
         if (shouldAccelerate(overSpeedX, fr, fMax)) giveCommand(STRAFE_RIGHT)
 
-        return ve.rotatedReverse(r) / dt
+        return expectedVelocity
     }
 
     /**

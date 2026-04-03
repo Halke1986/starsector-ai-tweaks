@@ -125,13 +125,12 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 //
 //        Debug.drawCircle(ship.location, stats.attackTargetSearchRange)
 //
-//        Debug.drawLine(ship.location, attackTarget?.location ?: ship.location, Color.RED)
 //        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.GREEN)
 //        Debug.drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 //
-//        Debug.drawLine(ship.location, maneuver.attackPoint ?: ship.location, Color.CYAN)
 //        Debug.drawLine(ship.location, maneuver.headingPoint, Color.GRAY)
 //        Debug.drawVector(ship.location, maneuver.expectedVelocity, Color.MAGENTA)
+//        if (maneuver.limitedVelocity != null) Debug.drawVector(ship.location, maneuver.limitedVelocity!!, Color.YELLOW)
 //
 //        Debug.drawLine(ship.location, ship.location + ship.facing.toDirection.unitVector * 600f, Color.GREEN)
 //        Debug.drawLine(ship.location, ship.location + maneuver.expectedFacing.unitVector * 600f, Color.BLUE)
