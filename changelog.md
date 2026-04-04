@@ -1,3 +1,5 @@
+- Fixed a java.lang.ArithmeticException in venting logic for ships with no weapons or shields. Reported by Arcast3r_. 
+
 Version v2.2.6
 
 - Custom AI: Frigates and ships with Role: Skirmisher hullmod will now prioritize flanking enemies.

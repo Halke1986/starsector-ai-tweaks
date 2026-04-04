@@ -544,6 +544,13 @@ class VentModule(private val ai: CustomShipAI) {
             return false
         }
 
+        // If the ship has neither weapons nor shields but still
+        // accumulated flux, a modded mechanic is likely responsible,
+        // so do not interrupt it by venting.
+        if (ai.attackingGroup.weapons.isEmpty()) {
+            return true
+        }
+
         val engagedWeaponsCount = ai.attackingGroup.weapons.count { weapon ->
             weapon.isInFiringCycle || weapon.customAI?.shouldHoldFire == HoldFire.FIRE
         }
