@@ -110,7 +110,7 @@ class ExtendedShipAI(val ship: ShipAPI, config: ShipAIConfig) : BasicShipAI(ship
         // Control the ship rotation.
         val prevExpectedFacing: Direction = expectedFacing ?: ship.facing.toDirection
         val newExpectedFacing: Direction = weaponGroup.shipAttackFacing(target)
-        val angularVelocity = (newExpectedFacing - prevExpectedFacing).degrees / dt
+        val angularVelocity = (newExpectedFacing - prevExpectedFacing).degrees
         engineController.facing(dt, newExpectedFacing, angularVelocity)
         expectedFacing = newExpectedFacing
     }

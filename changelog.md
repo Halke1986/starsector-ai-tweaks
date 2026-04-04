@@ -1,3 +1,5 @@
+- Fixed a regression where ships without Custom AI failed to face the correct direction. Reported by CountV.
+
 Version v2.2.7
 
 - Fixed a java.lang.ArithmeticException in venting logic for ships with no weapons or shields. Reported by Arcast3r_. 
