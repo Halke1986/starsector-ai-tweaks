@@ -1,3 +1,5 @@
+Version v2.2.8
+
 - Fixed a regression where ships without Custom AI failed to face the correct direction. Reported by CountV.
 
 Version v2.2.7
