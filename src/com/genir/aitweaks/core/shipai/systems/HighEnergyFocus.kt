@@ -90,7 +90,7 @@ class HighEnergyFocus : ShipSystemAIScript {
 
         return when {
             // Check custom AI decision.
-            weapon.customAI?.shouldHoldFire != HoldFire.FIRE -> 0f
+            weapon.customAI != null && weapon.customAI?.shouldHoldFire != HoldFire.FIRE -> 0f
 
             // Check firing cycle.
             weapon.isIdle -> 0f
