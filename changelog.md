@@ -1,3 +1,5 @@
+Version v2.2.9
+
 - Fixed a regression where ships would never trigger High Energy Focus system. Reported by djrvywfbjr, Thunderhead Egghead and Numan.
 
 Version v2.2.8
