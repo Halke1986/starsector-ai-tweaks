@@ -1,3 +1,5 @@
+- Fixed a regression where ships would never trigger High Energy Focus system. Reported by djrvywfbjr, Thunderhead Egghead and Numan.
+
 Version v2.2.8
 
 - Fixed a regression where ships without Custom AI failed to face the correct direction. Reported by CountV.

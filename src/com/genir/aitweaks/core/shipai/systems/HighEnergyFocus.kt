@@ -11,6 +11,7 @@ import com.genir.aitweaks.core.extensions.allGroupedWeapons
 import com.genir.aitweaks.core.extensions.isValidTarget
 import com.genir.aitweaks.core.extensions.sumOf
 import com.genir.aitweaks.core.handles.WeaponHandle
+import com.genir.aitweaks.core.shipai.autofire.HoldFire
 import com.genir.aitweaks.core.shipai.autofire.ballistics.willHitShield
 import org.lazywizard.lazylib.combat.AIUtils
 import org.lwjgl.util.vector.Vector2f
@@ -89,7 +90,7 @@ class HighEnergyFocus : ShipSystemAIScript {
 
         return when {
             // Check custom AI decision.
-            weapon.customAI?.shouldHoldFire != null -> 0f
+            weapon.customAI?.shouldHoldFire != HoldFire.FIRE -> 0f
 
             // Check firing cycle.
             weapon.isIdle -> 0f
