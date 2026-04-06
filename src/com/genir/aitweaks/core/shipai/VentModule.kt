@@ -272,22 +272,22 @@ class VentModule(private val ai: CustomShipAI) {
             // Trigger backing off.
             !isBackingOff -> when {
                 // Ship with no shield backs off when it can't fire anymore.
-                ship.shield == null && ship.allWeapons.map { it.handle }.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft } -> {
+                !ship.hasShield && ship.allWeapons.map { it.handle }.any { !it.isInFiringSequence && it.fluxCostToFire >= ship.fluxLeft } -> {
                     true
                 }
 
                 // High flux.
-                ship.shield != null && ship.hardFluxLevel > backoffUpperThreshold -> {
+                ship.hasShield && ship.hardFluxLevel > backoffUpperThreshold -> {
                     true
                 }
 
                 // Flux is predicted to rapidly reach dangerous levels.
-                ship.shield != null && ship.fluxLevel + fluxTracker.delta() > AIPreset.holdFireThreshold -> {
+                ship.hasShield && ship.fluxLevel + fluxTracker.delta() > AIPreset.holdFireThreshold -> {
                     true
                 }
 
                 // Shields down and received damage.
-                underFire && ship.shield != null && ship.shield.isOff -> {
+                underFire && ship.hasShield && ship.shield.isOff -> {
                     true
                 }
 
@@ -347,11 +347,11 @@ class VentModule(private val ai: CustomShipAI) {
 
             shouldFinishTarget -> false
 
-            // Vent if ship is backing off.
-            isBackingOff -> true
-
             // Don't interrupt ship system without necessity.
             ship.system?.isOn == true -> false
+
+            // Vent if ship is backing off.
+            isBackingOff -> true
 
             // Flux is not critical, but still could use an opportunity to vent.
             ship.hasShield && ship.FluxLevel >= opportunisticVentThreshold -> true

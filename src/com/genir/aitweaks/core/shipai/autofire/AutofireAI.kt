@@ -307,7 +307,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
     protected fun holdFireIfOverfluxed(target: CombatEntityAPI): HoldFire {
         return when {
             // Ships with no shields don't need to preserve flux.
-            ship.shield == null -> FIRE
+            !ship.hasShield -> FIRE
 
             weapon.isPD -> FIRE
 
