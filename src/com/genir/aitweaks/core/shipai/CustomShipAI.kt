@@ -102,6 +102,44 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         ventModule.advance(dt)
         systemAI?.advance(dt)
         maneuver.advance(dt)
+
+        debugArc()
+    }
+
+    private fun debugArc() {
+        if (ship.name != "TTDS Gimel-Hou") {
+            return
+        }
+
+        val weaponRange = attackingGroup.minRange
+
+        val enemies: List<ShipAPI> = Global.getCombatEngine().ships.filter { other ->
+            when {
+                !other.isHostile(ship) -> false
+                other.isFighter -> false
+                else -> true
+            }
+        }
+
+        val arcSegments: List<ArcOcclusion.ArcSegment> = enemies.map { enemy ->
+            val toEnemy: Vector2f = enemy.location - ship.location
+
+            ArcOcclusion.ArcSegment(
+                arc = Arc(
+//                    angle = angularSize(toEnemy.lengthSquared, weaponRange + enemy.boundsRadius),
+                    angle = angularSize(toEnemy.lengthSquared, weaponRange),
+                    facing = toEnemy.facing,
+                ),
+                dist = toEnemy.length,
+                source = enemy,
+            )
+        }
+
+        val occludedArcs: List<ArcOcclusion.ArcSegment> = ArcOcclusion.calculateOcclusion(arcSegments)
+        occludedArcs.forEach { arc ->
+            Debug.drawArc(ship.location, arc.dist, arc.arc, Color.YELLOW)
+            Debug.drawArcArms(ship.location, arc.dist, arc.arc, Color.GREEN)
+        }
     }
 
     override fun getAIFlags(): ShipwideAIFlags {
