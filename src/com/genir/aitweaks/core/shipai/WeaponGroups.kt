@@ -15,7 +15,9 @@ object WeaponGroups {
 
         // Assign lower weight to angles more distant from the ship front.
         val weightedAngles: Map<Direction, Float> = attackAngles.mapValues { (direction, dps) ->
-            val weight = if (direction.length <= 90f) 1f else 0.66f
+            // Note: Conquest has a potential weapon group at 85 degrees offset.
+            val offsetLimit = 80f
+            val weight = if (direction.length <= offsetLimit) 1f else 0.66f
             dps * weight
         }
 
@@ -67,17 +69,17 @@ object WeaponGroups {
         }
     }
 
-    /**
-     * Estimates DPS when selecting the active weapon group.
-     *
-     * Weapons in a long reload are treated as having 0 DPS so the ship can
-     * prioritize other groups. They still qualify as significant (unlike
-     * disabled weapons) because many can fire partial shots mid-reload and
-     * thus influence the calculated attack range.
-     */
+    /** Estimates DPS when selecting the active weapon group. */
     private val WeaponHandle.estimatedDPS: Float
         get() = when {
+            // Weapons in a long reload are treated as having 0 DPS so the ship can
+            // prioritize other groups. They still qualify as significant (unlike
+            // disabled weapons) because many can fire partial shots mid-reload and
+            // thus influence the calculated attack range.
             isInLongReload -> 0f
+
+            // Give PD weapons less weight so the ship prioritizes attacking with non-PD weapons.
+            isPD && !slot.isHardpoint -> effectiveDPS * 0.33f
 
             else -> effectiveDPS
         }
