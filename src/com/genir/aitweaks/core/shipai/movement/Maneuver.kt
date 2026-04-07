@@ -258,7 +258,7 @@ class Maneuver(val ai: CustomShipAI) {
 
             // Skirmishers should prefer attacking from the sides,
             // where they do not block the line of fire of larger ships.
-            movement.ship.isSkirmisher && !isNearBorder(maneuverTarget.location) -> {
+            movement.ship.isSkirmisher && (!isNearBorder(maneuverTarget.location) || isAttackedByBigAlly(maneuverTarget)) -> {
                 return Vector2f(
                     approachVector.x,
                     approachVector.y * 0.66f,
@@ -282,6 +282,20 @@ class Maneuver(val ai: CustomShipAI) {
         val limitY: Float = engine.mapHeight / 2f - Preset.borderHardNoGoZone
 
         return abs(location.x) > limitX || abs(location.y) > limitY
+    }
+
+    private fun isAttackedByBigAlly(target: ShipAPI): Boolean {
+        return Global.getCombatEngine().ships.any { otherShip ->
+            return@any when {
+                otherShip.root == movement.ship.root -> false
+
+                otherShip.owner != movement.ship.owner -> false
+
+                !otherShip.isBig -> false
+
+                else -> otherShip.attackTarget == target
+            }
+        }
     }
 
     /** Adjust the ship's heading to avoid positioning with hulks obstructing its target. */
