@@ -1,11 +1,13 @@
 package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CombatEngineAPI
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.Assignment
 import com.genir.aitweaks.core.shipai.CustomShipAI
+import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.global.AttackCoordinator
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.*
@@ -15,6 +17,7 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.abs
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Maneuver(val ai: CustomShipAI) {
@@ -221,7 +224,7 @@ class Maneuver(val ai: CustomShipAI) {
         }
 
         // Calculate attack location in global coordinates.
-        var attackLocation = preferredAttackLocation(attackVector)
+        var attackLocation = preferredAttackLocation(maneuverTarget, attackVector)
         attackLocation = attackLocation.resized(ai.attackRange) + maneuverTarget.location
         attackLocation = coordinateAttackLocation(maneuverTarget, attackLocation)
 
@@ -246,7 +249,7 @@ class Maneuver(val ai: CustomShipAI) {
         return adjustedAttackLocation
     }
 
-    private fun preferredAttackLocation(approachVector: Vector2f): Vector2f {
+    private fun preferredAttackLocation(maneuverTarget: ShipAPI, approachVector: Vector2f): Vector2f {
         when {
             // Do not modify the approach vector when chasing retreating enemies.
             Global.getCombatEngine().getFleetManager(movement.ship.owner xor 1).getTaskManager(false).isInFullRetreat -> {
@@ -255,7 +258,7 @@ class Maneuver(val ai: CustomShipAI) {
 
             // Skirmishers should prefer attacking from the sides,
             // where they do not block the line of fire of larger ships.
-            movement.ship.isSkirmisher -> {
+            movement.ship.isSkirmisher && !isNearBorder(maneuverTarget.location) -> {
                 return Vector2f(
                     approachVector.x,
                     approachVector.y * 0.66f,
@@ -271,6 +274,14 @@ class Maneuver(val ai: CustomShipAI) {
                 return approachVector.resized(1f) - movement.location.resized(borderWeight)
             }
         }
+    }
+
+    private fun isNearBorder(location: Vector2f): Boolean {
+        val engine: CombatEngineAPI = Global.getCombatEngine()
+        val limitX: Float = engine.mapWidth / 2f - Preset.borderHardNoGoZone
+        val limitY: Float = engine.mapHeight / 2f - Preset.borderHardNoGoZone
+
+        return abs(location.x) > limitX || abs(location.y) > limitY
     }
 
     /** Adjust the ship's heading to avoid positioning with hulks obstructing its target. */
