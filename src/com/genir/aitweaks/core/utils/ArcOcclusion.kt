@@ -6,7 +6,7 @@ import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 /**
  * Computes the visible portions of overlapping arc segments, keeping only the nearest segment at each angle.
  */
-ArcOcclusion {
+object ArcOcclusion {
     fun calculateOcclusion(arcSegments: List<ArcSegment>): List<ArcSegment> {
         val edges: MutableList<Edge> = splitSegments(arcSegments)
         edges.sortWith(compareBy<Edge> { it.location }.thenBy { if (it.isBeginning) it.height else -it.height })
