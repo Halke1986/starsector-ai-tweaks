@@ -1,116 +1,125 @@
 package com.genir.aitweaks.core.utils
 
 import com.genir.aitweaks.core.utils.types.Arc
+import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
 
 /**
  * Computes the visible portions of overlapping arc segments, keeping only the nearest segment at each angle.
  */
 object ArcOcclusion {
-    fun calculateOcclusion(arcSegments: List<ArcSegment>): List<ArcSegment> {
-        val edges: MutableList<Edge> = splitSegments(arcSegments)
-        edges.sortWith(compareBy<Edge> { it.location }.thenBy { if (it.isBeginning) it.height else -it.height })
+    fun calculateOcclusion(arcs: List<ArcData>): List<ArcData> {
+        // Select bottom arc and use it as a pivot.
+        var pivotArc: ArcData? = null
+        for (arcData in arcs) {
+            if (arcData.arc.angle == 0f) {
+                continue
+            }
 
-        var topSegment: Edge? = null
-        var topSegmentBeginning: Float = 0f
-        val stack: MutableList<Edge> = mutableListOf()
-        val arcs: MutableList<ArcSegment> = mutableListOf()
+            if (pivotArc == null || arcData.height < pivotArc.height) {
+                pivotArc = arcData
+            }
+        }
+
+        if (pivotArc == null) {
+            return listOf()
+        }
+
+        val pivotFacing: Direction = pivotArc.arc.facing
+        val stack: MutableList<ArcData> = mutableListOf()
+        val edges: MutableList<Edge> = mutableListOf()
+
+        // Split arcs into edges.
+        for (arcData in arcs) {
+            val arc: Arc = arcData.arc
+            if (arc.angle == 0f) {
+                continue
+            }
+
+            if (arc.contains(pivotFacing)) {
+                stack.add(arcData)
+            }
+
+            val halfAngle: Direction = arc.halfAngle.toDirection
+            var start: Float = (arc.facing - halfAngle).degrees
+            var end: Float = (arc.facing + halfAngle).degrees
+
+            if (start < pivotFacing.degrees) {
+                start += 360f
+            }
+
+            if (end < pivotFacing.degrees) {
+                end += 360f
+            }
+
+            edges.add(Edge(start, false, arcData))
+            edges.add(Edge(end, true, arcData))
+        }
+
+        edges.sortWith(compareBy({ it.facing }, { it.isEnd }))
+
+        val visibleArcs: MutableList<ArcData> = mutableListOf()
+        var bottomArc: ArcData? = pivotArc
+        var bottomArcStart: Float = pivotFacing.degrees - pivotArc.arc.halfAngle
 
         for (edge in edges) {
-            if (edge.isBeginning) {
-                stack.add(edge)
-
-                if (topSegment == null || edge.height < topSegment.height) {
-                    // New segment occluded the previous top one.
-                    if (topSegment != null) {
-                        arcs.add(makeArcSegment(topSegmentBeginning, edge.location, topSegment))
-                    }
-
-                    topSegment = edge
-                    topSegmentBeginning = edge.location
-                }
-            } else {
+            if (edge.isEnd) {
                 // Remove edge from the stack.
                 for (i in 0 until stack.size) {
-                    if (stack[i].id == edge.id) {
+                    if (stack[i].source == edge.sourceArc.source) {
                         stack[i] = stack[stack.size - 1]
                         stack.removeLast()
                         break
                     }
                 }
 
-                // Find new top stack element.
-                if (edge.id == topSegment?.id) {
-                    arcs.add(makeArcSegment(topSegmentBeginning, edge.location, topSegment))
+                // Find the new bottom stack arc.
+                if (bottomArc?.source == edge.sourceArc.source) {
+                    addVisibleArc(visibleArcs, bottomArcStart, edge.facing, bottomArc)
 
-                    topSegment = null
+                    bottomArc = null
                     for (stackElem in stack) {
-                        if (topSegment == null || stackElem.height < topSegment.height) {
-                            topSegment = stackElem
-                            topSegmentBeginning = edge.location
+                        if (bottomArc == null || stackElem.height < bottomArc.height) {
+                            bottomArc = stackElem
+                            bottomArcStart = edge.facing
                         }
                     }
+                }
+            } else {
+                stack.add(edge.sourceArc)
+
+                if (bottomArc == null || edge.sourceArc.height < bottomArc.height) {
+                    // New segment occluded the previous bottom one.
+                    if (bottomArc != null) {
+                        addVisibleArc(visibleArcs, bottomArcStart, edge.facing, bottomArc)
+                    }
+
+                    bottomArc = edge.sourceArc
+                    bottomArcStart = edge.facing
                 }
             }
         }
 
-        return arcs
+        return visibleArcs
     }
 
-    private fun splitSegments(arcSegments: List<ArcSegment>): MutableList<Edge> {
-        val edges: MutableList<Edge> = mutableListOf()
-        var edgeID: Int = 0
-
-        for (arcSegment in arcSegments) {
-            val arc: Arc = arcSegment.arc
-            val begin: Float = arc.facing.degrees - arc.angle / 2f
-            val end: Float = arc.facing.degrees + arc.angle / 2f
-
-            // Split any arc that crosses the -180/180 boundary into two arcs within [-180, 180].
-            if (begin < -180f) {
-                edges.add(makeEdge(begin + 360f, true, arcSegment, edgeID))
-                edges.add(makeEdge(-180f + 360f, false, arcSegment, edgeID++))
-
-                edges.add(makeEdge(-180f, true, arcSegment, edgeID))
-                edges.add(makeEdge(end, false, arcSegment, edgeID++))
-            } else if (end > 180f) {
-                edges.add(makeEdge(begin, true, arcSegment, edgeID))
-                edges.add(makeEdge(180f, false, arcSegment, edgeID++))
-
-                edges.add(makeEdge(180f - 360f, true, arcSegment, edgeID))
-                edges.add(makeEdge(end - 360f, false, arcSegment, edgeID++))
-            } else {
-                edges.add(makeEdge(begin, true, arcSegment, edgeID))
-                edges.add(makeEdge(end, false, arcSegment, edgeID++))
-            }
+    private fun addVisibleArc(visibleArcs: MutableList<ArcData>, start: Float, end: Float, source: ArcData) {
+        val angle: Float = end - start
+        if (angle == 0f) {
+            return
         }
 
-        return edges
-    }
-
-    private fun makeEdge(location: Float, isBeginning: Boolean, arcSegment: ArcSegment, id: Int): Edge {
-        return Edge(
-            location = location,
-            isBeginning = isBeginning,
-            height = arcSegment.dist,
-            source = arcSegment.source,
-            id = id,
-        )
-    }
-
-    private fun makeArcSegment(begin: Float, end: Float, edge: Edge): ArcSegment {
-        val angle: Float = end - begin
-        return ArcSegment(
+        visibleArcs.add(ArcData(
             arc = Arc(
                 angle = angle,
-                facing = (begin + angle / 2f).toDirection,
+                facing = (start + angle / 2f).toDirection,
             ),
-            dist = edge.height,
-            source = edge.source,
-        )
+            height = source.height,
+            source = source.source,
+        ))
     }
 
-    data class ArcSegment(val arc: Arc, val dist: Float, val source: Any)
+    data class ArcData(val arc: Arc, val height: Float, val source: Any)
 
-    private data class Edge(val location: Float, val isBeginning: Boolean, val height: Float, val source: Any, val id: Int)
+    private data class Edge(val facing: Float, val isEnd: Boolean, val sourceArc: ArcData)
 }
