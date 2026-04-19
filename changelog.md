@@ -1,4 +1,5 @@
 - Improved handling of ships with asymmetric broadside configurations. Issue reported by Zsar.
+- Custom AI: Ships are now more likely to target isolated and exposed enemies.
 
 Version v2.2.9
 
