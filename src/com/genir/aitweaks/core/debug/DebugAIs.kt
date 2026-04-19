@@ -11,8 +11,6 @@ import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.angularVelocity
 import com.genir.aitweaks.core.utils.mousePosition
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
-import com.genir.aitweaks.core.utils.types.RotationMatrix
-import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import com.genir.starfarer.combat.entities.Ship
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color

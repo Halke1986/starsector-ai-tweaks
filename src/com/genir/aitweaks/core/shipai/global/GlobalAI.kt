@@ -6,6 +6,7 @@ import com.genir.aitweaks.core.utils.FrameTracker
 
 class GlobalAI : BaseEveryFrameCombatPlugin() {
     val fleetSegmentation: Array<FleetSegmentation> = arrayOf(FleetSegmentation(0), FleetSegmentation(1))
+    val exposedAngles: Array<ExposedAngle> = arrayOf(ExposedAngle(0), ExposedAngle(1))
     val maneuverCoordinator: AttackCoordinator = AttackCoordinator()
     val navigateCoordinator: NavigationCoordinator = NavigationCoordinator()
     val projectileTracker: ProjectileTracker = ProjectileTracker()
@@ -18,6 +19,8 @@ class GlobalAI : BaseEveryFrameCombatPlugin() {
     override fun advance(dt: Float, events: MutableList<InputEventAPI>?) {
         fleetSegmentation[0].advance(dt, events)
         fleetSegmentation[1].advance(dt, events)
+        exposedAngles[0].advance(dt, events)
+        exposedAngles[1].advance(dt, events)
         fleetCohesion[0].advance(dt, events)
         fleetCohesion[1].advance(dt, events)
         searchAndDestroy.advance(dt, events)

@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.shipai.movement
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.combat.CombatAssignmentType.IGNORE
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
@@ -12,7 +13,6 @@ import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.LinearMotion
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotatedX
 import org.lwjgl.util.vector.Vector2f
-import com.fs.starfarer.api.combat.CombatAssignmentType.IGNORE
 import kotlin.math.abs
 import kotlin.math.sign
 

@@ -124,5 +124,72 @@ class Arc(angle: Float, val facing: Direction) {
                 facing = facing
             )
         }
+
+        /** Returns the complement of a set of arcs as a list of non-overlapping arcs. */
+        fun arcSetComplement(arcs: List<Arc>): List<Arc> {
+            data class Edge(val facing: Float, val isEnd: Boolean)
+
+            val edges: MutableList<Edge> = mutableListOf()
+            var pivotFacing: Direction? = null
+            var arcCount = 0
+
+            for (arc in arcs) {
+                if (arc.angle == 0f) {
+                    continue
+                }
+
+                if (pivotFacing == null) {
+                    pivotFacing = arc.facing
+                }
+
+                if (arc.contains(pivotFacing)) {
+                    arcCount++
+                }
+
+                val halfAngle: Direction = arc.halfAngle.toDirection
+                var start: Float = (arc.facing - halfAngle).degrees
+                var end: Float = (arc.facing + halfAngle).degrees
+
+                if (start < pivotFacing.degrees) {
+                    start += 360f
+                }
+
+                if (end < pivotFacing.degrees) {
+                    end += 360f
+                }
+
+                edges.add(Edge(start, false))
+                edges.add(Edge(end, true))
+            }
+
+            if (edges.isEmpty()) {
+                return listOf(Arc(360f, 0f.toDirection))
+            }
+
+            edges.sortWith(compareBy({ it.facing }, { it.isEnd }))
+
+            val complementArcs: MutableList<Arc> = mutableListOf()
+            var currentArcStart = 0f
+
+            for (edge in edges) {
+                if (edge.isEnd) {
+                    arcCount--
+                    if (arcCount == 0) {
+                        currentArcStart = edge.facing
+                    }
+                } else {
+                    if (arcCount == 0) {
+                        val angle: Float = edge.facing - currentArcStart
+                        val facing: Direction = (currentArcStart + angle / 2f).toDirection
+                        if (angle > 0f) {
+                            complementArcs.add(Arc(angle, facing))
+                        }
+                    }
+                    arcCount++
+                }
+            }
+
+            return complementArcs
+        }
     }
 }

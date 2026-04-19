@@ -126,7 +126,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 //
 //        Debug.drawCircle(ship.location, stats.attackTargetSearchRange)
 //
-//        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.GREEN)
+//        Debug.drawLine(ship.location, maneuverTarget?.location ?: ship.location, Color.DARK_GRAY)
 //        Debug.drawLine(ship.location, finishBurstTarget?.location ?: ship.location, Color.YELLOW)
 //
 //        Debug.drawLine(ship.location, maneuver.headingPoint, Color.GRAY)
@@ -200,16 +200,16 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
             ?: return null
 
         // Prioritize the nearest segmentation target over primary targets if the ship is already in proximity to it.
-        val allTargets: Sequence<ShipAPI> = segmentation.allTargets(ship.isFast).filter { isPrimaryTarget(it) }
-        val closestTarget: ShipAPI = closestEntity(allTargets, ship.location)
+        val allTargets: Sequence<ShipAPI> = segmentation.allTargets(ship.isFast).filter { isDesignatedTarget(it) }
+        val closestTarget: ShipAPI = selectTargetWeighted(allTargets.toList())
             ?: return null
         if (isCloseToEnemy(ship, closestTarget)) {
             return closestTarget
         }
 
         // Follow the closest primary target.
-        val primaryTargets = segmentation.primaryTargets(ship.isFast).filter { isPrimaryTarget(it) }
-        return closestEntity(primaryTargets, ship.location)
+        val primaryTargets = segmentation.primaryTargets(ship.isFast).filter { isDesignatedTarget(it) }
+        return selectTargetWeighted(primaryTargets.toList())
     }
 
     private fun findClosestTarget(onlyDesignatedTargets: Boolean): ShipAPI? {
@@ -219,17 +219,17 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
                 !target.isValidTarget -> false
 
-                onlyDesignatedTargets && !isPrimaryTarget(target) -> false
+                onlyDesignatedTargets && !isDesignatedTarget(target) -> false
 
                 else -> true
             }
         }
 
         // Find the closest target.
-        return closestEntity(targets, ship.location)
+        return selectTargetWeighted(targets)
     }
 
-    private fun isPrimaryTarget(target: ShipAPI): Boolean {
+    private fun isDesignatedTarget(target: ShipAPI): Boolean {
         return when {
             target.isFighter -> false
 
@@ -239,6 +239,62 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
             else -> true
         }
+    }
+
+    private fun selectTargetWeighted(targets: List<ShipAPI>): ShipAPI? {
+        val visibleTargets: List<ShipAPI> = filterVisibleTargets(targets)
+
+        var bestScore: Float = 0f
+        var bestTarget: ShipAPI? = null
+
+        for (target in visibleTargets) {
+            val exposedArc: Arc = globalAI.exposedAngles[0].angles[ship] ?: Arc(360f, 0f.toDirection)
+            val dist: Float = ((ship.location - target.location).length - target.boundsRadius).coerceAtLeast(0f)
+
+            val score: Float = (exposedArc.angle * exposedArc.angle) / (dist * dist)
+
+            if (bestTarget == null || bestScore < score) {
+                bestTarget = target
+                bestScore = score
+            }
+        }
+
+        return bestTarget
+    }
+
+    private fun filterVisibleTargets(targets: List<ShipAPI>): List<ShipAPI> {
+        data class EnemyData(val enemy: ShipAPI, val fullAngle: Float)
+
+        val arcSegments: List<ArcOcclusion.ArcData> = targets.map { enemy ->
+            val toEnemy: Vector2f = enemy.location - ship.location
+            val fullAngle: Float = angularSize(toEnemy.lengthSquared, enemy.totalCollisionRadius).coerceAtMost(180f)
+
+            ArcOcclusion.ArcData(
+                arc = Arc(
+                    angle = fullAngle,
+                    facing = toEnemy.facing,
+                ),
+                height = toEnemy.length,
+                source = EnemyData(enemy, fullAngle),
+            )
+        }
+
+        val occludedArcs: List<ArcOcclusion.ArcData> = ArcOcclusion.calculateOcclusion(arcSegments)
+        val visibility: MutableMap<ShipAPI, Float> = mutableMapOf()
+
+        for (occludedArc in occludedArcs) {
+            occludedArc.source as EnemyData
+            visibility[occludedArc.source.enemy] = (visibility[occludedArc.source.enemy] ?: (-occludedArc.source.fullAngle / 3f)) + occludedArc.arc.angle
+        }
+
+        val visibleEnemies: MutableList<ShipAPI> = mutableListOf()
+        for (visibilityData in visibility) {
+            if (visibilityData.value >= 0f) {
+                visibleEnemies.add(visibilityData.key)
+            }
+        }
+
+        return visibleEnemies.toList()
     }
 
     /** Consider once seen ships as visible, even if they're in fog again. This allows
@@ -405,7 +461,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
         val allShips: Sequence<ShipAPI> = Grid.ships(ship.location, stats.attackTargetSearchRange)
         val allTargets = allShips.filter { it.owner != ship.owner && it.isValidTarget }.toList()
-        val allDesignatedTargets = allTargets.filter { isPrimaryTarget(it) }.toList()
+        val allDesignatedTargets = allTargets.filter { isDesignatedTarget(it) }.toList()
 
         // The AI attacks secondary targets only when no other targets are available.
         // For frigates, which can retarget quickly, secondary targets may be attacked
@@ -413,7 +469,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
         val shouldAttackSecondaryTargets = if (ship.isFrigate) {
             allDesignatedTargets.isEmpty() && (maneuverTarget == null || currentEffectiveRange(maneuverTarget) > stats.attackTargetSearchRange)
         } else {
-            maneuverTarget != null && !isPrimaryTarget(maneuverTarget)
+            maneuverTarget != null && !isDesignatedTarget(maneuverTarget)
         }
 
         val opportunities = if (shouldAttackSecondaryTargets) {
