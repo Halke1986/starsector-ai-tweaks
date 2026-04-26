@@ -222,14 +222,21 @@ class CollisionAvoidance(val ai: CustomShipAI) {
     }
 
     private fun avoidIgnoredEnemies(dt: Float, allShipsWithCollision: List<ShipAPI>): List<SpeedLimit?> {
+        val taskManager: CombatTaskManagerAPI = movement.ship.taskManager
+
         return allShipsWithCollision.mapNotNull { obstacle ->
-            // Check if ship is ignored.
-            if (movement.ship.taskManager.getAssignmentInfoForTarget(obstacle.root.deployedFleetMember)?.type != IGNORE) {
+            // Not an enemy.
+            if (!movement.ship.isHostile(obstacle)) {
                 return@mapNotNull null
             }
 
             // Do not attempt to avoid small enemies.
             if (obstacle.mass * enemyCollisionSizeFactor < movement.ship.mass) {
+                return@mapNotNull null
+            }
+
+            // Check if ship is ignored.
+            if (taskManager.getAssignmentInfoForTarget(obstacle.root.deployedFleetMember)?.type != IGNORE) {
                 return@mapNotNull null
             }
 
