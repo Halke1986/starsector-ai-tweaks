@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.CombatEngineAPI
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.genir.aitweaks.core.extensions.*
-import com.genir.aitweaks.core.shipai.Assignment
+import com.genir.aitweaks.core.shipai.AssignmentModule
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.global.AttackCoordinator
@@ -76,7 +76,7 @@ class Maneuver(val ai: CustomShipAI) {
                     }
 
                     // When forming line abreast, face the enemy side of the map.
-                    ai.assignment.type == Assignment.Type.NAVIGATE_IN_FORMATION -> {
+                    ai.assignment.type == AssignmentModule.Type.NAVIGATE_IN_FORMATION -> {
                         Vector2f(
                             navigateTo.x,
                             movement.location.y + if (movement.ship.owner == 0) 1e3f else -1e3f

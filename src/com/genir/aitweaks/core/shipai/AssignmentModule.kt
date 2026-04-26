@@ -6,16 +6,20 @@ import com.fs.starfarer.api.combat.CombatAssignmentType.*
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI
 import com.fs.starfarer.api.combat.DeployedFleetMemberAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.util.IntervalUtil
 import com.genir.aitweaks.core.extensions.assignment
 import com.genir.aitweaks.core.extensions.isNearMapCenterline
 import com.genir.aitweaks.core.extensions.length
 import com.genir.aitweaks.core.extensions.minus
-import com.genir.aitweaks.core.shipai.Assignment.Type.*
+import com.genir.aitweaks.core.shipai.AssignmentModule.Type.*
 import com.genir.aitweaks.core.shipai.global.NavigationCoordinator
+import com.genir.aitweaks.core.utils.defaultAIInterval
 import org.lwjgl.util.vector.Vector2f
 
-class Assignment(private val ai: CustomShipAI) {
+class AssignmentModule(private val ai: CustomShipAI) {
     private val ship: ShipAPI = ai.ship
+
+    private val updateInterval: IntervalUtil = defaultAIInterval()
 
     var navigateTo: Vector2f? = null
     var arrivedAt: Boolean = false
@@ -30,7 +34,12 @@ class Assignment(private val ai: CustomShipAI) {
         NONE,
     }
 
-    fun advance() {
+    fun advance(dt: Float) {
+        updateInterval.advance(dt)
+        if (!updateInterval.intervalElapsed()) {
+            return
+        }
+
         // Cleanup.
         navigateTo = null
         arrivedAt = false
