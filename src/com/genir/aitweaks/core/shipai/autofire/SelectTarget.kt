@@ -255,22 +255,22 @@ class SelectTarget(
     }
 
     private fun selectTarget(
-        entities: List<CombatEntityAPI>,
+        validTargets: List<CombatEntityAPI>,
         isTargetAcceptable: ((CombatEntityAPI, Float) -> Boolean),
     ): CombatEntityAPI? {
         // Primary target takes priority.
-        if (attackTarget != null && isTargetAcceptable(attackTarget, weapon.engagementRange)) {
+        if (attackTarget?.isValidTarget == true && isTargetAcceptable(attackTarget, weapon.engagementRange)) {
             return attackTarget
         }
 
         // Try tracking the current target.
-        if (current != null && isTargetAcceptable(current, weapon.engagementRange)) {
+        if (current?.isValidTarget == true && isTargetAcceptable(current, weapon.engagementRange)) {
             return current
         }
 
         var selectedTarget: CombatEntityAPI? = null
         var targetEvaluation = Float.MAX_VALUE
-        for (target in entities) {
+        for (target in validTargets) {
             if (!isTargetAcceptable(target, targetSearchRange)) {
                 isTargetAcceptable(target, targetSearchRange)
 
