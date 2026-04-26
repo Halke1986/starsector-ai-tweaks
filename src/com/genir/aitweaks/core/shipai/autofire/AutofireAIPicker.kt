@@ -7,10 +7,15 @@ import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.loading.MissileSpecAPI
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.handles.WeaponHandle.Companion.handle
+import com.genir.aitweaks.core.shipai.global.GlobalAI
 import com.genir.aitweaks.core.state.Config.Companion.config
+import com.genir.aitweaks.core.state.State
 
 class AutofireAIPicker : com.genir.aitweaks.launcher.AutofireAIPicker {
     override fun pickWeaponAutofireAI(weaponAPI: WeaponAPI): PluginPick<AutofireAIPlugin>? {
+        val globalAI: GlobalAI = State.state?.globalAI
+            ?: return null
+
         val weapon = weaponAPI.handle
 
         return when {
@@ -19,11 +24,11 @@ class AutofireAIPicker : com.genir.aitweaks.launcher.AutofireAIPicker {
             }
 
             weapon.hasAITag(Tag.TRIGGER_HAPPY) -> {
-                PluginPick(RecklessAutofireAI(weapon), MOD_GENERAL)
+                PluginPick(RecklessAutofireAI(weapon, globalAI.targetTracker), MOD_GENERAL)
             }
 
             else -> {
-                PluginPick(AutofireAI(weapon), MOD_GENERAL)
+                PluginPick(AutofireAI(weapon, globalAI.targetTracker), MOD_GENERAL)
             }
         }
     }

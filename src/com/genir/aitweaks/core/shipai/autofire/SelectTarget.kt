@@ -14,6 +14,7 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
 import com.genir.aitweaks.core.shipai.autofire.ballistics.estimateIdealHit
+import com.genir.aitweaks.core.shipai.global.TargetTracker
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.state.Config.Companion.config
 import com.genir.aitweaks.core.utils.Grid
@@ -27,6 +28,7 @@ class SelectTarget(
     private val current: CombatEntityAPI?,
     private val attackTarget: ShipAPI?,
     private val params: BallisticParams,
+    private val targetTracker: TargetTracker,
 ) {
     companion object {
         const val TARGET_SEARCH_MULT = 1.5f
@@ -37,7 +39,7 @@ class SelectTarget(
     private val targetSearchRange = weapon.engagementRange * TARGET_SEARCH_MULT
 
     private val obstacleList by lazy {
-        ObstacleList(weapon, targetSearchRange, params)
+        ObstacleList(weapon, targetSearchRange, targetTracker, params)
     }
 
     fun target(): CombatEntityAPI? {
@@ -148,11 +150,11 @@ class SelectTarget(
             return when {
                 target !is ShipAPI -> false
 
-                !target.isValidTarget -> false
-
                 target.owner == weapon.ship.owner -> false
 
                 !shipTypeFilter(target) -> false
+
+                (target.location - weapon.location).length > range -> false
 
                 weapon.slot.isHardpoint -> {
                     when {
@@ -185,7 +187,7 @@ class SelectTarget(
             }
         }
 
-        val ships: Sequence<ShipAPI> = Grid.ships(weapon.location, targetSearchRange)
+        val ships: List<ShipAPI> = targetTracker.getShipTargets()
 
         return selectTarget(ships, isTargetAcceptable) as? ShipAPI
     }
@@ -195,9 +197,9 @@ class SelectTarget(
             return when {
                 target !is MissileAPI -> false
 
-                !target.isValidTarget -> false
-
                 target.owner == weapon.ship.owner -> false
+
+                (target.location - weapon.location).length > range -> false
 
                 target.isFlare && weapon.ignoresFlares -> false
 
@@ -213,7 +215,7 @@ class SelectTarget(
             }
         }
 
-        val missiles: Sequence<MissileAPI> = Grid.missiles(weapon.location, targetSearchRange)
+        val missiles: List<MissileAPI> = targetTracker.getMissileTargets()
 
         return selectTarget(missiles, isTargetAcceptable) as? MissileAPI
     }
@@ -249,11 +251,11 @@ class SelectTarget(
 
         val asteroids: Sequence<CombatAsteroidAPI> = Grid.asteroids(weapon.location, targetSearchRange)
 
-        return selectTarget(asteroids, isTargetAcceptable) as? CombatAsteroidAPI
+        return selectTarget(asteroids.toList(), isTargetAcceptable) as? CombatAsteroidAPI
     }
 
     private fun selectTarget(
-        entities: Sequence<CombatEntityAPI>,
+        entities: List<CombatEntityAPI>,
         isTargetAcceptable: ((CombatEntityAPI, Float) -> Boolean),
     ): CombatEntityAPI? {
         // Primary target takes priority.

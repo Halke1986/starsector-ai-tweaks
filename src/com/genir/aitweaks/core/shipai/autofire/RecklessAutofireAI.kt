@@ -10,12 +10,13 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.HULL
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.SHIELD
 import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeHit
+import com.genir.aitweaks.core.shipai.global.TargetTracker
 import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 
 /** Specialized AutofireAI implementation for weapons that are most
  * effective when very trigger-happy. The AI will fire even if it
  * anticipates a miss or is out of range. */
-class RecklessAutofireAI(weapon: WeaponHandle) : AutofireAI(weapon) {
+class RecklessAutofireAI(weapon: WeaponHandle, targetTracker: TargetTracker) : AutofireAI(weapon, targetTracker) {
     override fun calculateShouldFire(): HoldFire {
         val target: CombatEntityAPI = target
             ?: return NO_TARGET

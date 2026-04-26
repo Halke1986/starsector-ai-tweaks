@@ -13,13 +13,11 @@ import com.genir.aitweaks.core.shipai.ExtendedShipAI
 import com.genir.aitweaks.core.shipai.Preset
 import com.genir.aitweaks.core.shipai.autofire.HoldFire.*
 import com.genir.aitweaks.core.shipai.autofire.SelectTarget.Companion.TARGET_SEARCH_MULT
-import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
-import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit
+import com.genir.aitweaks.core.shipai.autofire.ballistics.*
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.ROTATE_BEAM
 import com.genir.aitweaks.core.shipai.autofire.ballistics.Hit.Type.SHIELD
-import com.genir.aitweaks.core.shipai.autofire.ballistics.analyzeHit
+import com.genir.aitweaks.core.shipai.global.TargetTracker
 import com.genir.aitweaks.core.state.Config.Companion.config
-import com.genir.aitweaks.core.utils.firstShipAlongLineOfFire
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
@@ -27,7 +25,7 @@ import com.genir.aitweaks.core.utils.types.RotationMatrix
 import com.genir.aitweaks.core.utils.types.RotationMatrix.Companion.rotated
 import org.lwjgl.util.vector.Vector2f
 
-open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
+open class AutofireAI(val weapon: WeaponHandle, val targetTracker: TargetTracker) : AutofireAIPlugin {
     private val ship: ShipAPI = weapon.ship
     var syncFire: SyncFire = SyncFire(weapon, null)
     val reloadTracker: ReloadTracker = ReloadTracker(weapon)
@@ -203,7 +201,7 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
 
     private fun updateTarget(dt: Float) {
         val previousTarget = target
-        target = SelectTarget(weapon, target, ship.attackTarget, weapon.currentBallisticsParams).target()
+        target = SelectTarget(weapon, target, ship.attackTarget, weapon.currentBallisticsParams, targetTracker).target()
 
         // Nothing changed, return early.
         if (target == previousTarget) {
@@ -495,6 +493,32 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         } finally {
             ship.facing = actualFacing
         }
+    }
+
+    fun firstShipAlongLineOfFire(weapon: WeaponHandle, target: CombatEntityAPI, params: BallisticParams): Hit? {
+        val range: Float = weapon.engagementRange
+
+        val obstacles = targetTracker.getObstacles().filter { ship ->
+            when {
+                ship.root == weapon.ship.root -> false
+                ship.owner == weapon.ship.owner -> true
+
+                (ship.location - weapon.location).length > range -> false
+
+                ship.isPhased -> false
+                else -> true
+            }
+        }
+
+        val evaluated = obstacles.mapNotNull { ship ->
+            if (ship.owner == weapon.ship.owner) {
+                analyzeAllyHit(weapon, target, ship, params)
+            } else {
+                analyzeHit(weapon, ship, params)
+            }
+        }
+
+        return evaluated.minWithOrNull(compareBy { it.range })
     }
 
     private val WeaponHandle.isSlowRotating: Boolean

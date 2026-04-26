@@ -10,6 +10,7 @@ class GlobalAI : BaseEveryFrameCombatPlugin() {
     val maneuverCoordinator: AttackCoordinator = AttackCoordinator()
     val navigateCoordinator: NavigationCoordinator = NavigationCoordinator()
     val projectileTracker: ProjectileTracker = ProjectileTracker()
+    val targetTracker: TargetTracker = TargetTracker()
 
     private val fleetCohesion: Array<FleetCohesionAI> = arrayOf(FleetCohesionAI(0, this), FleetCohesionAI(1, this))
     private val searchAndDestroy: SearchAndDestroyManager = SearchAndDestroyManager(this)
@@ -27,6 +28,7 @@ class GlobalAI : BaseEveryFrameCombatPlugin() {
         maneuverCoordinator.advance(dt, events)
         navigateCoordinator.advance(dt, events)
         projectileTracker.advance(dt, events)
+        targetTracker.advance(dt, events)
 
         frameTracker.advance()
     }

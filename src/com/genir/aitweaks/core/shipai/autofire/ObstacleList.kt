@@ -2,27 +2,24 @@ package com.genir.aitweaks.core.shipai.autofire
 
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.genir.aitweaks.core.extensions.boundsRadius
-import com.genir.aitweaks.core.extensions.facing
-import com.genir.aitweaks.core.extensions.length
-import com.genir.aitweaks.core.extensions.root
+import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
+import com.genir.aitweaks.core.shipai.global.TargetTracker
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
-import com.genir.aitweaks.core.utils.Grid
 import com.genir.aitweaks.core.utils.types.Arc
 
-class ObstacleList(private val weapon: WeaponHandle, radius: Float, private val params: BallisticParams) {
+class ObstacleList(private val weapon: WeaponHandle, radius: Float, targetTracker: TargetTracker, private val params: BallisticParams) {
     private data class Obstacle(val arc: Arc, val dist: Float, val origin: CombatEntityAPI)
 
     private val obstacles: List<Obstacle> = run {
-        val ships: Sequence<ShipAPI> = Grid.ships(weapon.location, radius).filter {
+        val ships: List<ShipAPI> = targetTracker.getObstacles().filter {
             when {
                 // Same ship.
                 it.root == weapon.ship.root -> false
 
-                it.isFighter -> false
+                (it.location - weapon.location).length > radius -> false
 
                 // Weapon fires over allies.
                 weapon.noFF && it.owner == weapon.ship.owner -> false
@@ -31,7 +28,7 @@ class ObstacleList(private val weapon: WeaponHandle, radius: Float, private val 
             }
         }
 
-        val obstacles: Sequence<Obstacle> = ships.map { ship ->
+        val obstacles: List<Obstacle> = ships.map { ship ->
             val target = BallisticTarget(ship.location, ship.movement.velocity, ship.boundsRadius * 0.8f, ship)
 
             return@map Obstacle(
@@ -41,7 +38,7 @@ class ObstacleList(private val weapon: WeaponHandle, radius: Float, private val 
             )
         }
 
-        return@run obstacles.toList()
+        return@run obstacles
     }
 
     fun isOccluded(target: CombatEntityAPI): Boolean {
