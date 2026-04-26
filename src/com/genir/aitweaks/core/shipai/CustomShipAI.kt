@@ -98,7 +98,7 @@ class CustomShipAI(val ship: ShipAPI, val globalAI: GlobalAI) : BaseShipAI() {
 
         // Advance subsystems.
         vanilla.advance(dt, attackTarget as? ShipAPI, maneuver.expectedVelocity, maneuver.expectedFacing)
-        assignment.advance()
+        assignment.advance(dt)
         ventModule.advance(dt)
         systemAI?.advance(dt)
         maneuver.advance(dt)

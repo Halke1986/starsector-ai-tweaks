@@ -95,7 +95,7 @@ class EntityGrid(entities: List<CombatEntityAPI>?) {
         }
     }
 
-    data class EntityRecord(val entity: CombatEntityAPI, val n: Int)
+    private data class EntityRecord(val entity: CombatEntityAPI, val n: Int)
 
     private inner class EntityIterator(l: Vector2f, r: Float) : Iterator<CombatEntityAPI> {
         private val visited = BooleanArray(entityNumber)

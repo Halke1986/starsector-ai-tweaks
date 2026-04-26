@@ -424,22 +424,6 @@ open class AutofireAI(val weapon: WeaponHandle) : AutofireAIPlugin {
         }
     }
 
-    /**
-     * getAccuracy returns current weapon accuracy.
-     * The value is a number in range [1.0;2.0]. 1.0 is perfect accuracy, 2.0f is the worst accuracy.
-     * For worst accuracy, the weapon should aim exactly in the middle point between the target actual
-     * position and calculated intercept position.
-     */
-    private fun getAccuracy(): Float {
-        if (weapon.hasBestTargetLeading || Global.getCurrentState() == GameState.TITLE) {
-            return 1f
-        }
-
-        val accBase = ship.aimAccuracy
-        val accBonus = weapon.spec?.autofireAccBonus ?: 0f
-        return (accBase - (accBonus + attackTime / 15f)).coerceAtLeast(1f)
-    }
-
     private fun updateAim(dt: Float) {
         aimPoint = null
 
