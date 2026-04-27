@@ -406,7 +406,7 @@ class Maneuver(val ai: CustomShipAI) {
 
         val approximateOrbitLength = (attackLocation - closestLocationOnOrbit).length
         val orbitSpeed = EngineController.vMax(dt, approximateOrbitLength, movement.acceleration)
-        val cappedOrbitSpeed = if (t.isNaN()) 0f else t.coerceAtMost(orbitSpeed)
+        val cappedOrbitSpeed = t.coerceAtMost(orbitSpeed).ifNaN(0f)
 
         val expectedVelocity = maneuverTarget.velocity + orbitVelocityVector * cappedOrbitSpeed
         val expectedDirection = expectedVelocity.facing

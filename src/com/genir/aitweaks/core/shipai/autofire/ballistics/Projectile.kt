@@ -20,10 +20,7 @@ open class Projectile(private val weapon: WeaponHandle) : Ballistics {
      * arbitrary long time period to approximate the target location. */
     override fun intercept(target: BallisticTarget, params: BallisticParams): Vector2f {
         val pv = targetMotion(target, params)
-        var projectileFlightDistance = solve(pv, weapon.projectileSpawnOffset, 1f, 0f, 0f, Solution.SMALLER_NON_NEGATIVE)
-        if (projectileFlightDistance.isNaN()) {
-            projectileFlightDistance = approachesInfinity
-        }
+        val projectileFlightDistance = solve(pv, weapon.projectileSpawnOffset, 1f, 0f, 0f, Solution.SMALLER_NON_NEGATIVE).ifNaN(approachesInfinity)
 
         return pv.positionAfter(projectileFlightDistance)
     }

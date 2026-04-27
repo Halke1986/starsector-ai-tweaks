@@ -225,7 +225,6 @@ class BurnDriveToggle(ai: CustomShipAI) : CustomSystemAI(ai) {
             // Calculate time to collision.
             val t = solve(p, v, r, Solution.SMALLER_NON_NEGATIVE)
             return@mapNotNull if (t.isNaN()) null else t
-
         }.minOrNull() ?: Float.MAX_VALUE
     }
 }
