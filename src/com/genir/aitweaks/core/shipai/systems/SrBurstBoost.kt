@@ -9,6 +9,7 @@ import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.Bounds
+import com.genir.aitweaks.core.utils.Solution
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Arc
 import com.genir.aitweaks.core.utils.types.Direction
@@ -231,7 +232,11 @@ class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
         val p = target.location - ship.location
         val v = target.movement.velocity
 
-        val time = solve(p, v, 0f, burstSpeed, 0f, 0f)?.smallerNonNegative ?: return null
+        val time = solve(p, v, 0f, burstSpeed, 0f, 0f, Solution.SMALLER_NON_NEGATIVE)
+        if (time.isNaN()) {
+            return null
+        }
+
         return target.location + v * time
     }
 
@@ -240,7 +245,11 @@ class SrBurstBoost(ai: CustomShipAI) : CustomSystemAI(ai) {
         if (target.shield?.isOn != true) return null
         val shield = target.shield
 
-        val time = solve(position, velocity, shield.radius)?.smallerNonNegative ?: return null
+        val time = solve(position, velocity, shield.radius, Solution.SMALLER_NON_NEGATIVE)
+        if (time.isNaN()) {
+            return null
+        }
+
         val hitPoint = position + velocity * time
         val willHitShield = Arc(shield.activeArc, shield.facing.toDirection).contains(hitPoint)
 

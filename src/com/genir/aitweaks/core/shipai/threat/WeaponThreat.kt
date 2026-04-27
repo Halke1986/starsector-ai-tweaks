@@ -12,6 +12,7 @@ import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticParams
 import com.genir.aitweaks.core.shipai.autofire.ballistics.BallisticTarget
 import com.genir.aitweaks.core.shipai.movement.Movement
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
+import com.genir.aitweaks.core.utils.Solution
 import com.genir.aitweaks.core.utils.distanceToOrigin
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Direction.Companion.toDirection
@@ -183,8 +184,10 @@ class WeaponThreat(private val ship: ShipAPI) {
         // Time after which the target crosses the weapon range radius.
         // If the equation has no positive solutions, the target will
         // never cross the radius.
-        val timeToCross = solve(targetMotion, range + target.radius)?.smallerNonNegative
-            ?: return Float.POSITIVE_INFINITY
+        val timeToCross = solve(targetMotion, range + target.radius, Solution.SMALLER_NON_NEGATIVE)
+        if (timeToCross.isNaN()) {
+            return Float.POSITIVE_INFINITY
+        }
 
         // Time it takes the projectile to reach the weapon range radius.
         val projectileFlightTime = (range - weapon.projectileSpawnOffset) / weapon.projectileSpeed

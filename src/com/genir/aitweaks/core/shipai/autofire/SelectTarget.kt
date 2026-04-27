@@ -272,8 +272,6 @@ class SelectTarget(
         var targetEvaluation = Float.MAX_VALUE
         for (target in validTargets) {
             if (!isTargetAcceptable(target, targetSearchRange)) {
-                isTargetAcceptable(target, targetSearchRange)
-
                 continue
             }
 

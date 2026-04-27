@@ -2,6 +2,7 @@ package com.genir.aitweaks.core.shipai.autofire.ballistics
 
 import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.handles.WeaponHandle
+import com.genir.aitweaks.core.utils.Solution
 import com.genir.aitweaks.core.utils.pointsOfTangency
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Arc
@@ -19,9 +20,12 @@ open class Projectile(private val weapon: WeaponHandle) : Ballistics {
      * arbitrary long time period to approximate the target location. */
     override fun intercept(target: BallisticTarget, params: BallisticParams): Vector2f {
         val pv = targetMotion(target, params)
-        val projectileFlightDistance = solve(pv, weapon.projectileSpawnOffset, 1f, 0f, 0f)?.smallerNonNegative
+        var projectileFlightDistance = solve(pv, weapon.projectileSpawnOffset, 1f, 0f, 0f, Solution.SMALLER_NON_NEGATIVE)
+        if (projectileFlightDistance.isNaN()) {
+            projectileFlightDistance = approachesInfinity
+        }
 
-        return pv.positionAfter(projectileFlightDistance ?: approachesInfinity)
+        return pv.positionAfter(projectileFlightDistance)
     }
 
     /** Calculates the target intercept arc. If weapon facing is within this arc,
@@ -54,8 +58,10 @@ open class Projectile(private val weapon: WeaponHandle) : Ballistics {
         }
 
         val projectileOffset = weapon.projectileSpawnOffset
-        val projectileFlightDistance = solve(pv, projectileOffset, 1f, target.radius, cos180)?.smallerNonNegative
-            ?: return Float.POSITIVE_INFINITY
+        val projectileFlightDistance = solve(pv, projectileOffset, 1f, target.radius, cos180, Solution.SMALLER_NON_NEGATIVE)
+        if (projectileFlightDistance.isNaN()) {
+            return Float.POSITIVE_INFINITY
+        }
 
         return projectileOffset + projectileFlightDistance
     }

@@ -10,6 +10,7 @@ import com.genir.aitweaks.core.extensions.*
 import com.genir.aitweaks.core.shipai.CustomShipAI
 import com.genir.aitweaks.core.shipai.movement.Movement.Companion.movement
 import com.genir.aitweaks.core.utils.Grid
+import com.genir.aitweaks.core.utils.Solution
 import com.genir.aitweaks.core.utils.defaultAIInterval
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.Direction
@@ -217,9 +218,14 @@ class BurnDriveToggle(ai: CustomShipAI) : CustomSystemAI(ai) {
             val v = obstacle.movement.velocity - shipVelocity
             val r = ship.totalCollisionRadius + obstacle.totalCollisionRadius
 
+            if (p.lengthSquared <= r * r) {
+                return@mapNotNull 0f
+            }
+
             // Calculate time to collision.
-            if (p.lengthSquared <= r * r) 0f
-            else solve(p, v, r)?.smallerNonNegative
+            val t = solve(p, v, r, Solution.SMALLER_NON_NEGATIVE)
+            return@mapNotNull if (t.isNaN()) null else t
+
         }.minOrNull() ?: Float.MAX_VALUE
     }
 }

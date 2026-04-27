@@ -9,6 +9,7 @@ import com.genir.aitweaks.core.extensions.isShip
 import com.genir.aitweaks.core.extensions.linearMotion
 import com.genir.aitweaks.core.handles.WeaponHandle
 import com.genir.aitweaks.core.utils.Bounds
+import com.genir.aitweaks.core.utils.Solution
 import com.genir.aitweaks.core.utils.solve
 import com.genir.aitweaks.core.utils.types.LinearMotion
 
@@ -116,7 +117,12 @@ private fun analyzeHit(projectileMotion: LinearMotion, target: CombatEntityAPI):
 }
 
 private fun willHitCircumference(projectileMotion: LinearMotion, target: BallisticTarget): Float? {
-    return solve(projectileMotion, target.radius)?.smallerNonNegative
+    val solution = solve(projectileMotion, target.radius, Solution.SMALLER_NON_NEGATIVE)
+    if (solution.isNaN()) {
+        return null
+    }
+
+    return solution
 }
 
 private fun willHitShield(projectileMotion: LinearMotion, target: CombatEntityAPI): Float? {
@@ -129,8 +135,10 @@ private fun willHitShield(projectileMotion: LinearMotion, target: CombatEntityAP
     }
 
     val shield = target.shield
-    val projectileFlightDistance = solve(projectileMotion, shield.radius)?.smallerNonNegative
-        ?: return null
+    val projectileFlightDistance = solve(projectileMotion, shield.radius, Solution.SMALLER_NON_NEGATIVE)
+    if (projectileFlightDistance.isNaN()) {
+        return null
+    }
 
     val hitPoint = projectileMotion.positionAfter(projectileFlightDistance)
 

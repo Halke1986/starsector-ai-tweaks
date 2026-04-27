@@ -402,11 +402,11 @@ class Maneuver(val ai: CustomShipAI) {
         // If the maneuver target is slower than the ship, use the
         // remaining ship velocity to move around the orbit.
         val maxSpeed = maxOf(movement.maxSpeed, movement.velocity.length) + movement.acceleration * dt
-        val t = solve(maneuverTarget.velocity, orbitVelocityVector, maxSpeed)?.largerNonNegative
+        val t = solve(maneuverTarget.velocity, orbitVelocityVector, maxSpeed, Solution.LARGER_NON_NEGATIVE)
 
         val approximateOrbitLength = (attackLocation - closestLocationOnOrbit).length
         val orbitSpeed = EngineController.vMax(dt, approximateOrbitLength, movement.acceleration)
-        val cappedOrbitSpeed = t?.coerceAtMost(orbitSpeed) ?: 0f
+        val cappedOrbitSpeed = if (t.isNaN()) 0f else t.coerceAtMost(orbitSpeed)
 
         val expectedVelocity = maneuverTarget.velocity + orbitVelocityVector * cappedOrbitSpeed
         val expectedDirection = expectedVelocity.facing
