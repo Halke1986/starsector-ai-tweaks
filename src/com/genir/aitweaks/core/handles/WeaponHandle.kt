@@ -298,10 +298,37 @@ value class WeaponHandle(val weaponAPI: WeaponAPI) {
             return average
         }
 
+    /** Calculate the x-axis barrel offset for the weaponAPI.
+     * For multi-barreled weapons, average offset is returned. */
+    val barrelLength: Float
+        get() {
+            val spec: WeaponSpecAPI = spec
+                ?: return 0f
+
+            val offsets: List<Vector2f> = when {
+                slot.isHardpoint -> spec.hardpointFireOffsets
+
+                slot.isTurret -> spec.turretFireOffsets
+
+                else -> listOf()
+            }
+
+            if (offsets.isEmpty()) {
+                return 0f
+            }
+
+            var lengtSum: Float = 0f
+            for (offset in offsets) {
+                lengtSum += offset.x
+            }
+
+            return lengtSum / offsets.size.toFloat()
+        }
+
     /** Distance along the firing angle from the weapon's
      * location where the projectile is spawned. */
     val projectileSpawnOffset: Float
-        get() = barrelOffset.x + projectileLength
+        get() = barrelLength + projectileLength
 
     private val projectileLength: Float
         get() {

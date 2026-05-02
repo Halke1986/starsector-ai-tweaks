@@ -34,8 +34,9 @@ open class Projectile(private val weapon: WeaponHandle) : Ballistics {
         val points = pointsOfTangency(pv.position, target.radius)
             ?: return Arc(360f, 0f.toDirection)
 
-        val target1 = BallisticTarget(weapon.location + points.first, target.velocity, 0f, target.entity)
-        val target2 = BallisticTarget(weapon.location + points.second, target.velocity, 0f, target.entity)
+        val weaponLocation = weapon.location
+        val target1 = BallisticTarget(weaponLocation + points.first, target.velocity, 0f, target.entity)
+        val target2 = BallisticTarget(weaponLocation + points.second, target.velocity, 0f, target.entity)
 
         // Attack delay was accounted for when calculating points of tangency.
         val noDelayParams = BallisticParams(params.accuracy, 0f)
